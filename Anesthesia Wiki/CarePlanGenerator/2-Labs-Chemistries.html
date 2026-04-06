@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Labs & Chemistries</title>
+  <link rel="stylesheet" href="shared.css?v=3" />
+  <style>
+    .lab-input {
+      width: 80px;
+      font-size: 15px;
+      text-align: center;
+      padding: 7px 4px;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      background: #fff;
+      box-sizing: border-box;
+    }
+    .lab-input:focus { outline: 2px solid #4a90d9; border-color: #4a90d9; }
+    .lab-input.abnormal {
+      color: #c41c3b;
+      font-weight: 700;
+      border-color: #c41c3b;
+      background: #fff4f6;
+    }
+    .lab-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: #555;
+      display: block;
+      margin-bottom: 3px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .fishbone {
+      display: grid;
+      grid-template-columns: repeat(3, auto);
+      border: 2px solid #4a6fa5;
+      border-radius: 5px;
+      overflow: hidden;
+      width: fit-content;
+    }
+    .fb-cell {
+      padding: 10px 12px;
+      text-align: center;
+      border: 1px solid #b0c4de;
+      background: #f7faff;
+    }
+    .fb-glu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 2px;
+    }
+    .cbc-quad {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      border: 2px solid #4a6fa5;
+      border-radius: 5px;
+      overflow: hidden;
+      width: fit-content;
+    }
+    .cbc-cell {
+      padding: 10px 12px;
+      text-align: center;
+      border: 1px solid #b0c4de;
+      background: #f7faff;
+    }
+    .coag-block {
+      display: flex;
+      width: fit-content;
+      border: 2px solid #4a6fa5;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .coag-cell {
+      padding: 10px 12px;
+      text-align: center;
+      border-right: 1px solid #b0c4de;
+      background: #f7faff;
+    }
+    .coag-cell:last-child { border-right: none; }
+    .ptinr-pair {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 3px;
+    }
+    .ptinr-pair .lab-input { width: 62px; }
+    .supp-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-end;
+      margin-top: 8px;
+    }
+    .supp-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .section-lbl {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 6px;
+    }
+    .hrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .hcell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .gas-btn {
+      padding: 6px 16px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      background: #f0f0f0;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .gas-btn.active { background: #4a6fa5; color: #fff; border-color: #3a5a8a; }
+    .gas-fishbone .fb-cell { background: #f3fff3; border-color: #a0c4a0; }
+    .gas-fishbone { border-color: #5a8a5a; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>2. Labs &amp; Chemistries</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Medications</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+    </div>
+
+    <input type="hidden" id="pat-gas-type" value="none">
+
+    <div class="card" style="display:flex;flex-direction:column;gap:22px;">
+      <div style="display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;">
+        <div>
+          <div class="section-lbl">BMP</div>
+          <div class="hrow">
+            <div class="hcell"><span class="lab-lbl">Na</span><input id="pat-na" class="lab-input" placeholder="—"></div>
+            <div class="hcell"><span class="lab-lbl">K</span><input id="pat-k" class="lab-input" placeholder="—"></div>
+            <div class="hcell"><span class="lab-lbl">Cl</span><input id="pat-cl" class="lab-input" placeholder="—"></div>
+            <div class="hcell"><span class="lab-lbl">BUN</span><input id="pat-bun" class="lab-input" placeholder="—"></div>
+            <div class="hcell"><span class="lab-lbl">Cr</span><input id="pat-cr" class="lab-input" placeholder="—"></div>
+            <div class="hcell"><span class="lab-lbl">Glu</span><input id="pat-glu" class="lab-input" placeholder="—"></div>
+            <div class="hcell"><span class="lab-lbl">Mg</span><input id="pat-mg" class="lab-input" placeholder="—"></div>
+          </div>
+          <div class="supp-row">
+            <div class="supp-cell"><span class="lab-lbl">Alb</span><input id="pat-alb" class="lab-input" placeholder="—"></div>
+            <div class="supp-cell"><span class="lab-lbl">AST</span><input id="pat-ast" class="lab-input" placeholder="—"></div>
+            <div class="supp-cell"><span class="lab-lbl">ALT</span><input id="pat-alt" class="lab-input" placeholder="—"></div>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="section-lbl">Additional Chemistries</div>
+            <div class="supp-row" style="margin-top:0;">
+              <div class="supp-cell"><span class="lab-lbl">iCa</span><input id="pat-ica" class="lab-input" placeholder="—"></div>
+              <div class="supp-cell"><span class="lab-lbl">Ca</span><input id="pat-ca" class="lab-input" placeholder="—"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-lbl">CBC</div>
+          <div class="hrow">
+            <div class="hcell"><span class="lab-lbl">WBC</span><input id="pat-wbc" class="lab-input" placeholder="—"></div>
+            <div class="hcell"><span class="lab-lbl">HGB</span><input id="pat-hgb" class="lab-input" placeholder="—"></div>
+            <div class="hcell"><span class="lab-lbl">HCT</span><input id="pat-hct" class="lab-input" placeholder="—"></div>
+            <div class="hcell"><span class="lab-lbl">PLT</span><input id="pat-plt" class="lab-input" placeholder="—"></div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <div class="section-lbl">Coagulation</div>
+            <div class="coag-block">
+              <div class="coag-cell">
+                <span class="lab-lbl">PT / INR</span>
+                <div class="ptinr-pair">
+                  <input id="pat-pt" class="lab-input" placeholder="PT">
+                  <span style="font-size:12px;color:#666;">/</span>
+                  <input id="pat-inr" class="lab-input" placeholder="INR">
+                </div>
+              </div>
+              <div class="coag-cell">
+                <span class="lab-lbl">aPTT</span>
+                <input id="pat-ptt" class="lab-input" placeholder="—" style="margin-top:3px;">
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <div class="section-lbl">Blood Gas</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <button class="gas-btn active" id="gas-btn-none" onclick="setGas('none')">None</button>
+              <button class="gas-btn" id="gas-btn-abg" onclick="setGas('abg')">ABG</button>
+              <button class="gas-btn" id="gas-btn-vbg" onclick="setGas('vbg')">VBG</button>
+            </div>
+            <div id="gas-fields" style="display:none;margin-top:14px;">
+              <div class="section-lbl" id="gas-heading" style="margin-bottom:6px;"></div>
+              <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+                <div class="fishbone gas-fishbone">
+                  <div class="fb-cell"><span class="lab-lbl">pH</span><input id="gas-ph" class="lab-input" placeholder="—"></div>
+                  <div class="fb-cell"><span class="lab-lbl">pCO₂</span><input id="gas-pco2" class="lab-input" placeholder="—"></div>
+                  <div class="fb-cell"><span class="lab-lbl">pO₂</span><input id="gas-po2" class="lab-input" placeholder="—"></div>
+                  <div class="fb-cell"><span class="lab-lbl">HCO₃</span><input id="gas-hco3" class="lab-input" placeholder="—"></div>
+                  <div class="fb-cell"><span class="lab-lbl">BE</span><input id="gas-be" class="lab-input" placeholder="—"></div>
+                  <div class="fb-cell"><span class="lab-lbl">SpO₂</span><input id="gas-spo2" class="lab-input" placeholder="—"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <script src="shared.js?v=19"></script>
+  <script>
+    var LAB_RANGES = {
+      'pat-na': [135, 145],
+      'pat-k': [3.5, 5.0],
+      'pat-cl': [98, 106],
+      'pat-bun': [7, 20],
+      'pat-cr': [0.6, 1.3],
+      'pat-glu': [70, 140],
+      'pat-mg': [1.7, 2.2],
+      'pat-alb': [3.5, 5.0],
+      'pat-ast': [10, 40],
+      'pat-alt': [7, 56],
+      'pat-ica': [1.12, 1.32],
+      'pat-ca': [8.5, 10.5],
+      'pat-wbc': [4.0, 11.0],
+      'pat-hgb': [12.0, 17.5],
+      'pat-hct': [36, 52],
+      'pat-plt': [150, 400],
+      'pat-pt': [11, 14],
+      'pat-inr': [0.8, 1.2],
+      'pat-ptt': [25, 35],
+      'gas-ph': [7.35, 7.45],
+      'gas-pco2': [35, 45],
+      'gas-po2': [80, 100],
+      'gas-hco3': [22, 26],
+      'gas-be': [-2, 2],
+      'gas-spo2': [95, 100]
+    };
+
+    function setGas(type) {
+      ['none','abg','vbg'].forEach(function(t) {
+        document.getElementById('gas-btn-' + t).classList.toggle('active', t === type);
+      });
+      var fields = document.getElementById('gas-fields');
+      var heading = document.getElementById('gas-heading');
+      if (type === 'none') {
+        fields.style.display = 'none';
+      } else {
+        fields.style.display = 'block';
+        heading.textContent = type === 'abg' ? 'ABG Values' : 'VBG Values';
+      }
+      document.getElementById('pat-gas-type').value = type;
+      saveState();
+    }
+
+    function checkLabs() {
+      Object.keys(LAB_RANGES).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var range = LAB_RANGES[id];
+        var v = parseFloat(el.value);
+        var abnormal = !isNaN(v) && (v < range[0] || v > range[1]);
+        el.classList.toggle('abnormal', abnormal);
+      });
+      saveState();
+    }
+
+    pageBoot(function() {
+      document.querySelectorAll('.lab-input').forEach(function(el) {
+        el.addEventListener('input', checkLabs);
+      });
+      var s = getGlobalState();
+      setGas(s['pat-gas-type'] || 'none');
+      checkLabs();
+    });
+  </script>
+</body>
+</html>

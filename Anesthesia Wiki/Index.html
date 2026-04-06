@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anesthesia Wiki</title>
+    <style>
+        :root {
+            --primary: #1f2a37;
+            --blue: #114a8d;
+            --light-blue: #3498db;
+            --green: #1a7c50;
+            --orange: #d4920a;
+            --red: #b32424;
+            --purple: #6c3483;
+            --teal: #0e7490;
+            --bg: #f3f7fb;
+            --white: #ffffff;
+            --line: #dbe5f0;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--primary);
+            padding-bottom: 60px;
+        }
+
+        /* Header */
+        header {
+            background: var(--primary);
+            padding: 18px 20px 14px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        header h1 {
+            margin: 0 0 4px;
+            font-size: 1.5rem;
+            color: #fff;
+            letter-spacing: 0.04em;
+        }
+        header p {
+            margin: 0;
+            font-size: 0.82rem;
+            color: #93adc8;
+        }
+
+        .container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+
+        /* Section headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 28px 0 12px;
+        }
+        .section-header .icon {
+            font-size: 1.3rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .section-header h2 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--primary);
+        }
+        .section-line { flex: 1; height: 1px; background: var(--line); }
+
+        /* Tile grids */
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 10px;
+        }
+        .tile-grid.wide {
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        }
+
+        .tile {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px 14px;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            text-align: center;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .tile .tile-icon {
+            font-size: 1.5rem;
+        }
+        .tile .tile-sub {
+            font-size: 0.74rem;
+            font-weight: 400;
+            color: #6b7f96;
+        }
+
+        /* Accent top borders */
+        .t-blue   { border-top: 3px solid var(--light-blue); }
+        .t-green  { border-top: 3px solid var(--green); }
+        .t-orange { border-top: 3px solid var(--orange); }
+        .t-red    { border-top: 3px solid var(--red); }
+        .t-purple { border-top: 3px solid var(--purple); }
+        .t-teal   { border-top: 3px solid var(--teal); }
+        .t-navy   { border-top: 3px solid var(--blue); }
+
+        .tile:hover.t-blue   { border-top-color: var(--light-blue); background: #f0f8ff; }
+        .tile:hover.t-green  { border-top-color: var(--green);      background: #f0fff8; }
+        .tile:hover.t-orange { border-top-color: var(--orange);     background: #fffbf0; }
+        .tile:hover.t-red    { border-top-color: var(--red);        background: #fff5f5; }
+        .tile:hover.t-purple { border-top-color: var(--purple);     background: #fdf5ff; }
+        .tile:hover.t-teal   { border-top-color: var(--teal);       background: #f0fbff; }
+        .tile:hover.t-navy   { border-top-color: var(--blue);       background: #f0f5ff; }
+
+        /* Crisis tile — full-width red */
+        .crisis-tile {
+            background: #fff5f5;
+            border: 1px solid #f5c6c6;
+            border-left: 5px solid var(--red);
+            border-radius: 10px;
+            padding: 16px 20px;
+            text-decoration: none;
+            color: var(--red);
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.15s, box-shadow 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .crisis-tile:hover {
+            background: #ffe8e8;
+            box-shadow: 0 4px 12px rgba(180,30,30,0.12);
+        }
+        .crisis-tile .c-icon { font-size: 1.6rem; }
+        .crisis-tile .c-text { display: flex; flex-direction: column; gap: 2px; }
+        .crisis-tile .c-sub { font-size: 0.78rem; font-weight: 400; color: #a04040; }
+
+        /* Med reference sub-grid */
+        .med-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .med-category {
+            margin: 8px 0 6px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #5f738a;
+            font-weight: 700;
+        }
+        .med-tile {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 11px 8px;
+            text-decoration: none;
+            color: var(--primary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-align: center;
+            transition: background 0.15s, color 0.15s;
+        }
+        .med-tile:hover {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        /* Search bar */
+        .search-wrap {
+            max-width: 960px;
+            margin: 20px auto 0;
+            padding: 0 16px;
+        }
+        .search-bar {
+            width: 100%;
+            padding: 11px 16px 11px 42px;
+            font-size: 0.95rem;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23778ca3' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 14px center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            color: var(--primary);
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .search-bar:focus {
+            border-color: var(--light-blue);
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
+        }
+        .search-no-results {
+            text-align: center;
+            padding: 28px;
+            color: #8a9ab0;
+            font-size: 0.92rem;
+            display: none;
+        }
+        .tile[data-hidden="true"], .crisis-tile[data-hidden="true"] { display: none; }
+        .section-wrap[data-empty="true"] { display: none; }
+
+        /* Collapsible sections */
+        .section-header { cursor: pointer; user-select: none; }
+        .section-toggle { margin-left: 8px; font-size: 0.75rem; color: #778ca3; transition: transform 0.2s; flex-shrink: 0; display: inline-block; }
+        .section-header.open .section-toggle { transform: rotate(180deg); }
+        .section-body.collapsed { display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Anesthesia Wiki</h1>
+    <p>Clinical tools, care plans, medications, and crisis references</p>
+</header>
+
+<div class="search-wrap">
+    <input type="search" class="search-bar" id="index-search" placeholder="Search tools, algorithms, medications…" oninput="filterIndex(this.value)">
+</div>
+
+<div class="container" id="index-container">
+<p class="search-no-results" id="no-results">No matches found.</p>
+
+    <!-- Clinical Workflow -->
+    <div class="section-header" onclick="toggleSection('workflow')">
+        <div class="icon" style="background:#e8f4ff;">📋</div>
+        <h2>Clinical Workflow</h2>
+        <div class="section-line"></div>
+        <span class="section-toggle">▼</span>
+    </div>
+    <div id="sec-workflow" class="section-body collapsed">
+    <div class="tile-grid">
+        <a href="CarePlanGenerator/Combined-Care-Plan.html" class="tile t-orange">
+            <span class="tile-icon">📝</span>
+            Care Plan Generator
+        </a>
+        <a href="SetupAndHandoffs/PreOpInterview.html" class="tile t-blue">
+            <span class="tile-icon">📋</span>
+            Pre-Op Interview
+        </a>
+        <a href="SetupAndHandoffs/SAMTIDE.html" class="tile t-navy">
+            <span class="tile-icon">🛠️</span>
+            SAMTIDE
+        </a>
+        <a href="SetupAndHandoffs/SALTLamb.html" class="tile t-green">
+            <span class="tile-icon">🧂</span>
+            SALT LAMB
+        </a>
+        <a href="SetupAndHandoffs/PACUHandoff.html" class="tile t-purple">
+            <span class="tile-icon">🤝</span>
+            PACU Handoff
+        </a>
+    </div>
+    </div>
+
+    <!-- Crisis Algorithms -->
+    <div class="section-header" onclick="toggleSection('crisis')">
+        <div class="icon" style="background:#fff0f0;">🚨</div>
+        <h2>Crisis Algorithms</h2>
+        <div class="section-line"></div>
+        <span class="section-toggle">▼</span>
+    </div>
+    <div id="sec-crisis" class="section-body collapsed">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="CrisisAlgorithms/MH_Crisis.html" class="crisis-tile">
+            <div class="c-text">
+                <span>Malignant Hyperthermia</span>
+            </div>
+        </a>
+        <a href="CrisisAlgorithms/LAST.html" class="crisis-tile">
+            <div class="c-text">
+                <span>LAST</span>
+            </div>
+        </a>
+    </div>
+    </div>
+
+    <!-- Reference -->
+    <div class="section-header" onclick="toggleSection('reference')">
+        <div class="icon" style="background:#f8f4ff;">📚</div>
+        <h2>Reference</h2>
+        <div class="section-line"></div>
+        <span class="section-toggle">▼</span>
+    </div>
+    <div id="sec-reference" class="section-body collapsed">
+    <div class="tile-grid">
+        <a href="Meds/Readme.md" class="tile t-teal">
+            <span class="tile-icon">💊</span>
+            Medications
+        </a>
+        <a href="AirwayManagement.html" class="tile t-teal">
+            <span class="tile-icon">✈️</span>
+            Airway Management
+        </a>
+        <a href="ClinicalSites.html" class="tile t-blue">
+            <span class="tile-icon">🏥</span>
+            Clinical Sites
+        </a>
+        <a href="Comorbidities.html" class="tile t-purple">
+            <span class="tile-icon">🫀</span>
+            Comorbidities
+        </a>
+        <a href="Calculators/Index.html" class="tile t-green">
+            <span class="tile-icon">🧮</span>
+            Calculators &amp; Charts
+        </a>
+    </div>
+    </div>
+
+</div>
+
+<script>
+function toggleSection(id) {
+    var body = document.getElementById('sec-' + id);
+    if (!body) return;
+    var header = body.previousElementSibling;
+    var collapsed = body.classList.toggle('collapsed');
+    if (header) header.classList.toggle('open', !collapsed);
+}
+
+function filterIndex(q) {
+    q = q.toLowerCase().trim();
+    var tiles = document.querySelectorAll('.tile, .crisis-tile');
+    var sections = document.querySelectorAll('.section-wrap');
+    tiles.forEach(function(t) {
+        var text = t.textContent.toLowerCase();
+        t.dataset.hidden = (q && !text.includes(q)) ? 'true' : 'false';
+    });
+    var anyVisible = Array.from(tiles).some(function(t) { return t.dataset.hidden !== 'true'; });
+    document.getElementById('no-results').style.display = (q && !anyVisible) ? 'block' : 'none';
+}
+</script>
+
+</body>
+</html>

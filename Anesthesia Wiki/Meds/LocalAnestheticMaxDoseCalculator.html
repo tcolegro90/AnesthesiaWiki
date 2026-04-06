@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local Anesthetic Max Dose Calculator</title>
+  <style>
+    :root {
+      --ink: #1f2a37;
+      --line: #dbe5f0;
+      --bg: #f3f7fb;
+      --ok: #1a7c50;
+      --warn: #b32424;
+      --caution: #8a5c00;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 28px auto;
+      padding: 0 16px 32px;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      color: #114a8d;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #5a6b82;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #355f93;
+      margin: 0 0 12px;
+    }
+
+    /* Weight row */
+    .weight-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .weight-row label {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    #weight-kg {
+      width: 80px;
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      border: 2px solid #aac4e8;
+      border-radius: 8px;
+      padding: 6px 8px;
+      color: #114a8d;
+    }
+    #weight-kg:focus { outline: none; border-color: #114a8d; }
+    #weight-kg.empty {
+      border-color: #c0392b;
+      background: #fff5f5;
+      color: #c0392b;
+    }
+    #weight-kg.empty::placeholder { color: #e08080; }
+    .unit-label {
+      font-size: 15px;
+      color: #5a6b82;
+    }
+    .max-label {
+      margin-left: auto;
+      font-size: 13px;
+      color: #5a6b82;
+    }
+
+    /* Agent rows */
+    .agent-row {
+      display: grid;
+      grid-template-columns: 160px 56px 80px 80px 1fr 28px;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #eef2f8;
+    }
+    .agent-row:last-child { border-bottom: none; }
+    .col-label {
+      font-size: 11px;
+      color: #7a8fa8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .agent-row select, .agent-row input[type="number"] {
+      width: 100%;
+      border: 1px solid #c9d7e8;
+      border-radius: 6px;
+      min-height: 34px;
+      padding: 5px 7px;
+      font-size: 14px;
+      font-weight: 500;
+      background: #fff;
+    }
+    .agent-row select:focus, .agent-row input[type="number"]:focus {
+      outline: none;
+      border-color: #5b9bd5;
+    }
+    .epi-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .epi-cell input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #114a8d;
+    }
+    .epi-cell .col-label { font-size: 10px; }
+
+    /* Progress bar cell */
+    .bar-cell { display: flex; flex-direction: column; gap: 4px; }
+    .bar-nums {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .bar-nums .given { font-weight: 700; }
+    .bar-nums .maxlabel { color: #7a8fa8; }
+    .bar-track {
+      height: 10px;
+      border-radius: 5px;
+      background: #e8f0f9;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      background: var(--ok);
+      transition: width 0.15s, background 0.15s;
+    }
+    .bar-fill.caution { background: #d4920a; }
+    .bar-fill.over { background: var(--warn); }
+    .bar-pct {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ok);
+    }
+    .bar-pct.caution { color: var(--caution); }
+    .bar-pct.over { color: var(--warn); }
+
+    /* Remove button */
+    .rm-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #b0bcce;
+      font-size: 18px;
+      line-height: 1;
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.1s;
+    }
+    .rm-btn:hover { color: #b32424; }
+
+    /* Add agent button */
+    #add-row {
+      margin-top: 10px;
+      background: #eaf3ff;
+      border: 1px dashed #aac4e8;
+      border-radius: 7px;
+      color: #114a8d;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 7px 14px;
+      cursor: pointer;
+      width: 100%;
+    }
+    #add-row:hover { background: #d8ecff; }
+
+    /* Combined index */
+    .index-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .index-score {
+      font-size: 28px;
+      font-weight: 800;
+      min-width: 70px;
+    }
+    .index-score.ok { color: var(--ok); }
+    .index-score.caution { color: var(--caution); }
+    .index-score.over { color: var(--warn); }
+    .index-bar-wrap { flex: 1; min-width: 160px; }
+    .index-bar-track {
+      height: 14px;
+      border-radius: 7px;
+      background: #e8f0f9;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    .index-bar-fill {
+      height: 100%;
+      border-radius: 7px;
+      background: var(--ok);
+      transition: width 0.15s, background 0.15s;
+    }
+    .index-bar-fill.caution { background: #d4920a; }
+    .index-bar-fill.over { background: var(--warn); }
+    .index-msg {
+      font-size: 13px;
+      color: #5a6b82;
+    }
+    .index-msg.over { color: var(--warn); font-weight: 600; }
+    .index-msg.caution { color: var(--caution); font-weight: 600; }
+
+    /* Reference table */
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .ref-table th {
+      background: #f0f6ff;
+      font-size: 11px;
+      color: #355f93;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 7px 10px;
+      text-align: left;
+    }
+    .ref-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #eef2f8;
+    }
+    .ref-table tr:last-child td { border-bottom: none; }
+    .ref-table tr:hover td { background: #f7fbff; }
+    .ref-table td:first-child { font-weight: 600; }
+  </style>
+</head>
+<body>
+<a href="../Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+  <div class="wrap">
+    <h1>Local Anesthetic Max Dose Calculator</h1>
+    <div class="subtitle">Enter patient weight and add agents below. Doses update in real time.</div>
+
+    <div class="card">
+      <div class="weight-row">
+        <label for="weight-kg">Weight</label>
+        <input id="weight-kg" type="number" min="1" step="0.1" placeholder="kg" />
+        <span class="unit-label">kg</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Agents</div>
+      <!-- column headers -->
+      <div class="agent-row" style="padding-bottom:4px;">
+        <span class="col-label">Drug</span>
+        <span class="epi-cell"><span class="col-label">+ Epi</span></span>
+        <span class="col-label">Conc %</span>
+        <span class="col-label">Volume mL</span>
+        <span class="col-label">Given / Max — % used</span>
+        <span></span>
+      </div>
+      <div id="rows"></div>
+      <button id="add-row" type="button">+ Add Agent</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Combined Exposure</div>
+      <div class="index-row">
+        <div id="index-score" class="index-score ok">0%</div>
+        <div class="index-bar-wrap">
+          <div class="index-bar-track">
+            <div id="index-bar" class="index-bar-fill" style="width:0%"></div>
+          </div>
+          <div id="index-msg" class="index-msg">Enter volumes above to calculate.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Max Dose Reference</div>
+      <table class="ref-table" id="ref-table">
+        <thead>
+          <tr>
+            <th>Drug</th>
+            <th>Without Epi</th>
+            <th>Cap (no epi)</th>
+            <th>With Epi</th>
+            <th>Cap (epi)</th>
+          </tr>
+        </thead>
+        <tbody id="ref-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    var DRUGS = {
+      Lidocaine:      { noEpi: { mgkg: 4.5, cap: 300 }, epi: { mgkg: 7,  cap: 500  }, defaultConc: 1    },
+      Bupivacaine:    { noEpi: { mgkg: 2.5, cap: 175 }, epi: { mgkg: 3,  cap: 225  }, defaultConc: 0.25 },
+      Ropivacaine:    { noEpi: { mgkg: 3,   cap: 225 }, epi: { mgkg: 3,  cap: 225  }, defaultConc: 0.5  },
+      Mepivacaine:    { noEpi: { mgkg: 4.5, cap: 300 }, epi: { mgkg: 7,  cap: 500  }, defaultConc: 1    },
+      Chloroprocaine: { noEpi: { mgkg: 11,  cap: 800 }, epi: { mgkg: 14, cap: 1000 }, defaultConc: 2    }
+    };
+
+    function mgFromPercentAndVolume(percent, ml) {
+      return (percent * 10) * ml;
+    }
+
+    function maxForDrug(drugName, useEpi, weightKg) {
+      var d = DRUGS[drugName];
+      if (!d) return 0;
+      var lim = useEpi ? d.epi : d.noEpi;
+      return Math.min(lim.mgkg * weightKg, lim.cap);
+    }
+
+    function newRow() {
+      var rowDiv = document.createElement('div');
+      rowDiv.className = 'agent-row';
+
+      // Drug select
+      var tdDrug = document.createElement('div');
+      var drug = document.createElement('select');
+      Object.keys(DRUGS).forEach(function(name) {
+        var opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        drug.appendChild(opt);
+      });
+      tdDrug.appendChild(drug);
+
+      // Epi checkbox
+      var tdEpi = document.createElement('div');
+      tdEpi.className = 'epi-cell';
+      var epi = document.createElement('input');
+      epi.type = 'checkbox';
+      tdEpi.appendChild(epi);
+
+      // Concentration
+      var tdConc = document.createElement('div');
+      var conc = document.createElement('input');
+      conc.type = 'number';
+      conc.step = '0.05';
+      conc.min = '0';
+      conc.value = DRUGS[drug.value].defaultConc;
+      tdConc.appendChild(conc);
+
+      // Volume
+      var tdVol = document.createElement('div');
+      var vol = document.createElement('input');
+      vol.type = 'number';
+      vol.step = '0.1';
+      vol.min = '0';
+      vol.value = '0';
+      tdVol.appendChild(vol);
+
+      // Progress bar cell
+      var barCell = document.createElement('div');
+      barCell.className = 'bar-cell';
+      var barNums = document.createElement('div');
+      barNums.className = 'bar-nums';
+      var givenSpan = document.createElement('span');
+      givenSpan.className = 'given';
+      givenSpan.textContent = '0.0 mg';
+      var maxSpan = document.createElement('span');
+      maxSpan.className = 'maxlabel';
+      maxSpan.textContent = 'max 0.0 mg';
+      barNums.appendChild(givenSpan);
+      barNums.appendChild(maxSpan);
+      var barTrack = document.createElement('div');
+      barTrack.className = 'bar-track';
+      var barFill = document.createElement('div');
+      barFill.className = 'bar-fill';
+      barFill.style.width = '0%';
+      barTrack.appendChild(barFill);
+      var pctSpan = document.createElement('span');
+      pctSpan.className = 'bar-pct';
+      pctSpan.textContent = '0%';
+      barCell.appendChild(barNums);
+      barCell.appendChild(barTrack);
+      barCell.appendChild(pctSpan);
+
+      // Remove button
+      var tdAct = document.createElement('div');
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'rm-btn';
+      rm.title = 'Remove';
+      rm.textContent = '×';
+      rm.addEventListener('click', function() {
+        rowDiv.remove();
+        recalc();
+      });
+      tdAct.appendChild(rm);
+
+      rowDiv.appendChild(tdDrug);
+      rowDiv.appendChild(tdEpi);
+      rowDiv.appendChild(tdConc);
+      rowDiv.appendChild(tdVol);
+      rowDiv.appendChild(barCell);
+      rowDiv.appendChild(tdAct);
+
+      rowDiv._givenSpan = givenSpan;
+      rowDiv._maxSpan = maxSpan;
+      rowDiv._barFill = barFill;
+      rowDiv._pctSpan = pctSpan;
+      rowDiv._drug = drug;
+      rowDiv._epi = epi;
+      rowDiv._conc = conc;
+      rowDiv._vol = vol;
+
+      [drug, conc, vol].forEach(function(el) {
+        el.addEventListener('input', recalc);
+      });
+      drug.addEventListener('change', function() {
+        conc.value = DRUGS[drug.value].defaultConc;
+        recalc();
+      });
+      epi.addEventListener('change', recalc);
+
+      document.getElementById('rows').appendChild(rowDiv);
+      recalc();
+    }
+
+    function recalc() {
+      var wt = parseFloat(document.getElementById('weight-kg').value) || 0;
+      var rowDivs = Array.from(document.querySelectorAll('#rows .agent-row'));
+      var totalFraction = 0;
+
+      rowDivs.forEach(function(row) {
+        var drugName = row._drug.value;
+        var useEpi = row._epi.checked;
+        var concVal = parseFloat(row._conc.value) || 0;
+        var volVal = parseFloat(row._vol.value) || 0;
+
+        var givenMg = mgFromPercentAndVolume(concVal, volVal);
+        var maxMg = wt > 0 ? maxForDrug(drugName, useEpi, wt) : 0;
+        var fraction = maxMg > 0 ? (givenMg / maxMg) : 0;
+        var pct = Math.round(fraction * 100);
+        var barPct = Math.min(fraction * 100, 100);
+
+        row._givenSpan.textContent = givenMg.toFixed(1) + ' mg';
+        row._maxSpan.textContent = 'max ' + maxMg.toFixed(0) + ' mg';
+        row._barFill.style.width = barPct + '%';
+        row._pctSpan.textContent = pct + '%';
+
+        var cls = fraction > 1 ? 'over' : fraction >= 0.8 ? 'caution' : '';
+        row._barFill.className = 'bar-fill' + (cls ? ' ' + cls : '');
+        row._pctSpan.className = 'bar-pct' + (cls ? ' ' + cls : '');
+
+        totalFraction += fraction;
+      });
+
+      var pct = Math.round(totalFraction * 100);
+      var barPct = Math.min(totalFraction * 100, 100);
+      var cls = totalFraction > 1 ? 'over' : totalFraction >= 0.8 ? 'caution' : 'ok';
+
+      var scoreEl = document.getElementById('index-score');
+      var barEl = document.getElementById('index-bar');
+      var msgEl = document.getElementById('index-msg');
+
+      scoreEl.textContent = pct + '%';
+      scoreEl.className = 'index-score ' + cls;
+      barEl.style.width = barPct + '%';
+      barEl.className = 'index-bar-fill' + (cls !== 'ok' ? ' ' + cls : '');
+      msgEl.className = 'index-msg' + (cls !== 'ok' ? ' ' + cls : '');
+
+      if (totalFraction > 1) {
+        msgEl.textContent = 'Above combined limit. Reduce dose or switch agent.';
+      } else if (totalFraction >= 0.8) {
+        msgEl.textContent = 'Approaching limit. Use caution before adding more.';
+      } else if (totalFraction > 0) {
+        msgEl.textContent = 'Within safe range.';
+      } else {
+        msgEl.textContent = 'Enter volumes above to calculate.';
+      }
+    }
+
+    function renderReference() {
+      var tbody = document.getElementById('ref-body');
+      Object.keys(DRUGS).forEach(function(name) {
+        var d = DRUGS[name];
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + name + '</td>' +
+          '<td>' + d.noEpi.mgkg + ' mg/kg</td>' +
+          '<td>' + d.noEpi.cap + ' mg</td>' +
+          '<td>' + d.epi.mgkg + ' mg/kg</td>' +
+          '<td>' + d.epi.cap + ' mg</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function checkWeight() {
+      var el = document.getElementById('weight-kg');
+      var wt = parseFloat(el.value);
+      if (!wt || wt <= 0) {
+        el.classList.add('empty');
+      } else {
+        el.classList.remove('empty');
+      }
+    }
+
+    document.getElementById('add-row').addEventListener('click', newRow);
+    document.getElementById('weight-kg').addEventListener('input', function() {
+      checkWeight();
+      recalc();
+    });
+    checkWeight();
+    renderReference();
+    newRow();
+  </script>
+</body>
+</html>

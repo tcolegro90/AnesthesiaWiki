@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRNA Room Setup: SAMTIDE</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .global-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .control-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: 1px solid #3498db;
+            border-radius: 6px;
+            background: #fff;
+            color: #3498db;
+        }
+        .section {
+            margin-bottom: 10px;
+            border-left: 4px solid #3498db;
+            background: #fafafa;
+            border-radius: 0 8px 8px 0;
+        }
+        .section-header {
+            font-weight: bold;
+            color: #2980b9;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            font-size: 1.1em;
+        }
+        /* Hidden state */
+        .section-content {
+            padding: 0 12px 12px 12px;
+            display: block; /* Default to expanded */
+        }
+        .collapsed .section-content {
+            display: none;
+        }
+        /* Arrow Styling */
+        .arrow {
+            border: solid #2980b9;
+            border-width: 0 2px 2px 0;
+            display: inline-block;
+            padding: 3px;
+            transform: rotate(45deg); /* Down */
+            transition: transform 0.2s;
+        }
+        .collapsed .arrow {
+            transform: rotate(-135deg); /* Up/Closed */
+        }
+        /* Original Checklist Item Styling */
+        .check-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+        .label-text { font-size: 16px; color: #333; }
+        .reset-btn { width: 100%; padding: 14px; background-color: #e74c3c; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        .nav-btn { width: 100%; padding: 14px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+    </style>
+</head>
+<body>
+<a href="../Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+
+<div class="container">
+    <h2>SAMTIDE Setup</h2>
+
+    <div class="global-controls">
+        <button class="control-btn" onclick="toggleAll(true)">Expand All</button>
+        <button class="control-btn" onclick="toggleAll(false)">Collapse All</button>
+    </div>
+
+    <div class="section" id="sec-s">
+        <div class="section-header" onclick="toggleSection('sec-s')">
+            <span>S - Suction</span>
+            <i class="arrow"></i>
+        </div>
+        <div class="section-content">
+            <label class="check-item"><input type="checkbox"><span class="label-text">Suction</span></label>
+        </div>
+    </div>
+
+    <div class="section" id="sec-a">
+        <div class="section-header" onclick="toggleSection('sec-a')">
+            <span>A - Airway</span>
+            <i class="arrow"></i>
+        </div>
+        <div class="section-content">
+            <label class="check-item"><input type="checkbox"><span class="label-text">Oral/Nasal Airways / Bite Block</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Laryngoscope</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">ETT (Stylette / Cuff check)</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">LMA</span></label>
+        </div>
+    </div>
+
+    <div class="section" id="sec-m">
+        <div class="section-header" onclick="toggleSection('sec-m')">
+            <span>M - Machine & Monitors</span>
+            <i class="arrow"></i>
+        </div>
+        <div class="section-content">
+            <label class="check-item"><input type="checkbox"><span class="label-text">Machine Check</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Standard ASA (Pulse Ox, EKG, BP, Temp)</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">A-line setup/transducer (if indicated)</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">End-Tidal CO2</span></label>
+        </div>
+    </div>
+
+    <div class="section" id="sec-t">
+        <div class="section-header" onclick="toggleSection('sec-t')">
+            <span>T - Tape & Temp</span>
+            <i class="arrow"></i>
+        </div>
+        <div class="section-content">
+            <label class="check-item"><input type="checkbox"><span class="label-text">Tape (Eyes and Tube)</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Temp Probe (Esophageal/Skin)</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Bair hugger machine / blanket</span></label>
+        </div>
+    </div>
+
+    <div class="section" id="sec-i">
+        <div class="section-header" onclick="toggleSection('sec-i')">
+            <span>I - IVs & Liquids</span>
+            <i class="arrow"></i>
+        </div>
+        <div class="section-content">
+            <label class="check-item"><input type="checkbox"><span class="label-text">IV Fluids spiked & primed</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Extra IV setup</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Pressure bag (if needed)</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Agent</span></label>
+        </div>
+    </div>
+
+    <div class="section" id="sec-d">
+        <div class="section-header" onclick="toggleSection('sec-d')">
+            <span>D - Drugs & Adjuvants</span>
+            <i class="arrow"></i>
+        </div>
+        <div class="section-content">
+            <label class="check-item"><input type="checkbox"><span class="label-text">Induction meds drawn/labeled</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Emergency meds (Succs, Glyco, Ephedrine, Neo)</span></label>
+        </div>
+    </div>
+
+    <div class="section" id="sec-e">
+        <div class="section-header" onclick="toggleSection('sec-e')">
+            <span>E - Equipment & Extras</span>
+            <i class="arrow"></i>
+        </div>
+        <div class="section-content">
+            <label class="check-item"><input type="checkbox"><span class="label-text">Ambu bag available</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Table / Bed locked</span></label>
+        </div>
+    </div>
+
+    <a href="Index.html" class="nav-btn">Main Menu</a>
+    <button class="reset-btn" onclick="clearAll()">Clear Checklist</button>
+</div>
+
+<script>
+    // Individual Toggle
+    function toggleSection(id) {
+        document.getElementById(id).classList.toggle('collapsed');
+    }
+
+    // Global Toggle
+    function toggleAll(expand) {
+        const sections = document.querySelectorAll('.section');
+        sections.forEach(section => {
+            if (expand) {
+                section.classList.remove('collapsed');
+            } else {
+                section.classList.add('collapsed');
+            }
+        });
+    }
+
+    // Reset Checklist
+    function clearAll() {
+        document.querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
+    }
+</script>
+
+</body>
+</html>

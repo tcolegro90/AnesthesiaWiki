@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>At Home Medications</title>
+  <link rel="stylesheet" href="shared.css?v=3" />
+  <style>
+    .add-row-btn {
+      margin-top: 8px;
+      padding: 3px 12px;
+      font-size: 12px;
+      border: 1px dashed #4a6fa5;
+      border-radius: 4px;
+      background: #f0f5ff;
+      color: #4a6fa5;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .add-row-btn:hover { background: #dde8ff; }
+    .med-row {
+      min-height: 40px;
+      align-items: center;
+      gap: 10px;
+    }
+    .row-remove-btn {
+      border: 1px solid #e7b7b7;
+      background: #fff4f4;
+      color: #8f2424;
+      font-size: 12px;
+      cursor: pointer;
+      line-height: 1.1;
+      padding: 5px 8px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .row-remove-btn:hover { background: #ffe6e6; border-color: #d68f8f; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>4. At Home Medications</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Medications</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+    </div>
+    <div class="card">
+      <div id="meds-container" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <button type="button" class="add-row-btn" onclick="addMedRow()">+ Add more</button>
+    </div>
+  </div>
+  <script src="med-catalog.js"></script>
+  <script src="shared.js?v=19"></script>
+  <script>
+    const commonMeds = (window.MED_CATALOG && window.MED_CATALOG.prescribedMeds) ? window.MED_CATALOG.prescribedMeds : [];
+    const betaBlockers = ['Atenolol','Carvedilol','Esmolol','Metoprolol','Propranolol'];
+    const aceArbs = ['Enalapril','Lisinopril','Losartan','Valsartan'];
+    const doseTimes = ['Today AM','Today PM','Last Night','Yesterday AM','Yesterday PM','Unknown'];
+    let currentMedRow = 0;
+
+    function addMedRow(medValue, otherValue, timeValue) {
+      if (currentMedRow >= 30) return;
+      currentMedRow++;
+      const i = currentMedRow;
+      const row = document.createElement('div');
+      row.className = 'row med-row';
+      row.id = 'med-row-' + i;
+
+      let medOptions = '<option value="">Select Medication...</option>';
+      commonMeds.forEach(m => medOptions += '<option value="' + m + '">' + m + '</option>');
+      medOptions += '<option value="Other">Other...</option>';
+
+      let timeOptions = '';
+      doseTimes.forEach(t => timeOptions += '<option value="' + t + '"' + (t === 'Today AM' ? ' selected' : '') + '>' + t + '</option>');
+
+      row.innerHTML = '<select id="med-select-' + i + '" class="long" onchange="handleMedChange(this,' + i + ')">' + medOptions + '</select>' +
+        '<input id="med-other-' + i + '" class="med" style="display:none;" placeholder="Type name..." oninput="handleMedInput(' + i + ')">' +
+        '<select id="med-time-' + i + '" class="med" onchange="checkMedicationRow(' + i + ')">' + timeOptions + '</select>' +
+        '<button type="button" class="row-remove-btn" onclick="removeMedRow(' + i + ')">Delete</button>';
+
+      document.getElementById('meds-container').appendChild(row);
+
+      const select = document.getElementById('med-select-' + i);
+      const other = document.getElementById('med-other-' + i);
+      const time = document.getElementById('med-time-' + i);
+
+      if (medValue) select.value = medValue;
+      if (otherValue) other.value = otherValue;
+      if (timeValue) time.value = timeValue;
+      other.style.display = select.value === 'Other' ? 'inline-block' : 'none';
+      checkMedicationRow(i);
+    }
+
+    function checkMedicationRow(i) {
+      const row = document.getElementById('med-row-' + i);
+      const med = document.getElementById('med-select-' + i).value;
+      const time = document.getElementById('med-time-' + i).value;
+      const isToday = time === 'Today AM' || time === 'Today PM';
+      row.classList.remove('alert');
+      if (med && ((betaBlockers.includes(med) && !isToday) || (aceArbs.includes(med) && isToday))) row.classList.add('alert');
+      saveState();
+      saveMedRows();
+    }
+
+    function handleMedChange(select, i) {
+      const other = document.getElementById('med-other-' + i);
+      other.style.display = select.value === 'Other' ? 'inline-block' : 'none';
+      checkMedicationRow(i);
+      saveMedRows();
+    }
+
+    function handleMedInput(i) {
+      checkMedicationRow(i);
+      saveMedRows();
+    }
+
+    function removeMedRow(i) {
+      const row = document.getElementById('med-row-' + i);
+      if (row) row.remove();
+      if (!document.querySelector('#meds-container .med-row')) addMedRow();
+      saveMedRows();
+    }
+
+    function saveMedRows() {
+      const s = getGlobalState();
+      const rows = Array.from(document.querySelectorAll('#meds-container .med-row')).map(function(row) {
+        const select = row.querySelector('select[id^="med-select-"]');
+        const other = row.querySelector('input[id^="med-other-"]');
+        const time = row.querySelector('select[id^="med-time-"]');
+        return {
+          med: (select && select.value) || '',
+          other: (other && other.value) || '',
+          time: (time && time.value) || 'Today AM'
+        };
+      });
+      s['med-list'] = JSON.stringify(rows);
+      setGlobalState(s);
+    }
+
+    function restoreMedRows() {
+      const container = document.getElementById('meds-container');
+      container.innerHTML = '';
+      currentMedRow = 0;
+
+      const s = getGlobalState();
+      let rows = [];
+      try { rows = JSON.parse(s['med-list']) || []; } catch (e) {}
+      if (!rows.length) rows = [{ med: '', other: '', time: 'Today AM' }];
+
+      rows.forEach(function(item) {
+        addMedRow(item.med || '', item.other || '', item.time || 'Today AM');
+      });
+    }
+
+    pageBoot(function() {
+      restoreMedRows();
+    }, function() {
+      restoreMedRows();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comorbidities & Anesthetic Considerations</title>
+    <style>
+        :root {
+            --primary: #1f2a37;
+            --blue: #114a8d;
+            --light-blue: #3498db;
+            --purple: #6c3483;
+            --red: #b32424;
+            --bg: #f3f7fb;
+            --white: #ffffff;
+            --line: #dbe5f0;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--primary);
+            padding-bottom: 56px;
+        }
+        header {
+            background: var(--primary);
+            padding: 18px 20px 14px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        header h1 { margin: 0 0 4px; font-size: 1.5rem; color: #fff; letter-spacing: 0.04em; }
+        header p { margin: 0; font-size: 0.82rem; color: #93adc8; }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 0 10px;
+            padding: 7px 14px;
+            background: rgba(255,255,255,0.12);
+            color: #cfe0f5;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.84rem;
+            font-weight: 500;
+            transition: background 0.15s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.22); }
+
+        .container { max-width: 860px; margin: 28px auto; padding: 0 16px; }
+
+        .search-bar {
+            width: 100%;
+            padding: 11px 16px 11px 42px;
+            font-size: 0.95rem;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23778ca3' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 14px center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            color: var(--primary);
+            outline: none;
+            margin-bottom: 12px;
+        }
+        .search-bar:focus {
+            border-color: var(--light-blue);
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .control-btn {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 7px 12px;
+            background: #fff;
+            color: #3a4a5c;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .control-btn:hover { background: #f7fbff; }
+
+        details.comorb {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-left: 5px solid var(--purple);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        details.comorb summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--purple);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        details.comorb summary::-webkit-details-marker { display: none; }
+        .summary-title { display: flex; align-items: center; gap: 8px; }
+        .chev {
+            font-size: 0.86rem;
+            color: #6b7f96;
+            transition: transform 0.15s;
+        }
+        details[open] .chev { transform: rotate(90deg); }
+
+        .content {
+            border-top: 1px solid #edf2f7;
+            padding: 14px 18px 16px;
+        }
+        .content p { margin: 0 0 10px; font-size: 0.92rem; line-height: 1.65; color: #3a4a5c; }
+        .content ul { margin: 6px 0 0; padding-left: 20px; }
+        .content li { font-size: 0.91rem; line-height: 1.65; color: #3a4a5c; margin-bottom: 4px; }
+        .content li strong { color: var(--primary); }
+
+        .tag-safe { color: #1a7c50; font-weight: 700; }
+        .tag-avoid { color: #b32424; font-weight: 700; }
+        .tag-caution { color: #d4920a; font-weight: 700; }
+
+        .acc-blue { border-left-color: var(--light-blue); }
+        .acc-blue summary { color: var(--blue); }
+        .acc-red { border-left-color: var(--red); }
+        .acc-red summary { color: var(--red); }
+        .acc-green { border-left-color: #1a7c50; }
+        .acc-green summary { color: #1a7c50; }
+        .acc-teal { border-left-color: #0e7490; }
+        .acc-teal summary { color: #0e7490; }
+        .acc-orange { border-left-color: #d4920a; }
+        .acc-orange summary { color: #d4920a; }
+
+        .empty-msg {
+            display: none;
+            text-align: center;
+            color: #8394aa;
+            padding: 20px 10px;
+            font-size: 0.92rem;
+        }
+
+        @media (max-width: 640px) {
+            details.comorb summary { font-size: 0.94rem; }
+            .container { margin-top: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="Index.html" class="back-btn">&larr; Wiki Home</a>
+    <h1>Comorbidities</h1>
+    <p>Anesthetic considerations by patient condition</p>
+</header>
+
+<div class="container">
+    <input type="search" id="comorb-search" class="search-bar" placeholder="Search comorbidities, drugs, or considerations..." oninput="filterComorbidities(this.value)">
+
+    <div class="controls">
+        <button class="control-btn" type="button" onclick="expandAll()">Expand All</button>
+        <button class="control-btn" type="button" onclick="collapseAll()">Collapse All</button>
+    </div>
+
+    <details class="comorb acc-red" data-term="acute intermittent porphyria aip porphyria">
+        <summary>
+            <span class="summary-title">🧬 Acute Intermittent Porphyria (AIP)</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>A genetic disorder caused by deficiency in the heme biosynthetic pathway. Certain anesthetic agents can provoke a dangerous acute porphyric crisis.</p>
+            <ul>
+                <li><span class="tag-avoid">UNSAFE:</span> <strong>Thiopental, thiamylal, methohexital</strong> (barbiturates) are absolutely contraindicated.</li>
+                <li><span class="tag-avoid">UNSAFE:</span> <strong>Etomidate, ketamine, ketorolac, amiodarone,</strong> and many calcium channel blockers.</li>
+                <li><span class="tag-safe">SAFE:</span> <strong>Propofol, dexmedetomidine, nitrous oxide, isoflurane, sevoflurane, desflurane, succinylcholine.</strong></li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-blue" data-term="asthma reactive airway disease bronchospasm rad">
+        <summary>
+            <span class="summary-title">🌬️ Asthma / Reactive Airway Disease</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Patients with active bronchospasm or reactive airway disease are at heightened risk for severe respiratory events, often triggered by airway instrumentation.</p>
+            <ul>
+                <li><span class="tag-safe">Preferred:</span> <strong>Propofol</strong> blunts airway reflexes effectively.</li>
+                <li><span class="tag-safe">Preferred:</span> <strong>Ketamine</strong> is an excellent IV induction choice due to bronchodilation.</li>
+                <li><span class="tag-avoid">Avoid:</span> Histamine-releasing agents when possible (e.g., high-dose atracurium, morphine) because they can worsen bronchospasm.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-red" data-term="burn injuries burns succinylcholine hyperkalemia">
+        <summary>
+            <span class="summary-title">🔥 Burn Injuries</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Thermal injuries cause major physiologic shifts, including up-regulation of extrajunctional acetylcholine receptors.</p>
+            <ul>
+                <li><span class="tag-avoid">Contraindicated:</span> <strong>Succinylcholine</strong> from 24-48 hours post-burn through healing due to severe hyperkalemia risk.</li>
+                <li><span class="tag-safe">Preferred paralytic:</span> <strong>Nondepolarizing NMBAs</strong> (e.g., rocuronium), often at higher doses.</li>
+                <li>Anticipate airway edema and potential difficult airway.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-blue" data-term="cardiovascular disease cad heart failure valvular disease conduction arrhythmia">
+        <summary>
+            <span class="summary-title">Cardiovascular Disease</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Coronary disease, heart failure, and conduction disease change tolerance for rapid hemodynamic shifts and many vasoactive/antiarrhythmic drugs.</p>
+            <ul>
+                <li><span class="tag-caution">Caution:</span> Rapid beta blockade (esmolol/labetalol) can precipitate bradycardia or low output in vulnerable patients.</li>
+                <li><span class="tag-caution">Caution:</span> Vasodilators (nitroglycerin, nitroprusside, nicardipine) can cause hypotension and ischemia if over-titrated.</li>
+                <li><span class="tag-caution">Caution:</span> LAST treatment uses modified ACLS with low-dose epinephrine and avoidance of vasopressin.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-blue" data-term="chronic kidney disease ckd esrd renal failure renal dysfunction">
+        <summary>
+            <span class="summary-title">Chronic Kidney Disease</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Renal dysfunction can prolong or intensify effects of multiple anesthetic and perioperative medications.</p>
+            <ul>
+                <li><span class="tag-avoid">Avoid:</span> NSAIDs such as ketorolac in advanced renal dysfunction when possible.</li>
+                <li><span class="tag-caution">Caution:</span> Sugammadex and some antihypertensives may require renal-focused risk assessment.</li>
+                <li><span class="tag-caution">Caution:</span> Titrate vasodilators and monitor perfusion closely to avoid renal hypoperfusion.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-orange" data-term="diabetes mellitus hyperglycemia insulin type 1 type 2">
+        <summary>
+            <span class="summary-title">Diabetes Mellitus</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Glucose control and autonomic variability can affect perioperative management and medication response.</p>
+            <ul>
+                <li><span class="tag-caution">Caution:</span> Dexamethasone can raise glucose and may warrant tighter perioperative monitoring.</li>
+                <li><span class="tag-caution">Caution:</span> Avoid prolonged fasting and maintain glucose strategy tailored to insulin use.</li>
+                <li><span class="tag-safe">Preferred:</span> Use multimodal antiemetics/analgesia to reduce stress response and opioid burden.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-teal" data-term="down syndrome trisomy 21 atlantoaxial instability airway">
+        <summary>
+            <span class="summary-title">🧩 Down Syndrome (Trisomy 21)</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Physical and structural features require careful airway and positioning planning.</p>
+            <ul>
+                <li><span class="tag-caution">Airway:</span> <strong>Macroglossia</strong> can complicate mask ventilation and intubation.</li>
+                <li><span class="tag-avoid">Critical:</span> <strong>Atlantoaxial instability</strong> makes neck flexion/extension hazardous.</li>
+                <li>Higher incidence of congenital heart disease and subglottic stenosis.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-orange" data-term="hepatic dysfunction liver disease cirrhosis hepatic impairment">
+        <summary>
+            <span class="summary-title">Hepatic Dysfunction</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Liver dysfunction can reduce clearance and increase exposure for many anesthetic and adjunctive medications.</p>
+            <ul>
+                <li><span class="tag-caution">Caution:</span> Consider lower or spaced dosing for hepatically cleared agents such as midazolam and vecuronium.</li>
+                <li><span class="tag-avoid">Avoid:</span> Excess acetaminophen total daily exposure in active liver disease.</li>
+                <li><span class="tag-caution">Caution:</span> Monitor for prolonged sedation or delayed emergence.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-teal" data-term="mitochondrial disease metabolism propofol infusion syndrome">
+        <summary>
+            <span class="summary-title">⚡ Mitochondrial Diseases</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Mitochondrial disorders impair cellular energy metabolism and can alter anesthetic drug responses.</p>
+            <ul>
+                <li><span class="tag-caution">Consider:</span> Increased sensitivity to anesthetic dose and metabolic stress.</li>
+                <li><span class="tag-avoid">Caution:</span> <strong>Propofol</strong> infusions may increase risk of propofol infusion syndrome.</li>
+                <li><span class="tag-avoid">Caution:</span> Volatile anesthetics may further impair mitochondrial function.</li>
+                <li>Avoid prolonged fasting and maintain glucose support when appropriate.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-red" data-term="muscular dystrophy neuromuscular disorder ryr1 malignant hyperthermia">
+        <summary>
+            <span class="summary-title">💪 Muscular Dystrophy & Neuromuscular Disorders</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Patients with muscular dystrophy or certain channelopathies have major risk with specific neuromuscular and anesthetic agents.</p>
+            <ul>
+                <li><span class="tag-avoid">Contraindicated:</span> <strong>Succinylcholine</strong> due to hyperkalemia and arrhythmia risk.</li>
+                <li><span class="tag-avoid">Caution:</span> Volatile agents in patients with MH susceptibility (e.g., RYR1 mutation).</li>
+                <li>Prefer TIVA and nondepolarizing neuromuscular blockers with quantitative monitoring and planned reversal.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-red" data-term="narrow angle glaucoma glaucoma scopolamine anticholinergic">
+        <summary>
+            <span class="summary-title">Narrow-Angle Glaucoma</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Anticholinergic medications can worsen angle closure and increase intraocular pressure risk.</p>
+            <ul>
+                <li><span class="tag-avoid">Avoid:</span> Scopolamine patch in known narrow-angle glaucoma.</li>
+                <li><span class="tag-caution">Caution:</span> Other anticholinergic agents should be selected carefully in susceptible patients.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-orange" data-term="obesity ibw lbw airway aspiration sevoflurane">
+        <summary>
+            <span class="summary-title">⚖️ Obesity</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Obesity significantly changes respiratory physiology, airway risk, and pharmacokinetics.</p>
+            <ul>
+                <li><span class="tag-caution">Consider:</span> Dose most agents using <strong>IBW/LBW</strong>; TBW is used for selected drugs.</li>
+                <li><span class="tag-caution">Consider:</span> Altered inhaled anesthetic handling and higher fluoride levels reported with sevoflurane.</li>
+                <li>Prepare for difficult airway, reduced FRC, and increased aspiration risk.</li>
+            </ul>
+        </div>
+    </details>
+
+    <details class="comorb acc-green" data-term="pregnancy obstetric preeclampsia postpartum">
+        <summary>
+            <span class="summary-title">Pregnancy</span>
+            <span class="chev">▶</span>
+        </summary>
+        <div class="content">
+            <p>Pregnancy changes physiology, aspiration risk, and medication safety considerations.</p>
+            <ul>
+                <li><span class="tag-avoid">Avoid:</span> Ketorolac in labor/delivery settings and late pregnancy where contraindicated.</li>
+                <li><span class="tag-caution">Caution:</span> Use blood pressure agents based on obstetric protocol and fetal context.</li>
+                <li><span class="tag-safe">Preferred:</span> Use dose-aware multimodal plans with maternal-fetal monitoring.</li>
+            </ul>
+        </div>
+    </details>
+
+    <p class="empty-msg" id="empty-msg">No matching comorbidities found.</p>
+</div>
+
+<script>
+function collapseAll() {
+    document.querySelectorAll('details.comorb').forEach(function(card) {
+        card.open = false;
+    });
+}
+
+function expandAll() {
+    document.querySelectorAll('details.comorb').forEach(function(card) {
+        if (card.style.display !== 'none') {
+            card.open = true;
+        }
+    });
+}
+
+function filterComorbidities(query) {
+    var q = query.toLowerCase().trim();
+    var cards = document.querySelectorAll('details.comorb');
+    var visible = 0;
+
+    cards.forEach(function(card) {
+        var haystack = (card.dataset.term + ' ' + card.textContent).toLowerCase();
+        var match = !q || haystack.indexOf(q) !== -1;
+        card.style.display = match ? '' : 'none';
+        if (match) visible += 1;
+    });
+
+    document.getElementById('empty-msg').style.display = visible === 0 ? 'block' : 'none';
+}
+
+collapseAll();
+</script>
+
+</body>
+</html>

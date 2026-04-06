@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRNA Room Setup: SALT LAMB</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-left: 4px solid #3498db;
+            background: #fafafa;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #2980b9;
+            margin-bottom: 10px;
+            display: block;
+            font-size: 1.1em;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+        .label-text {
+            font-size: 16px;
+            color: #333;
+        }
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .nav-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<a href="../Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+
+<div class="container">
+    <h2>SALT LAMB Setup</h2>
+
+    <div class="section">
+        <span class="section-title">S - Suction</span>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Suction</span>
+        </label>
+    </div>
+
+    <div class="section">
+        <span class="section-title">A - Airway</span>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Oral/Nasal Airways</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">ETT (Checked cuff/Stylet)</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Laryngoscope (Light check)</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">LMA</span>
+        </label>
+    </div>
+
+    <div class="section">
+        <span class="section-title">L - Liquids</span>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">IV Fluids spiked & primed</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Pressure bag (if needed)</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Agent (Vaporizers full)</span>
+        </label>
+    </div>
+
+    <div class="section">
+        <span class="section-title">T - Tape, Tube, Temp</span>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Tape (Eye)</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Tape (Tube)</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Tube (Correct size + one small)</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Temp Probe (Esophageal/Skin)</span>
+        </label>
+    </div>
+
+    <div class="section">
+        <span class="section-title">L - Logistics</span>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Table / Bed locked</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Head of bed accessible</span>
+        </label>
+    </div>
+
+    <div class="section">
+        <span class="section-title">A - Adjuvants</span>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Induction meds drawn/labeled</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Emergency meds (Succ/Epi/Atrop)</span>
+        </label>
+    </div>
+
+    <div class="section">
+        <span class="section-title">M - Monitors</span>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Machine Check (Full/Abbrev)</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">EKG, SpO2, NIBP</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">A-line setup/transducer (if indicated)</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">End-Tidal CO2 (Connected)</span>
+        </label>
+    </div>
+
+    <div class="section">
+        <span class="section-title">B - Bundle / Bed</span>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Ambu bag available</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Bed controls functional</span>
+        </label>
+    </div>
+
+    <button class="nav-btn" onclick="location.href='index.html'">Main Menu</button>
+    <button class="reset-btn" onclick="document.querySelectorAll('input').forEach(i=>i.checked=false)">Clear Checklist</button>
+</div>
+
+</body>
+</html>

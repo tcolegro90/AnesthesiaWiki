@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medication Reference</title>
+  <style>
+    :root {
+      --ink: #142033;
+      --muted: #5e7188;
+      --bg: #eef4f9;
+      --panel: #ffffff;
+      --line: #d7e2ee;
+      --brand: #0b5cab;
+      --brand-soft: #eaf3ff;
+      --alert: #b3261e;
+      --ok: #0f8a5f;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 350px at 25% -10%, #dbeafe 0%, transparent 60%),
+        radial-gradient(900px 250px at 90% -5%, #e9f5ff 0%, transparent 55%),
+        var(--bg);
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, #1f2a37, #24364a);
+      color: #fff;
+      padding: 16px 18px 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+    .topbar-row {
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .back {
+      text-decoration: none;
+      color: #d4e8ff;
+      border: 1px solid rgba(212,232,255,0.35);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      background: rgba(255,255,255,0.08);
+    }
+    .back:hover { background: rgba(255,255,255,0.16); }
+    .title-wrap h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: 0.02em;
+    }
+    .title-wrap p {
+      margin: 2px 0 0;
+      color: #a9bfd7;
+      font-size: 0.8rem;
+    }
+
+    .shell {
+      max-width: 980px;
+      margin: 18px auto 30px;
+      padding: 0 12px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(18, 43, 69, 0.08);
+      overflow: hidden;
+    }
+
+    .meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fbff;
+    }
+    .chip {
+      font-size: 0.76rem;
+      color: #28486b;
+      background: #eaf3ff;
+      border: 1px solid #c9def8;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 600;
+    }
+
+    .content {
+      padding: 16px 18px 22px;
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .content h1,
+    .content h2,
+    .content h3,
+    .content h4 {
+      margin-top: 16px;
+      margin-bottom: 8px;
+      line-height: 1.25;
+      color: #153356;
+    }
+    .content h1 {
+      margin-top: 4px;
+      font-size: 1.55rem;
+      border-bottom: 2px solid #d7e7f8;
+      padding-bottom: 8px;
+    }
+    .content h2 {
+      font-size: 1.08rem;
+      background: #f3f8ff;
+      border: 1px solid #deebfa;
+      border-radius: 9px;
+      padding: 8px 10px;
+    }
+    .content h3 {
+      font-size: 1rem;
+      color: #184a77;
+    }
+    .content h4 {
+      font-size: 0.93rem;
+      color: #38638e;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .content p {
+      margin: 7px 0;
+      color: var(--ink);
+    }
+
+    .content ul,
+    .content ol {
+      margin: 8px 0 10px 20px;
+      padding: 0;
+    }
+
+    .content li { margin: 4px 0; }
+
+    .content code {
+      background: #eef4fb;
+      border: 1px solid #d8e4f3;
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-size: 0.86em;
+      color: #184a77;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    .content a {
+      color: var(--brand);
+      text-decoration: underline;
+      text-decoration-thickness: 1.5px;
+      text-underline-offset: 2px;
+    }
+
+    .error {
+      margin: 16px;
+      background: #fff4f3;
+      color: var(--alert);
+      border: 1px solid #f1c8c3;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-weight: 600;
+    }
+
+    .ok {
+      color: var(--ok);
+      font-weight: 600;
+    }
+
+    @media (max-width: 700px) {
+      .content { padding: 14px 13px 18px; }
+      .content h1 { font-size: 1.35rem; }
+      .content h2 { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-row">
+      <a class="back" href="Index.html">&larr; Medications</a>
+      <div class="title-wrap">
+        <h1 id="page-title">Medication Reference</h1>
+        <p id="page-subtitle">Loading profile...</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="card">
+      <div class="meta">
+        <span class="chip" id="chip-class">Classification: _</span>
+        <span class="chip" id="chip-file">Source: _</span>
+      </div>
+      <article class="content" id="md-content"></article>
+    </section>
+  </main>
+
+  <script>
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function inlineMd(s) {
+      var out = esc(s || '');
+      out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+      out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(_, txt, href) {
+        var safeHref = esc(href);
+        var rel = /^https?:\/\//i.test(href) ? '' : ' target="_blank" rel="noopener"';
+        return '<a href="' + safeHref + '"' + rel + '>' + txt + '</a>';
+      });
+      return out;
+    }
+
+    function markdownToHtml(md) {
+      var lines = String(md || '').replace(/\r/g, '').split('\n');
+      var html = [];
+      var inUl = false;
+      var inOl = false;
+      var inP = false;
+
+      function closeLists() {
+        if (inUl) { html.push('</ul>'); inUl = false; }
+        if (inOl) { html.push('</ol>'); inOl = false; }
+      }
+      function closeP() {
+        if (inP) { html.push('</p>'); inP = false; }
+      }
+
+      lines.forEach(function(raw) {
+        var line = raw || '';
+        var t = line.trim();
+
+        if (!t) {
+          closeP();
+          closeLists();
+          return;
+        }
+
+        var m;
+        if ((m = t.match(/^(#{1,4})\s+(.*)$/))) {
+          closeP();
+          closeLists();
+          var level = m[1].length;
+          html.push('<h' + level + '>' + inlineMd(m[2]) + '</h' + level + '>');
+          return;
+        }
+
+        if ((m = t.match(/^[-*]\s+(.*)$/))) {
+          closeP();
+          if (inOl) { html.push('</ol>'); inOl = false; }
+          if (!inUl) { html.push('<ul>'); inUl = true; }
+          html.push('<li>' + inlineMd(m[1]) + '</li>');
+          return;
+        }
+
+        if ((m = t.match(/^\d+[.)]\s+(.*)$/))) {
+          closeP();
+          if (inUl) { html.push('</ul>'); inUl = false; }
+          if (!inOl) { html.push('<ol>'); inOl = true; }
+          html.push('<li>' + inlineMd(m[1]) + '</li>');
+          return;
+        }
+
+        closeLists();
+        if (!inP) {
+          html.push('<p>');
+          inP = true;
+        } else {
+          html.push('<br>');
+        }
+        html.push(inlineMd(t));
+      });
+
+      closeP();
+      closeLists();
+      return html.join('');
+    }
+
+    function parseFileParam() {
+      var p = new URLSearchParams(window.location.search).get('file') || '';
+      p = decodeURIComponent(p).replace(/^\/+/, '');
+      if (!p.toLowerCase().endsWith('.md')) return '';
+      if (p.indexOf('..') !== -1) return '';
+      return p;
+    }
+
+    function classifyFromPath(path) {
+      var parts = String(path || '').split('/');
+      return parts.length > 1 ? parts[0] : 'General';
+    }
+
+    function fileToTitle(path, fallback) {
+      var base = String(path || '').split('/').pop() || fallback || 'Medication';
+      base = base.replace(/\.md$/i, '').replace(/-/g, ' ');
+      return base.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+    }
+
+    function setError(msg) {
+      var box = document.getElementById('md-content');
+      box.innerHTML = '<div class="error">' + esc(msg) + '</div>';
+      document.getElementById('page-subtitle').textContent = 'Unable to load profile';
+    }
+
+    (function boot() {
+      var relFile = parseFileParam();
+      if (!relFile) {
+        setError('Invalid medication file path. Return to Medications and select a profile.');
+        return;
+      }
+
+      var titleGuess = fileToTitle(relFile, 'Medication');
+      document.getElementById('page-title').textContent = titleGuess;
+      document.getElementById('page-subtitle').textContent = 'Loading ' + relFile + '...';
+      document.getElementById('chip-class').textContent = 'Classification: ' + classifyFromPath(relFile);
+      document.getElementById('chip-file').textContent = 'Source: ' + relFile;
+
+      fetch(relFile, { cache: 'no-store' })
+        .then(function(r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
+        .then(function(md) {
+          var content = document.getElementById('md-content');
+          content.innerHTML = markdownToHtml(md);
+
+          var firstH1 = content.querySelector('h1');
+          var pageTitle = firstH1 ? firstH1.textContent.trim() : titleGuess;
+          document.getElementById('page-title').textContent = pageTitle;
+          document.getElementById('page-subtitle').innerHTML = '<span class="ok">Loaded</span> ' + relFile;
+          document.title = pageTitle + ' - Medication Reference';
+        })
+        .catch(function(err) {
+          setError('Could not load medication file: ' + relFile + ' (' + err.message + ')');
+        });
+    })();
+  </script>
+</body>
+</html>

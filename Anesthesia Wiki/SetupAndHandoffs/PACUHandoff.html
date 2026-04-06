@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anesthesia PACU Handoff</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; padding: 20px; background-color: #f4f7f6; }
+        h1 { color: #2c3e50; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { background: #3498db; color: white; padding: 8px 15px; border-radius: 5px; font-size: 1.1em; margin-top: 25px; }
+        .section { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .item { display: flex; align-items: flex-start; margin-bottom: 10px; cursor: pointer; }
+        input[type="checkbox"] { margin-right: 12px; margin-top: 5px; transform: scale(1.2); }
+        label { cursor: pointer; }
+        .note { font-size: 0.85em; color: #7f8c8d; display: block; margin-top: 2px; }
+        footer { margin-top: 30px; text-align: center; font-style: italic; color: #95a5a6; }
+    </style>
+</head>
+<body>
+<a href="../Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+
+    <h1>PACU Handoff Checklist</h1>
+
+    <div class="section">
+        <h2>1. Identification & Procedure</h2>
+        <div class="item"><input type="checkbox" id="pt-id"><label for="pt-id"><strong>Patient Identity:</strong> Name & Age</label></div>
+        <div class="item"><input type="checkbox" id="proc"><label for="proc"><strong>Surgical Procedure:</strong> Exactly what was done</label></div>
+        <div class="item"><input type="checkbox" id="team"><label for="team"><strong>The Team:</strong> Surgeon, PA, and Anesthesiologist</label></div>
+        <div class="item"><input type="checkbox" id="type"><label for="type"><strong>Type of Procedure:</strong> (Laparoscopic, Open, etc.)</label></div>
+
+        <h2>2. Patient History</h2>
+        <div class="item"><input type="checkbox" id="acute"><label for="acute"><strong>Acute Indication:</strong> Why are they having surgery today?</label></div>
+        <div class="item"><input type="checkbox" id="chronic"><label for="chronic"><strong>PMH/PSH:</strong> Relevant comorbidities & past surgeries</label></div>
+        <div class="item"><input type="checkbox" id="meds"><label for="meds"><strong>Meds/Allergies:</strong> Especially home anticoagulants or beta-blockers</label></div>
+
+        <h2>3. Intraoperative Management</h2>
+        <div class="item"><input type="checkbox" id="anes-type"><label for="anes-type"><strong>Anesthetic:</strong> GETA, TIVA, Spinal, or MAC</label></div>
+        <div class="item"><input type="checkbox" id="opioid"><label for="opioid"><strong>Last Opioid:</strong> Dose and Time given</label></div>
+        <div class="item"><input type="checkbox" id="intra-meds"><label for="intra-meds"><strong>Meds Given:</strong> Paralytics (Reversed?), Anti-emetics, Antibiotics</label></div>
+        <div class="item"><input type="checkbox" id="fluids"><label for="fluids"><strong>I/O:</strong> Fluids, Blood loss (EBL), and Urine output</label></div>
+
+        <h2>4. The Clinical Course</h2>
+        <div class="item"><input type="checkbox" id="hemo"><label for="hemo"><strong>Hemodynamics:</strong> Post-induction hypotension or instability?</label></div>
+        <div class="item"><input type="checkbox" id="interventions"><label for="interventions"><strong>Interventions:</strong> Pressors used or extra fluid boluses?</label></div>
+        <div class="item"><input type="checkbox" id="unexpected"><label for="unexpected"><strong>Unexpected Events:</strong> Airway issues or rhythm changes?</label></div>
+
+        <h2>5. PACU Plan & Disposition</h2>
+        <div class="item"><input type="checkbox" id="expected"><label for="expected"><strong>Anticipated Problems:</strong> Pain, PONV, or agitation?</label></div>
+        <div class="item"><input type="checkbox" id="suggested"><label for="suggested"><strong>Suggested Interventions:</strong> Specific BP targets or positioning</label></div>
+        <div class="item"><input type="checkbox" id="contact"><label for="contact"><strong>Contact:</strong> Who is the primary person to page for issues?</label></div>
+    </div>
+
+    <footer>
+        Standardized handoffs improve patient safety.
+    </footer>
+
+</body>
+</html>

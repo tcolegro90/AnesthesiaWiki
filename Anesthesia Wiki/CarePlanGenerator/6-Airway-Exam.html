@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Airway Exam</title>
+  <link rel="stylesheet" href="shared.css?v=3" />
+  <style>
+    /* Increase spacing and hit area for airway numeric options. */
+    .risk-row > span {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .risk-row > span label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 5px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .risk-row > span input[type="radio"] {
+      margin: 0;
+      width: 16px;
+      height: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>6. Airway Exam</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Medications</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:8px;">
+      <div class="risk-row" id="row-mallampati"><strong>Mallampati:</strong> <span><label><input type="radio" name="exam-mallampati" value="1">1</label><label><input type="radio" name="exam-mallampati" value="2">2</label><label><input type="radio" name="exam-mallampati" value="3">3</label><label><input type="radio" name="exam-mallampati" value="4">4</label></span></div>
+      <div class="risk-row" id="row-tmd"><strong>Thyromental Distance:</strong> <span><label><input type="radio" name="exam-tmd" value="1">1</label><label><input type="radio" name="exam-tmd" value="2">2</label><label><input type="radio" name="exam-tmd" value="3">3</label><label><input type="radio" name="exam-tmd" value="4">4</label><label><input type="radio" name="exam-tmd" value="5">5</label><label><input type="radio" name="exam-tmd" value="6">6+</label></span></div>
+      <div class="risk-row" id="row-gap"><strong>Interincisor Distance:</strong> <span><label><input type="radio" name="exam-interincisor" value="1">1</label><label><input type="radio" name="exam-interincisor" value="2">2</label><label><input type="radio" name="exam-interincisor" value="3">3</label><label><input type="radio" name="exam-interincisor" value="4">4</label><label><input type="radio" name="exam-interincisor" value="5">5</label><label><input type="radio" name="exam-interincisor" value="6">6</label><label><input type="radio" name="exam-interincisor" value="7">7+</label></span></div>
+      <div class="risk-row" id="row-mand"><strong>Mandibular Protrusion:</strong> <span><label><input type="radio" name="airway-mandibular" value="1">1</label><label><input type="radio" name="airway-mandibular" value="2">2</label><label><input type="radio" name="airway-mandibular" value="3">3</label></span></div>
+      <div class="risk-row" id="row-atlanto"><strong>Atlanto-occipital mobility:</strong> <span><label><input type="radio" name="exam-atlanto" value="No limited mobility">No limit</label><label><input type="radio" name="exam-atlanto" value="Limited Mobility">Limited</label></span></div>
+    </div>
+  </div>
+  <script src="shared.js?v=19"></script>
+  <script>
+    function refreshAirwayAlerts() {
+      const mp = document.querySelector('input[name="exam-mallampati"]:checked');
+      const tmd = document.querySelector('input[name="exam-tmd"]:checked');
+      const gap = document.querySelector('input[name="exam-interincisor"]:checked');
+      const mand = document.querySelector('input[name="airway-mandibular"]:checked');
+      const atl = document.querySelector('input[name="exam-atlanto"]:checked');
+
+      document.getElementById('row-mallampati').classList.toggle('alert', mp && Number(mp.value) > 2);
+      document.getElementById('row-tmd').classList.toggle('alert', tmd && Number(tmd.value) < 4);
+      document.getElementById('row-gap').classList.toggle('alert', gap && Number(gap.value) < 4);
+
+      const mandRow = document.getElementById('row-mand');
+      mandRow.classList.remove('alert', 'alert-yellow');
+      if (mand && mand.value === '2') mandRow.classList.add('alert-yellow');
+      if (mand && mand.value === '3') mandRow.classList.add('alert');
+
+      document.getElementById('row-atlanto').classList.toggle('alert', atl && atl.value === 'Limited Mobility');
+      saveState();
+    }
+
+    function boot() {
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', refreshAirwayAlerts));
+      refreshAirwayAlerts();
+    }
+    pageBoot(boot);
+  </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IBW &amp; Ventilation Chart</title>
+    <style>
+        :root { --primary:#1f2a37; --blue:#114a8d; --line:#dbe5f0; --bg:#f3f7fb; }
+        * { box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background:var(--bg); color:var(--primary); margin:0; padding-bottom:48px; }
+        header { background:var(--primary); padding:16px 20px 12px; text-align:center; }
+        header h1 { margin:0; font-size:1.4rem; color:#fff; }
+        header p { margin:4px 0 0; font-size:0.82rem; color:#93adc8; }
+        .container { max-width:860px; margin:28px auto; padding:0 16px; }
+        .card { background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:18px; }
+        .card-header { background:var(--blue); color:#fff; padding:13px 18px; font-size:1rem; font-weight:700; }
+        .card-body { padding:18px; }
+        p { font-size:0.9rem; line-height:1.6; margin:0 0 12px; color:#3a4a5c; }
+        table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+        th { background:#f0f6ff; color:#355f93; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; padding:8px 10px; text-align:left; }
+        td { padding:8px 10px; border-bottom:1px solid #eef2f8; }
+        tbody tr:nth-child(odd) td { background:#fcfdff; }
+        tbody tr:nth-child(even) td { background:#f3f8ff; }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:#e8f2ff; }
+        td:first-child { font-weight:600; }
+    </style>
+</head>
+<body>
+<a href="../Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+
+<header>
+    <h1>📏 IBW &amp; Ventilation Chart</h1>
+    <p>Ideal Body Weight and protective tidal volume targets by height</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">Ideal Body Weight &amp; Tidal Volume Reference</div>
+        <div class="card-body">
+            <p>Protective lung ventilation targets <strong>6–8 mL/kg of Ideal Body Weight (IBW)</strong>. Calculated using the Devine Formula. Heights below 5'0" are adjusted by subtracting 2.3 kg per inch below 60 inches.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Height</th>
+                        <th>Male IBW (kg)</th>
+                        <th>Female IBW (kg)</th>
+                        <th>Tidal Vol Target (6–8 mL/kg IBW)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>4' 10" (147 cm)</td><td>45.4 kg</td><td>40.9 kg</td><td>M: 272–363 mL | F: 245–327 mL</td></tr>
+                    <tr><td>4' 11" (150 cm)</td><td>47.7 kg</td><td>43.2 kg</td><td>M: 286–382 mL | F: 259–346 mL</td></tr>
+                    <tr><td>5' 0" (152 cm)</td><td>50.0 kg</td><td>45.5 kg</td><td>M: 300–400 mL | F: 273–364 mL</td></tr>
+                    <tr><td>5' 1" (155 cm)</td><td>52.3 kg</td><td>47.8 kg</td><td>M: 314–418 mL | F: 287–382 mL</td></tr>
+                    <tr><td>5' 2" (157 cm)</td><td>54.6 kg</td><td>50.1 kg</td><td>M: 328–437 mL | F: 301–401 mL</td></tr>
+                    <tr><td>5' 3" (160 cm)</td><td>56.9 kg</td><td>52.4 kg</td><td>M: 341–455 mL | F: 314–419 mL</td></tr>
+                    <tr><td>5' 4" (163 cm)</td><td>59.2 kg</td><td>54.7 kg</td><td>M: 355–474 mL | F: 328–438 mL</td></tr>
+                    <tr><td>5' 5" (165 cm)</td><td>61.5 kg</td><td>57.0 kg</td><td>M: 369–492 mL | F: 342–456 mL</td></tr>
+                    <tr><td>5' 6" (168 cm)</td><td>63.8 kg</td><td>59.3 kg</td><td>M: 383–510 mL | F: 356–474 mL</td></tr>
+                    <tr><td>5' 7" (170 cm)</td><td>66.1 kg</td><td>61.6 kg</td><td>M: 397–529 mL | F: 370–493 mL</td></tr>
+                    <tr><td>5' 8" (173 cm)</td><td>68.4 kg</td><td>63.9 kg</td><td>M: 410–547 mL | F: 383–511 mL</td></tr>
+                    <tr><td>5' 9" (175 cm)</td><td>70.7 kg</td><td>66.2 kg</td><td>M: 424–566 mL | F: 397–530 mL</td></tr>
+                    <tr><td>5' 10" (178 cm)</td><td>73.0 kg</td><td>68.5 kg</td><td>M: 438–584 mL | F: 411–548 mL</td></tr>
+                    <tr><td>5' 11" (180 cm)</td><td>75.3 kg</td><td>70.8 kg</td><td>M: 452–602 mL | F: 425–566 mL</td></tr>
+                    <tr><td>6' 0" (183 cm)</td><td>77.6 kg</td><td>73.1 kg</td><td>M: 466–621 mL | F: 439–585 mL</td></tr>
+                    <tr><td>6' 1" (185 cm)</td><td>79.9 kg</td><td>75.4 kg</td><td>M: 479–639 mL | F: 452–603 mL</td></tr>
+                    <tr><td>6' 2" (188 cm)</td><td>82.2 kg</td><td>77.7 kg</td><td>M: 493–658 mL | F: 466–622 mL</td></tr>
+                    <tr><td>6' 3" (191 cm)</td><td>84.5 kg</td><td>80.0 kg</td><td>M: 507–676 mL | F: 480–640 mL</td></tr>
+                    <tr><td>6' 4" (193 cm)</td><td>86.8 kg</td><td>82.3 kg</td><td>M: 521–694 mL | F: 494–658 mL</td></tr>
+                    <tr><td>6' 5" (196 cm)</td><td>89.1 kg</td><td>84.6 kg</td><td>M: 535–713 mL | F: 508–677 mL</td></tr>
+                    <tr><td>6' 6" (198 cm)</td><td>91.4 kg</td><td>86.9 kg</td><td>M: 548–731 mL | F: 521–695 mL</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

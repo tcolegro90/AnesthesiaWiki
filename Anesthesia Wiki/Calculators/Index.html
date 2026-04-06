@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculators & Charts</title>
+    <style>
+        :root {
+            --primary: #1f2a37;
+            --blue: #114a8d;
+            --light-blue: #3498db;
+            --green: #1a7c50;
+            --orange: #d4920a;
+            --red: #b32424;
+            --purple: #6c3483;
+            --teal: #0e7490;
+            --bg: #f3f7fb;
+            --white: #ffffff;
+            --line: #dbe5f0;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--primary);
+            padding-bottom: 60px;
+        }
+
+        header {
+            background: var(--primary);
+            padding: 18px 20px 14px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        header h1 {
+            margin: 0 0 4px;
+            font-size: 1.5rem;
+            color: #fff;
+            letter-spacing: 0.04em;
+        }
+        header p {
+            margin: 0;
+            font-size: 0.82rem;
+            color: #93adc8;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 20px 0 0;
+            padding: 7px 14px;
+            background: rgba(255,255,255,0.12);
+            color: #cfe0f5;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.84rem;
+            font-weight: 500;
+            transition: background 0.15s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.22); }
+
+        .container { max-width: 700px; margin: 32px auto; padding: 0 16px; }
+
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .tile {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 22px 14px 18px;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 9px;
+            text-align: center;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .tile .tile-icon { font-size: 1.7rem; }
+
+        .t-blue   { border-top: 3px solid var(--light-blue); }
+        .t-green  { border-top: 3px solid var(--green); }
+        .t-orange { border-top: 3px solid var(--orange); }
+        .t-teal   { border-top: 3px solid var(--teal); }
+        .t-navy   { border-top: 3px solid var(--blue); }
+
+        .tile:hover.t-blue   { background: #f0f8ff; }
+        .tile:hover.t-green  { background: #f0fff8; }
+        .tile:hover.t-orange { background: #fffbf0; }
+        .tile:hover.t-teal   { background: #f0fbff; }
+        .tile:hover.t-navy   { background: #f0f5ff; }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../Index.html" class="back-btn">← Wiki Home</a>
+    <h1>🧮 Calculators &amp; Charts</h1>
+    <p>Clinical calculators and reference charts</p>
+</header>
+
+<div class="container">
+    <div class="tile-grid">
+        <a href="IBWChart.html" class="tile t-navy">
+            <span class="tile-icon">📏</span>
+            IBW &amp; Ventilation
+        </a>
+        <a href="BMICalculator.html" class="tile t-blue">
+            <span class="tile-icon">⚖️</span>
+            BMI Calculator
+        </a>
+        <a href="FluidCalculator.html" class="tile t-teal">
+            <span class="tile-icon">💧</span>
+            Fluid Calculator
+        </a>
+        <a href="ABLEBLCalculator.html" class="tile t-orange">
+            <span class="tile-icon">🩸</span>
+            ABL / EBL Calculator
+        </a>
+        <a href="../Meds/LocalAnestheticMaxDoseCalculator.html" class="tile t-green">
+            <span class="tile-icon">💉</span>
+            LA Max Dose
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

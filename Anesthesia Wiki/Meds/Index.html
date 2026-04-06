@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medication Library</title>
+  <style>
+    :root {
+      --ink: #132033;
+      --muted: #5c708a;
+      --bg: #edf3f8;
+      --panel: #ffffff;
+      --line: #d8e2ed;
+      --blue: #1358a8;
+      --teal: #0f7a96;
+      --green: #197a56;
+      --orange: #c98513;
+      --red: #b6342f;
+      --purple: #6a3f99;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Avenir Next", "Segoe UI", Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 400px at 10% -8%, #dbeafe 0%, transparent 58%),
+        radial-gradient(900px 280px at 95% -12%, #dff5ff 0%, transparent 55%),
+        var(--bg);
+      padding-bottom: 48px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1f2a37, #25384c);
+      color: #fff;
+      padding: 16px 18px 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 4;
+    }
+    .head-row {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 13px;
+      background: rgba(255,255,255,0.12);
+      color: #d4e7ff;
+      border: 1px solid rgba(212,231,255,0.36);
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.83rem;
+      font-weight: 600;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.2); }
+    .head-copy h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      letter-spacing: 0.02em;
+    }
+    .head-copy p {
+      margin: 3px 0 0;
+      color: #a8bfd8;
+      font-size: 0.83rem;
+    }
+
+    .search-wrap {
+      max-width: 1100px;
+      margin: 16px auto 0;
+      padding: 0 12px;
+    }
+    .search {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #c6d8ec;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: #f9fcff;
+      color: #173151;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 14px auto;
+      padding: 0 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .group {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(15, 41, 67, 0.07);
+      overflow: hidden;
+    }
+    .group h2 {
+      margin: 0;
+      font-size: 0.96rem;
+      padding: 10px 12px;
+      color: #fff;
+      letter-spacing: 0.02em;
+    }
+    .c-blue h2 { background: linear-gradient(135deg, #1d63b1, #2a78ce); }
+    .c-teal h2 { background: linear-gradient(135deg, #11758f, #1f91ab); }
+    .c-green h2 { background: linear-gradient(135deg, #1b764f, #29986a); }
+    .c-orange h2 { background: linear-gradient(135deg, #bd7a11, #dd9623); }
+    .c-red h2 { background: linear-gradient(135deg, #a5302b, #c7433c); }
+    .c-purple h2 { background: linear-gradient(135deg, #643997, #8356b9); }
+
+    .med-list {
+      list-style: none;
+      margin: 0;
+      padding: 10px;
+      display: grid;
+      gap: 7px;
+    }
+    .med-list a {
+      display: block;
+      text-decoration: none;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      background: #fff;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+    .med-list a:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(26, 59, 92, 0.12);
+      border-color: #aec8e6;
+      background: #f3f8ff;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="head-row">
+      <a href="../Index.html" class="back-btn">&larr; Wiki Home</a>
+      <div class="head-copy">
+        <h1>Medication Library</h1>
+        <p>Browse all references by classification</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="search-wrap">
+    <input id="med-search" class="search" type="search" placeholder="Search medication names..." oninput="filterMeds(this.value)" />
+  </div>
+
+  <div class="container" id="med-container">
+    <section class="group c-blue" data-group>
+      <h2>Induction Agents</h2>
+      <ul class="med-list">
+        <li><a href="InductionAgents/Propofol.html">Propofol</a></li>
+        <li><a href="InductionAgents/Etomidate.html">Etomidate</a></li>
+        <li><a href="InductionAgents/Ketamine.html">Ketamine</a></li>
+        <li><a href="InductionAgents/Midazolam.html">Midazolam</a></li>
+        <li><a href="InductionAgents/Dexmedetomidine.html">Dexmedetomidine</a></li>
+        <li><a href="InductionAgents/Methohexital.html">Methohexital</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-teal" data-group>
+      <h2>Opioids</h2>
+      <ul class="med-list">
+        <li><a href="Opioids/Fentanyl.html">Fentanyl</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-green" data-group>
+      <h2>Non-Opioid Analgesics</h2>
+      <ul class="med-list">
+        <li><a href="NonOpioidAnalgesics/Acetaminophen.html">Acetaminophen</a></li>
+        <li><a href="NonOpioidAnalgesics/Ketorolac.html">Ketorolac</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-orange" data-group>
+      <h2>Local Anesthetics</h2>
+      <ul class="med-list">
+        <li><a href="LocalAnesthetics/Lidocaine.html">Lidocaine</a></li>
+        <li><a href="LocalAnesthetics/Bupivacaine.html">Bupivacaine</a></li>
+        <li><a href="LocalAnesthetics/Ropivacaine.html">Ropivacaine</a></li>
+        <li><a href="LocalAnesthetics/Mepivacaine.html">Mepivacaine</a></li>
+        <li><a href="LocalAnesthetics/Chloroprocaine.html">Chloroprocaine</a></li>
+        <li><a href="LocalAnesthetics/Tetracaine.html">Tetracaine</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-purple" data-group>
+      <h2>Inhaled Anesthetics</h2>
+      <ul class="med-list">
+        <li><a href="InhaledAnesthetics/Sevoflurane.html">Sevoflurane</a></li>
+        <li><a href="InhaledAnesthetics/Desflurane.html">Desflurane</a></li>
+        <li><a href="InhaledAnesthetics/Isoflurane.html">Isoflurane</a></li>
+        <li><a href="InhaledAnesthetics/NitrousOxide.html">Nitrous Oxide</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-red" data-group>
+      <h2>Paralytics</h2>
+      <ul class="med-list">
+        <li><a href="Paralytics/Succinylcholine.html">Succinylcholine</a></li>
+        <li><a href="Paralytics/Rocuronium.html">Rocuronium</a></li>
+        <li><a href="Paralytics/Cisatracurium.html">Cisatracurium</a></li>
+        <li><a href="Paralytics/Atracurium.html">Atracurium</a></li>
+        <li><a href="Paralytics/Mivacurium.html">Mivacurium</a></li>
+        <li><a href="Paralytics/Vecuronium.html">Vecuronium</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-blue" data-group>
+      <h2>Reversal</h2>
+      <ul class="med-list">
+        <li><a href="Reversal/Neostigmine.html">Neostigmine</a></li>
+        <li><a href="Reversal/Sugammadex.html">Sugammadex</a></li>
+        <li><a href="Reversal/Edrophonium.html">Edrophonium</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-teal" data-group>
+      <h2>Antiemetics</h2>
+      <ul class="med-list">
+        <li><a href="Antiemetics/Ondansetron.html">Ondansetron</a></li>
+        <li><a href="Antiemetics/Scopolamine.html">Scopolamine</a></li>
+        <li><a href="Antiemetics/Aprepitant.html">Aprepitant</a></li>
+        <li><a href="Antiemetics/Dexamethasone.html">Dexamethasone</a></li>
+        <li><a href="Antiemetics/Droperidol.html">Droperidol</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-green" data-group>
+      <h2>Antihypertensives</h2>
+      <ul class="med-list">
+        <li><a href="Antihypertensives/Hydralazine.html">Hydralazine</a></li>
+        <li><a href="Antihypertensives/Nitroglycerin.html">Nitroglycerin</a></li>
+        <li><a href="Antihypertensives/Labetalol.html">Labetalol</a></li>
+        <li><a href="Antihypertensives/Nicardipine.html">Nicardipine</a></li>
+        <li><a href="Antihypertensives/SodiumNitroprusside.html">Sodium Nitroprusside</a></li>
+        <li><a href="Antihypertensives/Enalapril.html">Enalapril</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-orange" data-group>
+      <h2>Vasoactive</h2>
+      <ul class="med-list">
+        <li><a href="Vasoactive/Epinephrine.html">Epinephrine</a></li>
+        <li><a href="Vasoactive/Norepinephrine.html">Norepinephrine</a></li>
+        <li><a href="Vasoactive/Phenylephrine.html">Phenylephrine</a></li>
+        <li><a href="Vasoactive/Ephedrine.html">Ephedrine</a></li>
+        <li><a href="Vasoactive/Vasopressin.html">Vasopressin</a></li>
+        <li><a href="Vasoactive/Dopamine.html">Dopamine</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-purple" data-group>
+      <h2>Antiarrhythmics</h2>
+      <ul class="med-list">
+        <li><a href="Antiarrhythmics/Esmolol.html">Esmolol</a></li>
+        <li><a href="Antiarrhythmics/Amiodarone.html">Amiodarone</a></li>
+        <li><a href="Antiarrhythmics/Lidocaine.html">Lidocaine</a></li>
+        <li><a href="Antiarrhythmics/Adenosine.html">Adenosine</a></li>
+        <li><a href="Antiarrhythmics/Verapamil.html">Verapamil</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-red" data-group>
+      <h2>Crisis Management</h2>
+      <ul class="med-list">
+        <li><a href="CrisisManagement/Dantrolene.html">Dantrolene</a></li>
+      </ul>
+    </section>
+
+    <section class="group c-blue" data-group>
+      <h2>Dose Tools</h2>
+      <ul class="med-list">
+        <li><a href="LocalAnestheticMaxDoseCalculator.html">Local Anesthetic Max Dose Calculator</a></li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    function filterMeds(q) {
+      q = String(q || '').toLowerCase().trim();
+      document.querySelectorAll('[data-group]').forEach(function(group) {
+        var links = Array.from(group.querySelectorAll('.med-list a'));
+        var hasVisible = false;
+        links.forEach(function(a) {
+          var show = !q || a.textContent.toLowerCase().indexOf(q) !== -1;
+          a.parentElement.classList.toggle('hidden', !show);
+          if (show) hasVisible = true;
+        });
+        group.classList.toggle('hidden', !hasVisible);
+      });
+    }
+  </script>
+</body>
+</html>

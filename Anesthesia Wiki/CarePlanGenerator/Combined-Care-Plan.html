@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Combined Care Plan (All 8 Sections)</title>
+  <style>
+    :root {
+      --section-gap: 6px;
+      --ink: #1f2a37;
+      --line: #dbe5f0;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 10% 8%, #eaf4ff 0%, transparent 34%),
+        radial-gradient(circle at 92% 14%, #edf8f2 0%, transparent 30%),
+        #f3f7fb;
+      color: var(--ink);
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    h1 {
+      margin: 0 0 12px 0;
+      font-family: Georgia, "Times New Roman", serif;
+      border-bottom: 2px solid #cbdcf2;
+      padding-bottom: 6px;
+      color: #1a365d;
+    }
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      margin: 0 0 14px;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      border: 1px solid #bfd2ec;
+      background: #eaf3ff;
+      color: #114a8d;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .action-btn:hover { background: #dbeaff; }
+    .action-btn-danger {
+      border-color: #e4b7b7;
+      background: #fff1f1;
+      color: #8f2424;
+    }
+    .action-btn-danger:hover { background: #ffe5e5; }
+    .note {
+      background: #eaf3ff;
+      border: 1px solid #cce0ff;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .quick-links a {
+      text-decoration: none;
+      color: #0645ad;
+      background: #fff;
+      border: 1px solid #c8ccd1;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+    }
+    .section {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin-bottom: var(--section-gap);
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(17, 74, 141, 0.08);
+    }
+    .section h2 {
+      margin: 0;
+      padding: 10px 12px;
+      background: linear-gradient(90deg, #eef5ff 0%, #f6fbff 100%);
+      border-bottom: 1px solid var(--line);
+      font-size: 1rem;
+      color: #114a8d;
+    }
+    iframe {
+      width: 100%;
+      border: 0;
+      min-height: 120px;
+      background: #fff;
+      display: block;
+      overflow: hidden;
+    }
+
+    #preview-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      background: #525659;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    #print-container,
+    .print-card {
+      width: 3.95in;
+      height: 5.5in;
+      background: #fff;
+      padding: 0.1in 0.06in;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      font-family: Arial, sans-serif;
+      font-size: 7.1pt;
+      color: #000;
+      box-sizing: border-box;
+      border: 1px solid #000;
+      overflow: hidden;
+    }
+    #print-container .print-header,
+    .print-card .print-header {
+      text-align: center;
+      border-bottom: 1px solid #000;
+      padding-bottom: 2px;
+      margin-bottom: 4px;
+      font-size: 10pt;
+      font-weight: bold;
+    }
+    #print-container .print-grid,
+    .print-card .print-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+    #print-container .print-section,
+    .print-card .print-section {
+      border: 1px solid #aaa;
+      padding: 3px;
+      border-radius: 2px;
+    }
+    #print-container .print-section h3,
+    .print-card .print-section h3 {
+      margin-top: 0;
+      margin-bottom: 3px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 1px;
+      font-size: 7.4pt;
+    }
+    #print-container .print-row,
+    .print-card .print-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+      line-height: 1.2;
+      gap: 4px;
+    }
+    #print-container .print-row span:first-child,
+    .print-card .print-row span:first-child {
+      font-weight: bold;
+      margin-right: 5px;
+      white-space: nowrap;
+    }
+    #print-container .med-print-row,
+    .print-card .med-print-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dotted #ccc;
+      margin-bottom: 1px;
+      padding-bottom: 0;
+      gap: 4px;
+    }
+    #print-container .med-print-row:last-child,
+    .print-card .med-print-row:last-child { border-bottom: none; }
+    #print-container #pr-antiemetic,
+    .print-card #pr-antiemetic {
+      text-align: right;
+      white-space: pre-line;
+    }
+
+    #print-sheet {
+      display: none;
+      width: 8.0in;
+      height: 10.4in;
+      background: #fff;
+      position: relative;
+      box-sizing: border-box;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
+    .sheet-slot {
+      position: absolute;
+      width: 3.90in;
+      height: 5.15in;
+      overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
+    .slot-1 { left: 0; top: 0; }
+    .slot-2 { left: 0; top: 5.25in; }
+    .slot-3 { left: 4.10in; top: 0; }
+    .slot-4 { left: 4.10in; top: 5.25in; }
+    .sheet-slot .print-card {
+      #print-sheet {
+        display: none;
+        width: 7.40in;
+        height: 9.80in;
+        background: #fff;
+        position: relative;
+        box-sizing: border-box;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        overflow: hidden;
+      }
+      .sheet-slot {
+        position: absolute;
+        width: 3.65in;
+        height: 4.85in;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+      .slot-1 { left: 0; top: 0; }
+      .slot-2 { left: 0; top: 4.89in; }
+      .slot-3 { left: 3.69in; top: 0; }
+      .slot-4 { left: 3.69in; top: 4.89in; }
+      .sheet-slot .print-card {
+        width: 3.65in !important;
+        height: 4.85in !important;
+        margin: 0;
+        box-shadow: none;
+        border: 1px solid #000;
+        transform: none !important;
+      }
+      .sheet-slot.upside-down .print-card {
+        transform: rotate(180deg) !important;
+        transform-origin: center center;
+      }
+      #print-container {
+        display: block !important;
+        width: 3.95in !important;
+        height: 5.5in !important;
+        margin: 0 !important;
+        padding: 0.1in 0.06in !important;
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+        page-break-after: avoid !important;
+        break-after: avoid-page !important;
+      }
+      #print-sheet {
+        width: 7.40in !important;
+        height: 9.80in !important;
+        margin: 0 auto !important;
+        box-shadow: none !important;
+        page-break-after: avoid !important;
+        break-after: avoid-page !important;
+      }
+      body.print-mode-sheet #print-container { display: none !important; }
+      body.print-mode-sheet #print-sheet { visibility: visible !important; }
+      body:not(.print-mode-sheet) #print-sheet { visibility: hidden !important; }
+      #preview-actions { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+<a href="../Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+  <div id="preview-screen">
+    <div id="preview-actions" style="margin-bottom:20px;display:flex;gap:10px;">
+      <button type="button" class="action-btn" onclick="closePreview()">Back to Edit</button>
+      <button type="button" class="action-btn" onclick="printSavedPlansBatch()">Print 1-4 Saved Plans</button>
+    </div>
+    <div id="print-container">
+      <div class="print-header"><span id="pr-header-initials">_</span> | <span id="pr-header-time">_</span> | <span id="pr-header-surgery">_</span></div>
+      <div class="print-grid">
+        <div class="print-section">
+          <h3>Patient Details</h3>
+          <div class="print-row"><span>Age / Gender:</span><span id="pr-age-gen">_</span></div>
+          <div class="print-row"><span></span><span><span id="pr-height">_</span> / <span id="pr-weight">_</span> / <span id="pr-bmi">_</span></span></div>
+          <div class="print-row"><span>Smoker:</span><span id="pr-smoker">_</span></div>
+          <div class="print-row"><span>Fasted:</span><span id="pr-fasted">_</span></div>
+          <div class="print-row"><span>Allergies:</span><span id="pr-allergies">_</span></div>
+          <div class="print-row"><span>PMH:</span><span id="pr-pmh">_</span></div>
+          <div style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px; margin-bottom: 6px;">
+            <span style="font-weight:bold; display:block; margin-bottom:2px;">At Home Meds:</span>
+            <div id="pr-meds-list" style="font-size:0.9em; padding-left: 5px;"></div>
+          </div>
+          <div class="print-row" id="pr-pacer-row" style="display:none;"><span>Device:</span><span id="pr-pacer">_</span></div>
+        </div>
+
+        <div class="print-section">
+          <h3>Preop & Airway</h3>
+          <div style="margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
+            <!-- BMP Fishbone -->
+            <div style="display:flex;gap:3px;align-items:center;margin-bottom:2px;">
+              <div style="display:inline-block;position:relative;width:118px;height:32px;font-size:5.4pt;flex-shrink:0;">
+                <svg width="118" height="32" viewBox="0 0 118 32" style="position:absolute;left:0;top:0;">
+                  <line x1="2" y1="17" x2="92" y2="17" stroke="#555" stroke-width="1" />
+                  <line x1="30" y1="4" x2="30" y2="30" stroke="#555" stroke-width="1" />
+                  <line x1="60" y1="4" x2="60" y2="30" stroke="#555" stroke-width="1" />
+                  <line x1="92" y1="17" x2="114" y2="4" stroke="#555" stroke-width="1" />
+                  <line x1="92" y1="17" x2="114" y2="30" stroke="#555" stroke-width="1" />
+                </svg>
+                <span style="position:absolute;left:10px;top:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-na">—</span>
+                <span style="position:absolute;left:10px;bottom:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-k">—</span>
+                <span style="position:absolute;left:40px;top:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-cl">—</span>
+                <span style="position:absolute;left:40px;bottom:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-mg">—</span>
+                <span style="position:absolute;left:70px;top:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-bun">—</span>
+                <span style="position:absolute;left:70px;bottom:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-cr">—</span>
+                <span style="position:absolute;right:1px;top:13px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-glu">—</span>
+              </div>
+            </div>
+            <!-- CBC + Coags -->
+            <div style="display:flex;gap:2pt;align-items:center;margin-top:1px;justify-content:space-between;">
+              <div style="display:inline-block;position:relative;width:60px;height:32px;font-size:5.2pt;flex-shrink:0;">
+                <svg width="60" height="32" viewBox="0 0 70 36" style="position:absolute;left:0;top:0;">
+                  <line x1="14" y1="4" x2="60" y2="34" stroke="#555" stroke-width="1" />
+                  <line x1="60" y1="4" x2="14" y2="34" stroke="#555" stroke-width="1" />
+                </svg>
+                <span style="position:absolute;left:27px;top:1px;background:#fff;padding:0;line-height:1;" id="pr-lab-hgb">—</span>
+                <span style="position:absolute;left:3px;top:14px;background:#fff;padding:0;line-height:1;" id="pr-lab-wbc">—</span>
+                <span style="position:absolute;right:3px;top:14px;background:#fff;padding:0;line-height:1;" id="pr-lab-plt">—</span>
+                <span style="position:absolute;left:27px;bottom:1px;background:#fff;padding:0;line-height:1;" id="pr-lab-hct">—</span>
+              </div>
+              <div style="display:inline-block;position:relative;width:54px;height:38px;font-size:5.4pt;flex-shrink:0;margin-right:2px;">
+                <svg width="54" height="38" viewBox="0 0 54 38" style="position:absolute;left:0;top:0;">
+                  <line x1="29" y1="18" x2="12" y2="3" stroke="#555" stroke-width="1" />
+                  <line x1="29" y1="18" x2="46" y2="3" stroke="#555" stroke-width="1" />
+                  <line x1="29" y1="18" x2="29" y2="36" stroke="#555" stroke-width="1" />
+                </svg>
+                <span style="position:absolute;left:22px;top:0;background:#fff;padding:0;line-height:1;" id="pr-lab-inr">—</span>
+                <span style="position:absolute;left:3px;top:18px;background:#fff;padding:0;line-height:1;" id="pr-lab-pt">—</span>
+                <span style="position:absolute;right:3px;top:18px;background:#fff;padding:0;line-height:1;" id="pr-lab-ptt">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="print-row" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;"><span>Procedure:</span><span id="pr-surgery">_</span></div>
+          <div class="print-row"><span>Positioning:</span><span id="pr-position">_</span></div>
+          <div class="print-row" id="pr-row-awareness" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Awareness Hx</span></div>
+          <div class="print-row" id="pr-row-famhx" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Fam Hx Anes Comp</span></div>
+          <div class="print-row" id="pr-row-mh" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Malignant Hyperthermia</span></div>
+          <div class="print-row" id="pr-row-pseudo" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>PChE Def</span></div>
+          <div class="print-row" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;"><span>METs &lt;4:</span><span id="pr-mets">_</span></div>
+          <div style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;">
+            <div class="print-row"><span>Mallampati:</span><span id="pr-mallampati">_</span></div>
+            <div class="print-row" id="pr-abn-tmd-row" style="display:none;"><span>Thyromental:</span><span id="pr-abn-tmd">_</span></div>
+            <div class="print-row" id="pr-abn-gap-row" style="display:none;"><span>Interincisor Gap:</span><span id="pr-abn-gap">_</span></div>
+            <div class="print-row" id="pr-abn-mand-row" style="display:none;"><span>Mandibular:</span><span id="pr-abn-mand">_</span></div>
+            <div class="print-row" id="pr-abn-atl-row" style="display:none;"><span>Atlanto-occipital:</span><span id="pr-abn-atl">_</span></div>
+          </div>
+        </div>
+
+        <div class="print-section">
+          <h3>Anesthetic Plan</h3>
+          <div class="print-row"><span>Type:</span><span id="pr-anes-type">_</span></div>
+          <div class="print-row" id="pr-tiva-row" style="display:none;"><span>TIVA Reason:</span><span id="pr-tiva-reason">_</span></div>
+          <div style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;">
+            <div class="print-row"><span>Airway / RSI:</span><span id="pr-airway">_</span></div>
+            <div class="print-row"><span>Anxiolytic:</span><span id="pr-anx">_</span></div>
+            <div class="print-row" id="pr-vesicant-row" style="display:none;"><span>Vesicant:</span><span id="pr-vesicant">_</span></div>
+            <div class="print-row"><span>Induction:</span><span id="pr-ind">_</span></div>
+            <div class="print-row"><span>Adrenergic:</span><span id="pr-blunt">_</span></div>
+            <div class="print-row"><span>Paralytic:</span><span id="pr-nmb">_</span></div>
+            <div class="print-row"><span>Inhal (MAC):</span><span id="pr-inhal">_</span></div>
+            <div class="print-row" id="pr-pain-intra-row"><span>Intra Pain:</span><span id="pr-pain-intra">_</span></div>
+            <div class="print-row" id="pr-pain-post-row"><span>Post Pain:</span><span id="pr-pain-post">_</span></div>
+            <div class="print-row" id="pr-pain-nonopioid-row"><span>Non-Opioid:</span><span id="pr-pain-nonopioid">_</span></div>
+            <div class="print-row"><span>APFEL:</span><span id="pr-apfel-score">_</span></div>
+            <div class="print-row"><span>Antiemetics:</span><span id="pr-antiemetic">_</span></div>
+          </div>
+        </div>
+
+        <div class="print-section">
+          <h3>Miscellaneous</h3>
+          <div style="font-size:6.4pt;line-height:1.1;min-height:24px;">
+            <div id="pr-equip-items" style="margin-top:1px;">None</div>
+          </div>
+          <div style="margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
+            <div class="print-row"><span>Type:</span><span id="pr-fluid-type">_</span></div>
+            <div class="print-row"><span>Hr 1:</span><span id="pr-fluid-hr1">_</span></div>
+            <div class="print-row"><span>Hr 2:</span><span id="pr-fluid-hr2">_</span></div>
+            <div class="print-row"><span>Hr 3:</span><span id="pr-fluid-hr3">_</span></div>
+            <div class="print-row"><span>Hr 4+:</span><span id="pr-fluid-hr4">_</span></div>
+            <div class="print-row"><span>EBV:</span><span id="pr-ebv">_</span></div>
+            <div class="print-row"><span>ABL:</span><span id="pr-abl">_</span></div>
+            <div class="print-row"><span>Target TV:</span><span id="pr-target-tv-plan">_</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="print-sheet">
+      <div id="sheet-slot-1" class="sheet-slot slot-1"></div>
+      <div id="sheet-slot-2" class="sheet-slot slot-2 upside-down"></div>
+      <div id="sheet-slot-3" class="sheet-slot slot-3"></div>
+      <div id="sheet-slot-4" class="sheet-slot slot-4 upside-down"></div>
+    </div>
+  </div>
+
+  <div id="main-content" class="wrap">
+    <h1>Anesthetic Care Plan</h1>
+    <div class="top-actions">
+      <button type="button" class="action-btn" onclick="openPreview()">Print Preview</button>
+      <button type="button" class="action-btn" onclick="printSavedPlansBatch()">Print 1-4 Saved Plans</button>
+      <button type="button" class="action-btn" onclick="saveNamedPlan()">Save Plan</button>
+      <button type="button" class="action-btn" onclick="loadNamedPlan()">Load Plan</button>
+      <button type="button" class="action-btn" onclick="deleteNamedPlan()">Delete Plan</button>
+      <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear All Data</button>
+    </div>
+
+    <div class="section"><h2>Patient Demographics</h2><iframe id="frame-1" src="1-Patient-Demographics.html" title="Section 1"></iframe></div>
+    <div class="section"><h2>Past Medical History</h2><iframe id="frame-3" src="3-PMH.html" title="Section 3"></iframe></div>
+    <div class="section"><h2>Prescribed Medications</h2><iframe id="frame-4" src="4-Prescribed-Medications.html" title="Section 4"></iframe></div>
+    <div class="section"><h2>Labs</h2><iframe id="frame-2" src="2-Labs-Chemistries.html" title="Section 2"></iframe></div>
+    <div class="section"><h2>Preoperative History</h2><iframe id="frame-5" src="5-Preop-History.html" title="Section 5"></iframe></div>
+    <div class="section"><h2>Airway Exam</h2><iframe id="frame-6" src="6-Airway-Exam.html" title="Section 6"></iframe></div>
+    <div class="section"><h2>Extras</h2><iframe id="frame-6b" src="6b-Extras.html" title="Section 6b"></iframe></div>
+    <div class="section"><h2>Anesthetic Plan</h2><iframe id="frame-7" src="7-Anesthetic-Plan.html" title="Section 7"></iframe></div>
+    <div class="section"><h2>APFEL &amp; PONV</h2><iframe id="frame-7b" src="7b-APFEL-PONV.html" title="Section 7b"></iframe></div>
+    <div class="section"><h2>Fluid &amp; Blood Plan</h2><iframe id="frame-8" src="8-Fluid-Blood-Plan.html" title="Section 8"></iframe></div>
+    <div class="top-actions" style="margin-top:20px;margin-bottom:20px;">
+      <button type="button" class="action-btn" onclick="openPreview()">Print Preview</button>
+      <button type="button" class="action-btn" onclick="printSavedPlansBatch()">Print 1-4 Saved Plans</button>
+      <button type="button" class="action-btn" onclick="saveNamedPlan()">Save Plan</button>
+      <button type="button" class="action-btn" onclick="loadNamedPlan()">Load Plan</button>
+      <button type="button" class="action-btn" onclick="deleteNamedPlan()">Delete Plan</button>
+      <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear All Data</button>
+    </div>
+  </div>
+
+  <script src="combined.js?v=4.2"></script>
+</body>
+</html>

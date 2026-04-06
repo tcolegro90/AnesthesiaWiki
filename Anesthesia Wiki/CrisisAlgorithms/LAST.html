@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAST</title>
+    <style>
+        :root { --primary:#1f2a37; --red:#b32424; --line:#dbe5f0; --bg:#f3f7fb; --blue:#114a8d; }
+        * { box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background:var(--bg); color:var(--primary); margin:0; padding-bottom:48px; }
+        header { background:var(--primary); padding:16px 20px 12px; text-align:center; }
+        header h1 { margin:0; font-size:1.4rem; color:#fff; }
+        header p { margin:4px 0 0; font-size:0.82rem; color:#93adc8; }
+        .back-btn {
+            display:inline-flex; align-items:center; gap:6px; margin:0 0 0; padding:8px 16px;
+            background:rgba(255,255,255,0.12); color:#cfe0f5; border-radius:6px;
+            text-decoration:none; font-size:0.85rem; font-weight:500; transition:background 0.15s;
+        }
+        .back-btn:hover { background:rgba(255,255,255,0.22); }
+        .container { max-width:780px; margin:26px auto; padding:0 16px; }
+        .card {
+            background:#fff;
+            border:1px solid var(--line);
+            border-radius:12px;
+            padding:18px;
+            margin-bottom:14px;
+            box-shadow:0 1px 4px rgba(0,0,0,0.05);
+        }
+        .card h2 {
+            margin:0 0 10px;
+            font-size:1.06rem;
+            color:var(--blue);
+        }
+        .card p { margin:0 0 10px; font-size:0.93rem; line-height:1.6; color:#3a4a5c; }
+        .steps {
+            margin:0;
+            padding-left:20px;
+        }
+        .steps li {
+            margin-bottom:7px;
+            line-height:1.5;
+            font-size:0.92rem;
+            color:#2f4358;
+        }
+        .highlight {
+            border-left:5px solid var(--red);
+            background:#fff4f4;
+            padding:12px 14px;
+            border-radius:8px;
+            margin:10px 0;
+            font-size:0.92rem;
+            line-height:1.5;
+            color:#5d2e2e;
+        }
+        .dose-table {
+            width:100%;
+            border-collapse:collapse;
+            font-size:0.9rem;
+            margin-top:8px;
+        }
+        .dose-table th, .dose-table td {
+            border:1px solid #e4ebf3;
+            padding:8px 10px;
+            text-align:left;
+            vertical-align:top;
+        }
+        .dose-table th { background:#f5f9ff; color:#355f93; }
+        .small-note { font-size:0.84rem; color:#71859b; margin-top:8px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="../Index.html" class="back-btn">← Wiki Home</a>
+    <h1>LAST</h1>
+    <p>Local Anesthetic Systemic Toxicity</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h2>Immediate Priorities</h2>
+        <ol class="steps">
+            <li>Stop local anesthetic injection immediately.</li>
+            <li>Call for help and bring the LAST kit and 20% lipid emulsion.</li>
+            <li>Airway and breathing: ventilate with 100% oxygen and avoid hypoxia, hypercarbia, and acidosis.</li>
+            <li>Control seizures with benzodiazepines first-line; avoid large propofol doses in unstable patients.</li>
+            <li>Start modified ACLS for cardiovascular instability or arrest.</li>
+        </ol>
+        <div class="highlight">
+            Use lower epinephrine doses in LAST (prefer less than 1 mcg/kg per bolus). Avoid vasopressin and avoid calcium channel blockers and beta blockers during LAST resuscitation.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>20% Lipid Emulsion Dosing</h2>
+        <table class="dose-table">
+            <thead>
+                <tr>
+                    <th>Step</th>
+                    <th>Dose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Initial bolus</td>
+                    <td>1.5 mL/kg IV over about 1 minute</td>
+                </tr>
+                <tr>
+                    <td>Continuous infusion</td>
+                    <td>0.25 mL/kg/min</td>
+                </tr>
+                <tr>
+                    <td>If unstable after initial response</td>
+                    <td>Repeat bolus 1.5 mL/kg (up to two additional boluses) and increase infusion to 0.5 mL/kg/min</td>
+                </tr>
+                <tr>
+                    <td>Maximum dose</td>
+                    <td>Do not exceed approximately 12 mL/kg total lipid emulsion dose</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="small-note">Propofol is not a substitute for lipid emulsion therapy.</p>
+    </div>
+
+    <div class="card">
+        <h2>Post-Event Monitoring</h2>
+        <ol class="steps">
+            <li>Continue close cardiopulmonary monitoring after stabilization.</li>
+            <li>Monitor at least 4 to 6 hours after cardiovascular events.</li>
+            <li>Monitor at least 2 hours after isolated, limited CNS symptoms.</li>
+            <li>Consider early transfer to higher-level support if instability persists.</li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h2>Common Early and Late Signs</h2>
+        <p>Early signs can include perioral numbness, metallic taste, tinnitus, agitation, or confusion. Progression can include seizures, then cardiovascular changes such as hypotension, conduction abnormalities, ventricular arrhythmias, and cardiac arrest. Delayed and atypical presentations can occur.</p>
+    </div>
+</div>
+
+</body>
+</html>

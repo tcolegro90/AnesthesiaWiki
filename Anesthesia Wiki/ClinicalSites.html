@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Sites</title>
+    <style>
+        :root {
+            --primary: #1f2a37;
+            --blue: #114a8d;
+            --green: #1a7c50;
+            --line: #dbe5f0;
+            --bg: #f3f7fb;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding-bottom: 60px;
+        }
+
+        header {
+            background: var(--primary);
+            padding: 16px 20px 12px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: #fff;
+        }
+
+        header p {
+            margin: 4px 0 0;
+            font-size: 0.82rem;
+            color: #93adc8;
+        }
+
+        .save-bar {
+            background: #253040;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .save-bar span {
+            font-size: 0.82rem;
+            color: #93adc8;
+        }
+
+        .save-btn {
+            background: var(--green);
+            color: #fff;
+            border: none;
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+        }
+
+        .save-btn:hover {
+            background: #145e3c;
+        }
+
+        #save-status {
+            font-size: 0.8rem;
+            color: #6ecfa0;
+            min-width: 120px;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        .site-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .site-card.collapsed .site-card-body {
+            display: none;
+        }
+
+        .site-card-header {
+            background: var(--blue);
+            color: #fff;
+            padding: 12px 18px;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .site-card.editing .site-card-header {
+            background: #0d5aa7;
+        }
+
+        .site-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .collapse-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .favorite-star {
+            color: #ffd34d;
+            font-size: 0.95rem;
+        }
+
+        .site-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .site-action-btn {
+            border: 1px solid rgba(255,255,255,0.28);
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .site-action-btn:hover {
+            background: rgba(255,255,255,0.22);
+        }
+
+        .site-action-btn.favorite-btn.active {
+            background: #fff3bf;
+            color: #7a5600;
+            border-color: #fff3bf;
+        }
+        .site-action-btn.favorite-btn {
+            width: 36px;
+            min-width: 36px;
+            padding: 6px 0;
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+
+        .site-card.editing .site-action-btn.edit-btn {
+            background: #fff;
+            color: #0d5aa7;
+            border-color: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead th {
+            background: #eef6ff;
+            color: #355f93;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            text-align: left;
+            padding: 9px 12px;
+            border-bottom: 1px solid #d8e8fb;
+        }
+
+        thead th:first-child {
+            padding-left: 18px;
+        }
+
+        tr:nth-child(even) td {
+            background: #f7fbff;
+        }
+
+        td {
+            padding: 0;
+            border-bottom: 1px solid #eef2f8;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td.label-cell {
+            font-weight: 600;
+            width: 210px;
+            color: #355f93;
+            padding: 10px 18px;
+            white-space: nowrap;
+        }
+
+        td.name-cell,
+        td.phone-cell,
+        td.notes-cell {
+            padding: 4px 8px 4px 0;
+        }
+
+        td.action-cell {
+            width: 138px;
+            padding: 6px 10px 6px 0;
+        }
+
+        .contact-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 0.9rem;
+            color: var(--primary);
+            padding: 7px 10px;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+
+        .contact-input:focus {
+            background: #eaf3ff;
+        }
+
+        .contact-input::placeholder {
+            color: #b0bcce;
+            font-style: italic;
+        }
+
+        .value-display {
+            display: block;
+            min-height: 38px;
+            padding: 9px 10px;
+            color: var(--primary);
+            text-decoration: none;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        a.value-display {
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        a.value-display:hover {
+            text-decoration: underline;
+        }
+
+        .value-empty {
+            display: block;
+            min-height: 38px;
+            padding: 9px 10px;
+            color: #b0bcce;
+            font-style: italic;
+        }
+
+        .row-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            border: 1px solid #c7d8ee;
+            background: #fff;
+            color: #355f93;
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-size: 0.77rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .row-action-btn:hover {
+            background: #eef6ff;
+        }
+
+        .row-action-btn.add-row {
+            border-style: dashed;
+        }
+
+        .row-action-btn.disabled {
+            color: #9db1c7;
+            cursor: default;
+            background: #f7f9fc;
+        }
+
+        @media (max-width: 700px) {
+            .site-card-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .site-actions {
+                width: 100%;
+            }
+
+            .site-action-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            table,
+            thead,
+            tbody,
+            tr,
+            th,
+            td {
+                display: block;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tr {
+                border-bottom: 1px solid #eef2f8;
+                padding: 8px 0;
+            }
+
+            td {
+                border-bottom: none;
+            }
+
+            td.label-cell {
+                width: auto;
+                white-space: normal;
+                padding: 8px 18px 4px;
+            }
+
+            td.name-cell,
+            td.phone-cell,
+            td.notes-cell,
+            td.action-cell {
+                width: 100%;
+                padding: 4px 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+<a href="Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+
+<header>
+    <h1>🏥 Clinical Sites</h1>
+    <p>Key contacts and resources at each rotation site</p>
+</header>
+
+<div class="save-bar">
+    <span>Edits save to this browser</span>
+    <button class="save-btn" onclick="saveAll()">Save All</button>
+    <span id="save-status"></span>
+</div>
+
+<div class="container" id="sites-container"></div>
+
+<script>
+var SITES = [
+    { id: 'rgh', label: 'RGH - Rochester General Hospital' },
+    { id: 'unity', label: 'Unity Hospital' },
+    { id: 'stjoes', label: 'St. Joes' },
+    { id: 'crause', label: 'Crause' },
+    { id: 'smh', label: 'SMH - Strong Memorial Hospital' },
+    { id: 'highland', label: 'Highland Hospital' }
+];
+
+var FIELDS = [
+    { key: 'clinicalCoordinator', label: 'Clinical Coordinator', type: 'contact', canRepeat: true },
+    { key: 'locker', label: 'Locker', type: 'contact' },
+    { key: 'lockCombo', label: 'Lock Combo', type: 'contact' },
+    { key: 'anesthesiaTech', label: 'Anesthesia Tech', type: 'contact' },
+    { key: 'bloodBank', label: 'Blood Bank', type: 'contact' },
+    { key: 'lab', label: 'Lab', type: 'contact' },
+    { key: 'orPharmacyTech', label: 'OR Pharmacy Tech', type: 'contact' },
+    { key: 'orPharmacist', label: 'OR Pharmacist', type: 'contact' },
+    { key: 'mainPharmacy', label: 'Main Pharmacy', type: 'contact' },
+    { key: 'notes', label: 'Notes', type: 'notes' }
+];
+
+var STORE_KEY = 'clinicalSitesData';
+var FAVORITE_KEY = 'clinicalSitesFavorite';
+var appData = loadData();
+var editState = {};
+var expandedState = {};
+var favoriteSiteId = loadFavorite();
+
+function fieldId(siteId, fieldKey, part, rowIndex) {
+    var suffix = rowIndex > 0 ? '__' + rowIndex : '';
+    return siteId + '__' + fieldKey + '__' + part + suffix;
+}
+
+function countId(siteId, fieldKey) {
+    return siteId + '__' + fieldKey + '__count';
+}
+
+function buildUI() {
+    var container = document.getElementById('sites-container');
+    container.innerHTML = '';
+
+    SITES.forEach(function(site) {
+        var card = document.createElement('div');
+        card.className = 'site-card' + (editState[site.id] ? ' editing' : '');
+        if (!isExpanded(site.id)) {
+            card.className += ' collapsed';
+        }
+
+        var header = document.createElement('div');
+        header.className = 'site-card-header';
+        header.setAttribute('onclick', 'toggleExpanded(\'' + site.id + '\')');
+        header.innerHTML =
+            '<div class="site-title"><span class="collapse-indicator">' + (isExpanded(site.id) ? '&#9662;' : '&#9656;') + '</span><span>🏥</span><span>' + escHtml(site.label) + '</span>' + (favoriteSiteId === site.id ? '<span class="favorite-star">★</span>' : '') + '</div>' +
+            '<div class="site-actions">' +
+                '<button type="button" class="site-action-btn favorite-btn' + (favoriteSiteId === site.id ? ' active' : '') + '" onclick="event.stopPropagation(); toggleFavorite(\'' + site.id + '\')">' + (favoriteSiteId === site.id ? '&#9733;' : '&#9734;') + '</button>' +
+                '<button type="button" class="site-action-btn edit-btn" onclick="event.stopPropagation(); toggleEdit(\'' + site.id + '\')">' + (editState[site.id] ? 'Done' : 'Edit') + '</button>' +
+            '</div>';
+        card.appendChild(header);
+
+        var body = document.createElement('div');
+        body.className = 'site-card-body';
+        var table = document.createElement('table');
+        table.innerHTML = '<thead><tr><th>Role</th><th>Name</th><th>Phone</th><th>Action</th></tr></thead>';
+
+        var tbody = document.createElement('tbody');
+        FIELDS.forEach(function(field) {
+            if (field.canRepeat) {
+                var repeatCount = getRepeatCount(site.id, field.key);
+                for (var index = 0; index < repeatCount; index++) {
+                    tbody.appendChild(renderRow(site, field, index));
+                }
+            } else {
+                tbody.appendChild(renderRow(site, field, 0));
+            }
+        });
+
+        table.appendChild(tbody);
+        body.appendChild(table);
+        card.appendChild(body);
+        container.appendChild(card);
+    });
+}
+
+function loadFavorite() {
+    try {
+        return localStorage.getItem(FAVORITE_KEY) || '';
+    } catch (e) {
+        return '';
+    }
+}
+
+function renderRow(site, field, rowIndex) {
+    var tr = document.createElement('tr');
+    var label = field.label + (field.canRepeat && rowIndex > 0 ? ' ' + (rowIndex + 1) : '');
+
+    if (field.type === 'notes') {
+        var notesValue = String(appData[fieldId(site.id, field.key, 'name', rowIndex)] || '');
+        tr.innerHTML =
+            '<td class="label-cell">' + escHtml(label) + '</td>' +
+            '<td class="notes-cell" colspan="2">' + renderNotesCell(site.id, field, rowIndex, notesValue) + '</td>' +
+            '<td class="action-cell"></td>';
+        return tr;
+    }
+
+    var nameValue = String(appData[fieldId(site.id, field.key, 'name', rowIndex)] || '');
+    var phoneValue = String(appData[fieldId(site.id, field.key, 'phone', rowIndex)] || '');
+
+    tr.innerHTML =
+        '<td class="label-cell">' + escHtml(label) + '</td>' +
+        '<td class="name-cell">' + renderNameCell(site.id, field, rowIndex, nameValue) + '</td>' +
+        '<td class="phone-cell">' + renderPhoneCell(site.id, field, rowIndex, phoneValue) + '</td>' +
+        '<td class="action-cell">' + renderActionCell(site, field, rowIndex, nameValue, phoneValue) + '</td>';
+    return tr;
+}
+
+function renderNameCell(siteId, field, rowIndex, value) {
+    if (editState[siteId]) {
+        return '<input class="contact-input" type="text" placeholder="Name" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="name" data-row-index="' + rowIndex + '">';
+    }
+    return value.trim() ? '<span class="value-display">' + escHtml(value.trim()) + '</span>' : '<span class="value-empty">No name added</span>';
+}
+
+function renderPhoneCell(siteId, field, rowIndex, value) {
+    if (editState[siteId]) {
+        return '<input class="contact-input" type="text" placeholder="Phone" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="phone" data-row-index="' + rowIndex + '">';
+    }
+
+    var trimmed = value.trim();
+    if (!trimmed) {
+        return '<span class="value-empty">No phone or link added</span>';
+    }
+
+    var href = clickableHref(trimmed);
+    if (href) {
+        return '<a class="value-display" href="' + escAttr(href) + '" target="_blank" rel="noreferrer">' + escHtml(trimmed) + '</a>';
+    }
+
+    return '<span class="value-display">' + escHtml(trimmed) + '</span>';
+}
+
+function renderNotesCell(siteId, field, rowIndex, value) {
+    if (editState[siteId]) {
+        return '<input class="contact-input" type="text" placeholder="Notes" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="name" data-row-index="' + rowIndex + '">';
+    }
+    return value.trim() ? '<span class="value-display">' + escHtml(value.trim()) + '</span>' : '<span class="value-empty">No notes added</span>';
+}
+
+function renderActionCell(site, field, rowIndex, nameValue, phoneValue) {
+    if (field.canRepeat && editState[site.id]) {
+        return '<button type="button" class="row-action-btn add-row" onclick="addCoordinatorRow(\'' + site.id + '\',' + rowIndex + ')">+ Add row below</button>';
+    }
+
+    if (!nameValue.trim() && !phoneValue.trim()) {
+        return '<span class="row-action-btn disabled">No contact</span>';
+    }
+
+    return '<a class="row-action-btn" href="' + buildRowContactHref(site, field, rowIndex, nameValue.trim(), phoneValue.trim()) + '" download="' + fileSafe(site.label + '-' + field.label + (rowIndex > 0 ? '-' + (rowIndex + 1) : '')) + '.vcf">Add Contact</a>';
+}
+
+function getRepeatCount(siteId, fieldKey) {
+    var count = parseInt(appData[countId(siteId, fieldKey)], 10);
+    return count > 0 ? count : 1;
+}
+
+function addCoordinatorRow(siteId, afterIndex) {
+    var fieldKey = 'clinicalCoordinator';
+    var currentCount = getRepeatCount(siteId, fieldKey);
+
+    for (var index = currentCount; index > afterIndex + 1; index--) {
+        appData[fieldId(siteId, fieldKey, 'name', index)] = appData[fieldId(siteId, fieldKey, 'name', index - 1)] || '';
+        appData[fieldId(siteId, fieldKey, 'phone', index)] = appData[fieldId(siteId, fieldKey, 'phone', index - 1)] || '';
+    }
+
+    appData[fieldId(siteId, fieldKey, 'name', afterIndex + 1)] = '';
+    appData[fieldId(siteId, fieldKey, 'phone', afterIndex + 1)] = '';
+    appData[countId(siteId, fieldKey)] = currentCount + 1;
+    saveAll();
+    buildUI();
+}
+
+function loadData() {
+    try {
+        return JSON.parse(localStorage.getItem(STORE_KEY)) || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveAll() {
+    localStorage.setItem(STORE_KEY, JSON.stringify(appData));
+    var status = document.getElementById('save-status');
+    status.textContent = 'Saved ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setTimeout(function() {
+        status.textContent = '';
+    }, 3000);
+}
+
+function toggleEdit(siteId) {
+    if (editState[siteId]) {
+        saveAll();
+        editState[siteId] = false;
+    } else {
+        editState[siteId] = true;
+        expandedState[siteId] = true;
+    }
+    buildUI();
+}
+
+function isExpanded(siteId) {
+    if (editState[siteId]) {
+        return true;
+    }
+    if (Object.prototype.hasOwnProperty.call(expandedState, siteId)) {
+        return expandedState[siteId];
+    }
+    return favoriteSiteId === siteId;
+}
+
+function toggleExpanded(siteId) {
+    expandedState[siteId] = !isExpanded(siteId);
+    buildUI();
+}
+
+function toggleFavorite(siteId) {
+    favoriteSiteId = favoriteSiteId === siteId ? '' : siteId;
+    try {
+        localStorage.setItem(FAVORITE_KEY, favoriteSiteId);
+    } catch (e) {
+    }
+    expandedState = {};
+    if (favoriteSiteId) {
+        expandedState[favoriteSiteId] = true;
+    }
+    buildUI();
+}
+
+function clickableHref(value) {
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        return 'mailto:' + value;
+    }
+
+    var compact = value.replace(/[()\-.\s]/g, '');
+    if (/^\+?\d{7,}$/.test(compact)) {
+        return 'tel:' + compact;
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+        return value;
+    }
+
+    if (/^[^\s]+\.[^\s]+/.test(value) && !/\s/.test(value)) {
+        return 'https://' + value;
+    }
+
+    return '';
+}
+
+function buildRowContactHref(site, field, rowIndex, nameValue, phoneValue) {
+    var lines = ['BEGIN:VCARD', 'VERSION:3.0'];
+
+    if (nameValue) {
+        lines.push('FN:' + sanitizeVcf(nameValue));
+    }
+
+    if (phoneValue) {
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(phoneValue)) {
+            lines.push('EMAIL;TYPE=INTERNET:' + sanitizeVcf(phoneValue));
+        } else if (/^https?:\/\//i.test(phoneValue) || (/^[^\s]+\.[^\s]+/.test(phoneValue) && !/\s/.test(phoneValue))) {
+            var url = /^https?:\/\//i.test(phoneValue) ? phoneValue : 'https://' + phoneValue;
+            lines.push('URL:' + sanitizeVcf(url));
+        } else {
+            lines.push('TEL;TYPE=WORK:' + sanitizeVcf(phoneValue));
+        }
+    }
+
+    lines.push('ORG:' + sanitizeVcf(field.label + ' - ' + site.label));
+    lines.push('TITLE:' + sanitizeVcf(field.label + (rowIndex > 0 ? ' ' + (rowIndex + 1) : '')));
+    lines.push('END:VCARD');
+    return 'data:text/vcard;charset=utf-8,' + encodeURIComponent(lines.join('\n'));
+}
+
+function sanitizeVcf(value) {
+    return String(value).replace(/\n/g, ' ').replace(/;/g, ',').replace(/,/g, '\\,');
+}
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function escAttr(str) {
+    return escHtml(str).replace(/'/g, '&#39;');
+}
+
+function fileSafe(label) {
+    return String(label).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '');
+}
+
+document.addEventListener('input', function(e) {
+    if (e.target && e.target.closest('#sites-container') && e.target.matches('input[data-site-id]')) {
+        var siteId = e.target.getAttribute('data-site-id');
+        var fieldKey = e.target.getAttribute('data-field-key');
+        var part = e.target.getAttribute('data-part');
+        var rowIndex = parseInt(e.target.getAttribute('data-row-index'), 10) || 0;
+        appData[fieldId(siteId, fieldKey, part, rowIndex)] = e.target.value;
+
+        clearTimeout(window._autoSaveTimer);
+        window._autoSaveTimer = setTimeout(function() {
+            saveAll();
+        }, 1200);
+    }
+});
+
+buildUI();
+</script>
+</body>
+</html>

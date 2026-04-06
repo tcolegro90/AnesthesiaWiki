@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airway Management</title>
+    <style>
+        :root {
+            --primary: #1f2a37;
+            --blue: #114a8d;
+            --teal: #0e7490;
+            --line: #dbe5f0;
+            --bg: #f3f7fb;
+            --ok: #1a7c50;
+            --warn: #b32424;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding-bottom: 48px;
+        }
+
+        header {
+            background: var(--primary);
+            padding: 16px 20px 12px;
+            text-align: center;
+        }
+        header h1 { margin: 0; font-size: 1.4rem; color: #fff; }
+        header p { margin: 4px 0 0; font-size: 0.82rem; color: #93adc8; }
+
+        /* Sticky section nav */
+        .section-nav {
+            background: #253040;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .section-nav a {
+            background: rgba(255,255,255,0.08);
+            color: #cdd9e8;
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 6px 13px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .section-nav a:hover { background: var(--teal); border-color: var(--teal); color: #fff; }
+
+        .container { max-width: 860px; margin: 28px auto; padding: 0 16px; }
+
+        /* Section cards */
+        .card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+        .card-header {
+            background: var(--blue);
+            color: #fff;
+            padding: 13px 18px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .card-body { padding: 18px; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            margin-top: 8px;
+        }
+        th {
+            background: #f0f6ff;
+            color: #355f93;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #eef2f8;
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f7fbff; }
+
+        /* Formula callout */
+        .formula {
+            background: #eaf3ff;
+            border-left: 4px solid var(--blue);
+            border-radius: 0 6px 6px 0;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            margin-bottom: 12px;
+            font-family: "Courier New", monospace;
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        /* Indication list */
+        .indication-list { list-style: none; padding: 0; margin: 0; }
+        .indication-list li {
+            padding: 9px 0;
+            border-bottom: 1px solid #eef2f8;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .indication-list li:last-child { border-bottom: none; }
+        .indication-list li strong { color: var(--blue); }
+
+        p { font-size: 0.9rem; line-height: 1.6; margin: 0 0 10px; color: #3a4a5c; }
+
+        /* Smaller ETT note */
+        .smaller-ett-list { list-style: none; padding: 0; margin: 8px 0 0; }
+        .smaller-ett-list li {
+            padding: 7px 0 7px 14px;
+            border-left: 3px solid #aac4e8;
+            margin-bottom: 7px;
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+        .smaller-ett-list li strong { color: var(--blue); }
+    </style>
+</head>
+<body>
+<a href="Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+
+<header>
+    <h1>✈️ Airway Management</h1>
+    <p>ETT sizing, LMA selection, and video laryngoscopy indications</p>
+</header>
+
+<nav class="section-nav">
+    <a href="#adult-ett">Adult ETT</a>
+    <a href="#peds-ett">Pediatric ETT</a>
+    <a href="#lma">LMA Sizing</a>
+    <a href="#vl">Video Laryngoscopy</a>
+</nav>
+
+<div class="container">
+
+    <!-- Adult ETT -->
+    <div class="card" id="adult-ett">
+        <div class="card-header">Adult ETT Sizes &amp; Guide</div>
+        <div class="card-body">
+            <p>Standard estimations for adult Endotracheal Tubes (ETT).</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient Profile</th>
+                        <th>ETT Size (ID mm)</th>
+                        <th>Depth at Teeth (cm)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Adult Female</strong></td><td>7.0 – 7.5</td><td>20 – 22 cm</td></tr>
+                    <tr><td><strong>Adult Male</strong></td><td>7.5 – 8.0</td><td>21 – 23 cm</td></tr>
+                </tbody>
+            </table>
+
+            <h4 style="margin: 18px 0 8px; font-size: 0.9rem; color: #1f2a37;">Indications for a Smaller ETT</h4>
+            <ul class="smaller-ett-list">
+                <li><strong>Airway Edema / Swelling</strong> — Expected due to trauma, burns, anaphylaxis, or prolonged prone/Trendelenburg positioning.</li>
+                <li><strong>Known Stenosis</strong> — Subglottic stenosis, tracheal strictures, or vocal cord pathology.</li>
+                <li><strong>Surgical Requirements</strong> — Shared airway surgeries (ENT, vocal cord microsurgery) where the surgeon needs maximal glottic visualization.</li>
+                <li><strong>Anticipated Prolonged Intubation</strong> — Smaller tube minimizes tracheal mucosal pressure and reduces post-extubation stenosis risk.</li>
+                <li><strong>Patient Stature</strong> — Exceptionally short or small-framed adults.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Pediatric ETT -->
+    <div class="card" id="peds-ett">
+        <div class="card-header">Pediatric ETT Size &amp; Depth Guide</div>
+        <div class="card-body">
+            <div class="formula">
+                Uncuffed ETT = (Age ÷ 4) + 4 &nbsp;|&nbsp; Cuffed ETT = (Age ÷ 4) + 3.5 &nbsp;|&nbsp; Depth at lip = (Age ÷ 2) + 12
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Age</th>
+                        <th>Uncuffed (ID mm)</th>
+                        <th>Cuffed (ID mm)</th>
+                        <th>Depth at Lip (cm)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Premature</td><td>2.5 – 3.0</td><td>—</td><td>8 – 9</td></tr>
+                    <tr><td>Term Neonate</td><td>3.0 – 3.5</td><td>3.0</td><td>10</td></tr>
+                    <tr><td>1 Year</td><td>4.0</td><td>3.5</td><td>11 – 12</td></tr>
+                    <tr><td>2 Years</td><td>4.5</td><td>4.0</td><td>13</td></tr>
+                    <tr><td>4 Years</td><td>5.0</td><td>4.5</td><td>14</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- LMA -->
+    <div class="card" id="lma">
+        <div class="card-header">LMA Sizing Guide</div>
+        <div class="card-body">
+            <p>Standard Laryngeal Mask Airway (LMA) sizing based on patient weight.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>LMA Size</th>
+                        <th>Patient Weight</th>
+                        <th>Max Cuff Volume</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>1</strong></td><td>Neonate / Infant &lt;5 kg</td><td>4 mL</td></tr>
+                    <tr><td><strong>2</strong></td><td>Child 10 – 20 kg</td><td>10 mL</td></tr>
+                    <tr><td><strong>3</strong></td><td>Child / Small Adult 30 – 50 kg</td><td>20 mL</td></tr>
+                    <tr><td><strong>4</strong></td><td>Adult 50 – 70 kg</td><td>30 mL</td></tr>
+                    <tr><td><strong>5</strong></td><td>Large Adult 70 – 100 kg</td><td>40 mL</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Video Laryngoscopy -->
+    <div class="card" id="vl">
+        <div class="card-header">Video Laryngoscopy (VL) — Indications</div>
+        <div class="card-body">
+            <ul class="indication-list">
+                <li><strong>Anticipated Difficult Airway</strong> — High Mallampati score, high BMI/obesity, or history of previous difficult intubation.</li>
+                <li><strong>Cervical Spine Instability</strong> — VL requires significantly less neck manipulation and extension to obtain a glottic view compared to DL.</li>
+                <li><strong>Limited Mouth Opening</strong> — Hyper-angulated VL blades are easier to insert in patients with restricted inter-incisor gaps.</li>
+                <li><strong>Poor DL View</strong> — Rescue device when initial DL attempts result in a Grade III or IV Cormack-Lehane view.</li>
+                <li><strong>Teaching / Supervision</strong> — Allows the attending or preceptor to see exactly what the intubator is seeing on the screen.</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
