@@ -31,21 +31,6 @@
         }
         header h1 { margin: 0 0 4px; font-size: 1.5rem; color: #fff; letter-spacing: 0.04em; }
         header p { margin: 0; font-size: 0.82rem; color: #93adc8; }
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin: 0 0 10px;
-            padding: 7px 14px;
-            background: rgba(255,255,255,0.12);
-            color: #cfe0f5;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 0.84rem;
-            font-weight: 500;
-            transition: background 0.15s;
-        }
-        .back-btn:hover { background: rgba(255,255,255,0.22); }
 
         .container { max-width: 860px; margin: 28px auto; padding: 0 16px; }
 
@@ -154,8 +139,12 @@
 </head>
 <body>
 
+<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
+<a href="AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+</div>
+
 <header>
-    <a href="Index.html" class="back-btn">&larr; Wiki Home</a>
     <h1>Comorbidities</h1>
     <p>Anesthetic considerations by patient condition</p>
 </header>

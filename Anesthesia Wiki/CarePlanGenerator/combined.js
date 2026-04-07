@@ -377,26 +377,46 @@
       var volatileContra = mhYes && ['Sevoflurane', 'Desflurane', 'Isoflurane'].indexOf(s['ind-inhalation']) >= 0;
       setWarnStyle('pr-inhal', volatileContra);
 
-      var painIntra = 'None';
+      var painUnitMap = {
+        'Fentanyl': 'mcg', 'Morphine': 'mg', 'Hydromorphone': 'mg',
+        'Remifentanil infusion': 'mcg/kg/min', 'Sufentanil': 'mcg', 'Alfentanil': 'mcg',
+        'Ketamine (sub-dissociative)': 'mg', 'Ketamine (low-dose)': 'mg',
+        'Fentanyl PCA': 'mcg/dose', 'Hydromorphone PCA': 'mg/dose', 'Morphine PCA': 'mg/dose',
+        'Oxycodone (oral)': 'mg', 'Tramadol': 'mg',
+        'Acetaminophen IV': 'mg', 'Ketorolac': 'mg', 'Celecoxib': 'mg',
+        'Dexmedetomidine': 'mcg/kg/hr', 'Lidocaine infusion': 'mg/kg/hr',
+        'Magnesium sulfate': 'mg', 'Pregabalin': 'mg', 'Gabapentin': 'mg',
+        'Dexamethasone': 'mg'
+      };
+      function formatPainEntry(r) {
+        if (!r) return '';
+        var drug = '';
+        var dose = '';
+        if (typeof r === 'string') {
+          drug = r;
+        } else {
+          drug = r.drug || r.name || r.med || '';
+          dose = r.dose || r.dosage || r.amount || r.amt || '';
+        }
+        if (!drug) return '';
+        if (dose) {
+          var unit = painUnitMap[drug] || '';
+          return drug + ' (' + dose + (unit ? ' ' + unit : '') + ')';
+        }
+        return drug;
+      }
+      var painIntraList = [];
       var painPostList = [];
       var painNonOpioidList = [];
       try {
         var intra = JSON.parse(s['plan-intraop-list'] || '[]') || [];
         var postop = JSON.parse(s['plan-postop-list'] || '[]') || [];
         var nonopioid = JSON.parse(s['plan-nonopioid-list'] || '[]') || [];
-        if (intra[0] && intra[0].drug) painIntra = intra[0].drug;
-        painPostList = postop.map(function(r) {
-          if (!r) return '';
-          if (typeof r === 'string') return r;
-          return r.drug || '';
-        }).filter(function(x) { return !!x; });
-        painNonOpioidList = nonopioid.map(function(r) {
-          if (!r) return '';
-          if (typeof r === 'string') return r;
-          return r.drug || '';
-        }).filter(function(x) { return !!x; });
+        painIntraList = intra.map(formatPainEntry).filter(function(x) { return !!x; });
+        painPostList = postop.map(formatPainEntry).filter(function(x) { return !!x; });
+        painNonOpioidList = nonopioid.map(formatPainEntry).filter(function(x) { return !!x; });
       } catch (e) {}
-      setText('pr-pain-intra', painIntra);
+      setLines('pr-pain-intra', painIntraList);
       setLines('pr-pain-post', painPostList);
       setLines('pr-pain-nonopioid', painNonOpioidList);
 
@@ -483,22 +503,30 @@
         setText('pr-fluid-hr4', hr4 + ' mL');
       }
 
-      // Display calculated target TV
-      var tvMin = s['pat-tv-min'] || '_';
-      var tvMax = s['pat-tv-max'] || '_';
-      setText('pr-target-tv-plan', tvMin + ' - ' + tvMax + ' mL');
+      var tvMin = s['pat-tv-min'] ? String(s['pat-tv-min']) : '';
+      var tvMax = s['pat-tv-max'] ? String(s['pat-tv-max']) : '';
+      // Fallback: if stored TV values are missing, compute from entered height + gender.
+      // This only runs when source fields are present, so no "random" values are shown.
+      if ((!tvMin || !tvMax) && !isNaN(totalInches) && totalInches > 0 && (s['pat-gender'] === 'M' || s['pat-gender'] === 'F')) {
+        var refIn = totalInches < 60 ? 60 : totalInches;
+        var ibw = s['pat-gender'] === 'M' ? 50 + 2.3 * (refIn - 60) : 45.5 + 2.3 * (refIn - 60);
+        tvMin = String(Math.round(ibw * 6));
+        tvMax = String(Math.round(ibw * 8));
+      }
+      var tvHasValue = !!(tvMin && tvMax);
+      setText('pr-target-tv-plan', tvHasValue ? tvMin + ' – ' + tvMax + ' mL' : 'Not entered');
+      setWarnStyle('pr-target-tv-plan', !tvHasValue);
 
       var factor = parseFloat(s['plan-ebl-type']) || 0;
       var start = parseFloat(s['plan-ebl-start']) || 0;
       var target = parseFloat(s['plan-ebl-target']) || 0;
-      if (w > 0 && factor > 0 && start > 0 && target > 0 && target < start) {
-        var ebv = w * factor;
+      var ebvWeight = w > 0 ? w : (parseFloat(s['pat-weight-kg']) || 0);
+      if (ebvWeight > 0 && factor > 0 && start > 0 && target > 0 && target < start) {
+        var ebv = ebvWeight * factor;
         var abl = ebv * ((start - target) / start);
-        setText('pr-ebv', Math.round(ebv) + ' mL');
-        setText('pr-abl', Math.round(abl) + ' mL');
+        setText('pr-ebv-abl', Math.round(ebv) + ' / ' + Math.round(abl) + ' mL');
       } else {
-        setText('pr-ebv', '_');
-        setText('pr-abl', '_');
+        setText('pr-ebv-abl', '_');
       }
     }
 
@@ -864,6 +892,17 @@
       catch (e) { return {}; }
     }
 
+    var MAX_SAVED_PLANS = 20;
+
+    function getSavedPlanNamesSorted() {
+      var plans = getSavedPlans();
+      return Object.keys(plans).sort(function(a, b) {
+        var ta = (plans[a] && plans[a].savedAt) ? new Date(plans[a].savedAt).getTime() : 0;
+        var tb = (plans[b] && plans[b].savedAt) ? new Date(plans[b].savedAt).getTime() : 0;
+        return ta - tb;
+      });
+    }
+
     function setSavedPlans(plans) {
       localStorage.setItem('carePlanSavedPlans', JSON.stringify(plans || {}));
     }
@@ -895,6 +934,11 @@
       if (!name) return;
 
       var plans = getSavedPlans();
+      var isOverwrite = !!plans[name];
+      if (!isOverwrite && Object.keys(plans).length >= MAX_SAVED_PLANS) {
+        alert('You can save up to ' + MAX_SAVED_PLANS + ' plans. Delete one or overwrite an existing name.');
+        return;
+      }
       plans[name] = {
         savedAt: new Date().toISOString(),
         state: s
@@ -905,7 +949,7 @@
 
     function loadNamedPlan() {
       var plans = getSavedPlans();
-      var names = Object.keys(plans).sort();
+      var names = getSavedPlanNamesSorted();
       if (!names.length) {
         alert('No saved plans found.');
         return;
@@ -940,7 +984,7 @@
 
     function deleteNamedPlan() {
       var plans = getSavedPlans();
-      var names = Object.keys(plans).sort();
+      var names = getSavedPlanNamesSorted();
       if (!names.length) {
         alert('No saved plans found.');
         return;

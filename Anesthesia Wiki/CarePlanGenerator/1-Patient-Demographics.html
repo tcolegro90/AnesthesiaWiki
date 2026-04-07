@@ -279,8 +279,10 @@
       syncSurgicalDate();
       restoreExtraSurg();
       updateIBWandTV();
+      // Re-run after saves are unblocked (saves are blocked during finalizeBoot extraInit)
+      setTimeout(function() { updateIBWandTV(); }, 0);
     }
-    pageBoot(boot, function() { restoreExtraSurg(); });
+    pageBoot(boot, function() { restoreExtraSurg(); updateIBWandTV(); });
   </script>
 </body>
 </html>

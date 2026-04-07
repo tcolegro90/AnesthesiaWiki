@@ -54,6 +54,13 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
 
+        .save-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .save-bar span {
             font-size: 0.82rem;
             color: #93adc8;
@@ -75,6 +82,22 @@
             background: #145e3c;
         }
 
+        .aux-btn {
+            background: #eaf3ff;
+            color: #114a8d;
+            border: 1px solid #c6d9f3;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.01em;
+        }
+
+        .aux-btn:hover {
+            background: #d8ecff;
+        }
+
         #save-status {
             font-size: 0.8rem;
             color: #6ecfa0;
@@ -82,7 +105,7 @@
         }
 
         .container {
-            max-width: 920px;
+            max-width: 1040px;
             margin: 24px auto;
             padding: 0 16px;
         }
@@ -93,6 +116,7 @@
             border-radius: 10px;
             margin-bottom: 14px;
             overflow: hidden;
+            box-shadow: 0 2px 10px rgba(23, 45, 77, 0.06);
         }
 
         .site-card.collapsed .site-card-body {
@@ -229,15 +253,16 @@
         }
 
         td.action-cell {
-            width: 138px;
+            width: 240px;
             padding: 6px 10px 6px 0;
+            text-align: right;
         }
 
         .contact-input {
             width: 100%;
-            border: none;
+            border: 1px solid transparent;
             outline: none;
-            background: transparent;
+            background: #f8fbff;
             font-size: 0.9rem;
             color: var(--primary);
             padding: 7px 10px;
@@ -246,7 +271,8 @@
         }
 
         .contact-input:focus {
-            background: #eaf3ff;
+            background: #fff;
+            border-color: #9fc0e6;
         }
 
         .contact-input::placeholder {
@@ -307,10 +333,168 @@
             border-style: dashed;
         }
 
+        .row-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .row-action-btn.small {
+            width: auto;
+            min-width: 56px;
+            padding: 6px 9px;
+            font-size: 0.72rem;
+        }
+
+        .compact-select {
+            width: 100%;
+            border: 1px solid #c9d7e8;
+            border-radius: 7px;
+            background: #fff;
+            min-height: 34px;
+            padding: 6px 10px;
+            color: #1f2a37;
+            font-weight: 600;
+            font-size: 0.86rem;
+        }
+
+        .compact-select:focus {
+            outline: none;
+            border-color: #5b9bd5;
+            box-shadow: 0 0 0 3px rgba(91,155,213,0.16);
+        }
+
+        /* Person-list (preceptors / anesthesiologists) */
+        .person-list-view {
+            padding: 0;
+        }
+        .person-list-view .pl-select-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px 8px 0;
+            justify-content: flex-end;
+        }
+        .person-list-view .pl-select-row .compact-select {
+            flex: 1;
+        }
+        .person-list-view .pl-detail {
+            padding: 0 10px 10px 10px;
+            font-size: 0.86rem;
+            line-height: 1.5;
+        }
+        .person-list-view .pl-phone {
+            color: var(--blue);
+            font-weight: 600;
+        }
+        .person-list-view .pl-memo {
+            color: #5a6b82;
+            font-style: italic;
+            margin-top: 3px;
+            padding-left: 16px;
+            margin-bottom: 0;
+        }
+        .person-list-view .pl-memo li {
+            margin-bottom: 2px;
+        }
+        .person-edit-block {
+            border: 1px solid #dbe5f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 6px 0;
+            background: #f8fbff;
+        }
+        .person-edit-block .pe-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .person-edit-block .pe-row input {
+            flex: 1;
+            min-width: 120px;
+        }
+        .person-edit-block .pe-notes {
+            width: 100%;
+            border: 1px solid #c9d7e8;
+            border-radius: 6px;
+            padding: 6px 9px;
+            font-size: 0.86rem;
+            font-family: inherit;
+            resize: vertical;
+            background: #fff;
+            min-height: 52px;
+            color: var(--primary);
+        }
+        .person-edit-block .pe-notes:focus {
+            outline: none;
+            border-color: #5b9bd5;
+        }
+        .pe-add-btn {
+            width: 100%;
+            margin-top: 8px;
+            border: 1px dashed #aac4e8;
+            background: #eaf3ff;
+            color: #114a8d;
+            font-weight: 700;
+            font-size: 0.82rem;
+            padding: 7px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .pe-add-btn:hover { background: #d8ecff; }
+        .pe-remove-btn {
+            border: none;
+            background: none;
+            color: #b32424;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
         .row-action-btn.disabled {
             color: #9db1c7;
             cursor: default;
             background: #f7f9fc;
+        }
+
+        .locker-pair {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .locker-pair .locker-field {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex: 1;
+            align-items: center;
+        }
+
+        .locker-pair .locker-sublabel {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #7a8fa8;
+        }
+
+        .locker-pair .locker-val {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 6px 0;
+        }
+
+        .locker-pair .locker-val.empty {
+            color: #b0bcce;
+            font-weight: 400;
+            font-style: italic;
         }
 
         @media (max-width: 700px) {
@@ -367,18 +551,25 @@
     </style>
 </head>
 <body>
-<a href="Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
+<a href="AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+</div>
 
 <header>
     <h1>🏥 Clinical Sites</h1>
-    <p>Key contacts and resources at each rotation site</p>
 </header>
 
 <div class="save-bar">
-    <span>Edits save to this browser</span>
-    <button class="save-btn" onclick="saveAll()">Save All</button>
+    <div class="save-actions">
+        <button class="save-btn" onclick="saveAll()">Save All</button>
+        <button class="aux-btn" onclick="exportClinicalSites()">Export</button>
+        <button class="aux-btn" onclick="triggerImportClinicalSites()">Import</button>
+    </div>
     <span id="save-status"></span>
 </div>
+
+<input id="import-file" type="file" accept="application/json" style="display:none" onchange="importClinicalSites(event)">
 
 <div class="container" id="sites-container"></div>
 
@@ -393,16 +584,22 @@ var SITES = [
 ];
 
 var FIELDS = [
-    { key: 'clinicalCoordinator', label: 'Clinical Coordinator', type: 'contact', canRepeat: true },
-    { key: 'locker', label: 'Locker', type: 'contact' },
-    { key: 'lockCombo', label: 'Lock Combo', type: 'contact' },
-    { key: 'anesthesiaTech', label: 'Anesthesia Tech', type: 'contact' },
-    { key: 'bloodBank', label: 'Blood Bank', type: 'contact' },
-    { key: 'lab', label: 'Lab', type: 'contact' },
-    { key: 'orPharmacyTech', label: 'OR Pharmacy Tech', type: 'contact' },
-    { key: 'orPharmacist', label: 'OR Pharmacist', type: 'contact' },
-    { key: 'mainPharmacy', label: 'Main Pharmacy', type: 'contact' },
-    { key: 'notes', label: 'Notes', type: 'notes' }
+    { key: 'clinicalCoordinator', label: 'Clinical Coordinator', type: 'contact', canRepeat: true, section: 'Team' },
+    { key: 'preceptor', label: 'CRNAs', type: 'person-list', section: 'Team' },
+    { key: 'anesthesiologist', label: 'Anesthesiologist', type: 'person-list', section: 'Team' },
+    { key: 'chargeCrna', label: 'Charge CRNA', type: 'plain', placeholder: 'Phone number', section: 'Clinical Operations' },
+    { key: 'anesthesiaTech', label: 'Anesthesia Tech', type: 'plain', placeholder: 'Phone number', section: 'Clinical Operations' },
+    { key: 'bloodBank', label: 'Blood Bank', type: 'plain', placeholder: 'Phone number', section: 'Clinical Operations' },
+    { key: 'lab', label: 'Lab', type: 'plain', placeholder: 'Phone number', section: 'Clinical Operations' },
+    { key: 'orPharmacyTech', label: 'OR Pharmacy Tech', type: 'plain', placeholder: 'Phone number', section: 'Clinical Operations' },
+    { key: 'orPharmacist', label: 'OR Pharmacist', type: 'plain', placeholder: 'Phone number', section: 'Clinical Operations' },
+    { key: 'mainPharmacy', label: 'Main Pharmacy', type: 'plain', placeholder: 'Phone number', section: 'Clinical Operations' },
+    { key: 'itHelp', label: 'IT Help', type: 'plain', placeholder: 'Phone number', section: 'Facilities' },
+    { key: 'parking', label: 'Parking', type: 'plain', placeholder: 'Phone number', section: 'Facilities' },
+    { key: 'security', label: 'Security', type: 'plain', placeholder: 'Phone number', section: 'Facilities' },
+    { key: 'mensLocker', label: "Men's Locker", type: 'locker', section: 'General' },
+    { key: 'womensLocker', label: "Women's Locker", type: 'locker', section: 'General' },
+    { key: 'notes', label: 'Site Notes', type: 'notes', section: 'General' }
 ];
 
 var STORE_KEY = 'clinicalSitesData';
@@ -411,6 +608,14 @@ var appData = loadData();
 var editState = {};
 var expandedState = {};
 var favoriteSiteId = loadFavorite();
+// Initialize favorite site as expanded
+if (favoriteSiteId) {
+    expandedState[favoriteSiteId] = true;
+}
+// Initialize favorite site as expanded
+if (favoriteSiteId) {
+    expandedState[favoriteSiteId] = true;
+}
 
 function fieldId(siteId, fieldKey, part, rowIndex) {
     var suffix = rowIndex > 0 ? '__' + rowIndex : '';
@@ -419,6 +624,10 @@ function fieldId(siteId, fieldKey, part, rowIndex) {
 
 function countId(siteId, fieldKey) {
     return siteId + '__' + fieldKey + '__count';
+}
+
+function selectedId(siteId, fieldKey) {
+    return siteId + '__' + fieldKey + '__selected';
 }
 
 function buildUI() {
@@ -446,10 +655,14 @@ function buildUI() {
         var body = document.createElement('div');
         body.className = 'site-card-body';
         var table = document.createElement('table');
-        table.innerHTML = '<thead><tr><th>Role</th><th>Name</th><th>Phone</th><th>Action</th></tr></thead>';
+        table.innerHTML = '<thead><tr><th>Service</th><th>Contact</th><th>Details</th><th>Action</th></tr></thead>';
 
         var tbody = document.createElement('tbody');
         FIELDS.forEach(function(field) {
+            if (field.type === 'person-list') {
+                tbody.appendChild(renderPersonListSection(site, field));
+                return;
+            }
             if (field.canRepeat) {
                 var repeatCount = getRepeatCount(site.id, field.key);
                 for (var index = 0; index < repeatCount; index++) {
@@ -467,6 +680,163 @@ function buildUI() {
     });
 }
 
+function renderPersonListSection(site, field) {
+    var tr = document.createElement('tr');
+    tr.className = 'data-row';
+
+    var count = parseInt(appData[countId(site.id, field.key)], 10);
+    if (!(count > 0)) count = 1;
+
+    if (editState[site.id]) {
+        // Edit mode: one block per person
+        var editHtml = '<td class="label-cell">' + escHtml(field.label) + '</td><td colspan="3" style="padding:8px 10px 8px 0">';
+        for (var i = 0; i < count; i++) {
+            var nameVal = String(appData[fieldId(site.id, field.key, 'name', i)] || '');
+            var phoneVal = String(appData[fieldId(site.id, field.key, 'phone', i)] || '');
+            var memoVal = String(appData[fieldId(site.id, field.key, 'memo', i)] || '');
+            editHtml += '<div class="person-edit-block">';
+            editHtml += '<div class="pe-row">';
+            editHtml += '<input class="contact-input" type="text" placeholder="Name" value="' + escAttr(nameVal) + '" data-site-id="' + site.id + '" data-field-key="' + field.key + '" data-part="name" data-row-index="' + i + '">';
+            editHtml += '<input class="contact-input" type="text" placeholder="Phone" value="' + escAttr(phoneVal) + '" data-site-id="' + site.id + '" data-field-key="' + field.key + '" data-part="phone" data-row-index="' + i + '">';
+            if (i > 0) {
+                editHtml += '<button type="button" class="pe-remove-btn" onclick="removePersonEntry(\'' + site.id + '\',\'' + field.key + '\',' + i + ')" title="Remove">&#10005;</button>';
+            }
+            editHtml += '</div>';
+            editHtml += '<textarea class="pe-notes" placeholder="Notes about this person..." data-site-id="' + site.id + '" data-field-key="' + field.key + '" data-part="memo" data-row-index="' + i + '">' + escHtml(memoVal) + '</textarea>';
+            editHtml += '</div>';
+        }
+        editHtml += '<button type="button" class="pe-add-btn" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">' + '+ Add ' + escHtml(field.label) + '</button>';
+        editHtml += '</td>';
+        tr.innerHTML = editHtml;
+    } else {
+        // View mode: compact dropdown + detail panel
+        var people = [];
+        for (var j = 0; j < count; j++) {
+            var n = String(appData[fieldId(site.id, field.key, 'name', j)] || '').trim();
+            var p = String(appData[fieldId(site.id, field.key, 'phone', j)] || '').trim();
+            var m = String(appData[fieldId(site.id, field.key, 'memo', j)] || '').trim();
+            if (!n && !p && !m) continue;
+            people.push({ idx: j, name: n, phone: p, memo: m });
+        }
+
+        var selKey = selectedId(site.id, field.key);
+        var selIdx = parseInt(appData[selKey], 10);
+        if (isNaN(selIdx) || selIdx < -1 || selIdx >= people.length) selIdx = -1;
+        var sel = (selIdx >= 0 && selIdx < people.length) ? people[selIdx] : null;
+
+        var viewHtml = '<td class="label-cell">' + escHtml(field.label) + '</td>';
+        if (!people.length) {
+            viewHtml += '<td class="name-cell" colspan="2"><span class="value-empty">None added yet</span></td><td class="action-cell"></td>';
+        } else {
+            // Name/select cell
+            viewHtml += '<td class="name-cell" style="padding:4px 0">';
+            if (people.length === 1 && sel) {
+                viewHtml += '<strong style="font-size:0.92rem">' + escHtml(sel.name || sel.phone || 'Unknown') + '</strong>';
+            } else {
+                viewHtml += '<select class="compact-select" onchange="setSelectedContact(\'' + site.id + '\',\'' + field.key + '\',this.value)">';
+                viewHtml += '<option value="-1"' + (selIdx === -1 ? ' selected' : '') + '>— Unselect —</option>';
+                people.forEach(function(person, i) {
+                    var label = person.name || person.phone || ('Entry ' + (person.idx + 1));
+                    viewHtml += '<option value="' + i + '"' + (i === selIdx ? ' selected' : '') + '>' + escHtml(label) + '</option>';
+                });
+                viewHtml += '</select>';
+            }
+            viewHtml += '</td>';
+            // Memo/detail cell
+            viewHtml += '<td class="notes-cell" style="padding:4px 0">';
+            if (sel && sel.memo) {
+                var memoLines = sel.memo.split('\n').filter(function(l) { return l.trim(); });
+                viewHtml += '<ul class="pl-memo">' + memoLines.map(function(l) { return '<li>' + escHtml(l.trim()) + '</li>'; }).join('') + '</ul>';
+            }
+            viewHtml += '</td>';
+            // Action cell
+            var actionHtmlPl = '';
+            if (sel && sel.phone) {
+                var action = parseContactAction(sel.phone);
+                if (action.kind === 'phone') {
+                    actionHtmlPl += '<div class="row-actions">';
+                    actionHtmlPl += '<a class="row-action-btn small" href="tel:' + escAttr(action.value) + '">Call</a>';
+                    actionHtmlPl += '<a class="row-action-btn small" href="sms:' + escAttr(action.value) + '">Text</a>';
+                    actionHtmlPl += '<a class="row-action-btn small" href="' + buildRowContactHref(site, field, selIdx, sel.name, sel.phone) + '" download="' + fileSafe(site.label + '-' + field.label + (selIdx > 0 ? '-' + (selIdx + 1) : '')) + '.vcf">Add</a>';
+                    actionHtmlPl += '</div>';
+                }
+            }
+            viewHtml += '<td class="action-cell">' + actionHtmlPl + '</td>';
+        }
+        tr.innerHTML = viewHtml;
+    }
+    return tr;
+}
+
+function addPersonEntry(siteId, fieldKey) {
+    var count = parseInt(appData[countId(siteId, fieldKey)], 10);
+    if (!(count > 0)) count = 1;
+    appData[countId(siteId, fieldKey)] = count + 1;
+    saveAll();
+    buildUI();
+}
+
+function removePersonEntry(siteId, fieldKey, removeIndex) {
+    var count = parseInt(appData[countId(siteId, fieldKey)], 10);
+    if (!(count > 0)) count = 1;
+    for (var i = removeIndex; i < count - 1; i++) {
+        appData[fieldId(siteId, fieldKey, 'name', i)] = appData[fieldId(siteId, fieldKey, 'name', i + 1)] || '';
+        appData[fieldId(siteId, fieldKey, 'phone', i)] = appData[fieldId(siteId, fieldKey, 'phone', i + 1)] || '';
+        appData[fieldId(siteId, fieldKey, 'memo', i)] = appData[fieldId(siteId, fieldKey, 'memo', i + 1)] || '';
+    }
+    delete appData[fieldId(siteId, fieldKey, 'name', count - 1)];
+    delete appData[fieldId(siteId, fieldKey, 'phone', count - 1)];
+    delete appData[fieldId(siteId, fieldKey, 'memo', count - 1)];
+    appData[countId(siteId, fieldKey)] = count - 1 > 0 ? count - 1 : 1;
+    saveAll();
+    buildUI();
+}
+
+function renderCompactContactRow(site, field) {
+    var tr = document.createElement('tr');
+    tr.className = 'data-row';
+
+    var count = getRepeatCount(site.id, field.key);
+    var rows = [];
+    for (var i = 0; i < count; i++) {
+        var name = String(appData[fieldId(site.id, field.key, 'name', i)] || '').trim();
+        var phone = String(appData[fieldId(site.id, field.key, 'phone', i)] || '').trim();
+        if (!name && !phone) continue;
+        rows.push({ index: i, name: name, phone: phone });
+    }
+
+    var selected = parseInt(appData[selectedId(site.id, field.key)], 10);
+    if (isNaN(selected) || selected < 0 || selected >= rows.length) {
+        selected = 0;
+    }
+    var selectedRow = rows[selected] || { index: 0, name: '', phone: '' };
+
+    var nameCellHtml = '';
+    if (rows.length) {
+        nameCellHtml = '<select class="compact-select" onchange="setSelectedContact(\'' + site.id + '\',\'' + field.key + '\',this.value)">' + rows.map(function(row, idx) {
+            var label = row.name || row.phone || ('Entry ' + (row.index + 1));
+            var selectedAttr = idx === selected ? ' selected' : '';
+            return '<option value="' + idx + '"' + selectedAttr + '>' + escHtml(label) + '</option>';
+        }).join('') + '</select>';
+    } else {
+        nameCellHtml = '<span class="value-empty">No preceptors added</span>';
+    }
+
+    tr.innerHTML =
+        '<td class="label-cell">' + escHtml(field.label + ' List') + '</td>' +
+        '<td class="name-cell">' + nameCellHtml + '</td>' +
+        '<td class="phone-cell">' + renderPhoneCell(site.id, field, selectedRow.index, selectedRow.phone) + '</td>' +
+        '<td class="action-cell">' + renderActionCell(site, field, selectedRow.index, selectedRow.name, selectedRow.phone) + '</td>';
+
+    return tr;
+}
+
+function setSelectedContact(siteId, fieldKey, selectedIndex) {
+    appData[selectedId(siteId, fieldKey)] = String(selectedIndex);
+    saveAll();
+    buildUI();
+}
+
 function loadFavorite() {
     try {
         return localStorage.getItem(FAVORITE_KEY) || '';
@@ -476,7 +846,10 @@ function loadFavorite() {
 }
 
 function renderRow(site, field, rowIndex) {
+    if (field.type === 'plain') return renderPlainRow(site, field, rowIndex);
+    if (field.type === 'locker') return renderLockerRow(site, field, rowIndex);
     var tr = document.createElement('tr');
+    tr.className = 'data-row';
     var label = field.label + (field.canRepeat && rowIndex > 0 ? ' ' + (rowIndex + 1) : '');
 
     if (field.type === 'notes') {
@@ -499,16 +872,80 @@ function renderRow(site, field, rowIndex) {
     return tr;
 }
 
+function renderLockerRow(site, field, rowIndex) {
+    var tr = document.createElement('tr');
+    tr.className = 'data-row';
+    var locationVal = String(appData[fieldId(site.id, field.key, 'location', rowIndex)] || '').trim();
+    var numVal = String(appData[fieldId(site.id, field.key, 'name', rowIndex)] || '').trim();
+    var comboVal = String(appData[fieldId(site.id, field.key, 'phone', rowIndex)] || '').trim();
+
+    var cellHtml;
+    if (editState[site.id]) {
+        cellHtml =
+            '<div class="locker-pair">' +
+                '<div class="locker-field"><span class="locker-sublabel">Location</span>' +
+                '<input class="contact-input" type="text" placeholder="Location" value="' + escAttr(locationVal) + '" data-site-id="' + site.id + '" data-field-key="' + field.key + '" data-part="location" data-row-index="' + rowIndex + '"></div>' +
+                '<div class="locker-field"><span class="locker-sublabel">Locker #</span>' +
+                '<input class="contact-input" type="text" placeholder="Number" value="' + escAttr(numVal) + '" data-site-id="' + site.id + '" data-field-key="' + field.key + '" data-part="name" data-row-index="' + rowIndex + '"></div>' +
+                '<div class="locker-field"><span class="locker-sublabel">Combo</span>' +
+                '<input class="contact-input" type="text" placeholder="Combination" value="' + escAttr(comboVal) + '" data-site-id="' + site.id + '" data-field-key="' + field.key + '" data-part="phone" data-row-index="' + rowIndex + '"></div>' +
+            '</div>';
+    } else {
+        cellHtml =
+            '<div class="locker-pair">' +
+                '<div class="locker-field"><span class="locker-sublabel">Location</span><span class="locker-val' + (locationVal ? '' : ' empty') + '">' + (locationVal ? escHtml(locationVal) : 'Not set') + '</span></div>' +
+                '<div class="locker-field"><span class="locker-sublabel">Locker #</span><span class="locker-val' + (numVal ? '' : ' empty') + '">' + (numVal ? escHtml(numVal) : 'Not set') + '</span></div>' +
+                '<div class="locker-field"><span class="locker-sublabel">Combo</span><span class="locker-val' + (comboVal ? '' : ' empty') + '">' + (comboVal ? escHtml(comboVal) : 'Not set') + '</span></div>' +
+            '</div>';
+    }
+
+    tr.innerHTML =
+        '<td class="label-cell">' + escHtml(field.label) + '</td>' +
+        '<td colspan="2" style="padding:8px 10px 8px 0">' + cellHtml + '</td>' +
+        '<td class="action-cell"></td>';
+    return tr;
+}
+
+function renderPlainRow(site, field, rowIndex) {
+    var tr = document.createElement('tr');
+    tr.className = 'data-row';
+    var value = String(appData[fieldId(site.id, field.key, 'name', rowIndex)] || '').trim();
+
+    var valueCellHtml;
+    if (editState[site.id]) {
+        valueCellHtml = '<input class="contact-input" type="text" placeholder="' + escAttr(field.placeholder || field.label) + '" value="' + escAttr(value) + '" data-site-id="' + site.id + '" data-field-key="' + field.key + '" data-part="name" data-row-index="' + rowIndex + '">';
+    } else {
+        valueCellHtml = value ? '<span class="value-display">' + escHtml(value) + '</span>' : '<span class="value-empty">Not set</span>';
+    }
+
+    var actionHtml = '';
+    if (!editState[site.id] && value) {
+        var action = parseContactAction(value);
+        if (action.kind === 'phone') {
+            actionHtml = '<div class="row-actions"><a class="row-action-btn small" href="tel:' + escAttr(action.value) + '">Call</a><a class="row-action-btn small" href="sms:' + escAttr(action.value) + '">Text</a></div>';
+        } else if (action.kind === 'email') {
+            actionHtml = '<div class="row-actions"><a class="row-action-btn small" href="mailto:' + escAttr(action.value) + '">Email</a></div>';
+        }
+    }
+
+    tr.innerHTML =
+        '<td class="label-cell">' + escHtml(field.label) + '</td>' +
+        '<td class="name-cell" colspan="2">' + valueCellHtml + '</td>' +
+        '<td class="action-cell">' + actionHtml + '</td>';
+    return tr;
+}
+
 function renderNameCell(siteId, field, rowIndex, value) {
     if (editState[siteId]) {
-        return '<input class="contact-input" type="text" placeholder="Name" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="name" data-row-index="' + rowIndex + '">';
+        var placeholder = field.type === 'contact' ? 'Name / Primary info' : 'Primary info';
+        return '<input class="contact-input" type="text" placeholder="' + escAttr(placeholder) + '" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="name" data-row-index="' + rowIndex + '">';
     }
     return value.trim() ? '<span class="value-display">' + escHtml(value.trim()) + '</span>' : '<span class="value-empty">No name added</span>';
 }
 
 function renderPhoneCell(siteId, field, rowIndex, value) {
     if (editState[siteId]) {
-        return '<input class="contact-input" type="text" placeholder="Phone" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="phone" data-row-index="' + rowIndex + '">';
+        return '<input class="contact-input" type="text" placeholder="Phone / Pager / Email / Link" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="phone" data-row-index="' + rowIndex + '">';
     }
 
     var trimmed = value.trim();
@@ -533,14 +970,35 @@ function renderNotesCell(siteId, field, rowIndex, value) {
 
 function renderActionCell(site, field, rowIndex, nameValue, phoneValue) {
     if (field.canRepeat && editState[site.id]) {
-        return '<button type="button" class="row-action-btn add-row" onclick="addCoordinatorRow(\'' + site.id + '\',' + rowIndex + ')">+ Add row below</button>';
+        if (rowIndex > 0) {
+            return '<button type="button" class="row-action-btn add-row" style="border-color:#e0b0b0;color:#b32424" onclick="removeRepeatRow(\'' + site.id + '\',\'' + field.key + '\',' + rowIndex + ')">✕ Remove</button>';
+        }
+        return '<button type="button" class="row-action-btn add-row" onclick="addRepeatRow(\'' + site.id + '\',\'' + field.key + '\',' + rowIndex + ')">+ Add row below</button>';
+    }
+
+    if (field.type !== 'contact') {
+        return '<span class="row-action-btn disabled">No action</span>';
     }
 
     if (!nameValue.trim() && !phoneValue.trim()) {
         return '<span class="row-action-btn disabled">No contact</span>';
     }
 
-    return '<a class="row-action-btn" href="' + buildRowContactHref(site, field, rowIndex, nameValue.trim(), phoneValue.trim()) + '" download="' + fileSafe(site.label + '-' + field.label + (rowIndex > 0 ? '-' + (rowIndex + 1) : '')) + '.vcf">Add Contact</a>';
+    var action = parseContactAction(phoneValue.trim());
+    var actions = [];
+
+    if (action.kind === 'phone') {
+        actions.push('<a class="row-action-btn small" href="tel:' + escAttr(action.value) + '">Call</a>');
+        actions.push('<a class="row-action-btn small" href="sms:' + escAttr(action.value) + '">Text</a>');
+    } else if (action.kind === 'email') {
+        actions.push('<a class="row-action-btn small" href="mailto:' + escAttr(action.value) + '">Email</a>');
+    } else if (action.kind === 'web') {
+        actions.push('<a class="row-action-btn small" href="' + escAttr(action.value) + '" target="_blank" rel="noreferrer">Open</a>');
+    }
+
+    actions.push('<a class="row-action-btn small" href="' + buildRowContactHref(site, field, rowIndex, nameValue.trim(), phoneValue.trim()) + '" download="' + fileSafe(site.label + '-' + field.label + (rowIndex > 0 ? '-' + (rowIndex + 1) : '')) + '.vcf">Add</a>');
+
+    return '<div class="row-actions">' + actions.join('') + '</div>';
 }
 
 function getRepeatCount(siteId, fieldKey) {
@@ -548,8 +1006,20 @@ function getRepeatCount(siteId, fieldKey) {
     return count > 0 ? count : 1;
 }
 
-function addCoordinatorRow(siteId, afterIndex) {
-    var fieldKey = 'clinicalCoordinator';
+function removeRepeatRow(siteId, fieldKey, removeIndex) {
+    var currentCount = getRepeatCount(siteId, fieldKey);
+    for (var index = removeIndex; index < currentCount - 1; index++) {
+        appData[fieldId(siteId, fieldKey, 'name', index)] = appData[fieldId(siteId, fieldKey, 'name', index + 1)] || '';
+        appData[fieldId(siteId, fieldKey, 'phone', index)] = appData[fieldId(siteId, fieldKey, 'phone', index + 1)] || '';
+    }
+    delete appData[fieldId(siteId, fieldKey, 'name', currentCount - 1)];
+    delete appData[fieldId(siteId, fieldKey, 'phone', currentCount - 1)];
+    appData[countId(siteId, fieldKey)] = currentCount - 1;
+    saveAll();
+    buildUI();
+}
+
+function addRepeatRow(siteId, fieldKey, afterIndex) {
     var currentCount = getRepeatCount(siteId, fieldKey);
 
     for (var index = currentCount; index > afterIndex + 1; index--) {
@@ -581,6 +1051,59 @@ function saveAll() {
     }, 3000);
 }
 
+function exportClinicalSites() {
+    var payload = {
+        exportedAt: new Date().toISOString(),
+        appData: appData,
+        favoriteSiteId: favoriteSiteId
+    };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'clinical-sites-backup.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+
+function triggerImportClinicalSites() {
+    var input = document.getElementById('import-file');
+    input.value = '';
+    input.click();
+}
+
+function importClinicalSites(event) {
+    var file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function() {
+        try {
+            var parsed = JSON.parse(String(reader.result || '{}'));
+            if (!parsed || typeof parsed !== 'object' || typeof parsed.appData !== 'object') {
+                throw new Error('Invalid backup file');
+            }
+            appData = parsed.appData || {};
+            favoriteSiteId = parsed.favoriteSiteId || '';
+            localStorage.setItem(STORE_KEY, JSON.stringify(appData));
+            localStorage.setItem(FAVORITE_KEY, favoriteSiteId);
+            expandedState = {};
+            if (favoriteSiteId) expandedState[favoriteSiteId] = true;
+            buildUI();
+            var status = document.getElementById('save-status');
+            status.textContent = 'Import complete';
+            setTimeout(function() { status.textContent = ''; }, 3000);
+        } catch (e) {
+            var status = document.getElementById('save-status');
+            status.textContent = 'Import failed';
+            setTimeout(function() { status.textContent = ''; }, 3000);
+        }
+    };
+    reader.readAsText(file);
+}
+
 function toggleEdit(siteId) {
     if (editState[siteId]) {
         saveAll();
@@ -596,14 +1119,15 @@ function isExpanded(siteId) {
     if (editState[siteId]) {
         return true;
     }
-    if (Object.prototype.hasOwnProperty.call(expandedState, siteId)) {
-        return expandedState[siteId];
-    }
-    return favoriteSiteId === siteId;
+    return Boolean(expandedState[siteId]);
 }
 
 function toggleExpanded(siteId) {
-    expandedState[siteId] = !isExpanded(siteId);
+    var openNow = isExpanded(siteId);
+    expandedState = {};
+    if (!openNow) {
+        expandedState[siteId] = true;
+    }
     buildUI();
 }
 
@@ -612,10 +1136,6 @@ function toggleFavorite(siteId) {
     try {
         localStorage.setItem(FAVORITE_KEY, favoriteSiteId);
     } catch (e) {
-    }
-    expandedState = {};
-    if (favoriteSiteId) {
-        expandedState[favoriteSiteId] = true;
     }
     buildUI();
 }
@@ -639,6 +1159,30 @@ function clickableHref(value) {
     }
 
     return '';
+}
+
+function parseContactAction(value) {
+    var trimmed = String(value || '').trim();
+    if (!trimmed) return { kind: 'none', value: '' };
+
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+        return { kind: 'email', value: trimmed };
+    }
+
+    var compact = trimmed.replace(/[()\-.\s]/g, '');
+    if (/^\+?\d{7,}$/.test(compact)) {
+        return { kind: 'phone', value: compact };
+    }
+
+    if (/^https?:\/\//i.test(trimmed)) {
+        return { kind: 'web', value: trimmed };
+    }
+
+    if (/^[^\s]+\.[^\s]+/.test(trimmed) && !/\s/.test(trimmed)) {
+        return { kind: 'web', value: 'https://' + trimmed };
+    }
+
+    return { kind: 'none', value: '' };
 }
 
 function buildRowContactHref(site, field, rowIndex, nameValue, phoneValue) {
@@ -685,12 +1229,42 @@ function fileSafe(label) {
     return String(label).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '');
 }
 
+function formatPhone(value) {
+    var digits = value.replace(/\D/g, '').slice(0, 10);
+    if (digits.length === 0) return '';
+    if (digits.length <= 3) return '(' + digits;
+    if (digits.length <= 6) return '(' + digits.slice(0,3) + ') ' + digits.slice(3);
+    return '(' + digits.slice(0,3) + ') ' + digits.slice(3,6) + '-' + digits.slice(6);
+}
+
+var PHONE_FIELD_KEYS = (function() {
+    var keys = {};
+    FIELDS.forEach(function(f) {
+        if (f.placeholder === 'Phone number') keys[f.key] = true;
+    });
+    return keys;
+}());
+
 document.addEventListener('input', function(e) {
-    if (e.target && e.target.closest('#sites-container') && e.target.matches('input[data-site-id]')) {
+    if (e.target && e.target.closest('#sites-container') && e.target.matches('input[data-site-id], textarea[data-site-id]')) {
         var siteId = e.target.getAttribute('data-site-id');
         var fieldKey = e.target.getAttribute('data-field-key');
         var part = e.target.getAttribute('data-part');
         var rowIndex = parseInt(e.target.getAttribute('data-row-index'), 10) || 0;
+
+        // Auto-format phone fields (but not locker combos)
+        var isLockerCombo = (fieldKey === 'mensLocker' || fieldKey === 'womensLocker') && part === 'phone';
+        var isPhoneInput = (part === 'phone' || PHONE_FIELD_KEYS[fieldKey]) && !isLockerCombo;
+        if (isPhoneInput && e.target.tagName === 'INPUT') {
+            var caretAt = e.target.selectionStart;
+            var rawDigits = e.target.value.replace(/\D/g, '').length;
+            var formatted = formatPhone(e.target.value);
+            e.target.value = formatted;
+            // Keep caret near end if still typing
+            var newDigits = formatted.replace(/\D/g, '').length;
+            if (newDigits >= rawDigits) e.target.setSelectionRange(formatted.length, formatted.length);
+        }
+
         appData[fieldId(siteId, fieldKey, part, rowIndex)] = e.target.value;
 
         clearTimeout(window._autoSaveTimer);

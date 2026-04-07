@@ -150,7 +150,7 @@
 <body>
   <header>
     <div class="head-row">
-      <a href="../Index.html" class="back-btn">&larr; Wiki Home</a>
+      <a href="../AnesthesiaWiki.html" class="back-btn">&larr; Wiki Home</a>
       <div class="head-copy">
         <h1>Medication Library</h1>
         <p>Browse all references by classification</p>
@@ -286,12 +286,6 @@
       </ul>
     </section>
 
-    <section class="group c-blue" data-group>
-      <h2>Dose Tools</h2>
-      <ul class="med-list">
-        <li><a href="LocalAnestheticMaxDoseCalculator.html">Local Anesthetic Max Dose Calculator</a></li>
-      </ul>
-    </section>
   </div>
 
   <script>
@@ -308,6 +302,17 @@
         group.classList.toggle('hidden', !hasVisible);
       });
     }
+
+    (function initSearchFromUrl() {
+      var input = document.getElementById('med-search');
+      if (!input) return;
+      var params = new URLSearchParams(window.location.search || '');
+      var q = params.get('q') || '';
+      if (q) {
+        input.value = q;
+        filterMeds(q);
+      }
+    })();
   </script>
 </body>
 </html>

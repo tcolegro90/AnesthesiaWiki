@@ -11,8 +11,9 @@
             --teal: #0e7490;
             --line: #dbe5f0;
             --bg: #f3f7fb;
-            --ok: #1a7c50;
-            --warn: #b32424;
+            --male: #1a4d7c;
+            --female: #7c1a5a;
+            --green: #1a7c50;
         }
         * { box-sizing: border-box; }
         body {
@@ -24,12 +25,31 @@
         }
 
         header {
-            background: var(--primary);
-            padding: 16px 20px 12px;
+            background: linear-gradient(135deg, #1a2c42 0%, #1f2a37 60%, #162238 100%);
+            padding: 20px 20px 16px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        header h1 { margin: 0; font-size: 1.4rem; color: #fff; }
-        header p { margin: 4px 0 0; font-size: 0.82rem; color: #93adc8; }
+        header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 30% 50%, rgba(14,116,144,0.18) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 30%, rgba(17,74,141,0.2) 0%, transparent 55%);
+            pointer-events: none;
+        }
+        .header-inner { position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+        .header-icon {
+            width: 52px; height: 52px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+        .header-text h1 { margin: 0; font-size: 1.45rem; color: #fff; text-align: left; }
+        .header-text p { margin: 3px 0 0; font-size: 0.82rem; color: #93adc8; text-align: left; }
 
         /* Sticky section nav */
         .section-nav {
@@ -57,140 +77,271 @@
         }
         .section-nav a:hover { background: var(--teal); border-color: var(--teal); color: #fff; }
 
-        .container { max-width: 860px; margin: 28px auto; padding: 0 16px; }
+        .container { max-width: 860px; margin: 24px auto; padding: 0 16px; }
 
-        /* Section cards */
+        /* Cards */
         .card {
             background: #fff;
             border: 1px solid var(--line);
-            border-radius: 10px;
-            margin-bottom: 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
             overflow: hidden;
+            box-shadow: 0 4px 14px rgba(17,74,141,0.07);
         }
         .card-header {
-            background: var(--blue);
+            background: linear-gradient(90deg, var(--blue) 0%, #1a5fa8 100%);
             color: #fff;
             padding: 13px 18px;
             font-size: 1rem;
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 9px;
         }
-        .card-body { padding: 18px; }
+        .card-header .ch-icon { font-size: 1.1rem; opacity: 0.9; }
+        .card-body { padding: 20px; }
 
         /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.88rem;
-            margin-top: 8px;
-        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 4px; }
         th {
             background: #f0f6ff;
             color: #355f93;
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            padding: 8px 12px;
+            padding: 9px 12px;
             text-align: left;
         }
-        td {
-            padding: 9px 12px;
-            border-bottom: 1px solid #eef2f8;
-            vertical-align: top;
-        }
+        td { padding: 10px 12px; border-bottom: 1px solid #eef2f8; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #f7fbff; }
+        tr:hover td { background: #f4f9ff; }
+
+        /* Male / Female row tints */
+        .row-male td { background: #f0f6ff; }
+        .row-male:hover td { background: #e3eeff; }
+        .row-female td { background: #fdf0f8; }
+        .row-female:hover td { background: #f9e3f3; }
+        .row-male td:first-child { border-left: 4px solid var(--male); }
+        .row-female td:first-child { border-left: 4px solid var(--female); }
+
+        /* Sex badge */
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .badge-male { background: #dceeff; color: var(--male); }
+        .badge-female { background: #fde8f5; color: var(--female); }
+
+        /* Size badge for LMA/ETT */
+        .size-num {
+            display: inline-block;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: var(--blue);
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-align: center;
+            line-height: 30px;
+        }
 
         /* Formula callout */
-        .formula {
-            background: #eaf3ff;
-            border-left: 4px solid var(--blue);
-            border-radius: 0 6px 6px 0;
-            padding: 10px 14px;
-            font-size: 0.88rem;
-            margin-bottom: 12px;
-            font-family: "Courier New", monospace;
-            color: var(--blue);
-            font-weight: 600;
+        .formula-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
         }
+        .formula-box {
+            background: #eaf3ff;
+            border: 1px solid #c5d9f5;
+            border-radius: 8px;
+            padding: 11px 14px;
+            text-align: center;
+        }
+        .formula-box .fb-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #5577a8; font-weight: 600; margin-bottom: 5px; }
+        .formula-box .fb-eq { font-family: "Courier New", monospace; font-size: 0.87rem; font-weight: 700; color: var(--blue); }
 
         /* Indication list */
         .indication-list { list-style: none; padding: 0; margin: 0; }
         .indication-list li {
-            padding: 9px 0;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 11px 0;
             border-bottom: 1px solid #eef2f8;
             font-size: 0.9rem;
             line-height: 1.5;
         }
         .indication-list li:last-child { border-bottom: none; }
+        .ind-icon {
+            flex-shrink: 0;
+            width: 30px; height: 30px;
+            background: #eaf3ff;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
         .indication-list li strong { color: var(--blue); }
 
-        p { font-size: 0.9rem; line-height: 1.6; margin: 0 0 10px; color: #3a4a5c; }
+        p { font-size: 0.9rem; line-height: 1.6; margin: 0 0 12px; color: #3a4a5c; }
 
-        /* Smaller ETT note */
-        .smaller-ett-list { list-style: none; padding: 0; margin: 8px 0 0; }
+        /* Smaller ETT list */
+        .smaller-ett-list { list-style: none; padding: 0; margin: 4px 0 0; display: flex; flex-direction: column; gap: 6px; }
         .smaller-ett-list li {
-            padding: 7px 0 7px 14px;
-            border-left: 3px solid #aac4e8;
-            margin-bottom: 7px;
+            display: flex; gap: 10px; align-items: flex-start;
+            padding: 9px 12px;
+            background: #f8fbff;
+            border: 1px solid #dde9f8;
+            border-left: 4px solid #7aa8d8;
+            border-radius: 0 7px 7px 0;
             font-size: 0.88rem;
             line-height: 1.5;
         }
+        .smaller-ett-list li .sei { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
         .smaller-ett-list li strong { color: var(--blue); }
+
+        /* Peds age badge */
+        .age-tag {
+            display: inline-block;
+            background: #e8f4f0;
+            color: #1a7c50;
+            border: 1px solid #b8ddd0;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 2px 9px;
+        }
+
+        /* CL Grade visual */
+        .cl-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .cl-box {
+            border-radius: 8px;
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+        .cl-grade { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+        .cl-desc { font-size: 0.75rem; line-height: 1.4; }
+        .cl-1 { background: #e8f8f0; border-color: #b3dfc7; color: #1a6640; }
+        .cl-2 { background: #fef9e6; border-color: #f0d980; color: #7a6000; }
+        .cl-3 { background: #fff0e6; border-color: #f0b880; color: #7a3500; }
+        .cl-4 { background: #ffeaea; border-color: #f09090; color: #7a1a1a; }
+        .cl-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 2px; opacity: 0.7; }
+
+        .section-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+            color: #5577a8;
+            margin: 18px 0 8px;
+        }
+
+        /* Collapsible cards */
+        .card-header {
+            cursor: pointer;
+            user-select: none;
+        }
+        .card-header .toggle-arrow {
+            margin-left: auto;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            transition: transform 0.22s;
+            flex-shrink: 0;
+        }
+        .card.open .card-header .toggle-arrow { transform: rotate(180deg); }
+        .card-body { display: none; }
+        .card.open .card-body { display: block; }
     </style>
 </head>
 <body>
-<a href="Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
+<a href="AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+</div>
 
 <header>
-    <h1>✈️ Airway Management</h1>
-    <p>ETT sizing, LMA selection, and video laryngoscopy indications</p>
+    <div class="header-inner">
+        <div class="header-icon">🫁</div>
+        <div class="header-text">
+            <h1>Airway Management</h1>
+            <p>ETT sizing, LMA selection, and video laryngoscopy indications</p>
+        </div>
+    </div>
 </header>
 
 <nav class="section-nav">
-    <a href="#adult-ett">Adult ETT</a>
-    <a href="#peds-ett">Pediatric ETT</a>
-    <a href="#lma">LMA Sizing</a>
-    <a href="#vl">Video Laryngoscopy</a>
+    <a href="#adult-ett" onclick="expandCard('adult-ett')">Adult ETT</a>
+    <a href="#peds-ett" onclick="expandCard('peds-ett')">Pediatric ETT</a>
+    <a href="#lma" onclick="expandCard('lma')">LMA Sizing</a>
+    <a href="#vl" onclick="expandCard('vl')">Video Laryngoscopy</a>
 </nav>
 
 <div class="container">
 
     <!-- Adult ETT -->
     <div class="card" id="adult-ett">
-        <div class="card-header">Adult ETT Sizes &amp; Guide</div>
+        <div class="card-header" onclick="toggleCard('adult-ett')"><span class="ch-icon">🔵</span> Adult ETT Sizes &amp; Guide<span class="toggle-arrow">▼</span></div>
         <div class="card-body">
-            <p>Standard estimations for adult Endotracheal Tubes (ETT).</p>
             <table>
                 <thead>
                     <tr>
-                        <th>Patient Profile</th>
+                        <th>Patient</th>
                         <th>ETT Size (ID mm)</th>
-                        <th>Depth at Teeth (cm)</th>
+                        <th>Depth at Teeth</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td><strong>Adult Female</strong></td><td>7.0 – 7.5</td><td>20 – 22 cm</td></tr>
-                    <tr><td><strong>Adult Male</strong></td><td>7.5 – 8.0</td><td>21 – 23 cm</td></tr>
+                    <tr class="row-male">
+                        <td><span class="badge badge-male">♂ Male</span></td>
+                        <td><strong>7.5 – 8.0 mm</strong></td>
+                        <td>21 – 23 cm</td>
+                    </tr>
+                    <tr class="row-female">
+                        <td><span class="badge badge-female">♀ Female</span></td>
+                        <td><strong>7.0 – 7.5 mm</strong></td>
+                        <td>20 – 22 cm</td>
+                    </tr>
                 </tbody>
             </table>
 
-            <h4 style="margin: 18px 0 8px; font-size: 0.9rem; color: #1f2a37;">Indications for a Smaller ETT</h4>
+            <div class="section-label">Indications for a Smaller ETT</div>
             <ul class="smaller-ett-list">
-                <li><strong>Airway Edema / Swelling</strong> — Expected due to trauma, burns, anaphylaxis, or prolonged prone/Trendelenburg positioning.</li>
-                <li><strong>Known Stenosis</strong> — Subglottic stenosis, tracheal strictures, or vocal cord pathology.</li>
-                <li><strong>Surgical Requirements</strong> — Shared airway surgeries (ENT, vocal cord microsurgery) where the surgeon needs maximal glottic visualization.</li>
-                <li><strong>Anticipated Prolonged Intubation</strong> — Smaller tube minimizes tracheal mucosal pressure and reduces post-extubation stenosis risk.</li>
-                <li><strong>Patient Stature</strong> — Exceptionally short or small-framed adults.</li>
+                <li><span class="sei">🔥</span><div><strong>Airway Edema / Swelling</strong> — Expected due to trauma, burns, anaphylaxis, or prolonged prone/Trendelenburg positioning.</div></li>
+                <li><span class="sei">⚠️</span><div><strong>Known Stenosis</strong> — Subglottic stenosis, tracheal strictures, or vocal cord pathology.</div></li>
+                <li><span class="sei">🔬</span><div><strong>Surgical Requirements</strong> — Shared airway (ENT, vocal cord microsurgery) where the surgeon needs maximal glottic visualization.</div></li>
+                <li><span class="sei">⏱️</span><div><strong>Anticipated Prolonged Intubation</strong> — Smaller tube minimizes mucosal pressure and reduces post-extubation stenosis risk.</div></li>
+                <li><span class="sei">📏</span><div><strong>Patient Stature</strong> — Exceptionally short or small-framed adults.</div></li>
             </ul>
         </div>
     </div>
 
     <!-- Pediatric ETT -->
     <div class="card" id="peds-ett">
-        <div class="card-header">Pediatric ETT Size &amp; Depth Guide</div>
+        <div class="card-header" onclick="toggleCard('peds-ett')"><span class="ch-icon">🟢</span> Pediatric ETT Size &amp; Depth Guide<span class="toggle-arrow">▼</span></div>
         <div class="card-body">
-            <div class="formula">
-                Uncuffed ETT = (Age ÷ 4) + 4 &nbsp;|&nbsp; Cuffed ETT = (Age ÷ 4) + 3.5 &nbsp;|&nbsp; Depth at lip = (Age ÷ 2) + 12
+            <div class="formula-grid">
+                <div class="formula-box">
+                    <div class="fb-label">Uncuffed ETT</div>
+                    <div class="fb-eq">(Age ÷ 4) + 4</div>
+                </div>
+                <div class="formula-box">
+                    <div class="fb-label">Cuffed ETT</div>
+                    <div class="fb-eq">(Age ÷ 4) + 3.5</div>
+                </div>
+                <div class="formula-box">
+                    <div class="fb-label">Depth at Lip</div>
+                    <div class="fb-eq">(Age ÷ 2) + 12</div>
+                </div>
             </div>
             <table>
                 <thead>
@@ -202,11 +353,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td>Premature</td><td>2.5 – 3.0</td><td>—</td><td>8 – 9</td></tr>
-                    <tr><td>Term Neonate</td><td>3.0 – 3.5</td><td>3.0</td><td>10</td></tr>
-                    <tr><td>1 Year</td><td>4.0</td><td>3.5</td><td>11 – 12</td></tr>
-                    <tr><td>2 Years</td><td>4.5</td><td>4.0</td><td>13</td></tr>
-                    <tr><td>4 Years</td><td>5.0</td><td>4.5</td><td>14</td></tr>
+                    <tr><td><span class="age-tag">Premature</span></td><td>2.5 – 3.0</td><td>—</td><td>8 – 9</td></tr>
+                    <tr><td><span class="age-tag">Neonate</span></td><td>3.0 – 3.5</td><td>3.0</td><td>10</td></tr>
+                    <tr><td><span class="age-tag">1 yr</span></td><td>4.0</td><td>3.5</td><td>11 – 12</td></tr>
+                    <tr><td><span class="age-tag">2 yr</span></td><td>4.5</td><td>4.0</td><td>13</td></tr>
+                    <tr><td><span class="age-tag">4 yr</span></td><td>5.0</td><td>4.5</td><td>14</td></tr>
                 </tbody>
             </table>
         </div>
@@ -214,23 +365,23 @@
 
     <!-- LMA -->
     <div class="card" id="lma">
-        <div class="card-header">LMA Sizing Guide</div>
+        <div class="card-header" onclick="toggleCard('lma')"><span class="ch-icon">🟠</span> LMA Sizing Guide<span class="toggle-arrow">▼</span></div>
         <div class="card-body">
-            <p>Standard Laryngeal Mask Airway (LMA) sizing based on patient weight.</p>
+            <p>Standard Laryngeal Mask Airway sizing based on patient weight. Inflate cuff to the minimum volume that achieves a seal.</p>
             <table>
                 <thead>
                     <tr>
-                        <th>LMA Size</th>
-                        <th>Patient Weight</th>
+                        <th>Size</th>
+                        <th>Patient</th>
                         <th>Max Cuff Volume</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td><strong>1</strong></td><td>Neonate / Infant &lt;5 kg</td><td>4 mL</td></tr>
-                    <tr><td><strong>2</strong></td><td>Child 10 – 20 kg</td><td>10 mL</td></tr>
-                    <tr><td><strong>3</strong></td><td>Child / Small Adult 30 – 50 kg</td><td>20 mL</td></tr>
-                    <tr><td><strong>4</strong></td><td>Adult 50 – 70 kg</td><td>30 mL</td></tr>
-                    <tr><td><strong>5</strong></td><td>Large Adult 70 – 100 kg</td><td>40 mL</td></tr>
+                    <tr><td><span class="size-num" style="background:#7ba7d4;">1</span></td><td>Neonate / Infant &lt;5 kg</td><td>4 mL</td></tr>
+                    <tr><td><span class="size-num" style="background:#5a8fc4;">2</span></td><td>Child 10 – 20 kg</td><td>10 mL</td></tr>
+                    <tr><td><span class="size-num" style="background:#3d76b4;">3</span></td><td>Child / Small Adult 30 – 50 kg</td><td>20 mL</td></tr>
+                    <tr><td><span class="size-num" style="background:#1f5ea0;">4</span></td><td>Adult 50 – 70 kg</td><td>30 mL</td></tr>
+                    <tr><td><span class="size-num" style="background:#114a8d;">5</span></td><td>Large Adult 70 – 100 kg</td><td>40 mL</td></tr>
                 </tbody>
             </table>
         </div>
@@ -238,18 +389,68 @@
 
     <!-- Video Laryngoscopy -->
     <div class="card" id="vl">
-        <div class="card-header">Video Laryngoscopy (VL) — Indications</div>
+        <div class="card-header" onclick="toggleCard('vl')"><span class="ch-icon">📹</span> Video Laryngoscopy — Indications<span class="toggle-arrow">▼</span></div>
         <div class="card-body">
             <ul class="indication-list">
-                <li><strong>Anticipated Difficult Airway</strong> — High Mallampati score, high BMI/obesity, or history of previous difficult intubation.</li>
-                <li><strong>Cervical Spine Instability</strong> — VL requires significantly less neck manipulation and extension to obtain a glottic view compared to DL.</li>
-                <li><strong>Limited Mouth Opening</strong> — Hyper-angulated VL blades are easier to insert in patients with restricted inter-incisor gaps.</li>
-                <li><strong>Poor DL View</strong> — Rescue device when initial DL attempts result in a Grade III or IV Cormack-Lehane view.</li>
-                <li><strong>Teaching / Supervision</strong> — Allows the attending or preceptor to see exactly what the intubator is seeing on the screen.</li>
+                <li>
+                    <div class="ind-icon">😮</div>
+                    <div><strong>Anticipated Difficult Airway</strong> — High Mallampati score, obesity, short neck, or history of previous difficult intubation.</div>
+                </li>
+                <li>
+                    <div class="ind-icon">🦴</div>
+                    <div><strong>Cervical Spine Instability</strong> — VL requires significantly less neck manipulation and extension than direct laryngoscopy.</div>
+                </li>
+                <li>
+                    <div class="ind-icon">↔️</div>
+                    <div><strong>Limited Mouth Opening</strong> — Hyper-angulated blades are easier to insert in patients with restricted inter-incisor gap.</div>
+                </li>
+                <li>
+                    <div class="ind-icon">🔄</div>
+                    <div><strong>Poor DL View</strong> — Rescue device when initial direct laryngoscopy yields a Grade III or IV Cormack-Lehane view.</div>
+                </li>
+                <li>
+                    <div class="ind-icon">🎓</div>
+                    <div><strong>Teaching / Supervision</strong> — Allows the attending to see exactly what the intubator sees on the screen in real time.</div>
+                </li>
             </ul>
+
+            <div class="section-label">Cormack-Lehane Grading</div>
+            <div class="cl-grid">
+                <div class="cl-box cl-1">
+                    <div class="cl-label">Grade</div>
+                    <div class="cl-grade">I</div>
+                    <div class="cl-desc">Full glottis visible</div>
+                </div>
+                <div class="cl-box cl-2">
+                    <div class="cl-label">Grade</div>
+                    <div class="cl-grade">II</div>
+                    <div class="cl-desc">Partial glottis / arytenoids</div>
+                </div>
+                <div class="cl-box cl-3">
+                    <div class="cl-label">Grade</div>
+                    <div class="cl-grade">III</div>
+                    <div class="cl-desc">Epiglottis only visible</div>
+                </div>
+                <div class="cl-box cl-4">
+                    <div class="cl-label">Grade</div>
+                    <div class="cl-grade">IV</div>
+                    <div class="cl-desc">Nothing visible</div>
+                </div>
+            </div>
         </div>
     </div>
 
 </div>
+
+<script>
+    function toggleCard(id) {
+        var card = document.getElementById(id);
+        if (card) card.classList.toggle('open');
+    }
+    function expandCard(id) {
+        var card = document.getElementById(id);
+        if (card && !card.classList.contains('open')) card.classList.add('open');
+    }
+</script>
 </body>
 </html>

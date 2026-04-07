@@ -156,6 +156,7 @@
       border-bottom: 1px solid #ddd;
       padding-bottom: 1px;
       font-size: 7.4pt;
+      text-align: center;
     }
     #print-container .print-row,
     .print-card .print-row {
@@ -170,6 +171,12 @@
       font-weight: bold;
       margin-right: 5px;
       white-space: nowrap;
+    }
+    #print-container .print-row span:last-child,
+    .print-card .print-row span:last-child {
+      text-align: right;
+      white-space: pre-line;
+      flex: 1;
     }
     #print-container .med-print-row,
     .print-card .med-print-row {
@@ -273,7 +280,10 @@
   </style>
 </head>
 <body>
-<a href="../Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
+<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+</div>
   <div id="preview-screen">
     <div id="preview-actions" style="margin-bottom:20px;display:flex;gap:10px;">
       <button type="button" class="action-btn" onclick="closePreview()">Back to Edit</button>
@@ -390,8 +400,7 @@
             <div class="print-row"><span>Hr 2:</span><span id="pr-fluid-hr2">_</span></div>
             <div class="print-row"><span>Hr 3:</span><span id="pr-fluid-hr3">_</span></div>
             <div class="print-row"><span>Hr 4+:</span><span id="pr-fluid-hr4">_</span></div>
-            <div class="print-row"><span>EBV:</span><span id="pr-ebv">_</span></div>
-            <div class="print-row"><span>ABL:</span><span id="pr-abl">_</span></div>
+            <div class="print-row"><span>EBV / ABL:</span><span id="pr-ebv-abl">_</span></div>
             <div class="print-row"><span>Target TV:</span><span id="pr-target-tv-plan">_</span></div>
           </div>
         </div>
@@ -436,6 +445,6 @@
     </div>
   </div>
 
-  <script src="combined.js?v=4.2"></script>
+  <script src="combined.js?v=4.3"></script>
 </body>
 </html>
