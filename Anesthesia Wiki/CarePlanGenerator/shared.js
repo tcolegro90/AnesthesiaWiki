@@ -231,8 +231,13 @@ function pageBoot(extraInit, onExternalUpdate) {
         if (!booted) {
           finalizeBoot();
         } else {
-          restoreState();
-          if (typeof onExternalUpdate === 'function') onExternalUpdate();
+          // Don't interrupt active user interaction (typing, open dropdowns).
+          var active = document.activeElement;
+          var userInteracting = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
+          if (!userInteracting) {
+            restoreState();
+            if (typeof onExternalUpdate === 'function') onExternalUpdate();
+          }
         }
       }
     }

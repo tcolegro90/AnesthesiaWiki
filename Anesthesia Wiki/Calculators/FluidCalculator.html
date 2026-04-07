@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fluid Calculator</title>
+    <title>Fluid &amp; Blood Loss Calculators</title>
     <style>
-        :root { --primary:#1f2a37; --blue:#114a8d; --teal:#0e7490; --line:#dbe5f0; --bg:#f3f7fb; }
+        :root { --primary:#1f2a37; --blue:#114a8d; --teal:#0e7490; --orange:#d4920a; --line:#dbe5f0; --bg:#f3f7fb; }
         * { box-sizing:border-box; }
         body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background:var(--bg); color:var(--primary); margin:0; padding-bottom:48px; }
         header { background:var(--primary); padding:16px 20px 12px; text-align:center; }
         header h1 { margin:0; font-size:1.4rem; color:#fff; }
         header p { margin:4px 0 0; font-size:0.82rem; color:#93adc8; }
-        .container { max-width:520px; margin:36px auto; padding:0 16px; }
-        .card { background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:14px; }
-        .card-header { background:var(--teal); color:#fff; padding:13px 18px; font-size:1rem; font-weight:700; }
+        .container { max-width:560px; margin:36px auto; padding:0 16px; }
+        .card { background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:20px; }
+        .card-header { color:#fff; padding:13px 18px; font-size:1rem; font-weight:700; }
+        .ch-teal  { background:var(--teal); }
+        .ch-orange { background:var(--orange); }
         .card-body { padding:24px; }
         .field { margin-bottom:16px; }
         label { display:block; font-size:0.85rem; font-weight:600; color:#355f93; margin-bottom:5px; }
@@ -21,17 +23,19 @@
             width:100%; padding:9px 12px; border:1px solid #c9d7e8; border-radius:7px;
             font-size:1rem; color:var(--primary); background:#fff;
         }
-        input:focus, select:focus { outline:none; border-color:var(--teal); }
+        input:focus, select:focus { outline:none; border-color:var(--blue); }
         .calc-btn {
-            width:100%; padding:11px; background:var(--teal); color:#fff; border:none;
+            width:100%; padding:11px; color:#fff; border:none;
             border-radius:7px; font-size:1rem; font-weight:700; cursor:pointer; margin-top:4px;
         }
-        .calc-btn:hover { background:#0b5e72; }
-        .result {
-            margin-top:16px; padding:14px; background:#f0fbff; border:1px solid #b2dded;
-            border-radius:8px; font-size:0.93rem; line-height:1.9; min-height:48px;
-        }
-        .result-row { display:flex; justify-content:space-between; border-bottom:1px solid #d6eef8; padding:4px 0; }
+        .btn-teal   { background:var(--teal); }
+        .btn-teal:hover   { background:#0b5e72; }
+        .btn-orange { background:var(--orange); }
+        .btn-orange:hover { background:#a87008; }
+        .result { margin-top:16px; padding:14px; border-radius:8px; font-size:0.93rem; line-height:1.9; min-height:48px; }
+        .result-teal   { background:#f0fbff; border:1px solid #b2dded; }
+        .result-orange { background:#fffbf0; border:1px solid #f5dfa0; }
+        .result-row { display:flex; justify-content:space-between; border-bottom:1px solid #e8eef6; padding:4px 0; }
         .result-row:last-child { border-bottom:none; }
         .result-label { color:#5a6b82; }
         .result-val { font-weight:700; color:var(--primary); }
@@ -39,16 +43,21 @@
     </style>
 </head>
 <body>
-<a href="../Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
+<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+</div>
 
 <header>
-    <h1>💧 Fluid Calculator</h1>
-    <p>Perioperative fluids using the 4-2-1 rule</p>
+    <h1>💧🩸 Fluid &amp; Blood Loss</h1>
+    <p>Perioperative fluid requirements and allowable blood loss</p>
 </header>
 
 <div class="container">
+
+    <!-- Fluid Calculator -->
     <div class="card">
-        <div class="card-header">Perioperative Fluid Calculator (4-2-1 Rule)</div>
+        <div class="card-header ch-teal">💧 Perioperative Fluid Calculator (4-2-1 Rule)</div>
         <div class="card-body">
             <div class="field">
                 <label for="fluid-weight">Weight (kg)</label>
@@ -66,33 +75,59 @@
                     <option value="6">Severe (6 mL/kg/hr)</option>
                 </select>
             </div>
-            <button class="calc-btn" onclick="calculateFluid()">Calculate Fluids</button>
-            <div id="fluid-result" class="result"><em style="color:#8a9ab0;">Enter values above and calculate.</em></div>
+            <button class="calc-btn btn-teal" onclick="calculateFluid()">Calculate Fluids</button>
+            <div id="fluid-result" class="result result-teal"><em style="color:#8a9ab0;">Enter values above and calculate.</em></div>
         </div>
     </div>
+
+    <!-- ABL / EBL Calculator -->
+    <div class="card">
+        <div class="card-header ch-orange">🩸 Allowable Blood Loss (ABL) Calculator</div>
+        <div class="card-body">
+            <div class="field">
+                <label for="ebl-weight">Weight (kg)</label>
+                <input type="number" id="ebl-weight" min="1" placeholder="e.g. 70">
+            </div>
+            <div class="field">
+                <label for="ebl-type">Patient Type</label>
+                <select id="ebl-type">
+                    <option value="85">Neonate (85 mL/kg EBV)</option>
+                    <option value="80">Infant (80 mL/kg EBV)</option>
+                    <option value="75" selected>Adult Male (75 mL/kg EBV)</option>
+                    <option value="65">Adult Female (65 mL/kg EBV)</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="ebl-start">Starting Hct (%)</label>
+                <input type="number" id="ebl-start" min="10" max="60" placeholder="e.g. 42">
+            </div>
+            <div class="field">
+                <label for="ebl-target">Target Hct (%)</label>
+                <input type="number" id="ebl-target" min="10" max="40" placeholder="e.g. 25">
+            </div>
+            <button class="calc-btn btn-orange" onclick="calculateEBL()">Calculate ABL</button>
+            <div id="ebl-result" class="result result-orange"><em style="color:#8a9ab0;">Enter values above and calculate.</em></div>
+        </div>
+    </div>
+
 </div>
 
 <script>
 function calculateFluid() {
     var weight = parseFloat(document.getElementById('fluid-weight').value) || 0;
-    var npo = parseFloat(document.getElementById('fluid-npo').value) || 0;
+    var npo    = parseFloat(document.getElementById('fluid-npo').value)    || 0;
     var trauma = parseFloat(document.getElementById('fluid-trauma').value) || 0;
     if (weight <= 0) {
         document.getElementById('fluid-result').innerHTML = "<span class='err'>Please enter a valid weight.</span>";
         return;
     }
     var hourlyMaint;
-    if (weight <= 10) {
-        hourlyMaint = weight * 4;
-    } else if (weight <= 20) {
-        hourlyMaint = 40 + ((weight - 10) * 2);
-    } else {
-        hourlyMaint = 60 + (weight - 20);
-    }
+    if (weight <= 10)      { hourlyMaint = weight * 4; }
+    else if (weight <= 20) { hourlyMaint = 40 + ((weight - 10) * 2); }
+    else                   { hourlyMaint = 60 + (weight - 20); }
     var npoDeficit = hourlyMaint * npo;
     var thirdSpace = weight * trauma;
-    var firstHour = (npoDeficit / 2) + hourlyMaint + thirdSpace;
-
+    var firstHour  = (npoDeficit / 2) + hourlyMaint + thirdSpace;
     document.getElementById('fluid-result').innerHTML =
         '<div class="result-row"><span class="result-label">Maintenance Rate</span><span class="result-val">' + hourlyMaint.toFixed(0) + ' mL/hr</span></div>' +
         '<div class="result-row"><span class="result-label">NPO Deficit</span><span class="result-val">' + npoDeficit.toFixed(0) + ' mL total</span></div>' +
@@ -100,7 +135,28 @@ function calculateFluid() {
         '<div class="result-row"><span class="result-label">3rd Space Loss</span><span class="result-val">' + thirdSpace.toFixed(0) + ' mL/hr</span></div>' +
         '<div class="result-row" style="margin-top:6px;"><span class="result-label" style="font-weight:700;">Est. 1st Hour Total</span><span class="result-val" style="color:#0e7490;">' + firstHour.toFixed(0) + ' mL</span></div>';
 }
-document.addEventListener('keydown', function(e) { if (e.key === 'Enter') calculateFluid(); });
+
+function calculateEBL() {
+    var weight    = parseFloat(document.getElementById('ebl-weight').value)  || 0;
+    var ebvFactor = parseFloat(document.getElementById('ebl-type').value)    || 0;
+    var startHct  = parseFloat(document.getElementById('ebl-start').value)   || 0;
+    var targetHct = parseFloat(document.getElementById('ebl-target').value)  || 0;
+    if (weight <= 0 || startHct <= 0 || targetHct <= 0) {
+        document.getElementById('ebl-result').innerHTML = "<span class='err'>Please enter valid numbers.</span>";
+        return;
+    }
+    if (targetHct >= startHct) {
+        document.getElementById('ebl-result').innerHTML = "<span class='err'>Target Hct must be lower than Starting Hct.</span>";
+        return;
+    }
+    var ebv = weight * ebvFactor;
+    var abl = ebv * ((startHct - targetHct) / startHct);
+    document.getElementById('ebl-result').innerHTML =
+        '<div class="result-row"><span class="result-label">Estimated Blood Volume (EBV)</span><span class="result-val">' + Math.round(ebv) + ' mL</span></div>' +
+        '<div class="result-row"><span class="result-label" style="font-weight:700;">Allowable Blood Loss (ABL)</span><span class="result-val" style="color:#d4920a;font-size:1.1rem;">' + Math.round(abl) + ' mL</span></div>';
+}
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Enter') { calculateFluid(); calculateEBL(); } });
 </script>
 </body>
 </html>

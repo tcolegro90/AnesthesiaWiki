@@ -254,10 +254,20 @@
     .ref-table tr:last-child td { border-bottom: none; }
     .ref-table tr:hover td { background: #f7fbff; }
     .ref-table td:first-child { font-weight: 600; }
+
+    /* Ghost placeholder for max-volume suggestion */
+    .vol-input::placeholder {
+      color: #a8bccc;
+      font-style: italic;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
-<a href="../Index.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
+<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
+<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+</div>
   <div class="wrap">
     <h1>Local Anesthetic Max Dose Calculator</h1>
     <div class="subtitle">Enter patient weight and add agents below. Doses update in real time.</div>
@@ -370,9 +380,10 @@
       var tdVol = document.createElement('div');
       var vol = document.createElement('input');
       vol.type = 'number';
-      vol.step = '0.1';
+      vol.step = '1';
       vol.min = '0';
-      vol.value = '0';
+      vol.placeholder = 'mL';
+      vol.className = 'vol-input';
       tdVol.appendChild(vol);
 
       // Progress bar cell
@@ -446,6 +457,7 @@
     function recalc() {
       var wt = parseFloat(document.getElementById('weight-kg').value) || 0;
       var rowDivs = Array.from(document.querySelectorAll('#rows .agent-row'));
+      var rowStats = [];
       var totalFraction = 0;
 
       rowDivs.forEach(function(row) {
@@ -457,24 +469,38 @@
         var givenMg = mgFromPercentAndVolume(concVal, volVal);
         var maxMg = wt > 0 ? maxForDrug(drugName, useEpi, wt) : 0;
         var fraction = maxMg > 0 ? (givenMg / maxMg) : 0;
-        var pct = Math.round(fraction * 100);
-        var barPct = Math.min(fraction * 100, 100);
-
-        row._givenSpan.textContent = givenMg.toFixed(1) + ' mg';
-        row._maxSpan.textContent = 'max ' + maxMg.toFixed(0) + ' mg';
-        row._barFill.style.width = barPct + '%';
-        row._pctSpan.textContent = pct + '%';
-
-        var cls = fraction > 1 ? 'over' : fraction >= 0.8 ? 'caution' : '';
-        row._barFill.className = 'bar-fill' + (cls ? ' ' + cls : '');
-        row._pctSpan.className = 'bar-pct' + (cls ? ' ' + cls : '');
-
+        rowStats.push({
+          row: row,
+          concVal: concVal,
+          givenMg: givenMg,
+          maxMg: maxMg,
+          fraction: fraction
+        });
         totalFraction += fraction;
+      });
+
+      var remainingFraction = Math.max(0, 1 - totalFraction);
+
+      rowStats.forEach(function(stat) {
+        var pct = Math.round(stat.fraction * 100);
+        var barPct = Math.min(stat.fraction * 100, 100);
+        var remainingMg = remainingFraction * stat.maxMg;
+        var remainingMl = (stat.maxMg > 0 && stat.concVal > 0) ? remainingMg / (stat.concVal * 10) : 0;
+
+        stat.row._vol.placeholder = (wt > 0 && stat.concVal > 0) ? remainingMl.toFixed(1) : 'mL';
+        stat.row._givenSpan.textContent = stat.givenMg.toFixed(1) + ' mg';
+        stat.row._maxSpan.textContent = 'max ' + stat.maxMg.toFixed(0) + ' mg';
+        stat.row._barFill.style.width = barPct + '%';
+        stat.row._pctSpan.textContent = pct + '%';
+
+        var cls = stat.fraction > 1 ? 'over' : stat.fraction >= 0.8 ? 'caution' : '';
+        stat.row._barFill.className = 'bar-fill' + (cls ? ' ' + cls : '');
+        stat.row._pctSpan.className = 'bar-pct' + (cls ? ' ' + cls : '');
       });
 
       var pct = Math.round(totalFraction * 100);
       var barPct = Math.min(totalFraction * 100, 100);
-      var cls = totalFraction > 1 ? 'over' : totalFraction >= 0.8 ? 'caution' : 'ok';
+      var cls = totalFraction >= 1 ? 'over' : totalFraction >= 0.8 ? 'caution' : 'ok';
 
       var scoreEl = document.getElementById('index-score');
       var barEl = document.getElementById('index-bar');
@@ -486,8 +512,8 @@
       barEl.className = 'index-bar-fill' + (cls !== 'ok' ? ' ' + cls : '');
       msgEl.className = 'index-msg' + (cls !== 'ok' ? ' ' + cls : '');
 
-      if (totalFraction > 1) {
-        msgEl.textContent = 'Above combined limit. Reduce dose or switch agent.';
+      if (totalFraction >= 1) {
+        msgEl.textContent = 'Limit reached. Stop.';
       } else if (totalFraction >= 0.8) {
         msgEl.textContent = 'Approaching limit. Use caution before adding more.';
       } else if (totalFraction > 0) {
