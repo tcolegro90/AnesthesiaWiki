@@ -308,17 +308,16 @@
             color: #8a9ab0;
             font-size: 0.92rem;
             display: none;
-<<<<<<< HEAD:Anesthesia Wiki/Index.html
          }
-=======
-        }
-        .med-search-results {
+
+         .med-search-results {
             display: none;
             margin: 0 0 14px;
             gap: 8px;
             flex-wrap: wrap;
-        }
-        .med-search-pill {
+         }
+
+         .med-search-pill {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -330,29 +329,21 @@
             padding: 6px 10px;
             font-size: 0.8rem;
             font-weight: 600;
-        }
-        .med-search-pill:hover {
+         }
+
+         .med-search-pill:hover {
             background: #e4f0ff;
             border-color: #b8d3f2;
-        }
-        .tile[data-hidden="true"], .crisis-tile[data-hidden="true"] { display: none; }
-        .section-wrap[data-empty="true"] { display: none; }
->>>>>>> 79ff9c3ff99dc605a23a6bda2e43a15df4e85013:Anesthesia Wiki/AnesthesiaWiki.html
+         }
 
          .tile[data-hidden="true"],
          .crisis-tile[data-hidden="true"] {
             display: none;
          }
 
-<<<<<<< HEAD:Anesthesia Wiki/Index.html
          .section-wrap[data-empty="true"] {
             display: none;
          }
-=======
-<header>
-    <h1>Anesthesia Wiki</h1>
-</header>
->>>>>>> 79ff9c3ff99dc605a23a6bda2e43a15df4e85013:Anesthesia Wiki/AnesthesiaWiki.html
 
          /* Collapsible sections */
          .section-header {
@@ -360,7 +351,6 @@
             user-select: none;
          }
 
-<<<<<<< HEAD:Anesthesia Wiki/Index.html
          .section-toggle {
             margin-left: 8px;
             font-size: 0.75rem;
@@ -385,7 +375,6 @@
 
       <header>
          <h1>Anesthesia Wiki</h1>
-         <p>Clinical tools, care plans, medications, and crisis references</p>
       </header>
 
       <div class="search-wrap">
@@ -395,15 +384,16 @@
 
       <div class="container" id="index-container">
          <p class="search-no-results" id="no-results">No matches found.</p>
+         <div class="med-search-results" id="med-search-results"></div>
 
          <!-- Clinical Workflow -->
-         <div class="section-header" onclick="toggleSection('workflow')">
+         <div class="section-header open" onclick="toggleSection('workflow')">
             <div class="icon" style="background:#e8f4ff;">📋</div>
             <h2>Clinical Workflow</h2>
             <div class="section-line"></div>
             <span class="section-toggle">▼</span>
          </div>
-         <div id="sec-workflow" class="section-body collapsed">
+         <div id="sec-workflow" class="section-body">
             <div class="tile-grid">
                <a href="CarePlanGenerator/Combined-Care-Plan.html" class="tile t-orange">
                   <span class="tile-icon">📝</span>
@@ -425,67 +415,17 @@
                   <span class="tile-icon">🤝</span>
                   PACU Handoff
                </a>
-=======
-<div class="container" id="index-container">
-<p class="search-no-results" id="no-results">No matches found.</p>
-<div class="med-search-results" id="med-search-results"></div>
-
-    <!-- Clinical Workflow -->
-    <div class="section-header open" onclick="toggleSection('workflow')">
-        <div class="icon" style="background:#e8f4ff;">📋</div>
-        <h2>Clinical Workflow</h2>
-        <div class="section-line"></div>
-        <span class="section-toggle">▼</span>
-    </div>
-    <div id="sec-workflow" class="section-body">
-    <div class="tile-grid">
-        <a href="CarePlanGenerator/Combined-Care-Plan.html" class="tile t-orange">
-            <span class="tile-icon">📝</span>
-            Care Plan Generator
-        </a>
-        <a href="SetupAndHandoffs/PreOpInterview.html" class="tile t-blue">
-            <span class="tile-icon">📋</span>
-            Pre-Op Interview
-        </a>
-        <a href="SetupAndHandoffs/SAMTIDE.html" class="tile t-navy">
-            <span class="tile-icon">🛠️</span>
-            SAMTIDE
-        </a>
-        <a href="SetupAndHandoffs/SALTLamb.html" class="tile t-green">
-            <span class="tile-icon">🧂</span>
-            SALT LAMB
-        </a>
-        <a href="SetupAndHandoffs/PACUHandoff.html" class="tile t-purple">
-            <span class="tile-icon">🤝</span>
-            PACU Handoff
-        </a>
-    </div>
-    </div>
-
-    <!-- Crisis Algorithms -->
-    <div class="section-header open" onclick="toggleSection('crisis')">
-        <div class="icon" style="background:#fff0f0;">🚨</div>
-        <h2>Crisis Algorithms</h2>
-        <div class="section-line"></div>
-        <span class="section-toggle">▼</span>
-    </div>
-    <div id="sec-crisis" class="section-body">
-    <div style="display:flex;flex-direction:column;gap:10px;">
-        <a href="CrisisAlgorithms/MH_Crisis.html" class="crisis-tile">
-            <div class="c-text">
-                <span>Malignant Hyperthermia</span>
->>>>>>> 79ff9c3ff99dc605a23a6bda2e43a15df4e85013:Anesthesia Wiki/AnesthesiaWiki.html
             </div>
          </div>
 
          <!-- Crisis Algorithms -->
-         <div class="section-header" onclick="toggleSection('crisis')">
+         <div class="section-header open" onclick="toggleSection('crisis')">
             <div class="icon" style="background:#fff0f0;">🚨</div>
             <h2>Crisis Algorithms</h2>
             <div class="section-line"></div>
             <span class="section-toggle">▼</span>
          </div>
-         <div id="sec-crisis" class="section-body collapsed">
+         <div id="sec-crisis" class="section-body">
             <div style="display:flex;flex-direction:column;gap:10px;">
                <a href="CrisisAlgorithms/MH_Crisis.html" class="crisis-tile">
                   <div class="c-text">
@@ -497,25 +437,29 @@
                      <span>LAST</span>
                   </div>
                </a>
+               <a href="CrisisAlgorithms/DifficultAirway.html" class="crisis-tile">
+                  <div class="c-text">
+                     <span>Difficult Airway Algorithm</span>
+                  </div>
+               </a>
             </div>
-<<<<<<< HEAD:Anesthesia Wiki/Index.html
          </div>
 
          <!-- Reference -->
-         <div class="section-header" onclick="toggleSection('reference')">
+         <div class="section-header open" onclick="toggleSection('reference')">
             <div class="icon" style="background:#f8f4ff;">📚</div>
             <h2>Reference</h2>
             <div class="section-line"></div>
             <span class="section-toggle">▼</span>
          </div>
-         <div id="sec-reference" class="section-body collapsed">
+         <div id="sec-reference" class="section-body">
             <div class="tile-grid">
-               <a href="Meds/Readme.md" class="tile t-teal">
+               <a href="Meds/Index.html" class="tile t-teal" id="tile-medications">
                   <span class="tile-icon">💊</span>
                   Medications
                </a>
                <a href="AirwayManagement.html" class="tile t-teal">
-                  <span class="tile-icon">✈️</span>
+                  <span class="tile-icon">🫁</span>
                   Airway Management
                </a>
                <a href="ClinicalSites.html" class="tile t-blue">
@@ -526,57 +470,16 @@
                   <span class="tile-icon">🫀</span>
                   Comorbidities
                </a>
-               <a href="Calculators/Index.html" class="tile t-green">
+               <a href="Calculators/Index.html" class="tile t-green" id="tile-calculators">
                   <span class="tile-icon">🧮</span>
                   Calculators &amp; Charts
                </a>
             </div>
          </div>
-         <p>Something here</p>
+
       </div>
-=======
-        </a>
-        <a href="CrisisAlgorithms/DifficultAirway.html" class="crisis-tile">
-            <div class="c-text">
-                <span>Difficult Airway Algorithm</span>
-            </div>
-        </a>
-    </div>
-    </div>
 
-    <!-- Reference -->
-    <div class="section-header open" onclick="toggleSection('reference')">
-        <div class="icon" style="background:#f8f4ff;">📚</div>
-        <h2>Reference</h2>
-        <div class="section-line"></div>
-        <span class="section-toggle">▼</span>
-    </div>
-    <div id="sec-reference" class="section-body">
-    <div class="tile-grid">
-        <a href="Meds/Index.html" class="tile t-teal" id="tile-medications">
-            <span class="tile-icon">💊</span>
-            Medications
-        </a>
-        <a href="AirwayManagement.html" class="tile t-teal">
-            <span class="tile-icon">🫁</span>
-            Airway Management
-        </a>
-        <a href="ClinicalSites.html" class="tile t-blue">
-            <span class="tile-icon">🏥</span>
-            Clinical Sites
-        </a>
-        <a href="Comorbidities.html" class="tile t-purple">
-            <span class="tile-icon">🫀</span>
-            Comorbidities
-        </a>
-        <a href="Calculators/Index.html" class="tile t-green" id="tile-calculators">
-            <span class="tile-icon">🧮</span>
-            Calculators &amp; Charts
-        </a>
-    </div>
-    </div>
->>>>>>> 79ff9c3ff99dc605a23a6bda2e43a15df4e85013:Anesthesia Wiki/AnesthesiaWiki.html
-
+      <script src="CarePlanGenerator/med-catalog.js"></script>
       <script>
          function toggleSection(id) {
             var body = document.getElementById('sec-' + id);
@@ -586,165 +489,140 @@
             if (header) header.classList.toggle('open', !collapsed);
          }
 
-<<<<<<< HEAD:Anesthesia Wiki/Index.html
+         var MED_PAGE_LINKS = [
+            { name: 'Propofol', href: 'Meds/InductionAgents/Propofol.html' },
+            { name: 'Etomidate', href: 'Meds/InductionAgents/Etomidate.html' },
+            { name: 'Ketamine', href: 'Meds/InductionAgents/Ketamine.html' },
+            { name: 'Midazolam', href: 'Meds/InductionAgents/Midazolam.html' },
+            { name: 'Dexmedetomidine', href: 'Meds/InductionAgents/Dexmedetomidine.html' },
+            { name: 'Methohexital', href: 'Meds/InductionAgents/Methohexital.html' },
+            { name: 'Fentanyl', href: 'Meds/Opioids/Fentanyl.html' },
+            { name: 'Acetaminophen', href: 'Meds/NonOpioidAnalgesics/Acetaminophen.html' },
+            { name: 'Ketorolac', href: 'Meds/NonOpioidAnalgesics/Ketorolac.html' },
+            { name: 'Lidocaine', href: 'Meds/LocalAnesthetics/Lidocaine.html' },
+            { name: 'Bupivacaine', href: 'Meds/LocalAnesthetics/Bupivacaine.html' },
+            { name: 'Ropivacaine', href: 'Meds/LocalAnesthetics/Ropivacaine.html' },
+            { name: 'Mepivacaine', href: 'Meds/LocalAnesthetics/Mepivacaine.html' },
+            { name: 'Chloroprocaine', href: 'Meds/LocalAnesthetics/Chloroprocaine.html' },
+            { name: 'Tetracaine', href: 'Meds/LocalAnesthetics/Tetracaine.html' },
+            { name: 'Sevoflurane', href: 'Meds/InhaledAnesthetics/Sevoflurane.html' },
+            { name: 'Desflurane', href: 'Meds/InhaledAnesthetics/Desflurane.html' },
+            { name: 'Isoflurane', href: 'Meds/InhaledAnesthetics/Isoflurane.html' },
+            { name: 'Nitrous Oxide', href: 'Meds/InhaledAnesthetics/NitrousOxide.html' },
+            { name: 'Succinylcholine', href: 'Meds/Paralytics/Succinylcholine.html' },
+            { name: 'Rocuronium', href: 'Meds/Paralytics/Rocuronium.html' },
+            { name: 'Cisatracurium', href: 'Meds/Paralytics/Cisatracurium.html' },
+            { name: 'Atracurium', href: 'Meds/Paralytics/Atracurium.html' },
+            { name: 'Mivacurium', href: 'Meds/Paralytics/Mivacurium.html' },
+            { name: 'Vecuronium', href: 'Meds/Paralytics/Vecuronium.html' },
+            { name: 'Neostigmine', href: 'Meds/Reversal/Neostigmine.html' },
+            { name: 'Sugammadex', href: 'Meds/Reversal/Sugammadex.html' },
+            { name: 'Edrophonium', href: 'Meds/Reversal/Edrophonium.html' },
+            { name: 'Ondansetron', href: 'Meds/Antiemetics/Ondansetron.html' },
+            { name: 'Scopolamine', href: 'Meds/Antiemetics/Scopolamine.html' },
+            { name: 'Aprepitant', href: 'Meds/Antiemetics/Aprepitant.html' },
+            { name: 'Dexamethasone', href: 'Meds/Antiemetics/Dexamethasone.html' },
+            { name: 'Droperidol', href: 'Meds/Antiemetics/Droperidol.html' },
+            { name: 'Hydralazine', href: 'Meds/Antihypertensives/Hydralazine.html' },
+            { name: 'Nitroglycerin', href: 'Meds/Antihypertensives/Nitroglycerin.html' },
+            { name: 'Labetalol', href: 'Meds/Antihypertensives/Labetalol.html' },
+            { name: 'Nicardipine', href: 'Meds/Antihypertensives/Nicardipine.html' },
+            { name: 'Sodium Nitroprusside', href: 'Meds/Antihypertensives/SodiumNitroprusside.html' },
+            { name: 'Enalapril', href: 'Meds/Antihypertensives/Enalapril.html' },
+            { name: 'Epinephrine', href: 'Meds/Vasoactive/Epinephrine.html' },
+            { name: 'Norepinephrine', href: 'Meds/Vasoactive/Norepinephrine.html' },
+            { name: 'Phenylephrine', href: 'Meds/Vasoactive/Phenylephrine.html' },
+            { name: 'Ephedrine', href: 'Meds/Vasoactive/Ephedrine.html' },
+            { name: 'Vasopressin', href: 'Meds/Vasoactive/Vasopressin.html' },
+            { name: 'Dopamine', href: 'Meds/Vasoactive/Dopamine.html' },
+            { name: 'Esmolol', href: 'Meds/Antiarrhythmics/Esmolol.html' },
+            { name: 'Amiodarone', href: 'Meds/Antiarrhythmics/Amiodarone.html' },
+            { name: 'Adenosine', href: 'Meds/Antiarrhythmics/Adenosine.html' },
+            { name: 'Verapamil', href: 'Meds/Antiarrhythmics/Verapamil.html' },
+            { name: 'Dantrolene', href: 'Meds/CrisisManagement/Dantrolene.html' }
+         ];
+
+         var TOOL_PAGE_LINKS = [
+            { name: 'IBW & Ventilation Chart', href: 'Calculators/IBWChart.html' },
+            { name: 'BMI Calculator', href: 'Calculators/BMICalculator.html' },
+            { name: 'Fluid / ABL Calculator', href: 'Calculators/FluidCalculator.html' },
+            { name: 'Local Anesthetic Max Dose Calculator', href: 'Meds/LocalAnestheticMaxDoseCalculator.html' },
+            { name: 'LMA Sizing Guide', href: 'AirwayManagement.html#lma' }
+         ];
+
+         function normalizeTokens(text) {
+            return String(text || '')
+               .toLowerCase()
+               .replace(/[^a-z0-9]+/g, ' ')
+               .trim()
+               .split(/\s+/)
+               .filter(Boolean)
+               .map(function (tok) {
+                  // light stemming so calculator ~= calculators, algorithm ~= algorithms
+                  if (tok.length > 3 && tok.endsWith('s')) return tok.slice(0, -1);
+                  return tok;
+               });
+         }
+
+         function broadMatch(text, q) {
+            var hayTokens = normalizeTokens(text);
+            var qTokens = normalizeTokens(q);
+            if (!qTokens.length) return false;
+
+            return qTokens.every(function (qt) {
+               return hayTokens.some(function (ht) {
+                  return ht === qt || ht.indexOf(qt) === 0 || qt.indexOf(ht) === 0;
+               });
+            });
+         }
+
          function filterIndex(q) {
             q = q.toLowerCase().trim();
+            var medResultsEl = document.getElementById('med-search-results');
+            var medsTile = document.getElementById('tile-medications');
+            var calcTile = document.getElementById('tile-calculators');
             var tiles = document.querySelectorAll('.tile, .crisis-tile');
-            var sections = document.querySelectorAll('.section-wrap');
+            var medMatches = q ? MED_PAGE_LINKS.filter(function (item) {
+               return broadMatch(item.name, q);
+            }) : [];
+            var toolMatches = q ? TOOL_PAGE_LINKS.filter(function (item) {
+               return broadMatch(item.name, q);
+            }) : [];
+
             tiles.forEach(function (t) {
                var text = t.textContent.toLowerCase();
-               t.dataset.hidden = (q && !text.includes(q)) ? 'true' : 'false';
+               t.dataset.hidden = (q && !broadMatch(text, q)) ? 'true' : 'false';
             });
+
+            // Medication query should surface the Medications tile.
+            if (medsTile && q && medMatches.length > 0) {
+               medsTile.dataset.hidden = 'false';
+            }
+            if (calcTile && q && toolMatches.length > 0) {
+               calcTile.dataset.hidden = 'false';
+            }
+
+            // Show quick direct matches (med pages + tool pages).
+            if (medResultsEl) {
+               var quickMatches = medMatches.concat(toolMatches);
+               if (q && quickMatches.length > 0) {
+                  var topMatches = quickMatches.slice(0, 8);
+                  medResultsEl.innerHTML = topMatches.map(function (item) {
+                     var icon = item.href.indexOf('Meds/') === 0 ? '💊' : '🔎';
+                     return '<a class="med-search-pill" href="' + item.href + '">' + icon + ' ' + item.name + '</a>';
+                  }).join('');
+                  medResultsEl.style.display = 'flex';
+               } else {
+                  medResultsEl.innerHTML = '';
+                  medResultsEl.style.display = 'none';
+               }
+            }
+
             var anyVisible = Array.from(tiles).some(function (t) { return t.dataset.hidden !== 'true'; });
             document.getElementById('no-results').style.display = (q && !anyVisible) ? 'block' : 'none';
          }
       </script>
 
    </body>
-=======
-<script src="CarePlanGenerator/med-catalog.js"></script>
-<script>
-function toggleSection(id) {
-    var body = document.getElementById('sec-' + id);
-    if (!body) return;
-    var header = body.previousElementSibling;
-    var collapsed = body.classList.toggle('collapsed');
-    if (header) header.classList.toggle('open', !collapsed);
-}
-
-var MED_PAGE_LINKS = [
-    { name: 'Propofol', href: 'Meds/InductionAgents/Propofol.html' },
-    { name: 'Etomidate', href: 'Meds/InductionAgents/Etomidate.html' },
-    { name: 'Ketamine', href: 'Meds/InductionAgents/Ketamine.html' },
-    { name: 'Midazolam', href: 'Meds/InductionAgents/Midazolam.html' },
-    { name: 'Dexmedetomidine', href: 'Meds/InductionAgents/Dexmedetomidine.html' },
-    { name: 'Methohexital', href: 'Meds/InductionAgents/Methohexital.html' },
-    { name: 'Fentanyl', href: 'Meds/Opioids/Fentanyl.html' },
-    { name: 'Acetaminophen', href: 'Meds/NonOpioidAnalgesics/Acetaminophen.html' },
-    { name: 'Ketorolac', href: 'Meds/NonOpioidAnalgesics/Ketorolac.html' },
-    { name: 'Lidocaine', href: 'Meds/LocalAnesthetics/Lidocaine.html' },
-    { name: 'Bupivacaine', href: 'Meds/LocalAnesthetics/Bupivacaine.html' },
-    { name: 'Ropivacaine', href: 'Meds/LocalAnesthetics/Ropivacaine.html' },
-    { name: 'Mepivacaine', href: 'Meds/LocalAnesthetics/Mepivacaine.html' },
-    { name: 'Chloroprocaine', href: 'Meds/LocalAnesthetics/Chloroprocaine.html' },
-    { name: 'Tetracaine', href: 'Meds/LocalAnesthetics/Tetracaine.html' },
-    { name: 'Sevoflurane', href: 'Meds/InhaledAnesthetics/Sevoflurane.html' },
-    { name: 'Desflurane', href: 'Meds/InhaledAnesthetics/Desflurane.html' },
-    { name: 'Isoflurane', href: 'Meds/InhaledAnesthetics/Isoflurane.html' },
-    { name: 'Nitrous Oxide', href: 'Meds/InhaledAnesthetics/NitrousOxide.html' },
-    { name: 'Succinylcholine', href: 'Meds/Paralytics/Succinylcholine.html' },
-    { name: 'Rocuronium', href: 'Meds/Paralytics/Rocuronium.html' },
-    { name: 'Cisatracurium', href: 'Meds/Paralytics/Cisatracurium.html' },
-    { name: 'Atracurium', href: 'Meds/Paralytics/Atracurium.html' },
-    { name: 'Mivacurium', href: 'Meds/Paralytics/Mivacurium.html' },
-    { name: 'Vecuronium', href: 'Meds/Paralytics/Vecuronium.html' },
-    { name: 'Neostigmine', href: 'Meds/Reversal/Neostigmine.html' },
-    { name: 'Sugammadex', href: 'Meds/Reversal/Sugammadex.html' },
-    { name: 'Edrophonium', href: 'Meds/Reversal/Edrophonium.html' },
-    { name: 'Ondansetron', href: 'Meds/Antiemetics/Ondansetron.html' },
-    { name: 'Scopolamine', href: 'Meds/Antiemetics/Scopolamine.html' },
-    { name: 'Aprepitant', href: 'Meds/Antiemetics/Aprepitant.html' },
-    { name: 'Dexamethasone', href: 'Meds/Antiemetics/Dexamethasone.html' },
-    { name: 'Droperidol', href: 'Meds/Antiemetics/Droperidol.html' },
-    { name: 'Hydralazine', href: 'Meds/Antihypertensives/Hydralazine.html' },
-    { name: 'Nitroglycerin', href: 'Meds/Antihypertensives/Nitroglycerin.html' },
-    { name: 'Labetalol', href: 'Meds/Antihypertensives/Labetalol.html' },
-    { name: 'Nicardipine', href: 'Meds/Antihypertensives/Nicardipine.html' },
-    { name: 'Sodium Nitroprusside', href: 'Meds/Antihypertensives/SodiumNitroprusside.html' },
-    { name: 'Enalapril', href: 'Meds/Antihypertensives/Enalapril.html' },
-    { name: 'Epinephrine', href: 'Meds/Vasoactive/Epinephrine.html' },
-    { name: 'Norepinephrine', href: 'Meds/Vasoactive/Norepinephrine.html' },
-    { name: 'Phenylephrine', href: 'Meds/Vasoactive/Phenylephrine.html' },
-    { name: 'Ephedrine', href: 'Meds/Vasoactive/Ephedrine.html' },
-    { name: 'Vasopressin', href: 'Meds/Vasoactive/Vasopressin.html' },
-    { name: 'Dopamine', href: 'Meds/Vasoactive/Dopamine.html' },
-    { name: 'Esmolol', href: 'Meds/Antiarrhythmics/Esmolol.html' },
-    { name: 'Amiodarone', href: 'Meds/Antiarrhythmics/Amiodarone.html' },
-    { name: 'Adenosine', href: 'Meds/Antiarrhythmics/Adenosine.html' },
-    { name: 'Verapamil', href: 'Meds/Antiarrhythmics/Verapamil.html' },
-    { name: 'Dantrolene', href: 'Meds/CrisisManagement/Dantrolene.html' }
-];
-
-var TOOL_PAGE_LINKS = [
-    { name: 'IBW & Ventilation Chart', href: 'Calculators/IBWChart.html' },
-    { name: 'BMI Calculator', href: 'Calculators/BMICalculator.html' },
-    { name: 'Fluid / ABL Calculator', href: 'Calculators/FluidCalculator.html' },
-    { name: 'Local Anesthetic Max Dose Calculator', href: 'Meds/LocalAnestheticMaxDoseCalculator.html' },
-    { name: 'LMA Sizing Guide', href: 'AirwayManagement.html#lma' }
-];
-
-function normalizeTokens(text) {
-    return String(text || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, ' ')
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .map(function(tok) {
-            // light stemming so calculator ~= calculators, algorithm ~= algorithms
-            if (tok.length > 3 && tok.endsWith('s')) return tok.slice(0, -1);
-            return tok;
-        });
-}
-
-function broadMatch(text, q) {
-    var hayTokens = normalizeTokens(text);
-    var qTokens = normalizeTokens(q);
-    if (!qTokens.length) return false;
-
-    return qTokens.every(function(qt) {
-        return hayTokens.some(function(ht) {
-            return ht === qt || ht.indexOf(qt) === 0 || qt.indexOf(ht) === 0;
-        });
-    });
-}
-
-function filterIndex(q) {
-    q = q.toLowerCase().trim();
-    var medResultsEl = document.getElementById('med-search-results');
-    var medsTile = document.getElementById('tile-medications');
-    var calcTile = document.getElementById('tile-calculators');
-    var tiles = document.querySelectorAll('.tile, .crisis-tile');
-    var medMatches = q ? MED_PAGE_LINKS.filter(function(item) {
-        return broadMatch(item.name, q);
-    }) : [];
-    var toolMatches = q ? TOOL_PAGE_LINKS.filter(function(item) {
-        return broadMatch(item.name, q);
-    }) : [];
-
-    tiles.forEach(function(t) {
-        var text = t.textContent.toLowerCase();
-        t.dataset.hidden = (q && !broadMatch(text, q)) ? 'true' : 'false';
-    });
-
-    // Medication query should surface the Medications tile.
-    if (medsTile && q && medMatches.length > 0) {
-        medsTile.dataset.hidden = 'false';
-    }
-    if (calcTile && q && toolMatches.length > 0) {
-        calcTile.dataset.hidden = 'false';
-    }
-
-    // Show quick direct matches (med pages + tool pages).
-    if (medResultsEl) {
-        var quickMatches = medMatches.concat(toolMatches);
-        if (q && quickMatches.length > 0) {
-            var topMatches = quickMatches.slice(0, 8);
-            medResultsEl.innerHTML = topMatches.map(function(item) {
-                var icon = item.href.indexOf('Meds/') === 0 ? '💊' : '🔎';
-                return '<a class="med-search-pill" href="' + item.href + '">' + icon + ' ' + item.name + '</a>';
-            }).join('');
-            medResultsEl.style.display = 'flex';
-        } else {
-            medResultsEl.innerHTML = '';
-            medResultsEl.style.display = 'none';
-        }
-    }
-
-    var anyVisible = Array.from(tiles).some(function(t) { return t.dataset.hidden !== 'true'; });
-    document.getElementById('no-results').style.display = (q && !anyVisible) ? 'block' : 'none';
-}
-</script>
->>>>>>> 79ff9c3ff99dc605a23a6bda2e43a15df4e85013:Anesthesia Wiki/AnesthesiaWiki.html
 
 </html>
