@@ -83,13 +83,10 @@
     </style>
 </head>
 <body>
-<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
-<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
-<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
-</div>
+
 
 <div class="container">
-    <h2>SALT LAMB Setup</h2>
+    <h2>SALT LAMB</h2>
 
     <div class="section">
         <span class="section-title">S - Suction</span>
@@ -187,17 +184,23 @@
         <label class="check-item">
             <input type="checkbox"> <span class="label-text">Bed controls functional</span>
         </label>
-    </div>
-
-    <div class="section">
-        <span class="section-title">Other</span>
         <label class="check-item">
-            <input type="checkbox"> <span class="label-text">Lead for Xray</span>
+            <input type="checkbox"> <span class="label-text">Lead for X-ray</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Face foam</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Goggles</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">ETT accordion</span>
+        </label>
+        <label class="check-item">
+            <input type="checkbox"> <span class="label-text">Circuit extenders</span>
         </label>
     </div>
 
-    <button class="nav-btn" onclick="location.href='index.html'">Main Menu</button>
-    <button class="reset-btn" onclick="document.querySelectorAll('input').forEach(i=>i.checked=false)">Clear Checklist</button>
 </div>
 
 </body>

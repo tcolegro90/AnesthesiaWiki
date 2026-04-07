@@ -34,7 +34,7 @@
         <h3>4-2-1 Fluid Calculator</h3>
         <div class="row">
           <div><label>Weight (kg)</label><br><input id="plan-fluid-weight" type="number" class="small" readonly></div>
-          <div><label>NPO Time (hrs)</label><br><input id="plan-fluid-npo" type="number" class="small"></div>
+          <div><label>NPO Time (hrs)</label><br><input id="plan-fluid-npo" type="number" inputmode="decimal" class="small"></div>
           <div><label>Surgical Trauma</label><br><select id="plan-fluid-trauma" class="med" style="width:200px;"><option value="2">Minimal (2 mL/kg)</option><option value="4">Moderate (4 mL/kg)</option><option value="6">Severe (6 mL/kg)</option></select></div>
           <div><button id="btn-fluid" type="button">Calculate Fluid</button></div>
         </div>
@@ -46,7 +46,7 @@
         <div class="row">
           <div><label>Patient Type</label><br><select id="plan-ebl-type" class="med" disabled><option value="85">Neonate</option><option value="80">Infant</option><option value="75">Adult Male</option><option value="65">Adult Female</option></select></div>
           <div><label>Start HCT (%)</label><br><input id="plan-ebl-start" type="number" class="small" readonly></div>
-          <div><label>Target HCT (%)</label><br><input id="plan-ebl-target" type="number" class="small" value="21"></div>
+          <div><label>Target HCT (%)</label><br><input id="plan-ebl-target" type="number" inputmode="decimal" class="small" value="21"></div>
           <div><button id="btn-ebl" type="button">Calculate ABL</button></div>
         </div>
         <div id="plan-ebl-result" class="result" style="display:none;"></div>

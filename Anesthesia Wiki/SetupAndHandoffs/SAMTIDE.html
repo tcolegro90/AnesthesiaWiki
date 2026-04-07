@@ -101,18 +101,14 @@
     </style>
 </head>
 <body>
-<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+
+
+<div style="position:fixed;top:10px;left:10px;z-index:9999;">
 <button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
-<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
 </div>
 
 <div class="container">
-    <h2>SAMTIDE Setup</h2>
-
-    <div class="global-controls">
-        <button class="control-btn" onclick="toggleAll(true)">Expand All</button>
-        <button class="control-btn" onclick="toggleAll(false)">Collapse All</button>
-    </div>
+    <h2>SAMTIDE</h2>
 
     <div class="section" id="sec-s">
         <div class="section-header" onclick="toggleSection('sec-s')">
@@ -121,6 +117,7 @@
         </div>
         <div class="section-content">
             <label class="check-item"><input type="checkbox"><span class="label-text">Suction</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">OG tube</span></label>
         </div>
     </div>
 
@@ -192,23 +189,16 @@
             <i class="arrow"></i>
         </div>
         <div class="section-content">
-            <label class="check-item"><input type="checkbox"><span class="label-text">Ambu bag available</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Ambu bag</span></label>
             <label class="check-item"><input type="checkbox"><span class="label-text">Table / Bed locked</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Lead for X-ray</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Face foam</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Goggles for patient</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">ETT accordion</span></label>
+            <label class="check-item"><input type="checkbox"><span class="label-text">Circuit extenders</span></label>
         </div>
     </div>
 
-    <div class="section" id="sec-other">
-        <div class="section-header" onclick="toggleSection('sec-other')">
-            <span>Other</span>
-            <i class="arrow"></i>
-        </div>
-        <div class="section-content">
-            <label class="check-item"><input type="checkbox"><span class="label-text">Lead for Xray</span></label>
-        </div>
-    </div>
-
-    <a href="Index.html" class="nav-btn">Main Menu</a>
-    <button class="reset-btn" onclick="clearAll()">Clear Checklist</button>
 </div>
 
 <script>

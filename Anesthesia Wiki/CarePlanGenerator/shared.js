@@ -72,6 +72,26 @@ function restoreState() {
   });
 }
 
+function applyMobileKeyboardHints() {
+  // Ensure mobile devices open numeric keyboards for numeric-entry fields.
+  document.querySelectorAll('input[type="number"]').forEach(el => {
+    if (el.readOnly || el.disabled || el.getAttribute('inputmode')) return;
+    const step = el.getAttribute('step');
+    const wantsDecimal = !step || step === 'any' || step.indexOf('.') !== -1;
+    el.setAttribute('inputmode', wantsDecimal ? 'decimal' : 'numeric');
+  });
+
+  document.querySelectorAll('#pat-age, #pat-surg-length').forEach(el => {
+    if (!el || el.readOnly || el.disabled) return;
+    el.setAttribute('inputmode', 'numeric');
+  });
+
+  document.querySelectorAll('input.lab-input, #ind-anxiolytic-dose, #ind-blunt-dose, #ind-agent-dose, #ind-paralytic-dose').forEach(el => {
+    if (!el || el.readOnly || el.disabled || el.getAttribute('inputmode')) return;
+    el.setAttribute('inputmode', 'decimal');
+  });
+}
+
 function pageBoot(extraInit, onExternalUpdate) {
   var lastSnapshotRevision = 0;
   var booted = false;
@@ -115,6 +135,7 @@ function pageBoot(extraInit, onExternalUpdate) {
     if (booted) return;
     booted = true;
     restoreState();
+    applyMobileKeyboardHints();
     if (typeof extraInit === 'function') extraInit();
     initAutoSave();
     window.__carePlanSuspendSave = false;

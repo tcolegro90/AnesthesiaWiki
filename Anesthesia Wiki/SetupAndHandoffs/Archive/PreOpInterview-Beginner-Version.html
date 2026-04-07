@@ -128,7 +128,8 @@
 </div>
 
 <div class="header">
-    <h1>Pre-Op Interview</h1>
+    <h1>SRNA Pre-Op Interview</h1>
+    <p>Practice Script & Flow</p>
 </div>
 
 <div class="controls">
@@ -140,71 +141,77 @@
     
     <details open>
         <summary class="color-basics">1. Introduction & Rapport</summary>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Introduction and Title</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">"Reviewed chart, want to cofirm..."</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Verify Name / DOB / Surgery</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Hi, my name is ________________ and I am a student nurse anesthetist."</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"I've had a chance to review your chart, but I want to go over a few things with you directly just to make sure I haven't missed anything."</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Can you verify your name and DOB? What surgery are we doing today?"</span></label>
         <label class="check-item"><input type="checkbox"><span class="text-content">"Who is with you today?"</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content"><strong>HPI:</strong> "Why are you having this surgery."</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Confirm NPO status</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Family hx of anesthesia complications</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Allergies</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">PONV or motion sickness?</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Blood products</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Confirm any chart abnormalities</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content"><strong>HPI:</strong> "Tell me why you are having this surgery."</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"When was the last time you ate or drank anything?" (Confirm NPO)</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Have you or anyone in your family had complications with anesthesia?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you have any allergies?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"History of PONV or motion sickness?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"In the event of an emergency, would you accept blood products?"</span></label>
+        
+        <div class="reminder-box">
+            ⚠️ CHART CLARIFICATION REMINDER: <br>
+            Clarify any specific abnormal findings you saw in the chart (EKG changes, labs, or previous notes) right now.
+        </div>
     </details>
 
     <details open>
         <summary class="color-neuro">2. Neuro</summary>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Strokes or seizures</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Syncope</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Any history of strokes or seizures?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you have issues with passing out?"</span></label>
     </details>
 
     <details open>
-        <summary class="color-endo">3. Endocrine</summary>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Thyroid / DM</span></label>
+        <summary class="color-endo">3. Thyroid / Endocrine</summary>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Any issues with your thyroid?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you have diabetes?"</span></label>
     </details>
 
     <details open>
         <summary class="color-cardiac">4. Cardiac</summary>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Heart attack</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">CP, palpitations, racing heart, HTN</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Flight of stairs</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Have you ever had a heart attack?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Any chest pain, palpitations, racing heart, or high blood pressure?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Can you walk up a flight of stairs without feeling short of breath?"</span></label>
     </details>
 
     <details open>
         <summary class="color-resp">5. Respiratory</summary>
-        <label class="check-item"><input type="checkbox"><span class="text-content">URI</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">COPD, Asthma, OSA</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Smoke, Vape, Drink, Drugs</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Any recent cough, colds, or flu like symptoms?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"History of COPD, asthma, or sleep apnea?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you smoke? Vape? Drink? Any other illicit drugs?"</span></label>
     </details>
 
     <details open>
         <summary class="color-gi">6. GI / Renal / Hepatic / Heme</summary>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Acid reflux or heartburn</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Liver or kidneys</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Bleed or bruises easily</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"When did you last take (pertinent meds)?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you have acid reflux or heartburn?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Any issues with your liver or kidneys?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you bleed or bruise easily?"</span></label>
     </details>
 
     <details open>
         <summary class="color-airway">7. Airway Exam</summary>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Examine oral cavity</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Ask neck mobility</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Do neck mobility</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Side to side</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Open your mouth and stick out your tongue."</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Any issues with neck mobility?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Tip your head back for me as far as you can."</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Are you able to move your head side to side?"</span></label>
     </details>
 
     <details open>
         <summary class="color-dental">8. Dental</summary>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Dentures, partials, veneers</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Crowns or caps</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">Loose, broken, missing teeth</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you have any dentures, partials, or veneers?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you have any crowns or caps?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you have any loose, broken, or missing teeth?"</span></label>
     </details>
 
     <details open>
         <summary class="color-questions">9. Questions</summary>
         <label class="check-item"><input type="checkbox"><span class="text-content">"Have you had the chance to talk with Dr. ________________ and go over the anesthesia plan with them?"</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">"What else should I know?"</span></label>
-        <label class="check-item"><input type="checkbox"><span class="text-content">"Questions for me?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Is there anything else I haven't asked that you think I should know?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Do you have any questions for me?"</span></label>
     </details>
 </div>
 

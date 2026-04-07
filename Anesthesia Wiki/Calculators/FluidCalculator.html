@@ -61,11 +61,11 @@
         <div class="card-body">
             <div class="field">
                 <label for="fluid-weight">Weight (kg)</label>
-                <input type="number" id="fluid-weight" min="1" placeholder="e.g. 70">
+                <input type="number" id="fluid-weight" min="1" inputmode="decimal" placeholder="e.g. 70">
             </div>
             <div class="field">
                 <label for="fluid-npo">NPO Time (hours)</label>
-                <input type="number" id="fluid-npo" min="0" placeholder="e.g. 8">
+                <input type="number" id="fluid-npo" min="0" inputmode="decimal" placeholder="e.g. 8">
             </div>
             <div class="field">
                 <label for="fluid-trauma">Surgical Trauma</label>
@@ -86,7 +86,7 @@
         <div class="card-body">
             <div class="field">
                 <label for="ebl-weight">Weight (kg)</label>
-                <input type="number" id="ebl-weight" min="1" placeholder="e.g. 70">
+                <input type="number" id="ebl-weight" min="1" inputmode="decimal" placeholder="e.g. 70">
             </div>
             <div class="field">
                 <label for="ebl-type">Patient Type</label>
@@ -99,11 +99,11 @@
             </div>
             <div class="field">
                 <label for="ebl-start">Starting Hct (%)</label>
-                <input type="number" id="ebl-start" min="10" max="60" placeholder="e.g. 42">
+                <input type="number" id="ebl-start" min="10" max="60" inputmode="decimal" placeholder="e.g. 42">
             </div>
             <div class="field">
                 <label for="ebl-target">Target Hct (%)</label>
-                <input type="number" id="ebl-target" min="10" max="40" placeholder="e.g. 25">
+                <input type="number" id="ebl-target" min="10" max="40" inputmode="decimal" placeholder="e.g. 25">
             </div>
             <button class="calc-btn btn-orange" onclick="calculateEBL()">Calculate ABL</button>
             <div id="ebl-result" class="result result-orange"><em style="color:#8a9ab0;">Enter values above and calculate.</em></div>
