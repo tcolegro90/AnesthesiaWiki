@@ -91,4 +91,28 @@ window.addEventListener('pagehide', function() {
 
 favoriteSiteId = loadFavorite();
 appData = loadData();
+// Merge CRNA_LIST into appData for RGH and Unity after loading from storage
+if (typeof CRNA_LIST !== 'undefined') {
+    ['rgh', 'unity'].forEach(function(siteId) {
+        var countKey = countId(siteId, 'preceptor');
+        var existingCount = parseInt(appData[countKey], 10) || 0;
+        var existingNames = [];
+        for (var i = 0; i < existingCount; i++) {
+            var name = appData[fieldId(siteId, 'preceptor', 'name', i)];
+            if (name) existingNames.push(name.trim().toLowerCase());
+        }
+        var toAdd = CRNA_LIST.filter(function(person) {
+            return existingNames.indexOf(person.name.trim().toLowerCase()) === -1;
+        });
+        toAdd.forEach(function(person, idx) {
+            var i = existingCount + idx;
+            appData[fieldId(siteId, 'preceptor', 'name', i)] = person.name;
+            appData[fieldId(siteId, 'preceptor', 'phone', i)] = person.cell;
+            appData[fieldId(siteId, 'preceptor', 'memo', i)] = person.company;
+        });
+        if (toAdd.length) {
+            appData[countKey] = existingCount + toAdd.length;
+        }
+    });
+}
 buildUI();

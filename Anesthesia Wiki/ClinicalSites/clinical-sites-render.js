@@ -138,6 +138,7 @@ function renderPersonListSection(site, field) {
             var nameVal = String(appData[fieldId(site.id, field.key, 'name', i)] || '');
             var phoneVal = String(appData[fieldId(site.id, field.key, 'phone', i)] || '');
             var memoVal = String(appData[fieldId(site.id, field.key, 'memo', i)] || '');
+            var prefVal = String(appData[fieldId(site.id, 'preferences', 'memo', i)] || '');
             editHtml += '<div class="person-edit-block">';
             editHtml += '<div class="pe-row">';
             editHtml += '<input class="contact-input pe-name" type="text" placeholder="Name" value="' + escAttr(nameVal) + '" data-site-id="' + site.id + '" data-field-key="' + field.key + '" data-part="name" data-row-index="' + i + '">';
@@ -147,6 +148,7 @@ function renderPersonListSection(site, field) {
             }
             editHtml += '</div>';
             editHtml += '<textarea class="pe-notes" placeholder="Notes about this person..." data-site-id="' + site.id + '" data-field-key="' + field.key + '" data-part="memo" data-row-index="' + i + '">' + escHtml(memoVal) + '</textarea>';
+            editHtml += '<textarea class="pe-notes" placeholder="Preferences..." data-site-id="' + site.id + '" data-field-key="preferences" data-part="memo" data-row-index="' + i + '">' + escHtml(prefVal) + '</textarea>';
             editHtml += '</div>';
         }
         editHtml += '<button type="button" class="pe-add-btn" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">' + '+ Add ' + escHtml(field.label) + '</button>';
@@ -158,8 +160,9 @@ function renderPersonListSection(site, field) {
             var n = String(appData[fieldId(site.id, field.key, 'name', j)] || '').trim();
             var p = String(appData[fieldId(site.id, field.key, 'phone', j)] || '').trim();
             var m = String(appData[fieldId(site.id, field.key, 'memo', j)] || '').trim();
-            if (!n && !p && !m) continue;
-            people.push({ idx: j, name: n, phone: p, memo: m });
+            var pref = String(appData[fieldId(site.id, 'preferences', 'memo', j)] || '').trim();
+            if (!n && !p && !m && !pref) continue;
+            people.push({ idx: j, name: n, phone: p, memo: m, preferences: pref });
         }
 
         var selKey = selectedId(site.id, field.key);
@@ -181,8 +184,8 @@ function renderPersonListSection(site, field) {
             viewHtml += '</select>';
             viewHtml += '</td>';
             viewHtml += '<td class="notes-cell" style="padding:4px 0">';
-            if (sel && sel.memo) {
-                var memoLines = sel.memo.split('\n').filter(function(l) { return l.trim(); });
+            if (sel && (sel.memo || sel.preferences)) {
+                var memoLines = (sel.memo + '\n' + sel.preferences).split('\n').filter(function(l) { return l.trim(); });
                 viewHtml += '<ul class="pl-memo">' + memoLines.map(function(l) { return '<li>' + escHtml(l.trim()) + '</li>'; }).join('') + '</ul>';
             }
             viewHtml += '</td>';
