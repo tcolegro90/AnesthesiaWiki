@@ -76,7 +76,20 @@ document.addEventListener('input', function(e) {
             if (newDigits >= rawDigits) e.target.setSelectionRange(formatted.length, formatted.length);
         }
 
-        appData[fieldId(siteId, fieldKey, part, rowIndex)] = e.target.value;
+        var linkedFieldKey = e.target.getAttribute('data-linked-field-key');
+        if (fieldKey === 'preferences' && linkedFieldKey && typeof setPersonPreferencesValue === 'function') {
+            setPersonPreferencesValue(siteId, linkedFieldKey, rowIndex, e.target.value);
+        } else {
+            appData[fieldId(siteId, fieldKey, part, rowIndex)] = e.target.value;
+        }
+
+        var syncFieldKey = fieldKey;
+        if (fieldKey === 'preferences' && linkedFieldKey) {
+            syncFieldKey = linkedFieldKey;
+        }
+        if (typeof syncLinkedPersonField === 'function') {
+            syncLinkedPersonField(siteId, syncFieldKey);
+        }
 
         clearTimeout(window._autoSaveTimer);
         window._autoSaveTimer = setTimeout(function() {
@@ -91,28 +104,7 @@ window.addEventListener('pagehide', function() {
 
 favoriteSiteId = loadFavorite();
 appData = loadData();
-// Merge CRNA_LIST into appData for RGH and Unity after loading from storage
-if (typeof CRNA_LIST !== 'undefined') {
-    ['rgh', 'unity'].forEach(function(siteId) {
-        var countKey = countId(siteId, 'preceptor');
-        var existingCount = parseInt(appData[countKey], 10) || 0;
-        var existingNames = [];
-        for (var i = 0; i < existingCount; i++) {
-            var name = appData[fieldId(siteId, 'preceptor', 'name', i)];
-            if (name) existingNames.push(name.trim().toLowerCase());
-        }
-        var toAdd = CRNA_LIST.filter(function(person) {
-            return existingNames.indexOf(person.name.trim().toLowerCase()) === -1;
-        });
-        toAdd.forEach(function(person, idx) {
-            var i = existingCount + idx;
-            appData[fieldId(siteId, 'preceptor', 'name', i)] = person.name;
-            appData[fieldId(siteId, 'preceptor', 'phone', i)] = person.cell;
-            appData[fieldId(siteId, 'preceptor', 'memo', i)] = person.company;
-        });
-        if (toAdd.length) {
-            appData[countKey] = existingCount + toAdd.length;
-        }
-    });
+if (typeof mergePresetContacts === 'function' && mergePresetContacts()) {
+    saveAll();
 }
 buildUI();

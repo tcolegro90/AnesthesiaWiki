@@ -373,9 +373,9 @@
           <tr>
             <th>Drug</th>
             <th>Without Epi</th>
-            <th>Cap (no epi)</th>
+            <th>Max (no epi)</th>
             <th>With Epi</th>
-            <th>Cap (epi)</th>
+            <th>Max (epi)</th>
           </tr>
         </thead>
         <tbody id="ref-body"></tbody>
@@ -599,9 +599,9 @@
         tr.innerHTML =
           '<td data-label="Drug">' + name + '</td>' +
           '<td data-label="Without Epi">' + d.noEpi.mgkg + ' mg/kg</td>' +
-          '<td data-label="Cap (no epi)">' + d.noEpi.cap + ' mg</td>' +
+          '<td data-label="Max (no epi)">' + d.noEpi.cap + ' mg</td>' +
           '<td data-label="With Epi">' + d.epi.mgkg + ' mg/kg</td>' +
-          '<td data-label="Cap (epi)">' + d.epi.cap + ' mg</td>';
+          '<td data-label="Max (epi)">' + d.epi.cap + ' mg</td>';
         tbody.appendChild(tr);
       });
     }
