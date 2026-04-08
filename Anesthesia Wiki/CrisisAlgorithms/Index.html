@@ -168,6 +168,20 @@
             display: block;
         }
 
+        .wip-tools {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .game-tile {
+            border-top-color: #2a6db0;
+        }
+
+        .game-tile:hover {
+            background: #f4f8ff;
+        }
+
         @media (max-width: 700px) {
             body {
                 padding-top: 12px;
@@ -214,16 +228,22 @@
 
         <div class="section">
             <h2>Work In Progress</h2>
-            <button type="button" class="alg-tile wip folder-tile" id="wip-folder-toggle" onclick="toggleWipFolder()">
-                <div class="folder-head">
-                    <span class="folder-icon">📁</span>
-                    <div class="folder-meta">
-                        <span class="label">Work In Progress</span>
-                        <span class="sub">Open the folder to see all unfinished emergency algorithms.</span>
+            <div class="wip-tools">
+                <button type="button" class="alg-tile wip folder-tile" id="wip-folder-toggle" onclick="toggleWipFolder()">
+                    <div class="folder-head">
+                        <span class="folder-icon">📁</span>
+                        <div class="folder-meta">
+                            <span class="label">Work In Progress</span>
+                            <span class="sub">Open the folder to see all unfinished emergency algorithms.</span>
+                        </div>
+                        <span class="folder-caret">▶</span>
                     </div>
-                    <span class="folder-caret">▶</span>
-                </div>
-            </button>
+                </button>
+                <a class="alg-tile game-tile" href="CrisisManagementGame.html">
+                    <span class="label">Crisis Management Game</span>
+                    <span class="sub">Practice the treatment steps in order.</span>
+                </a>
+            </div>
             <div class="folder-content" id="wip-folder-content">
                 <div class="alg-grid">
                     <a class="alg-tile wip" href="Work%20in%20Progress/Hypoxia.html"><span class="label">Hypoxia</span><span class="sub">Work in progress.</span></a>

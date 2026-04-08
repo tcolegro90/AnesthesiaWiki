@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crisis Management Game</title>
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --line: #d8e2ec;
+            --text: #233140;
+            --muted: #6f8193;
+            --blue: #2a6db0;
+            --navy: #1f2a37;
+            --good: #1b7f57;
+            --bad: #b32424;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: linear-gradient(180deg, #f9fbff 0%, var(--bg) 100%);
+            color: var(--text);
+            padding: 76px 16px 40px;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+        }
+
+        .top-nav a,
+        .top-nav button {
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        .page {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .hero,
+        .game-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(30, 60, 90, 0.08);
+        }
+
+        .hero {
+            padding: 22px 20px;
+            border-top: 6px solid var(--blue);
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            color: var(--blue);
+            font-size: 1.7rem;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .game-card {
+            margin-top: 18px;
+            padding: 20px;
+        }
+
+        .meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #eef5ff;
+            color: #355d91;
+            border: 1px solid #cdddf4;
+            border-radius: 999px;
+            padding: 7px 11px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .prompt-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .crisis-name {
+            margin: 8px 0 18px;
+            font-size: 1.45rem;
+            color: var(--navy);
+            font-weight: 800;
+        }
+
+        .question-box {
+            background: #f7fbff;
+            border: 1px solid #d7e7f8;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .question-box h2 {
+            margin: 0 0 8px;
+            font-size: 1.1rem;
+            color: #2f537d;
+        }
+
+        .question-box p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #4b6177;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 14px 14px;
+            border: 1px solid #d9e4ef;
+            background: #fff;
+            border-radius: 12px;
+            font: inherit;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, transform 0.15s;
+        }
+
+        .option-btn:hover {
+            background: #f4f9ff;
+            border-color: #bcd3ee;
+            transform: translateY(-1px);
+        }
+
+        .option-btn.correct {
+            background: #edf9f2;
+            border-color: #9fd2b6;
+            color: #1a6845;
+        }
+
+        .option-btn.incorrect {
+            background: #fff1f1;
+            border-color: #efbbbb;
+            color: #8f2828;
+        }
+
+        .feedback {
+            min-height: 52px;
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 0.94rem;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .feedback.good {
+            display: block;
+            background: #edf9f2;
+            border: 1px solid #b7dfc6;
+            color: #1a6845;
+        }
+
+        .feedback.bad {
+            display: block;
+            background: #fff1f1;
+            border: 1px solid #efc0c0;
+            color: #8f2828;
+        }
+
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .next-btn,
+        .restart-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .next-btn {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        .restart-btn {
+            background: #eef2f7;
+            color: #45596e;
+        }
+
+        .helper {
+            color: var(--muted);
+            font-size: 0.87rem;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding-top: 12px;
+            }
+
+            .top-nav {
+                position: static;
+                margin-bottom: 12px;
+            }
+
+            .top-nav a,
+            .top-nav button,
+            .next-btn,
+            .restart-btn,
+            .option-btn {
+                min-height: 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <button type="button" onclick="window.history.back()">&#8592; Back</button>
+        <a href="Index.html">Emergency Algorithms</a>
+    </div>
+
+    <div class="page">
+        <div class="hero">
+            <h1>Crisis Management Game</h1>
+            <p>You get one crisis at a time. Choose the next management step in order, then continue until that crisis is complete.</p>
+        </div>
+
+        <div class="game-card">
+            <div class="meta-row">
+                <span class="pill" id="progress-pill">Step 1</span>
+                <span class="pill" id="score-pill">Score: 0 / 0</span>
+            </div>
+
+            <div class="prompt-label">Current Crisis</div>
+            <div class="crisis-name" id="crisis-name"></div>
+
+            <div class="question-box">
+                <h2 id="question-title">What comes first?</h2>
+                <p id="question-text">Select the correct next step.</p>
+            </div>
+
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback"></div>
+
+            <div class="footer-row">
+                <button type="button" class="restart-btn" id="restart-btn">Restart Game</button>
+                <div class="helper" id="helper-text">Pick the best next step.</div>
+                <button type="button" class="next-btn" id="next-btn" disabled>Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const crises = [
+            {
+                name: 'Malignant Hyperthermia',
+                steps: [
+                    'Call for help and stop surgery.',
+                    'Discontinue volatile anesthetics and succinylcholine.',
+                    'Administer dantrolene bolus.',
+                    'Hyperventilate with 100% oxygen at high fresh gas flows.',
+                    'Apply charcoal filters.',
+                    'Begin cooling with chilled IV fluids or lavage if needed.',
+                    'Treat acidosis, hyperkalemia, and arrhythmias.',
+                    'Check ABG, electrolytes, and glucose.',
+                    'Target urine output greater than 1 mL/kg/hr.',
+                    'Continue close monitoring and consider invasive access.'
+                ]
+            },
+            {
+                name: 'LAST',
+                steps: [
+                    'Stop local anesthetic injection immediately.',
+                    'Call for help and bring the LAST kit and 20% lipid emulsion.',
+                    'Manage airway and breathing with 100% oxygen and avoid hypoxia, hypercarbia, and acidosis.',
+                    'Control seizures with benzodiazepines first-line.',
+                    'Start modified ACLS for cardiovascular instability or arrest.',
+                    'Use lower epinephrine doses and begin lipid emulsion therapy.'
+                ]
+            },
+            {
+                name: 'Bronchospasm',
+                steps: [
+                    'Deepen anesthesia.',
+                    'Administer 100% oxygen.',
+                    'Give a short-acting beta-agonist.',
+                    'If severe, give epinephrine.',
+                    'Give intravenous corticosteroids.',
+                    'Add ipratropium for moderate to severe cases.',
+                    'Consider magnesium sulfate or aminophylline if refractory.',
+                    'Reassess airway mechanics, oxygenation, and hemodynamics.'
+                ]
+            }
+        ];
+
+        let currentCrisisIndex = 0;
+        let currentStepIndex = 0;
+        let scoreCorrect = 0;
+        let scoreTotal = 0;
+        let answered = false;
+        let crisisOrder = [];
+
+        function shuffle(array) {
+            const copy = array.slice();
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function buildCrisisOrder() {
+            crisisOrder = shuffle(crises.map((_, idx) => idx));
+            currentCrisisIndex = 0;
+        }
+
+        function getCurrentCrisis() {
+            return crises[crisisOrder[currentCrisisIndex]];
+        }
+
+        function getDistractors(correctStep) {
+            const pool = crises
+                .flatMap(crisis => crisis.steps)
+                .filter(step => step !== correctStep);
+            return shuffle(pool).slice(0, 3);
+        }
+
+        function updateMeta() {
+            const crisis = getCurrentCrisis();
+            document.getElementById('progress-pill').textContent = 'Step ' + (currentStepIndex + 1) + ' of ' + crisis.steps.length;
+            document.getElementById('score-pill').textContent = 'Score: ' + scoreCorrect + ' / ' + scoreTotal;
+            document.getElementById('crisis-name').textContent = crisis.name;
+            document.getElementById('question-title').textContent = currentStepIndex === 0 ? 'What comes first?' : 'What is the next step?';
+            document.getElementById('question-text').textContent = 'Choose step ' + (currentStepIndex + 1) + ' for this crisis.';
+        }
+
+        function renderQuestion() {
+            answered = false;
+            const crisis = getCurrentCrisis();
+            const correctStep = crisis.steps[currentStepIndex];
+            const options = shuffle([correctStep].concat(getDistractors(correctStep)));
+            const optionsEl = document.getElementById('options');
+            const feedbackEl = document.getElementById('feedback');
+            const nextBtn = document.getElementById('next-btn');
+            const helperText = document.getElementById('helper-text');
+
+            updateMeta();
+
+            feedbackEl.className = 'feedback';
+            feedbackEl.textContent = '';
+            nextBtn.disabled = true;
+            nextBtn.textContent = currentStepIndex === crisis.steps.length - 1 ? 'Finish Crisis' : 'Next';
+            helperText.textContent = 'Pick the best next step.';
+
+            optionsEl.innerHTML = options.map(function(option, idx) {
+                return '<button type="button" class="option-btn" data-option-index="' + idx + '">' + option + '</button>';
+            }).join('');
+
+            Array.from(optionsEl.querySelectorAll('.option-btn')).forEach(function(button) {
+                button.addEventListener('click', function() {
+                    if (answered) return;
+                    answered = true;
+                    scoreTotal += 1;
+                    const picked = button.textContent;
+                    const buttons = Array.from(optionsEl.querySelectorAll('.option-btn'));
+                    buttons.forEach(function(btn) {
+                        btn.disabled = true;
+                        if (btn.textContent === correctStep) {
+                            btn.classList.add('correct');
+                        }
+                    });
+
+                    if (picked === correctStep) {
+                        scoreCorrect += 1;
+                        feedbackEl.className = 'feedback good';
+                        feedbackEl.textContent = 'Correct. That is the right next step.';
+                    } else {
+                        button.classList.add('incorrect');
+                        feedbackEl.className = 'feedback bad';
+                        feedbackEl.textContent = 'Incorrect. The correct next step is: ' + correctStep;
+                    }
+
+                    updateMeta();
+                    nextBtn.disabled = false;
+                    helperText.textContent = currentStepIndex === crisis.steps.length - 1 ? 'Move to the next crisis.' : 'Continue to the next step.';
+                });
+            });
+        }
+
+        function advanceGame() {
+            const crisis = getCurrentCrisis();
+            if (currentStepIndex < crisis.steps.length - 1) {
+                currentStepIndex += 1;
+                renderQuestion();
+                return;
+            }
+
+            if (currentCrisisIndex < crisisOrder.length - 1) {
+                currentCrisisIndex += 1;
+            } else {
+                buildCrisisOrder();
+            }
+            currentStepIndex = 0;
+            renderQuestion();
+        }
+
+        function restartGame() {
+            scoreCorrect = 0;
+            scoreTotal = 0;
+            currentStepIndex = 0;
+            buildCrisisOrder();
+            renderQuestion();
+        }
+
+        document.getElementById('next-btn').addEventListener('click', function() {
+            if (!answered) return;
+            advanceGame();
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', restartGame);
+
+        restartGame();
+    </script>
+</body>
+</html>
