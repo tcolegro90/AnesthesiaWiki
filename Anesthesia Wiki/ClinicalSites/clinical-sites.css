@@ -811,4 +811,19 @@
             .person-edit-block .pe-notes {
                 font-size: 0.9rem;
             }
+
+            .detail-back-btn {
+                min-height: 44px;
+                padding: 10px 20px;
+                display: inline-flex;
+                align-items: center;
+            }
+
+            .plain-tiles {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .site-picker-card {
+                min-height: 60px;
+            }
         }

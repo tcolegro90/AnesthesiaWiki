@@ -44,12 +44,12 @@
   <div class="container">
     <h1>7. Anesthetic Plan</h1>
     <div class="nav">
-      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Medications</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Home Meds</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
     </div>
 
     <div class="card" style="display:flex;flex-direction:column;gap:12px;">
 
-      <div class="row">
+      <div class="row" style="padding-left:0;">
         <div><label>Anesthesia Type</label><br><select id="anes-type" class="long" onchange="toggleGeneralOptions(); onAnyPlanInput();"><option value="">Select...</option><option>General</option><option>MAC</option><option>Sedation</option><option>Spinal</option><option>Epidural</option></select></div>
         <div id="tiva-wrap" style="display:none;"><label><input type="checkbox" id="tiva-box" onchange="toggleTivaReason(); onAnyPlanInput();"> TIVA</label></div>
         <div id="tiva-reason-wrap" style="display:none;"><label>TIVA reason</label><br><select id="tiva-reason" class="med" onchange="toggleTivaOther(); onAnyPlanInput();"><option value="">Reason...</option><option>MH history</option><option>PONV</option><option>Other</option></select> <input id="tiva-other" class="med" style="display:none;" placeholder="Specify"></div>

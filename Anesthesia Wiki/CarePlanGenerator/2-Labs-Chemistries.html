@@ -100,6 +100,9 @@
       flex-direction: column;
       align-items: center;
     }
+    .supp-cell.a1c-gap {
+      margin-left: 10px;
+    }
     .section-lbl {
       font-size: 13px;
       font-weight: 600;
@@ -135,7 +138,7 @@
   <div class="container">
     <h1>2. Labs &amp; Chemistries</h1>
     <div class="nav">
-      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Medications</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Home Meds</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
     </div>
 
     <input type="hidden" id="pat-gas-type" value="none">
@@ -157,6 +160,7 @@
             <div class="supp-cell"><span class="lab-lbl">Alb</span><input id="pat-alb" class="lab-input" placeholder="—"></div>
             <div class="supp-cell"><span class="lab-lbl">AST</span><input id="pat-ast" class="lab-input" placeholder="—"></div>
             <div class="supp-cell"><span class="lab-lbl">ALT</span><input id="pat-alt" class="lab-input" placeholder="—"></div>
+            <div class="supp-cell a1c-gap"><span class="lab-lbl">A1C</span><input id="pat-a1c" class="lab-input" placeholder="—"></div>
           </div>
           <div style="margin-top:8px;">
             <div class="section-lbl">Additional Chemistries</div>
@@ -236,6 +240,7 @@
       'pat-alb': [3.5, 5.0],
       'pat-ast': [10, 40],
       'pat-alt': [7, 56],
+      'pat-a1c': [4.0, 5.6],
       'pat-ica': [1.12, 1.32],
       'pat-ca': [8.5, 10.5],
       'pat-wbc': [4.0, 11.0],

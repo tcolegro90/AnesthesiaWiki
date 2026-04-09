@@ -137,6 +137,18 @@
     function buildPrintCard(overrideState) {
       var s = overrideState || getState();
 
+      function setOptionalRow(rowId, valueId, value) {
+        var row = document.getElementById(rowId);
+        if (!row) return;
+        var txt = String(value || '').trim();
+        if (!txt) {
+          row.style.display = 'none';
+          return;
+        }
+        setText(valueId, txt);
+        row.style.display = 'flex';
+      }
+
       var initials = s['pat-initials'] || '_';
       var sched = s['pat-sched-surg-time'] || '_';
       var len = s['pat-surg-length'] || '_';
@@ -166,6 +178,44 @@
 
       var pos = s['pat-position'] === 'Other' ? (s['pat-position-other'] || '_') : (s['pat-position'] || '_');
       setText('pr-position', pos);
+      setText('pr-nerve-stim', s['pat-nerve-stim-location'] || 'None');
+      setText('pr-asa-class', s['pat-asa-class'] || '_');
+      setText('pr-insufflation', yn(s, 'pat-insufflation-yes', 'pat-insufflation-no'));
+
+      var interpreterYes = !!s['pat-interpreter-yes'];
+      var interpreterRow = document.getElementById('pr-interpreter-row');
+      if (interpreterRow) {
+        if (interpreterYes) {
+          var lang = (s['pat-interpreter-language'] || '').trim();
+          setText('pr-interpreter', lang ? ('Yes - ' + lang) : 'Yes');
+          interpreterRow.style.display = 'flex';
+        } else {
+          interpreterRow.style.display = 'none';
+        }
+      }
+
+      var hearingYes = !!s['pat-hearing-loss-yes'];
+      var hearingRow = document.getElementById('pr-hearing-row');
+      if (hearingRow) {
+        if (hearingYes) {
+          var aids = yn(s, 'pat-hearing-aids-yes', 'pat-hearing-aids-no');
+          setText('pr-hearing', 'Yes' + (aids !== '_' ? (' (Aids: ' + aids + ')') : ''));
+          hearingRow.style.display = 'flex';
+        } else {
+          hearingRow.style.display = 'none';
+        }
+      }
+
+      var dentition = (s['hx-dentition'] || '').trim();
+      var dentitionNotes = (s['hx-dentition-notes'] || '').trim();
+      var dentitionVal = '';
+      if (dentition) {
+        dentitionVal = dentition === 'Other' ? (dentitionNotes || 'Other') : dentition;
+      }
+      setOptionalRow('pr-dentition-row', 'pr-dentition', dentitionVal);
+
+      var pastSurg = (s['pmh-surgical-history'] || '').trim();
+      setOptionalRow('pr-past-surg-row', 'pr-past-surg', pastSurg);
       var fastedVal = yn(s, 'pat-fasted-yes', 'pat-fasted-no');
       setText('pr-fasted', fastedVal);
       var fastedEl = document.getElementById('pr-fasted');
@@ -218,6 +268,36 @@
       setText('pr-lab-inr', inr);
       setText('pr-lab-ptt', s['pat-ptt'] || '\u2014');
 
+      setOptionalRow('pr-lab-a1c-row', 'pr-lab-a1c', s['pat-a1c']);
+      setOptionalRow('pr-lab-alb-row', 'pr-lab-alb', s['pat-alb']);
+      setOptionalRow('pr-lab-ast-row', 'pr-lab-ast', s['pat-ast']);
+      setOptionalRow('pr-lab-alt-row', 'pr-lab-alt', s['pat-alt']);
+      setOptionalRow('pr-lab-ica-row', 'pr-lab-ica', s['pat-ica']);
+      setOptionalRow('pr-lab-ca-row', 'pr-lab-ca', s['pat-ca']);
+
+      var gasType = (s['pat-gas-type'] || 'none');
+      var gasRow = document.getElementById('pr-gas-row');
+      var gasLabel = document.getElementById('pr-gas-label');
+      var gasValues = [
+        ['pH', s['gas-ph']],
+        ['pCO2', s['gas-pco2']],
+        ['pO2', s['gas-po2']],
+        ['HCO3', s['gas-hco3']],
+        ['BE', s['gas-be']],
+        ['SpO2', s['gas-spo2']]
+      ].filter(function(pair) { return String(pair[1] || '').trim() !== ''; })
+       .map(function(pair) { return pair[0] + ': ' + String(pair[1]).trim(); })
+       .join(', ');
+      if (gasRow) {
+        if (gasType !== 'none' && gasValues) {
+          if (gasLabel) gasLabel.textContent = gasType.toUpperCase() + ':';
+          setText('pr-gas-values', gasValues);
+          gasRow.style.display = 'flex';
+        } else {
+          gasRow.style.display = 'none';
+        }
+      }
+
       // Highlight abnormal labs in print preview.
       var labRanges = {
         'pr-lab-na': [parseFloat(s['pat-na']), 135, 145],
@@ -252,6 +332,27 @@
         ['pmh-anemia','Anemia'], ['pmh-liver','Liver Disease'], ['pmh-chronicpain','Chronic Pain'], ['pmh-depanx','Depression/Anxiety'], ['pmh-cancer','Cancer']
       ].filter(function(x) { return !!s[x[0]]; }).map(function(x) { return x[1]; });
       setText('pr-pmh', pmhChecks.concat(pmhItems).join(', ') || 'None');
+
+      var extraSurgRow = document.getElementById('pr-extra-surg-row');
+      var extraSurgItems = [];
+      try {
+        var extraSurg = JSON.parse(s['extra-surg-list'] || '[]') || [];
+        extraSurgItems = extraSurg.map(function(r) {
+          var surgName = String((r && r.surg) || '').trim();
+          var posName = String((r && r.pos) || '').trim();
+          if (!surgName && !posName) return '';
+          if (surgName && posName) return surgName + ' (' + posName + ')';
+          return surgName || posName;
+        }).filter(function(x) { return !!x; });
+      } catch (e) {}
+      if (extraSurgRow) {
+        if (extraSurgItems.length) {
+          setText('pr-extra-surg', extraSurgItems.join('; '));
+          extraSurgRow.style.display = 'flex';
+        } else {
+          extraSurgRow.style.display = 'none';
+        }
+      }
 
       var meds = [];
       try { meds = JSON.parse(s['med-list'] || '[]') || []; } catch (e) {}

@@ -13,6 +13,13 @@
       gap: 14px;
       align-items: flex-end;
     }
+    .surgery-row {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 12px;
+      gap: 14px;
+      align-items: flex-end;
+    }
     .add-row-btn {
       padding: 3px 12px;
       font-size: 12px;
@@ -28,41 +35,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>1. Patient Demographics</h1>
-    <div class="nav">
-      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Medications</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
-    </div>
-
     <div class="card">
-      <div class="row top-demographics-row">
-        <div><label>Initials</label><br><input id="pat-initials" type="text" class="tiny-text" /></div>
-        <div><label>Gender</label><br><select id="pat-gender" class="xs"><option value="">-</option><option>M</option><option>F</option></select></div>
-        <div><label>Age</label><br><input id="pat-age" type="number" inputmode="numeric" class="small" /></div>
-        <div><label>Allergies</label><br><input id="pat-allergies" class="med" style="width:320px;max-width:100%;" placeholder="NKDA or list allergies" /></div>
-      </div>
-      <div class="row" style="margin-top:6px;">
-        <div><label>Height (ft)</label><br><select id="pat-feet" class="small"><option value="">-</option><option>4</option><option>5</option><option>6</option></select></div>
-        <div><label>Height (in)</label><br><select id="pat-inches" class="small"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option></select></div>
-        <div><label>Height (cm)</label><br><input id="pat-cm" type="number" inputmode="decimal" class="small" /></div>
-        <div><label>Weight (kg)</label><br><input id="pat-weight-kg" type="number" inputmode="decimal" class="small" /></div>
-        <div><label>Weight (lbs)</label><br><input id="pat-weight-lbs" type="number" inputmode="decimal" class="small" /></div>
-        <div><label>BMI</label><br><input id="pat-bmi" type="number" step="0.1" inputmode="decimal" class="small" /></div>
-      </div>
-      <div class="row" style="margin-top:6px;align-items:flex-end;gap:14px;">
-        <div><label>Sched Time</label><br><input id="pat-sched-surg-time" class="short-text" /></div>
-        <div><label>Length (minutes)</label><br><input id="pat-surg-length" type="number" step="1" min="0" inputmode="numeric" class="short-text" /></div>
-        <div>
-          <label>Surgical Date</label><br>
-          <select id="pat-surg-date-mode" class="med">
-            <option value="Tomorrow">Tomorrow</option>
-            <option value="Other">Other</option>
-          </select>
-          <input id="pat-surg-date-other" class="med" style="display:none;margin-top:6px;" placeholder="Type date" />
-          <input id="pat-surg-date" type="hidden" />
-        </div>
-      </div>
-      <hr>
-      <div class="row">
+      <div class="row surgery-row">
         <div><label>Surgery Type</label><br><input id="pat-surgery" class="long" /></div>
         <div>
           <label>Positioning</label><br>
@@ -88,9 +62,26 @@
           <label><input type="radio" name="pat-insufflation" id="pat-insufflation-yes" value="Yes"> Yes</label>
           <label><input type="radio" name="pat-insufflation" id="pat-insufflation-no" value="No"> No</label>
         </div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div><label>Surgery Start</label><br><input id="pat-sched-surg-time" class="short-text" placeholder="HH:MM" /></div>
+        <div><label>Surgery End</label><br><input id="pat-surg-end-time" class="short-text" placeholder="HH:MM" /></div>
+        <div><label>Surgical Length (minutes)</label><br><input id="pat-surg-length" type="number" step="1" min="0" inputmode="numeric" class="short-text" /></div>
+        <div>
+          <label>ASA Class</label><br>
+          <select id="pat-asa-class" class="small">
+            <option value="">-</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+          </select>
+        </div>
+        <div style="flex-basis:100%;height:0;"></div>
         <div>
           <label>Disposition</label><br>
-          <select id="pat-disposition" class="med">
+          <select id="pat-disposition" class="med" style="width:240px;max-width:100%;">
             <option value="">Select...</option>
             <option>PACU</option>
             <option>ICU</option>
@@ -104,12 +95,46 @@
             <option>OR to OR</option>
           </select>
         </div>
+        <div>
+          <label>Surgical Date</label><br>
+          <select id="pat-surg-date-mode" class="med">
+            <option value="Tomorrow">Tomorrow</option>
+            <option value="Other">Other</option>
+          </select>
+          <input id="pat-surg-date-other" class="med" style="display:none;margin-top:6px;" placeholder="Type date" />
+          <input id="pat-surg-date" type="hidden" />
+        </div>
+        <div>
+          <label>Nerve Stim Location</label><br>
+          <select id="pat-nerve-stim-location" class="med">
+            <option>None</option>
+            <option>Facial nerve</option>
+            <option>Ulner</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Additional surgery + position rows -->
-      <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
-      <button type="button" class="add-row-btn" onclick="addExtraSurgRow()" style="margin-top:6px;">+ Add surgery / position</button>
+      <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+      <button type="button" class="add-row-btn" onclick="addExtraSurgRow()" style="margin-bottom:12px;">+ Add surgery / position</button>
+
+      <div class="row top-demographics-row">
+        <div><label>Initials</label><br><input id="pat-initials" type="text" class="tiny-text" /></div>
+        <div><label>Gender</label><br><select id="pat-gender" class="xs"><option value="">-</option><option>M</option><option>F</option></select></div>
+        <div><label>Age</label><br><input id="pat-age" type="number" inputmode="numeric" class="small" /></div>
+        <div><label>Allergies</label><br><input id="pat-allergies" class="med" style="width:320px;max-width:100%;" placeholder="NKDA or list allergies" /></div>
+      </div>
+
+      <div class="row" style="margin-top:6px;">
+        <div><label>Height (ft)</label><br><select id="pat-feet" class="small"><option value="">-</option><option>4</option><option>5</option><option>6</option></select></div>
+        <div><label>Height (in)</label><br><select id="pat-inches" class="small"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option></select></div>
+        <div><label>Height (cm)</label><br><input id="pat-cm" type="number" inputmode="decimal" class="small" /></div>
+        <div><label>Weight (kg)</label><br><input id="pat-weight-kg" type="number" inputmode="decimal" class="small" /></div>
+        <div><label>Weight (lbs)</label><br><input id="pat-weight-lbs" type="number" inputmode="decimal" class="small" /></div>
+        <div><label>BMI</label><br><input id="pat-bmi" type="number" step="0.1" inputmode="decimal" class="small" /></div>
+      </div>
+
       <hr>
+
       <div class="row" style="margin-top:10px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
         <div><label>Fasted</label><br><label><input type="radio" name="pat-fasted" id="pat-fasted-yes" value="Yes" onchange="highlightAbnormal()"> Yes</label> <label><input type="radio" name="pat-fasted" id="pat-fasted-no" value="No" onchange="highlightAbnormal()"> No</label></div>
         <div><label>Smoker</label><br><label><input type="radio" name="pat-smoker" id="pat-smoker-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-smoker" id="pat-smoker-no" value="No"> No</label></div>
@@ -117,9 +142,33 @@
         <div id="aicd-wrap" style="display:none;"><label>AICD</label><br><label><input type="radio" name="pat-aicd" value="Yes" id="aicd-yes"> Yes</label> <label><input type="radio" name="pat-aicd" value="No" id="aicd-no"> No</label></div>
         <div id="pacer-settings-wrap" style="display:none;"><label>Pacer Settings</label><br><input id="pat-pacer-settings" class="med" placeholder="e.g. VVI 60" /></div>
       </div>
+
+      <div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+        <div>
+          <label>Interpreter</label><br>
+          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-no" value="No"> No</label>
+          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-yes" value="Yes"> Yes</label>
+        </div>
+        <div id="pat-interpreter-language-wrap" style="display:none;">
+          <label>Language</label><br>
+          <input id="pat-interpreter-language" class="med" style="width:220px;max-width:100%;" placeholder="Enter language" />
+        </div>
+        <div>
+          <label>Hearing Loss</label><br>
+          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-no" value="No"> No</label>
+          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-yes" value="Yes"> Yes</label>
+        </div>
+        <div id="pat-hearing-aids-wrap" style="display:none;">
+          <label>Hearing Aids</label><br>
+          <label><input type="radio" name="pat-hearing-aids" id="pat-hearing-aids-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-hearing-aids" id="pat-hearing-aids-no" value="No"> No</label>
+        </div>
+      </div>
+
       <div id="pat-stats-result" class="result" style="display:none;"></div>
     </div>
   </div>
+
   <script src="shared.js?v=19"></script>
   <script>
     function recalculateFromHeight() {
@@ -128,6 +177,7 @@
       if (feet > 0 || inches > 0) document.getElementById('pat-cm').value = (((feet * 12) + inches) * 2.54).toFixed(1);
       recalcWeightChain();
     }
+
     function recalculateFromCm() {
       const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
       if (cm > 0) {
@@ -137,16 +187,19 @@
       }
       recalcWeightChain();
     }
+
     function recalculateFromWeightKg() {
       const kg = parseFloat(document.getElementById('pat-weight-kg').value) || 0;
       document.getElementById('pat-weight-lbs').value = kg > 0 ? (kg * 2.20462).toFixed(1) : '';
       recalcWeightChain();
     }
+
     function recalculateFromWeightLbs() {
       const lbs = parseFloat(document.getElementById('pat-weight-lbs').value) || 0;
       document.getElementById('pat-weight-kg').value = lbs > 0 ? (lbs / 2.20462).toFixed(1) : '';
       recalcWeightChain();
     }
+
     function recalculateFromBMI() {
       const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
       const hm = cm / 100;
@@ -158,41 +211,159 @@
       }
       recalcWeightChain(true);
     }
-    function recalcWeightChain(skipBMI = false) {
+
+    function recalcWeightChain(skipBMI) {
       const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
       const hm = cm / 100;
       const kg = parseFloat(document.getElementById('pat-weight-kg').value) || 0;
-      if (hm > 0 && kg > 0 && !skipBMI) document.getElementById('pat-bmi').value = (kg / (hm * hm)).toFixed(1);
+      if (hm > 0 && kg > 0 && !skipBMI) {
+        document.getElementById('pat-bmi').value = (kg / (hm * hm)).toFixed(1);
+      }
       updateIBWandTV();
       saveState();
     }
+
     function updateIBWandTV() {
       const gen = document.getElementById('pat-gender').value;
       const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
       const res = document.getElementById('pat-stats-result');
       if (!gen || !cm) { res.style.display = 'none'; return; }
+
       let ibw = gen === 'M' ? 50 + 2.3 * ((cm / 2.54) - 60) : 45.5 + 2.3 * ((cm / 2.54) - 60);
       if ((cm / 2.54) < 60) ibw = gen === 'M' ? 50 : 45.5;
-      // Keep calculated values for print only; hide in data-entry view.
+
       res.style.display = 'none';
       const tvMin = Math.round(ibw * 6);
       const tvMax = Math.round(ibw * 8);
-      // Store TV values for print preview
+
       const s = getGlobalState();
       s['pat-ibw'] = ibw.toFixed(1);
       s['pat-tv-min'] = tvMin;
       s['pat-tv-max'] = tvMax;
       setGlobalState(s);
     }
+
     function syncPacerUi() {
       const yes = document.getElementById('pacer-yes').checked;
       document.getElementById('aicd-wrap').style.display = yes ? 'block' : 'none';
       document.getElementById('pacer-settings-wrap').style.display = yes ? 'block' : 'none';
     }
+
     function syncPositionOther() {
       const isOther = document.getElementById('pat-position').value === 'Other';
       document.getElementById('pat-position-other').style.display = isOther ? 'inline-block' : 'none';
       if (!isOther) document.getElementById('pat-position-other').value = '';
+      saveState();
+    }
+
+    function syncInterpreterUi() {
+      const yes = document.getElementById('pat-interpreter-yes').checked;
+      document.getElementById('pat-interpreter-language-wrap').style.display = yes ? 'block' : 'none';
+      if (!yes) {
+        document.getElementById('pat-interpreter-language').value = '';
+      }
+      saveState();
+    }
+
+    function syncHearingUi() {
+      const yes = document.getElementById('pat-hearing-loss-yes').checked;
+      document.getElementById('pat-hearing-aids-wrap').style.display = yes ? 'block' : 'none';
+      if (yes) {
+        if (!document.getElementById('pat-hearing-aids-yes').checked && !document.getElementById('pat-hearing-aids-no').checked) {
+          document.getElementById('pat-hearing-aids-no').checked = true;
+        }
+      } else {
+        document.getElementById('pat-hearing-aids-yes').checked = false;
+        document.getElementById('pat-hearing-aids-no').checked = false;
+      }
+      saveState();
+    }
+
+    var surgeryTimeSyncInProgress = false;
+
+    function parseClockText(v) {
+      if (!v) return null;
+      var t = String(v).trim().toUpperCase();
+      // Accept military-style HHMM (e.g., 1930) in addition to HH:MM.
+      if (/^\d{3,4}$/.test(t)) {
+        t = t.length === 3 ? ('0' + t) : t;
+        t = t.slice(0, 2) + ':' + t.slice(2);
+      }
+      var m = t.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/);
+      if (!m) return null;
+      var hh = parseInt(m[1], 10);
+      var mm = parseInt(m[2], 10);
+      var mer = m[3] || '';
+      if (isNaN(hh) || isNaN(mm) || mm < 0 || mm > 59) return null;
+      if (mer) {
+        if (hh < 1 || hh > 12) return null;
+        if (mer === 'AM') hh = hh % 12;
+        if (mer === 'PM') hh = (hh % 12) + 12;
+      } else if (hh > 23) {
+        return null;
+      }
+      return (hh * 60) + mm;
+    }
+
+    function formatClockText(totalMinutes) {
+      var m = totalMinutes % 1440;
+      if (m < 0) m += 1440;
+      var hh = Math.floor(m / 60);
+      var mm = m % 60;
+      return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+    }
+
+    function syncSurgeryTimeFields(sourceId) {
+      if (surgeryTimeSyncInProgress) return;
+      surgeryTimeSyncInProgress = true;
+
+      var startEl = document.getElementById('pat-sched-surg-time');
+      var endEl = document.getElementById('pat-surg-end-time');
+      var lenEl = document.getElementById('pat-surg-length');
+
+      var start = parseClockText(startEl.value);
+      var end = parseClockText(endEl.value);
+      var lenText = (lenEl.value || '').trim();
+      var len = lenText === '' ? null : parseFloat(lenText);
+      if (len !== null && (!isFinite(len) || len < 0)) len = null;
+
+      var hasStart = start !== null;
+      var hasEnd = end !== null;
+      var hasLen = len !== null;
+
+      if (sourceId === 'pat-surg-length') {
+        if (hasStart && hasLen) {
+          endEl.value = formatClockText(start + len);
+        } else if (hasEnd && hasLen) {
+          startEl.value = formatClockText(end - len);
+        }
+      } else if (sourceId === 'pat-sched-surg-time') {
+        if (hasStart && hasEnd) {
+          var diffFromStart = end - start;
+          if (diffFromStart < 0) diffFromStart += 1440;
+          lenEl.value = String(Math.round(diffFromStart));
+        } else if (hasStart && hasLen) {
+          endEl.value = formatClockText(start + len);
+        }
+      } else if (sourceId === 'pat-surg-end-time') {
+        if (hasStart && hasEnd) {
+          var diffFromEnd = end - start;
+          if (diffFromEnd < 0) diffFromEnd += 1440;
+          lenEl.value = String(Math.round(diffFromEnd));
+        } else if (hasEnd && hasLen) {
+          startEl.value = formatClockText(end - len);
+        }
+      } else if (hasStart && hasEnd && !hasLen) {
+        var diff = end - start;
+        if (diff < 0) diff += 1440;
+        lenEl.value = String(Math.round(diff));
+      } else if (hasStart && hasLen && !hasEnd) {
+        endEl.value = formatClockText(start + len);
+      } else if (hasEnd && hasLen && !hasStart) {
+        startEl.value = formatClockText(end - len);
+      }
+
+      surgeryTimeSyncInProgress = false;
       saveState();
     }
 
@@ -230,7 +401,11 @@
       saveState();
     }
 
-    const POSITION_OPTS = ['Supine','Prone','Lateral Decubitus','Lithotomy','Trendelenburg','Steep Trendelenburg','Reverse Trendelenburg','Sitting / Beach Chair','Jackknife','Fowler / Semi-Fowler','Knee-Chest','Other'];
+    const POSITION_OPTS = [
+      'Supine', 'Prone', 'Lateral Decubitus', 'Lithotomy', 'Trendelenburg',
+      'Steep Trendelenburg', 'Reverse Trendelenburg', 'Sitting / Beach Chair',
+      'Jackknife', 'Fowler / Semi-Fowler', 'Knee-Chest', 'Other'
+    ];
     var extraSurgCount = 0;
 
     function positionOptions(selected) {
@@ -240,6 +415,7 @@
     }
 
     function addExtraSurgRow(surg, pos) {
+      if (extraSurgCount >= 30) return;
       extraSurgCount++;
       var i = extraSurgCount;
       var row = document.createElement('div');
@@ -272,11 +448,14 @@
       extraSurgCount = 0;
       var s = getGlobalState();
       var data = [];
-      try { data = JSON.parse(s['extra-surg-list']) || []; } catch(e) {}
+      try { data = JSON.parse(s['extra-surg-list']) || []; } catch (e) {}
       data.forEach(function(item) { addExtraSurgRow(item.surg || '', item.pos || ''); });
     }
+
     function boot() {
-      ['pat-feet','pat-inches'].forEach(id => document.getElementById(id).addEventListener('change', recalculateFromHeight));
+      ['pat-feet', 'pat-inches'].forEach(function(id) {
+        document.getElementById(id).addEventListener('change', recalculateFromHeight);
+      });
       document.getElementById('pat-cm').addEventListener('input', recalculateFromCm);
       document.getElementById('pat-weight-kg').addEventListener('input', recalculateFromWeightKg);
       document.getElementById('pat-weight-lbs').addEventListener('input', recalculateFromWeightLbs);
@@ -285,19 +464,45 @@
       document.getElementById('pat-position').addEventListener('change', syncPositionOther);
       document.getElementById('pat-surg-date-mode').addEventListener('change', syncSurgicalDate);
       document.getElementById('pat-surg-date-other').addEventListener('input', syncSurgicalDate);
-      ['pacer-yes','pacer-no','aicd-yes','aicd-no'].forEach(id => document.getElementById(id).addEventListener('change', syncPacerUi));
+      document.querySelectorAll('input[name="pat-interpreter"]').forEach(function(el) {
+        el.addEventListener('change', syncInterpreterUi);
+      });
+      document.querySelectorAll('input[name="pat-hearing-loss"]').forEach(function(el) {
+        el.addEventListener('change', syncHearingUi);
+      });
+      document.querySelectorAll('input[name="pat-hearing-aids"]').forEach(function(el) {
+        el.addEventListener('change', saveState);
+      });
+      document.getElementById('pat-interpreter-language').addEventListener('input', saveState);
+      ['pat-sched-surg-time', 'pat-surg-end-time', 'pat-surg-length'].forEach(function(id) {
+        document.getElementById(id).addEventListener('input', function() { syncSurgeryTimeFields(id); });
+        document.getElementById(id).addEventListener('change', function() { syncSurgeryTimeFields(id); });
+      });
+      document.getElementById('pat-asa-class').addEventListener('change', saveState);
+      ['pacer-yes', 'pacer-no', 'aicd-yes', 'aicd-no'].forEach(function(id) {
+        document.getElementById(id).addEventListener('change', syncPacerUi);
+      });
 
       if (!document.getElementById('pat-surg-date-mode').value) {
         document.getElementById('pat-surg-date-mode').value = 'Tomorrow';
       }
+      if (!document.getElementById('pat-interpreter-yes').checked && !document.getElementById('pat-interpreter-no').checked) {
+        document.getElementById('pat-interpreter-no').checked = true;
+      }
+      if (!document.getElementById('pat-hearing-loss-yes').checked && !document.getElementById('pat-hearing-loss-no').checked) {
+        document.getElementById('pat-hearing-loss-no').checked = true;
+      }
       syncPacerUi();
       syncPositionOther();
+      syncInterpreterUi();
+      syncHearingUi();
       syncSurgicalDate();
+      syncSurgeryTimeFields();
       restoreExtraSurg();
       updateIBWandTV();
-      // Re-run after saves are unblocked (saves are blocked during finalizeBoot extraInit)
       setTimeout(function() { updateIBWandTV(); }, 0);
     }
+
     pageBoot(boot, function() { restoreExtraSurg(); updateIBWandTV(); });
   </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>At Home Medications</title>
+  <title>Home Meds</title>
   <link rel="stylesheet" href="shared.css?v=3" />
   <style>
     .add-row-btn {
@@ -40,9 +40,9 @@
 </head>
 <body>
   <div class="container">
-    <h1>4. At Home Medications</h1>
+    <h1>4. Home Meds</h1>
     <div class="nav">
-      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Medications</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Home Meds</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
     </div>
     <div class="card">
       <div id="meds-container" style="display:flex;flex-direction:column;gap:10px;"></div>
@@ -52,11 +52,34 @@
   <script src="med-catalog.js"></script>
   <script src="shared.js?v=19"></script>
   <script>
-    const commonMeds = (window.MED_CATALOG && window.MED_CATALOG.prescribedMeds) ? window.MED_CATALOG.prescribedMeds : [];
+    const homeMeds = (window.MED_CATALOG && window.MED_CATALOG.homeMeds)
+      ? window.MED_CATALOG.homeMeds
+      : ((window.MED_CATALOG && window.MED_CATALOG.prescribedMeds) ? window.MED_CATALOG.prescribedMeds : []);
+    const anesthesiaMeds = (window.MED_CATALOG && window.MED_CATALOG.anesthesiaMeds)
+      ? window.MED_CATALOG.anesthesiaMeds
+      : [];
     const betaBlockers = ['Atenolol','Carvedilol','Esmolol','Metoprolol','Propranolol'];
     const aceArbs = ['Enalapril','Lisinopril','Losartan','Valsartan'];
     const doseTimes = ['Today AM','Today PM','Last Night','Yesterday AM','Yesterday PM','Unknown'];
     let currentMedRow = 0;
+
+    function buildMedOptions() {
+      let options = '<option value="">Select Medication...</option>';
+      options += '<optgroup label="Home / Patient Meds">';
+      homeMeds.forEach(m => { options += '<option value="' + m + '">' + m + '</option>'; });
+      options += '</optgroup>';
+
+      const homeSet = new Set(homeMeds);
+      const anesthesiaOnly = anesthesiaMeds.filter(function(m) { return !homeSet.has(m); });
+      if (anesthesiaOnly.length) {
+        options += '<optgroup label="Anesthesia Meds">';
+        anesthesiaOnly.forEach(m => { options += '<option value="' + m + '">' + m + '</option>'; });
+        options += '</optgroup>';
+      }
+
+      options += '<option value="Other">Other...</option>';
+      return options;
+    }
 
     function addMedRow(medValue, otherValue, timeValue) {
       if (currentMedRow >= 30) return;
@@ -66,9 +89,7 @@
       row.className = 'row med-row';
       row.id = 'med-row-' + i;
 
-      let medOptions = '<option value="">Select Medication...</option>';
-      commonMeds.forEach(m => medOptions += '<option value="' + m + '">' + m + '</option>');
-      medOptions += '<option value="Other">Other...</option>';
+      let medOptions = buildMedOptions();
 
       let timeOptions = '';
       doseTimes.forEach(t => timeOptions += '<option value="' + t + '"' + (t === 'Today AM' ? ' selected' : '') + '>' + t + '</option>');

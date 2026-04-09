@@ -35,7 +35,7 @@
   <div class="container">
     <h1>6. Airway Exam</h1>
     <div class="nav">
-      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Medications</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Home Meds</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
     </div>
 
     <div class="card" style="display:flex;flex-direction:column;gap:8px;">
@@ -44,6 +44,23 @@
       <div class="risk-row" id="row-gap"><strong>Interincisor Distance:</strong> <span><label><input type="radio" name="exam-interincisor" value="1">1</label><label><input type="radio" name="exam-interincisor" value="2">2</label><label><input type="radio" name="exam-interincisor" value="3">3</label><label><input type="radio" name="exam-interincisor" value="4">4</label><label><input type="radio" name="exam-interincisor" value="5">5</label><label><input type="radio" name="exam-interincisor" value="6">6</label><label><input type="radio" name="exam-interincisor" value="7">7+</label></span></div>
       <div class="risk-row" id="row-mand"><strong>Mandibular Protrusion:</strong> <span><label><input type="radio" name="airway-mandibular" value="1">1</label><label><input type="radio" name="airway-mandibular" value="2">2</label><label><input type="radio" name="airway-mandibular" value="3">3</label></span></div>
       <div class="risk-row" id="row-atlanto"><strong>Atlanto-occipital mobility:</strong> <span><label><input type="radio" name="exam-atlanto" value="No limited mobility">No limit</label><label><input type="radio" name="exam-atlanto" value="Limited Mobility">Limited</label></span></div>
+      <div class="risk-row" id="row-dentition">
+        <strong>Dentition:</strong>
+        <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="hx-dentition" class="med" style="margin-top:0;width:220px;max-width:100%;">
+            <option value="">Select...</option>
+            <option>Intact</option>
+            <option>Upper dentures</option>
+            <option>Lower dentures</option>
+            <option>Full dentures</option>
+            <option>Veneers</option>
+            <option>Loose teeth</option>
+            <option>Caps/Crowns</option>
+            <option>Other</option>
+          </select>
+          <input id="hx-dentition-notes" class="long" style="display:none;width:260px;max-width:100%;margin-top:0;" placeholder="Dentition details" />
+        </span>
+      </div>
     </div>
   </div>
   <script src="shared.js?v=19"></script>
@@ -68,9 +85,21 @@
       saveState();
     }
 
+    function syncDentitionUi() {
+      const dentition = document.getElementById('hx-dentition');
+      const notes = document.getElementById('hx-dentition-notes');
+      const showNotes = dentition.value === 'Other';
+      notes.style.display = showNotes ? 'inline-block' : 'none';
+      if (!showNotes) notes.value = '';
+      saveState();
+    }
+
     function boot() {
       document.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', refreshAirwayAlerts));
+      document.getElementById('hx-dentition').addEventListener('change', syncDentitionUi);
+      document.getElementById('hx-dentition-notes').addEventListener('input', saveState);
       refreshAirwayAlerts();
+      syncDentitionUi();
     }
     pageBoot(boot);
   </script>

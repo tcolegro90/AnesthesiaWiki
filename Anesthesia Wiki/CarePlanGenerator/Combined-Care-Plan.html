@@ -33,6 +33,9 @@
       padding-bottom: 6px;
       color: #1a365d;
     }
+    #main-content > h1 {
+      text-align: center;
+    }
     .top-actions {
       display: flex;
       gap: 10px;
@@ -141,6 +144,13 @@
     .print-card .print-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+    #print-container .print-bottom-row,
+    .print-card .print-bottom-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
       gap: 4px;
     }
     #print-container .print-section,
@@ -298,8 +308,11 @@
           <div class="print-row"><span></span><span><span id="pr-height">_</span> / <span id="pr-weight">_</span> / <span id="pr-bmi">_</span></span></div>
           <div class="print-row"><span>Smoker:</span><span id="pr-smoker">_</span></div>
           <div class="print-row"><span>Fasted:</span><span id="pr-fasted">_</span></div>
+          <div class="print-row" id="pr-interpreter-row" style="display:none;"><span>Interpreter:</span><span id="pr-interpreter">_</span></div>
+          <div class="print-row" id="pr-hearing-row" style="display:none;"><span>Hearing Loss:</span><span id="pr-hearing">_</span></div>
           <div class="print-row"><span>Allergies:</span><span id="pr-allergies">_</span></div>
           <div class="print-row"><span>PMH:</span><span id="pr-pmh">_</span></div>
+          <div class="print-row" id="pr-past-surg-row" style="display:none;"><span>PSH:</span><span id="pr-past-surg">_</span></div>
           <div style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px; margin-bottom: 6px;">
             <span style="font-weight:bold; display:block; margin-bottom:2px;">At Home Meds:</span>
             <div id="pr-meds-list" style="font-size:0.9em; padding-left: 5px;"></div>
@@ -352,9 +365,20 @@
                 <span style="position:absolute;right:3px;top:18px;background:#fff;padding:0;line-height:1;" id="pr-lab-ptt">—</span>
               </div>
             </div>
+            <div class="print-row" id="pr-lab-a1c-row" style="display:none;"><span>A1C:</span><span id="pr-lab-a1c">_</span></div>
+            <div class="print-row" id="pr-lab-alb-row" style="display:none;"><span>Alb:</span><span id="pr-lab-alb">_</span></div>
+            <div class="print-row" id="pr-lab-ast-row" style="display:none;"><span>AST:</span><span id="pr-lab-ast">_</span></div>
+            <div class="print-row" id="pr-lab-alt-row" style="display:none;"><span>ALT:</span><span id="pr-lab-alt">_</span></div>
+            <div class="print-row" id="pr-lab-ica-row" style="display:none;"><span>iCa:</span><span id="pr-lab-ica">_</span></div>
+            <div class="print-row" id="pr-lab-ca-row" style="display:none;"><span>Ca:</span><span id="pr-lab-ca">_</span></div>
+            <div class="print-row" id="pr-gas-row" style="display:none;"><span id="pr-gas-label">Gas:</span><span id="pr-gas-values">_</span></div>
           </div>
           <div class="print-row" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;"><span>Procedure:</span><span id="pr-surgery">_</span></div>
+          <div class="print-row" id="pr-extra-surg-row" style="display:none;"><span>Additional:</span><span id="pr-extra-surg">_</span></div>
           <div class="print-row"><span>Positioning:</span><span id="pr-position">_</span></div>
+          <div class="print-row"><span>Insufflation:</span><span id="pr-insufflation">_</span></div>
+          <div class="print-row"><span>ASA Class:</span><span id="pr-asa-class">_</span></div>
+          <div class="print-row"><span>Nerve Stim:</span><span id="pr-nerve-stim">_</span></div>
           <div class="print-row" id="pr-row-awareness" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Awareness Hx</span></div>
           <div class="print-row" id="pr-row-famhx" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Fam Hx Anes Comp</span></div>
           <div class="print-row" id="pr-row-mh" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Malignant Hyperthermia</span></div>
@@ -366,9 +390,11 @@
             <div class="print-row" id="pr-abn-gap-row" style="display:none;"><span>Interincisor Gap:</span><span id="pr-abn-gap">_</span></div>
             <div class="print-row" id="pr-abn-mand-row" style="display:none;"><span>Mandibular:</span><span id="pr-abn-mand">_</span></div>
             <div class="print-row" id="pr-abn-atl-row" style="display:none;"><span>Atlanto-occipital:</span><span id="pr-abn-atl">_</span></div>
+            <div class="print-row" id="pr-dentition-row" style="display:none;"><span>Dentition:</span><span id="pr-dentition">_</span></div>
           </div>
         </div>
 
+        <div class="print-bottom-row">
         <div class="print-section">
           <h3>Anesthetic Plan</h3>
           <div class="print-row"><span>Type:</span><span id="pr-anes-type">_</span></div>
@@ -404,6 +430,7 @@
             <div class="print-row"><span>Target TV:</span><span id="pr-target-tv-plan">_</span></div>
           </div>
         </div>
+        </div>
       </div>
     </div>
     <div id="print-sheet">
@@ -427,7 +454,7 @@
 
     <div class="section"><h2>Patient Demographics</h2><iframe id="frame-1" src="1-Patient-Demographics.html" title="Section 1"></iframe></div>
     <div class="section"><h2>Past Medical History</h2><iframe id="frame-3" src="3-PMH.html" title="Section 3"></iframe></div>
-    <div class="section"><h2>Prescribed Medications</h2><iframe id="frame-4" src="4-Prescribed-Medications.html" title="Section 4"></iframe></div>
+    <div class="section"><h2>Home Meds</h2><iframe id="frame-4" src="4-Prescribed-Medications.html" title="Section 4"></iframe></div>
     <div class="section"><h2>Labs</h2><iframe id="frame-2" src="2-Labs-Chemistries.html" title="Section 2"></iframe></div>
     <div class="section"><h2>Preoperative History</h2><iframe id="frame-5" src="5-Preop-History.html" title="Section 5"></iframe></div>
     <div class="section"><h2>Airway Exam</h2><iframe id="frame-6" src="6-Airway-Exam.html" title="Section 6"></iframe></div>

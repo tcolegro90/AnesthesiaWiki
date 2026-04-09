@@ -43,13 +43,27 @@
       font-weight: 600;
     }
     .add-row-btn:hover { background: #dde8ff; }
+    .surgical-history-panel {
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px solid #d6e4f5;
+      border-left: 4px solid #4a6fa5;
+      border-radius: 6px;
+      background: #f7fbff;
+    }
+    .surgical-history-title {
+      font-weight: 700;
+      color: #1f3f66;
+      display: block;
+      margin-bottom: 6px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>3. Past Medical History</h1>
     <div class="nav">
-      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Medications</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Home Meds</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
     </div>
     <div class="card">
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px 12px;">
@@ -77,6 +91,13 @@
       <hr>
       <div id="pmh-list" class="pmh-list"></div>
       <button type="button" class="add-row-btn" onclick="addPmhRow()">+ Add more</button>
+    </div>
+
+    <div class="card">
+      <div class="surgical-history-panel">
+        <label class="surgical-history-title">Past Surgical History</label>
+        <textarea id="pmh-surgical-history" class="long" style="width:100%;min-height:110px;resize:vertical;" placeholder="List previous surgeries, dates if known..."></textarea>
+      </div>
     </div>
   </div>
   <script src="shared.js?v=19"></script>
@@ -136,10 +157,24 @@
       });
     }
 
+    function saveSurgicalHistory() {
+      var s = getGlobalState();
+      s['pmh-surgical-history'] = document.getElementById('pmh-surgical-history').value;
+      setGlobalState(s);
+    }
+    
+    function restoreSurgicalHistory() {
+      var s = getGlobalState();
+      document.getElementById('pmh-surgical-history').value = s['pmh-surgical-history'] || '';
+    }
+
     pageBoot(function() {
+      document.getElementById('pmh-surgical-history').addEventListener('input', saveSurgicalHistory);
       restorePmhRows();
+      restoreSurgicalHistory();
     }, function() {
       restorePmhRows();
+      restoreSurgicalHistory();
     });
   </script>
 </body>
