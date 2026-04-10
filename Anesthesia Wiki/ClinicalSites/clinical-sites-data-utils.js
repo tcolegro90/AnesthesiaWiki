@@ -435,8 +435,17 @@ function parseContactAction(value) {
 function buildRowContactHref(site, field, rowIndex, nameValue, phoneValue) {
     var lines = ['BEGIN:VCARD', 'VERSION:3.0'];
 
-    if (nameValue) {
-        lines.push('FN:' + sanitizeVcf(nameValue));
+    var titleLabel = field.label + (rowIndex > 0 ? ' ' + (rowIndex + 1) : '');
+    var displayName = (nameValue || '').trim();
+
+    if (displayName) {
+        lines.push('FN:' + sanitizeVcf(displayName));
+
+        // N: field required by iOS/Android for proper first/last name import
+        var parts = displayName.split(/\s+/);
+        var nFirst = parts[0].replace(/[;\n]/g, '');
+        var nLast  = (parts.length >= 2 ? parts.slice(1).join(' ') : '').replace(/[;\n]/g, '');
+        lines.push('N:' + nLast + ';' + nFirst + ';;;');
     }
 
     if (phoneValue) {
@@ -446,13 +455,16 @@ function buildRowContactHref(site, field, rowIndex, nameValue, phoneValue) {
             var url = /^https?:\/\//i.test(phoneValue) ? phoneValue : 'https://' + phoneValue;
             lines.push('URL:' + sanitizeVcf(url));
         } else {
-            lines.push('TEL;TYPE=WORK:' + sanitizeVcf(phoneValue));
+            // Use digits-only in vCard TEL line; TYPE=CELL shows as "mobile" on iOS/Android
+            var digits = phoneValue.replace(/\D/g, '');
+            lines.push('TEL;TYPE=CELL:' + digits);
         }
     }
 
-    var orgLabel = field.key === 'anesthesiologist' ? 'RRH MDA' : (field.label + ' - ' + site.label);
+    var orgLabel = field.key === 'anesthesiologist' ? 'RRH MDA'
+                 : field.key === 'preceptor'      ? 'RRH CRNA'
+                 : (field.label + ' - ' + site.label);
     lines.push('ORG:' + sanitizeVcf(orgLabel));
-    lines.push('TITLE:' + sanitizeVcf(field.label + (rowIndex > 0 ? ' ' + (rowIndex + 1) : '')));
     lines.push('END:VCARD');
     return 'data:text/vcard;charset=utf-8,' + encodeURIComponent(lines.join('\n'));
 }

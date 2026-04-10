@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Top Drawer Meds Quiz</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --ink: #16324a;
+      --muted: #5d7387;
+      --line: #d7e2ec;
+      --accent: #1567a2;
+      --ok: #18794e;
+      --bad: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .back {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.45rem;
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .progress {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .mode-switch {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      border: 1px solid #b8d2e8;
+      background: #f2f8fe;
+      color: #1f4c6b;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .mode-btn.active {
+      background: #1567a2;
+      color: #fff;
+      border-color: #1567a2;
+    }
+
+    .question {
+      margin-top: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .prompt {
+      margin-top: 8px;
+      font-size: 1.15rem;
+      color: #0f3857;
+    }
+
+    .choices {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #f8fbff;
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 0.98rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .choice:hover {
+      background: #e8f2fb;
+      border-color: #b8d2e8;
+    }
+
+    .choice[disabled] {
+      opacity: 0.75;
+      cursor: default;
+    }
+
+    .feedback {
+      margin-top: 14px;
+      font-weight: 800;
+      min-height: 1.2em;
+    }
+
+    .feedback.ok { color: var(--ok); }
+    .feedback.bad { color: var(--bad); }
+
+    .controls {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: #e9eef5;
+      color: var(--ink);
+    }
+
+    .score {
+      margin-top: 12px;
+      font-weight: 700;
+      color: #1f4c6b;
+    }
+
+    .note {
+      margin-top: 16px;
+      border-top: 1px dashed var(--line);
+      padding-top: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="TopDrawerMeds.html">&larr; Back to Top Drawer Meds</a>
+
+    <div class="card">
+      <h1>Top Drawer Meds Quiz</h1>
+      <p class="sub" id="modeHelp">Pick the correct concentration for each medication.</p>
+      <div class="mode-switch">
+        <button type="button" class="mode-btn active" id="modeMedToConc" onclick="setMode('med-to-conc')">Medication -> Concentration</button>
+        <button type="button" class="mode-btn" id="modeConcToMed" onclick="setMode('conc-to-med')">Concentration -> Medication</button>
+      </div>
+      <div class="progress" id="progress"></div>
+      <div class="question" id="questionLabel">Medication</div>
+      <div class="prompt" id="prompt"></div>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="controls">
+        <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none;">Next</button>
+        <button type="button" class="btn btn-ghost" onclick="restartQuiz()">Restart</button>
+      </div>
+      <div class="score" id="score"></div>
+      <p class="note">Reminder: add pending meds to this quiz after concentrations are provided.</p>
+    </div>
+  </div>
+
+  <script>
+    const cards = [
+      { med: 'Propofol', conc: '10 mg/1 mL' },
+      { med: 'Ephedrine', conc: '5 mg/mL' },
+      { med: 'Epinephrine', conc: '10 mcg/mL' },
+      { med: 'Phenylephrine', conc: '100 mcg/mL' },
+      { med: 'Sugammadex', conc: '100 mg/mL' },
+      { med: 'Dexamethasone', conc: '4 mg/mL' },
+      { med: 'Atropine', conc: '0.4 mg/mL vial or 0.1 mg/mL syringe' },
+      { med: 'Hydralazine', conc: '20 mg/mL vial, dilute to 2 mg/mL' },
+      { med: 'Furosemide', conc: '10 mg/mL' },
+      { med: 'Verapamil', conc: '2.5 mg/mL' },
+      { med: 'Glycopyrrolate', conc: '0.2 mg/mL' },
+      { med: 'Ondansetron', conc: '2 mg/mL' },
+      { med: 'Diphenhydramine', conc: '50 mg/mL' },
+      { med: 'Vasopressin', conc: '20 units/mL vial or 0.2 units/mL syringe' },
+      { med: 'Etomidate', conc: '2 mg/1 mL' },
+      { med: 'Lidocaine', conc: '10 mg/mL' },
+      { med: 'Neostigmine', conc: '1 mg/mL' },
+      { med: 'Metoprolol', conc: '1 mg/mL' },
+      { med: 'Esmolol', conc: '10 mg/mL' },
+      { med: 'Succinylcholine', conc: '20 mg/mL' },
+      { med: 'Rocuronium', conc: '10 mg/mL' },
+      { med: 'Pre-filled Calcium Chloride syringe', conc: '100 mg code dose' },
+      { med: 'Pre-filled Epinephrine syringe', conc: '1 mg code dose' },
+      { med: 'Pre-filled Lidocaine syringe', conc: '100 mg code dose' },
+      { med: 'Sodium Bicarbonate amp', conc: '50 mEq code dose' }
+    ];
+
+    let deck = [];
+    let idx = 0;
+    let score = 0;
+    let answered = false;
+    let currentMode = 'med-to-conc';
+    let currentAnswer = '';
+
+    function shuffle(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = temp;
+      }
+      return copy;
+    }
+
+    function buildChoices(correct, key) {
+      const uniquePool = Array.from(new Set(cards.map(function(c) { return c[key]; })));
+      const pool = uniquePool.filter(function(value) { return value !== correct; });
+      const wrong = shuffle(pool).slice(0, 3);
+      return shuffle([correct].concat(wrong));
+    }
+
+    function syncModeUI() {
+      document.getElementById('modeMedToConc').classList.toggle('active', currentMode === 'med-to-conc');
+      document.getElementById('modeConcToMed').classList.toggle('active', currentMode === 'conc-to-med');
+      document.getElementById('modeHelp').textContent = currentMode === 'med-to-conc'
+        ? 'Pick the correct concentration for each medication.'
+        : 'Pick the correct medication for each concentration.';
+    }
+
+    function renderQuestion() {
+      const card = deck[idx];
+      const prompt = document.getElementById('prompt');
+      const choices = document.getElementById('choices');
+      const feedback = document.getElementById('feedback');
+      const progress = document.getElementById('progress');
+      const scoreNode = document.getElementById('score');
+      const nextBtn = document.getElementById('nextBtn');
+
+      answered = false;
+      nextBtn.style.display = 'none';
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+      if (currentMode === 'med-to-conc') {
+        document.getElementById('questionLabel').textContent = 'Medication';
+        prompt.textContent = card.med;
+        currentAnswer = card.conc;
+      } else {
+        document.getElementById('questionLabel').textContent = 'Concentration';
+        prompt.textContent = card.conc;
+        currentAnswer = card.med;
+      }
+      progress.textContent = 'Question ' + (idx + 1) + ' of ' + deck.length;
+      scoreNode.textContent = 'Score: ' + score + ' / ' + deck.length;
+
+      const options = currentMode === 'med-to-conc'
+        ? buildChoices(card.conc, 'conc')
+        : buildChoices(card.med, 'med');
+      choices.innerHTML = options.map(function(option) {
+        return '<button type="button" class="choice" data-choice="' + encodeURIComponent(option) + '">' + option + '</button>';
+      }).join('');
+
+      choices.querySelectorAll('.choice').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          window.pickChoice(btn, decodeURIComponent(btn.getAttribute('data-choice')));
+        });
+      });
+    }
+
+    window.pickChoice = function(button, selected) {
+      if (answered) return;
+      answered = true;
+
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('nextBtn');
+      const scoreNode = document.getElementById('score');
+
+      const buttons = document.querySelectorAll('.choice');
+      buttons.forEach(function(btn) { btn.disabled = true; });
+
+      if (selected === currentAnswer) {
+        score += 1;
+        button.style.background = '#d9f3e4';
+        button.style.borderColor = '#89cba6';
+        feedback.textContent = 'Correct';
+        feedback.className = 'feedback ok';
+      } else {
+        button.style.background = '#fde3e3';
+        button.style.borderColor = '#e7a4a4';
+        feedback.textContent = 'Incorrect. Correct answer: ' + currentAnswer;
+        feedback.className = 'feedback bad';
+
+        buttons.forEach(function(btn) {
+          if (btn.textContent === currentAnswer) {
+            btn.style.background = '#d9f3e4';
+            btn.style.borderColor = '#89cba6';
+          }
+        });
+      }
+
+      scoreNode.textContent = 'Score: ' + score + ' / ' + deck.length;
+      nextBtn.style.display = 'inline-block';
+      if (idx === deck.length - 1) nextBtn.textContent = 'Finish';
+    };
+
+    window.nextQuestion = function() {
+      if (idx < deck.length - 1) {
+        idx += 1;
+        renderQuestion();
+      } else {
+        const prompt = document.getElementById('prompt');
+        const choices = document.getElementById('choices');
+        const feedback = document.getElementById('feedback');
+        const progress = document.getElementById('progress');
+        const nextBtn = document.getElementById('nextBtn');
+
+        progress.textContent = 'Complete';
+        prompt.textContent = 'Quiz finished';
+        choices.innerHTML = '';
+        feedback.textContent = 'Final score: ' + score + ' / ' + deck.length;
+        feedback.className = 'feedback ok';
+        nextBtn.style.display = 'none';
+      }
+    };
+
+    window.restartQuiz = function() {
+      deck = shuffle(cards);
+      idx = 0;
+      score = 0;
+      document.getElementById('nextBtn').textContent = 'Next';
+      syncModeUI();
+      renderQuestion();
+    };
+
+    window.setMode = function(mode) {
+      if (mode !== 'med-to-conc' && mode !== 'conc-to-med') return;
+      if (mode === currentMode) return;
+      currentMode = mode;
+      restartQuiz();
+    };
+
+    restartQuiz();
+  </script>
+</body>
+</html>

@@ -21,8 +21,8 @@ function renderActionCell(site, field, rowIndex, nameValue, phoneValue) {
     } else if (action.kind === 'web') {
         actions.push('<a class="row-action-btn small" href="' + escAttr(action.value) + '" target="_blank" rel="noreferrer">Open</a>');
     }
-    // Always allow adding contact if name or phone is present
-    if (name || phone) {
+    // Allow adding contact if name or phone is present, except for surgeons
+    if ((name || phone) && field.key !== 'surgeon') {
         actions.push('<a class="row-action-btn small" href="' + buildRowContactHref(site, field, rowIndex, name, phone) + '" download="' + fileSafe(site.label + '-' + field.label + (rowIndex > 0 ? '-' + (rowIndex + 1) : '')) + '.vcf">Add contact to phone</a>');
     }
     return actions.length ? '<div class="row-actions">' + actions.join('') + '</div>' : '';

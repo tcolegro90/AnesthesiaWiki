@@ -51,32 +51,6 @@
         .header-text h1 { margin: 0; font-size: 1.45rem; color: #fff; text-align: left; }
         .header-text p { margin: 3px 0 0; font-size: 0.82rem; color: #93adc8; text-align: left; }
 
-        /* Sticky section nav */
-        .section-nav {
-            background: #253040;
-            padding: 8px 12px;
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            flex-wrap: wrap;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        .section-nav a {
-            background: rgba(255,255,255,0.08);
-            color: #cdd9e8;
-            border: 1px solid rgba(255,255,255,0.12);
-            padding: 6px 13px;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.15s;
-        }
-        .section-nav a:hover { background: var(--teal); border-color: var(--teal); color: #fff; }
-
         .container { max-width: 860px; margin: 24px auto; padding: 0 16px; }
 
         /* Cards */
@@ -274,17 +248,10 @@
         <div class="header-icon">🫁</div>
         <div class="header-text">
             <h1>Airway Management</h1>
-            <p>ETT sizing, LMA selection, and video laryngoscopy indications</p>
+            <p>ETT and LMA sizing with practical airway decision support</p>
         </div>
     </div>
 </header>
-
-<nav class="section-nav">
-    <a href="#adult-ett" onclick="expandCard('adult-ett')">Adult ETT</a>
-    <a href="#peds-ett" onclick="expandCard('peds-ett')">Pediatric ETT</a>
-    <a href="#lma" onclick="expandCard('lma')">LMA Sizing</a>
-    <a href="#vl" onclick="expandCard('vl')">Video Laryngoscopy</a>
-</nav>
 
 <div class="container">
 
@@ -437,6 +404,100 @@
                     <div class="cl-desc">Nothing visible</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Airway Assessment -->
+    <div class="card" id="airway-assessment">
+        <div class="card-header" onclick="toggleCard('airway-assessment')"><span class="ch-icon">🧪</span> Airway Assessment Tools<span class="toggle-arrow">▼</span></div>
+        <div class="card-body">
+            <p>These bedside airway assessment tools help estimate difficulty with mask ventilation, laryngoscopy, and intubation. No single tool is definitive, so combine findings rather than relying on one data point.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>How to Assess</th>
+                        <th>What Raises Concern</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Mallampati</strong></td>
+                        <td>Patient seated, mouth fully open, tongue protruded without phonation; classify I-IV.</td>
+                        <td>Class III-IV suggests reduced direct line-of-sight to glottic structures.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Thyromental Distance</strong></td>
+                        <td>Measure from mentum to thyroid notch with neck extended.</td>
+                        <td>Short distance (commonly &lt; 6 cm or roughly &lt; 3 fingerbreadths) may predict difficult laryngoscopy.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Interincisor Distance</strong></td>
+                        <td>Measure maximal mouth opening between upper and lower incisors.</td>
+                        <td>Limited opening (often &lt; 3-4 cm) can restrict laryngoscope and tube passage.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mandibular Protrusion</strong></td>
+                        <td>Upper lip bite test (ability of lower incisors to bite upper lip).</td>
+                        <td>Poor mandibular advancement (worse ULBT class) correlates with harder laryngoscopic view.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Atlanto-occipital Mobility</strong></td>
+                        <td>Assess neck extension/flexion and ability to align oral-pharyngeal-laryngeal axes.</td>
+                        <td>Limited mobility can reduce glottic exposure and increase need for alternative devices.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dentition</strong></td>
+                        <td>Inspect loose teeth, dentures, veneers/crowns, and prominent incisors.</td>
+                        <td>Fragile/prosthetic teeth increase trauma risk and can complicate blade insertion and mask seal.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Chin Lift vs Jaw Thrust vs Larson -->
+    <div class="card" id="chin-jaw-larson">
+        <div class="card-header" onclick="toggleCard('chin-jaw-larson')"><span class="ch-icon">🫁</span> Chin Lift vs Jaw Thrust vs Larson Maneuver<span class="toggle-arrow">▼</span></div>
+        <div class="card-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Maneuver</th>
+                        <th>Primary Use</th>
+                        <th>Technique</th>
+                        <th>Cautions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Chin Lift</strong></td>
+                        <td>Open upper airway in reduced consciousness when tongue obstruction is likely.</td>
+                        <td>Head tilt with one hand, lift bony chin with fingertips to move tongue off posterior pharynx.</td>
+                        <td>Use caution if possible C-spine injury due to neck extension.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Jaw Thrust</strong></td>
+                        <td>Open airway with minimal cervical movement.</td>
+                        <td>Place fingers behind mandibular angles and displace jaw anteriorly while keeping head neutral.</td>
+                        <td>Can be painful in light anesthesia; optimize sedation/analgesia as needed.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Larson Maneuver</strong></td>
+                        <td>Adjunct to break laryngospasm.</td>
+                        <td>Firm bilateral pressure at laryngospasm notch while maintaining jaw thrust and tight mask seal.</td>
+                        <td>Do not delay escalation to deepening anesthesia and succinylcholine if unresolved.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="section-label">Suggested Escalation Flow for Suspected Laryngospasm</div>
+            <ul class="smaller-ett-list">
+                <li><span class="sei">1</span><div><strong>Remove trigger and call for help</strong> — stop stimulation and optimize position.</div></li>
+                <li><span class="sei">2</span><div><strong>100% O2 + CPAP + Larson manuever / jaw thrust</strong> — ensure a tight mask seal and apply Larson maneuver.</div></li>
+                <li><span class="sei">3</span><div><strong>Deepen anesthesia</strong> — if not rapidly improving.</div></li>
+                <li><span class="sei">4</span><div><strong>Paralyze/intubate early when needed</strong> — if persistent obstruction or desaturation.</div></li>
+            </ul>
         </div>
     </div>
 

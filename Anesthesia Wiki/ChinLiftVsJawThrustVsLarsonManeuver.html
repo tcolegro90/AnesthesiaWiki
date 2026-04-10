@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chin Lift vs Jaw Thrust vs Larson Maneuver</title>
+  <style>
+    :root {
+      --ink: #1f2a37;
+      --line: #dbe5f0;
+      --bg: #f3f7fb;
+      --blue: #114a8d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      padding-bottom: 40px;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 28px auto;
+      padding: 0 16px;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1a2c42 0%, #1f2a37 65%, #162238 100%);
+      border-radius: 12px;
+      padding: 20px 18px;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+    .hero p {
+      margin: 6px 0 0;
+      color: #d4e2f2;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: var(--blue);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #f0f6ff;
+      color: #355f93;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.74rem;
+      padding: 9px 10px;
+      text-align: left;
+    }
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #eef2f8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tr:last-child td { border-bottom: none; }
+    .k {
+      font-weight: 700;
+      color: #1a4d7c;
+    }
+    .steps {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+    .steps li { margin: 5px 0; }
+    .tip {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-left: 4px solid #7aa8d8;
+      background: #f8fbff;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    @media (max-width: 760px) {
+      table, thead, tbody, tr, th, td {
+        display: block;
+        width: 100%;
+      }
+      thead { display: none; }
+      tr {
+        border: 1px solid #dbe5f0;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+        background: #fff;
+      }
+      td {
+        border-bottom: 1px solid #eef2f8;
+      }
+      td:last-child { border-bottom: none; }
+      td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #6d86a5;
+        margin-bottom: 3px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
+<a href="AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+</div>
+
+  <div class="wrap">
+    <div class="hero">
+      <h1>Chin Lift vs Jaw Thrust vs Larson Maneuver</h1>
+      <p>Three core airway rescue maneuvers with distinct goals: opening a soft tissue-obstructed airway, minimizing cervical movement, and breaking laryngospasm.</p>
+    </div>
+
+    <div class="card">
+      <h2>Quick Comparison</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Maneuver</th>
+            <th>Primary Use</th>
+            <th>Key Technique</th>
+            <th>Avoid / Caution</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Maneuver" class="k">Chin Lift</td>
+            <td data-label="Primary Use">Basic airway opening in reduced consciousness with tongue-related obstruction.</td>
+            <td data-label="Key Technique">One hand on forehead to tilt, fingertips under bony chin to lift the mandible upward.</td>
+            <td data-label="Avoid / Caution">Use caution with known or suspected C-spine injury due to neck extension.</td>
+          </tr>
+          <tr>
+            <td data-label="Maneuver" class="k">Jaw Thrust</td>
+            <td data-label="Primary Use">Airway opening when cervical spine motion should be minimized.</td>
+            <td data-label="Key Technique">Place fingers behind mandibular angles and displace jaw anteriorly while keeping head neutral.</td>
+            <td data-label="Avoid / Caution">Can be painful in lightly sedated patients; consider additional anesthesia/analgesia if appropriate.</td>
+          </tr>
+          <tr>
+            <td data-label="Maneuver" class="k">Larson Maneuver</td>
+            <td data-label="Primary Use">Breaking laryngospasm (often with 100% O2, CPAP, and deepened anesthesia).</td>
+            <td data-label="Key Technique">Firm bilateral pressure at laryngospasm notch behind earlobe near mastoid while performing jaw thrust.</td>
+            <td data-label="Avoid / Caution">Do not delay definitive treatment: deepen anesthesia and give succinylcholine if persistent.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>When to Reach for Each</h2>
+      <ol class="steps">
+        <li><strong>Simple obstruction, no trauma concern:</strong> start with chin lift plus mask repositioning.</li>
+        <li><strong>Possible C-spine injury:</strong> prioritize jaw thrust with manual in-line stabilization.</li>
+        <li><strong>Suspected laryngospasm:</strong> apply Larson maneuver while giving 100% oxygen and CPAP.</li>
+        <li><strong>No rapid improvement:</strong> escalate early to pharmacologic treatment and advanced airway steps.</li>
+      </ol>
+      <div class="tip"><strong>Practical sequence for laryngospasm:</strong> remove stimulus, call for help, 100% O2 + tight seal + CPAP, jaw thrust/Larson, deepen anesthesia, then paralysis/intubation if unresolved.</div>
+    </div>
+
+    <div class="card">
+      <h2>Reference Notes</h2>
+      <ul class="steps">
+        <li>Larson maneuver is an adjunct, not a replacement for oxygenation and timely pharmacologic escalation.</li>
+        <li>In pediatrics, complete airway obstruction can desaturate rapidly; prioritize early coordinated intervention.</li>
+        <li>Use local institutional difficult airway and laryngospasm protocols as definitive guidance.</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

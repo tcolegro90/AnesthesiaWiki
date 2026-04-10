@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Top Drawer Meds</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --ink: #16324a;
+      --muted: #5d7387;
+      --line: #d7e2ec;
+      --accent: #1d6fa5;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .back {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      line-height: 1.2;
+    }
+
+    .sub {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+    }
+
+    .med-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .med-table th,
+    .med-table td {
+      text-align: left;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 0.95rem;
+    }
+
+    .med-table th {
+      background: #ecf3fb;
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #355369;
+    }
+
+    .med-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .pending-chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fff2d9;
+      color: #805a00;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .cta-wrap {
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      text-decoration: none;
+      background: #1567a2;
+      color: #fff;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 10px 16px;
+    }
+
+    .todo-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .note {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.94rem;
+      font-weight: 600;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.55;
+    }
+
+    li { margin: 2px 0; }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 760px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 1.35rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="back" href="AnesthesiaWiki.html">&larr; Back to Wiki</a>
+    </div>
+
+    <h1>Top Drawer Meds</h1>
+    <p class="sub">Quick reference for top drawer stock and pre-drawn syringes</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Drug Concentrations</h2>
+        <table class="med-table">
+          <thead>
+            <tr>
+              <th>Drug</th>
+              <th>Concentration</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Propofol</td><td>10 mg/1 mL</td></tr>
+            <tr><td>Ephedrine</td><td>5 mg/mL</td></tr>
+            <tr><td>Epinephrine</td><td>10 mcg/mL</td></tr>
+            <tr><td>Phenylephrine</td><td>100 mcg/mL</td></tr>
+            <tr><td>Sugammadex</td><td>100 mg/mL</td></tr>
+            <tr><td>Dexamethasone</td><td>4 mg/mL</td></tr>
+            <tr><td>Atropine</td><td>0.4 mg/mL vial or 0.1 mg/mL syringe</td></tr>
+            <tr><td>Hydralazine</td><td>20 mg/mL vial, dilute to 2 mg/mL</td></tr>
+            <tr><td>Furosemide</td><td>10 mg/mL</td></tr>
+            <tr><td>Verapamil</td><td>2.5 mg/mL</td></tr>
+            <tr><td>Glycopyrrolate</td><td>0.2 mg/mL</td></tr>
+            <tr><td>Ondansetron</td><td>2 mg/mL</td></tr>
+            <tr><td>Diphenhydramine</td><td>50 mg/mL</td></tr>
+            <tr><td>Vasopressin</td><td>20 units/mL vial or 0.2 units/mL syringe</td></tr>
+            <tr><td>Etomidate</td><td>2 mg/1 mL</td></tr>
+            <tr><td>Lidocaine</td><td>10 mg/mL</td></tr>
+            <tr><td>Neostigmine</td><td>1 mg/mL</td></tr>
+            <tr><td>Metoprolol</td><td>1 mg/mL</td></tr>
+            <tr><td>Esmolol</td><td>10 mg/mL</td></tr>
+            <tr><td>Succinylcholine</td><td>20 mg/mL</td></tr>
+            <tr><td>Rocuronium</td><td>10 mg/mL</td></tr>
+            <tr><td>Metoclopramide <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+            <tr><td>Ketorolac <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+            <tr><td>Naloxone <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+            <tr><td>Vecuronium <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+            <tr><td>Amiodarone <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+          </tbody>
+        </table>
+
+        <div class="cta-wrap">
+          <a class="cta-btn" href="TopDrawerMedsQuiz.html">Play Top Drawer Meds Quiz</a>
+        </div>
+        <p class="todo-note">Reminder: update quiz items after pending concentrations are added.</p>
+      </section>
+
+      <div style="display:grid; gap:14px; align-content:start;">
+        <section class="card">
+          <h2>Pre-drawn Syringes</h2>
+          <table class="med-table">
+            <thead>
+              <tr>
+                <th>Medication</th>
+                <th>Dose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Pre-filled Calcium Chloride syringe</td><td>100 mg code dose</td></tr>
+              <tr><td>Pre-filled Epinephrine syringe</td><td>1 mg code dose</td></tr>
+              <tr><td>Pre-filled Lidocaine syringe</td><td>100 mg code dose</td></tr>
+              <tr><td>Sodium Bicarbonate amp</td><td>50 mEq code dose</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

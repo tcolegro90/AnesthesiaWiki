@@ -35,6 +35,9 @@
       color: #5a6b82;
       margin-bottom: 20px;
     }
+    .page-title {
+      margin: 0;
+    }
     .card {
       background: #fff;
       border: 1px solid var(--line);
@@ -49,6 +52,41 @@
       letter-spacing: 0.05em;
       color: #355f93;
       margin: 0 0 12px;
+    }
+
+    /* Collapsible reference section */
+    .ref-details {
+      width: 100%;
+    }
+    .ref-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+      margin: 0;
+      padding: 0;
+    }
+    .ref-summary::-webkit-details-marker {
+      display: none;
+    }
+    .ref-summary .card-title {
+      margin: 0;
+    }
+    .ref-summary::after {
+      content: 'Show';
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #5a6b82;
+    }
+    .ref-details[open] .ref-summary::after {
+      content: 'Hide';
+    }
+    .ref-details .ref-table-wrap {
+      margin-top: 12px;
     }
 
     /* Weight row */
@@ -294,6 +332,20 @@
     .ref-table td:first-child { font-weight: 600; }
 
     @media (max-width: 700px) {
+      .wrap {
+        margin-top: 16px;
+      }
+      .page-title {
+        font-size: 14px;
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 10px;
+      }
+      .subtitle {
+        display: none;
+      }
       .ref-table thead {
         display: none;
       }
@@ -335,7 +387,7 @@
 <body>
 <a href="../AnesthesiaWiki.html" style="position:fixed;top:10px;left:10px;z-index:9999;background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">&#8592; Wiki Home</a>
   <div class="wrap">
-    <h1>Local Anesthetic Max Dose Calculator</h1>
+    <h1 class="page-title">Local Anesthetic Max Dose Calculator</h1>
     <div class="subtitle">Enter patient weight and add agents below. Doses update in real time.</div>
 
     <div class="card">
@@ -366,21 +418,25 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Max Dose Reference</div>
-      <div class="ref-table-wrap">
-      <table class="ref-table" id="ref-table">
-        <thead>
-          <tr>
-            <th>Drug</th>
-            <th>Without Epi</th>
-            <th>Max (no epi)</th>
-            <th>With Epi</th>
-            <th>Max (epi)</th>
-          </tr>
-        </thead>
-        <tbody id="ref-body"></tbody>
-      </table>
-      </div>
+      <details class="ref-details">
+        <summary class="ref-summary">
+          <div class="card-title">Max Dose Reference</div>
+        </summary>
+        <div class="ref-table-wrap">
+          <table class="ref-table" id="ref-table">
+            <thead>
+              <tr>
+                <th>Drug</th>
+                <th>Without Epi</th>
+                <th>Max (no epi)</th>
+                <th>With Epi</th>
+                <th>Max (epi)</th>
+              </tr>
+            </thead>
+            <tbody id="ref-body"></tbody>
+          </table>
+        </div>
+      </details>
     </div>
   </div>
 

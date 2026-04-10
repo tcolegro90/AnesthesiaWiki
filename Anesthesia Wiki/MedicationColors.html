@@ -90,14 +90,18 @@
     }
     @media (max-width: 600px) {
       body { padding-top: 0; }
-      h1 { font-size: 1.3rem; }
-      .top-nav { position: static; padding: 10px 12px 0; }
-      .top-nav-btn { flex: 1; min-height: 44px; font-size: 0.9rem; border-radius: 14px; }
-      .color-row { flex-direction: column; align-items: flex-start; gap: 8px; }
-      .swatch { width: 48px; height: 48px; }
-      .med-label { font-size: 1rem; min-width: 0; }
-      .color-list { margin-top: 16px; }
-      .quiz-cta-wrap a { display: block; padding: 16px 20px; font-size: 1rem; }
+      header { padding: 8px 10px 6px; }
+      h1 { font-size: 1rem; }
+      header p { display: none; }
+      .top-nav { position: static; padding: 6px 8px 0; gap: 6px; }
+      .top-nav-btn { flex: 1; min-height: 32px; font-size: 0.76rem; border-radius: 10px; padding: 6px 10px; }
+      .color-list { margin-top: 8px; gap: 8px; padding: 0 8px; }
+      .color-row { gap: 10px; border-radius: 10px; padding: 8px 10px; }
+      .swatch { width: 30px; height: 30px; border-radius: 7px; border-width: 1.5px; }
+      .med-label { font-size: 0.9rem; min-width: 0; }
+      .color-row span:last-child { display: none; }
+      .quiz-cta-wrap { margin: 14px 0 0 0 !important; }
+      .quiz-cta-wrap a { display: block; padding: 10px 14px; font-size: 0.9rem; border-radius: 10px; }
     }
   </style>
 </head>

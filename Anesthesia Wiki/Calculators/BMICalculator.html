@@ -18,6 +18,28 @@
         .field { margin-bottom:16px; }
         .field-row { display:flex; gap:10px; margin-bottom:16px; }
         .field-row .field { flex:1; margin-bottom:0; }
+        .units-group {
+            margin-bottom:14px;
+            padding:12px;
+            border:1px solid #dbe5f0;
+            border-radius:8px;
+            background:#f8fbff;
+        }
+        .measure-columns {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:12px;
+            margin-bottom:14px;
+        }
+        .measure-columns .units-group { margin-bottom:0; }
+        .units-title {
+            margin:0 0 10px;
+            font-size:0.8rem;
+            font-weight:700;
+            letter-spacing:0.03em;
+            color:#355f93;
+            text-transform:uppercase;
+        }
         label { display:block; font-size:0.85rem; font-weight:600; color:#355f93; margin-bottom:5px; }
         input, select {
             width:100%; padding:9px 12px; border:1px solid #c9d7e8; border-radius:7px;
@@ -38,6 +60,12 @@
         .bmi-bar-fill { height:100%; border-radius:6px; background:#1a7c50; transition:width 0.3s; }
         .bmi-labels { display:flex; justify-content:space-between; font-size:0.72rem; color:#7a8fa8; margin-top:4px; }
         .err { color:#b32424; }
+        @media (max-width:640px) {
+            .measure-columns { grid-template-columns:1fr 1fr; gap:8px; }
+            .field-row { gap:8px; }
+            label { font-size:0.8rem; }
+            input { padding:8px 10px; }
+        }
     </style>
 </head>
 <body>
@@ -48,27 +76,43 @@
 
 <header>
     <h1>⚖️ BMI Calculator</h1>
-    <p>Body Mass Index using US units</p>
+    <p>Body Mass Index using US or metric units</p>
 </header>
 
 <div class="container">
     <div class="card">
         <div class="card-header">BMI Calculator</div>
         <div class="card-body">
-            <div class="field-row">
-                <div class="field">
-                    <label for="bmi-feet">Feet</label>
-                    <input type="number" id="bmi-feet" min="1" max="8" inputmode="numeric" placeholder="e.g. 5">
+            <div class="measure-columns">
+                <div class="units-group">
+                    <p class="units-title">Height</p>
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="bmi-height-in">Height</label>
+                            <input type="number" id="bmi-height-in" min="1" inputmode="decimal" placeholder="inches">
+                        </div>
+                        <div class="field">
+                            <label for="bmi-height-cm">Height</label>
+                            <input type="number" id="bmi-height-cm" min="1" inputmode="decimal" placeholder="cm">
+                        </div>
+                    </div>
                 </div>
-                <div class="field">
-                    <label for="bmi-inches">Inches</label>
-                    <input type="number" id="bmi-inches" min="0" max="11" inputmode="numeric" placeholder="e.g. 10">
+
+                <div class="units-group">
+                    <p class="units-title">Weight</p>
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="bmi-weight-lb">Weight</label>
+                            <input type="number" id="bmi-weight-lb" min="1" inputmode="decimal" placeholder="lbs">
+                        </div>
+                        <div class="field">
+                            <label for="bmi-weight-kg">Weight</label>
+                            <input type="number" id="bmi-weight-kg" min="1" inputmode="decimal" placeholder="kg">
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="field">
-                <label for="bmi-weight">Weight (lbs)</label>
-                <input type="number" id="bmi-weight" min="1" inputmode="decimal" placeholder="e.g. 165">
-            </div>
+
             <button class="calc-btn" onclick="calculateBMI()">Calculate BMI</button>
             <div id="bmi-result" class="result"><em style="color:#8a9ab0;">Enter values above and calculate.</em></div>
             <div class="bmi-bar-wrap" id="bmi-bar-wrap" style="display:none;">
@@ -85,16 +129,33 @@
 
 <script>
 function calculateBMI() {
-    var feet = parseInt(document.getElementById('bmi-feet').value) || 0;
-    var inches = parseInt(document.getElementById('bmi-inches').value) || 0;
-    var weight = parseFloat(document.getElementById('bmi-weight').value) || 0;
-    if ((feet === 0 && inches === 0) || weight === 0) {
+    var heightIn = parseFloat(document.getElementById('bmi-height-in').value) || 0;
+    var heightCm = parseFloat(document.getElementById('bmi-height-cm').value) || 0;
+    var weightLb = parseFloat(document.getElementById('bmi-weight-lb').value) || 0;
+    var weightKg = parseFloat(document.getElementById('bmi-weight-kg').value) || 0;
+
+    var heightM = 0;
+    if (heightCm > 0) heightM = heightCm / 100;
+    else if (heightIn > 0) heightM = heightIn * 0.0254;
+
+    var weightKgFinal = 0;
+    if (weightKg > 0) weightKgFinal = weightKg;
+    else if (weightLb > 0) weightKgFinal = weightLb * 0.45359237;
+
+    if (heightM <= 0 || weightKgFinal <= 0) {
+        document.getElementById('bmi-result').innerHTML = "<span class='err'>Enter height in inches or cm, and weight in lbs or kg.</span>";
+        document.getElementById('bmi-bar-wrap').style.display = 'none';
+        return;
+    }
+
+    var bmi = weightKgFinal / (heightM * heightM);
+
+    if (bmi <= 0 || !isFinite(bmi)) {
         document.getElementById('bmi-result').innerHTML = "<span class='err'>Please enter a valid height and weight.</span>";
         document.getElementById('bmi-bar-wrap').style.display = 'none';
         return;
     }
-    var totalInches = (feet * 12) + inches;
-    var bmi = (weight / (totalInches * totalInches)) * 703;
+
     var rounded = bmi.toFixed(1);
     var category, color;
     if (bmi < 18.5)      { category = 'Underweight';           color = '#5b9bd5'; }
