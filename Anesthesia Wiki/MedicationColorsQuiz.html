@@ -87,6 +87,57 @@
     .quiz-next:hover {
       background: #7a3e1d;
     }
+    @media (max-width: 600px) {
+      body {
+        padding: 0;
+        min-height: 100svh;
+      }
+      header {
+        padding: 12px 12px 10px;
+      }
+      h1 {
+        font-size: 1.05rem;
+      }
+      header p {
+        margin: 4px 0 0;
+        font-size: 0.82rem;
+      }
+      .quiz-container {
+        margin: 12px auto 0 auto;
+        max-width: calc(100vw - 16px);
+        border-radius: 10px;
+        min-height: clamp(420px, 68svh, 620px);
+        padding: 18px 14px 16px 14px;
+        gap: 18px;
+        justify-content: center;
+      }
+      .quiz-swatch {
+        width: 82px;
+        height: 82px;
+        border-width: 2px;
+        border-radius: 11px;
+        margin-bottom: 6px;
+      }
+      .quiz-options {
+        gap: 10px;
+        margin-top: 4px;
+      }
+      .quiz-btn {
+        padding: 11px 0;
+        font-size: 0.95rem;
+        line-height: 1.1;
+        border-radius: 7px;
+      }
+      .quiz-feedback {
+        margin-top: 10px;
+        font-size: 0.94rem;
+      }
+      .quiz-next {
+        margin-top: 10px;
+        padding: 10px 18px;
+        font-size: 0.92rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -122,7 +173,12 @@
       const idx = Math.floor(Math.random() * quizData.length);
       const answer = quizData[idx];
       currentAnswer = answer.label;
-      const options = shuffle([...quizData.map(q => q.label)]);
+      const distractors = shuffle(
+        quizData
+          .map(q => q.label)
+          .filter(label => label !== answer.label)
+      ).slice(0, 3);
+      const options = shuffle([answer.label, ...distractors]);
       const container = document.getElementById('quiz-container');
       container.innerHTML = `
         <div class="quiz-swatch" style="background: ${answer.color}"></div>

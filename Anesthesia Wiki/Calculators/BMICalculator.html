@@ -61,7 +61,7 @@
         .bmi-labels { display:flex; justify-content:space-between; font-size:0.72rem; color:#7a8fa8; margin-top:4px; }
         .err { color:#b32424; }
         @media (max-width:640px) {
-            .measure-columns { grid-template-columns:1fr 1fr; gap:8px; }
+            .measure-columns { grid-template-columns:1fr; gap:10px; }
             .field-row { gap:8px; }
             label { font-size:0.8rem; }
             input { padding:8px 10px; }
@@ -70,8 +70,8 @@
 </head>
 <body>
 <div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
-<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
-<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+
+
 </div>
 
 <header>
@@ -128,6 +128,8 @@
 </div>
 
 <script>
+var bmiSyncLock = false;
+
 function calculateBMI() {
     var heightIn = parseFloat(document.getElementById('bmi-height-in').value) || 0;
     var heightCm = parseFloat(document.getElementById('bmi-height-cm').value) || 0;
@@ -174,7 +176,67 @@ function calculateBMI() {
     document.getElementById('bmi-bar-wrap').style.display = 'block';
 }
 
+function syncHeightFromInches() {
+    if (bmiSyncLock) return;
+    var inches = parseFloat(document.getElementById('bmi-height-in').value) || 0;
+    bmiSyncLock = true;
+    document.getElementById('bmi-height-cm').value = inches > 0 ? (inches * 2.54).toFixed(1) : '';
+    bmiSyncLock = false;
+}
+
+function syncHeightFromCm() {
+    if (bmiSyncLock) return;
+    var cm = parseFloat(document.getElementById('bmi-height-cm').value) || 0;
+    bmiSyncLock = true;
+    document.getElementById('bmi-height-in').value = cm > 0 ? (cm / 2.54).toFixed(1) : '';
+    bmiSyncLock = false;
+}
+
+function syncWeightFromLbs() {
+    if (bmiSyncLock) return;
+    var lbs = parseFloat(document.getElementById('bmi-weight-lb').value) || 0;
+    bmiSyncLock = true;
+    document.getElementById('bmi-weight-kg').value = lbs > 0 ? (lbs * 0.45359237).toFixed(1) : '';
+    bmiSyncLock = false;
+}
+
+function syncWeightFromKg() {
+    if (bmiSyncLock) return;
+    var kg = parseFloat(document.getElementById('bmi-weight-kg').value) || 0;
+    bmiSyncLock = true;
+    document.getElementById('bmi-weight-lb').value = kg > 0 ? (kg / 0.45359237).toFixed(1) : '';
+    bmiSyncLock = false;
+}
+
+function setupAutoSyncAndCalc() {
+    var heightIn = document.getElementById('bmi-height-in');
+    var heightCm = document.getElementById('bmi-height-cm');
+    var weightLb = document.getElementById('bmi-weight-lb');
+    var weightKg = document.getElementById('bmi-weight-kg');
+
+    heightIn.addEventListener('input', function() {
+        syncHeightFromInches();
+        calculateBMI();
+    });
+
+    heightCm.addEventListener('input', function() {
+        syncHeightFromCm();
+        calculateBMI();
+    });
+
+    weightLb.addEventListener('input', function() {
+        syncWeightFromLbs();
+        calculateBMI();
+    });
+
+    weightKg.addEventListener('input', function() {
+        syncWeightFromKg();
+        calculateBMI();
+    });
+}
+
 document.addEventListener('keydown', function(e) { if (e.key === 'Enter') calculateBMI(); });
+setupAutoSyncAndCalc();
 </script>
 </body>
 </html>

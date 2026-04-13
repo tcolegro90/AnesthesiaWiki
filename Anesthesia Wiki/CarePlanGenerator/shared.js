@@ -154,12 +154,8 @@ function pageBoot(extraInit, onExternalUpdate) {
       function sendHeightToParent() {
         var container = document.querySelector('.container') || document.body;
         
-        // Measure content-only height from the section container.
-        // Avoid body/html scrollHeight here because it can reflect iframe viewport
-        // height and prevent shrinking, which leaves a blank strip at the bottom.
-        var rect = container.getBoundingClientRect();
+        // Use container content metrics to avoid parent-child resize feedback loops.
         var height = Math.max(
-          Math.ceil(rect.height || 0),
           Math.ceil(container.scrollHeight || 0),
           Math.ceil(container.offsetHeight || 0)
         );
@@ -172,11 +168,12 @@ function pageBoot(extraInit, onExternalUpdate) {
             window.parent.postMessage({
               type: 'iframeHeight',
               sectionPath: sectionPath,
-              height: Math.ceil(height) + 4
+              height: Math.ceil(height)
             }, '*');
           }
         }
       }
+      window.__carePlanSendHeightToParent = sendHeightToParent;
       
       // Send initial height with increasing delays to catch all loading stages
       setTimeout(sendHeightToParent, 100);
@@ -208,7 +205,6 @@ function pageBoot(extraInit, onExternalUpdate) {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(sendHeightToParent, 100);
           });
-          resizeObs.observe(document.body);
           var container = document.querySelector('.container');
           if (container) resizeObs.observe(container);
         } catch (e) {}
@@ -238,6 +234,10 @@ function pageBoot(extraInit, onExternalUpdate) {
     if (e.data && e.data.type === 'refreshFromGlobalState') {
       restoreState();
       if (typeof onExternalUpdate === 'function') onExternalUpdate();
+    } else if (e.data && e.data.type === 'requestIframeHeight') {
+      if (typeof window.__carePlanSendHeightToParent === 'function') {
+        window.__carePlanSendHeightToParent();
+      }
     } else if (e.data && e.data.type === 'carePlanStateSnapshot' && e.data.state) {
       var rev = parseInt(e.data.revision || 0, 10) || 0;
       // Only apply strictly newer snapshots.

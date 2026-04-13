@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cephalosporins in Penicillin Allergy</title>
+  <style>
+    :root {
+      --bg: #f6fafc;
+      --panel: #ffffff;
+      --line: #d7e4ee;
+      --text: #1f2a37;
+      --muted: #5d7288;
+      --accent: #114a8d;
+      --accent-soft: #e9f1fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at 15% 0%, #ffffff 0%, var(--bg) 45%, #edf5fa 100%);
+      color: var(--text);
+      padding: 70px 16px 38px;
+    }
+
+    .top-nav {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 20;
+      display: flex;
+      gap: 8px;
+    }
+
+    .top-nav a,
+    .top-nav button {
+      border: none;
+      background: #1f2a37;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #f4f9ff 0%, #ffffff 72%);
+      border: 1px solid #cfe0f1;
+      border-left: 6px solid var(--accent);
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 10px 26px rgba(35, 67, 95, 0.08);
+    }
+
+    .hero h1 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1.45rem;
+      line-height: 1.35;
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 760px;
+      font-size: 0.92rem;
+    }
+
+    .section {
+      margin-top: 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(35, 67, 95, 0.05);
+    }
+
+    .section h2 {
+      margin: 0 0 12px;
+      font-size: 0.98rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #32577c;
+    }
+
+    .summary {
+      margin: 0;
+      line-height: 1.55;
+      color: #24384d;
+      font-size: 0.93rem;
+    }
+
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .action-btn {
+      border: 1px solid #abc5df;
+      background: #eef5fc;
+      color: #173f67;
+      text-decoration: none;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background: #e4effa;
+    }
+
+    .share-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .share-grid label {
+      font-size: 0.82rem;
+      color: #385979;
+      font-weight: 600;
+    }
+
+    .share-grid input {
+      width: 100%;
+      border: 1px solid #c5d8ea;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      color: #1f2a37;
+      background: #fff;
+    }
+
+    .links {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #d9e7f3;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.83rem;
+    }
+
+    .links a {
+      color: #0d4e8f;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+
+    .disclaimer {
+      margin-top: 10px;
+      color: #5e7388;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 700px) {
+      body { padding-top: 16px; }
+      .top-nav { display: none; }
+      .hero { padding: 14px; }
+      .hero h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav">
+    <button type="button" onclick="window.history.back()">&larr; Back</button>
+    <a href="../Studies.html">Studies</a>
+    <a href="../AnesthesiaWiki.html">Wiki Home</a>
+  </div>
+
+  <div class="page">
+    <section class="hero">
+      <h1>Safely using cephalosporins in almost all patients with penicillin allergies</h1>
+      <p>Gynecologic Oncology Reports, Volume 53 (2024), Article 101389</p>
+    </section>
+
+    <section class="section">
+      <h2>Brief Summary</h2>
+      <p class="summary">This mini-review supports protocol-based cefazolin use in most patients who report penicillin allergy. The paper highlights that many penicillin-allergy labels do not represent true high-risk cross-reactivity with cefazolin, and that using cefazolin when appropriate may improve antimicrobial stewardship, lower surgical site infection risk, avoid kidney injury seen with some alternatives, and reduce cost.</p>
+
+      <div class="actions">
+        <a class="action-btn" href="https://www.sciencedirect.com/science/article/pii/S2352578924000687" target="_blank" rel="noopener noreferrer">Open Article</a>
+        <button type="button" class="action-btn" onclick="emailArticle()">Email Article</button>
+        <button type="button" class="action-btn" onclick="textArticle()">Text Link</button>
+      </div>
+
+      <div class="share-grid">
+        <label for="share-email">Email recipient</label>
+        <input id="share-email" type="email" placeholder="name@example.com" />
+        <label for="share-phone">Phone recipient</label>
+        <input id="share-phone" type="tel" placeholder="5551234567" />
+      </div>
+
+      <div class="links">
+        <a href="https://www.sciencedirect.com/science/article/pii/S2352578924000687" target="_blank" rel="noopener noreferrer">ScienceDirect Link</a>
+        <a href="https://doi.org/10.1016/j.gore.2024.101389" target="_blank" rel="noopener noreferrer">DOI: 10.1016/j.gore.2024.101389</a>
+      </div>
+
+      <p class="disclaimer">Tip: The email and text buttons open your default app with a prefilled draft. Sending/attachment automation can be added later through Firebase Cloud Functions.</p>
+    </section>
+  </div>
+
+  <script>
+    function buildShareBody() {
+      return [
+        'Thought this article might be useful:',
+        '',
+        'Quality corner: Safely using cephalosporins in almost all patients with penicillin allergies: Mini-review and suggested protocol to improve efficacy and surgical outcomes',
+        '',
+        'Brief summary: Protocol-based cefazolin use in most patients with reported penicillin allergy can improve stewardship, lower SSI risk, and reduce use of less optimal alternatives.',
+        '',
+        'ScienceDirect: https://www.sciencedirect.com/science/article/pii/S2352578924000687',
+        'DOI: https://doi.org/10.1016/j.gore.2024.101389'
+      ].join('\n');
+    }
+
+    function emailArticle() {
+      var recipient = document.getElementById('share-email').value.trim();
+      var subject = 'Study Share: Cephalosporins in patients with penicillin allergy';
+      window.location.href = 'mailto:' + encodeURIComponent(recipient) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(buildShareBody());
+    }
+
+    function textArticle() {
+      var recipient = document.getElementById('share-phone').value.trim();
+      var message = 'Study share: Safely using cephalosporins in almost all patients with penicillin allergies. https://www.sciencedirect.com/science/article/pii/S2352578924000687';
+      window.location.href = 'sms:' + encodeURIComponent(recipient) + '&body=' + encodeURIComponent(message);
+    }
+  </script>
+</body>
+</html>

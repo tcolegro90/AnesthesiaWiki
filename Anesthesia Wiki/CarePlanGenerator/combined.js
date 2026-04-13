@@ -9,8 +9,32 @@
     }
 
     function fitAll() {
-      // With CORS restrictions, we rely on iframes sending their heights via postMessage
-      // No action needed here - iframes push their heights to us
+      // Ask each iframe to send its latest measured height immediately.
+      document.querySelectorAll('iframe').forEach(function(frame) {
+        try {
+          if (frame.contentWindow && typeof frame.contentWindow.postMessage === 'function') {
+            frame.contentWindow.postMessage({ type: 'requestIframeHeight' }, '*');
+          }
+        } catch (e) {}
+      });
+    }
+
+    function findFrameBySectionPath(sectionPath) {
+      if (!sectionPath) return null;
+      var frames = document.querySelectorAll('iframe');
+      for (var i = 0; i < frames.length; i++) {
+        var src = String(frames[i].getAttribute('src') || '');
+        var base = src.split('?')[0].split('#')[0].split('/').pop();
+        if (base === sectionPath) return frames[i];
+      }
+      return null;
+    }
+
+    function enforceIframeNoScrollDefaults() {
+      document.querySelectorAll('iframe').forEach(function(frame) {
+        frame.setAttribute('scrolling', 'no');
+        frame.style.overflow = 'hidden';
+      });
     }
 
     // Listen for height updates from iframes via postMessage
@@ -21,13 +45,13 @@
         var height = e.data.height;
         var frame = null;
         if (sectionPath) {
-          frame = document.querySelector('iframe[src$="' + sectionPath + '"]');
+          frame = findFrameBySectionPath(sectionPath);
         }
         if (!frame && frameId) {
           frame = document.getElementById(frameId);
         }
         if (frame && height) {
-          frame.style.height = Math.max(120, parseInt(height, 10) || 0) + 'px';
+          frame.style.height = Math.max(120, (parseInt(height, 10) || 0)) + 'px';
         }
       } else if (e.data && e.data.type === 'carePlanState' && e.data.state) {
         // During load/reload, ignore stale state pushes from pre-reload iframes.
@@ -922,37 +946,6 @@
       slot.innerHTML = '<div class="print-card">' + sourceCard.innerHTML + '</div>';
     }
 
-    function printSavedPlansBatch() {
-      var plans = getSavedPlans();
-      var names = Object.keys(plans).sort();
-      if (!names.length) {
-        alert('No saved plans found.');
-        return;
-      }
-
-      var defaults = names.slice(0, Math.min(2, names.length));
-      showSavedPlanPicker(names, defaults).then(function(selected) {
-        if (!selected || !selected.length) return;
-
-        var states = selected.slice(0, 4).map(function(name) {
-          var entry = plans[name] || {};
-          return entry.state ? JSON.parse(JSON.stringify(entry.state)) : null;
-        });
-
-        // Fixed numbering map:
-        // 1 top-left, 2 bottom-left (upside down), 3 top-right, 4 bottom-right (upside down)
-        var slotOrder = ['sheet-slot-1', 'sheet-slot-2', 'sheet-slot-3', 'sheet-slot-4'];
-        for (var i = 0; i < slotOrder.length; i++) {
-          renderCardIntoSlot(slotOrder[i], states[i] || null);
-        }
-
-        setPrintMode('sheet');
-        document.getElementById('main-content').style.display = 'none';
-        document.getElementById('preview-screen').style.display = 'flex';
-        setTimeout(function() { printIsolated('sheet'); }, 320);
-      });
-    }
-
     // Iframes measure themselves and send heights via postMessage
     // No polling or parent-to-iframe communication needed
     // Parent only listens for messages from iframes
@@ -988,15 +981,22 @@
       }, 50);
     }
 
-    function getSavedPlans() {
+    function setStorageStatus(message, tone) {
+      var el = document.getElementById('storage-status');
+      if (!el) return;
+      el.textContent = message;
+      el.setAttribute('data-tone', tone || 'warn');
+    }
+
+    function getLocalSavedPlans() {
       try { return JSON.parse(localStorage.getItem('carePlanSavedPlans') || '{}') || {}; }
       catch (e) { return {}; }
     }
 
     var MAX_SAVED_PLANS = 20;
 
-    function getSavedPlanNamesSorted() {
-      var plans = getSavedPlans();
+    function getSavedPlanNamesSorted(plans) {
+      plans = plans || {};
       return Object.keys(plans).sort(function(a, b) {
         var ta = (plans[a] && plans[a].savedAt) ? new Date(plans[a].savedAt).getTime() : 0;
         var tb = (plans[b] && plans[b].savedAt) ? new Date(plans[b].savedAt).getTime() : 0;
@@ -1004,8 +1004,40 @@
       });
     }
 
-    function setSavedPlans(plans) {
+    function setLocalSavedPlans(plans) {
       localStorage.setItem('carePlanSavedPlans', JSON.stringify(plans || {}));
+    }
+
+    async function shouldUseCloudPlans() {
+      if (!window.carePlanCloudStorage || !window.carePlanCloudStorage.isEnabled()) {
+        setStorageStatus('Plans you create and save will ONLY be available on this specific device', 'warn');
+        return false;
+      }
+
+      try {
+        var ready = await window.carePlanCloudStorage.ensureReady();
+        var status = window.carePlanCloudStorage.getStatus();
+        setStorageStatus(status.message, status.tone);
+        return !!ready;
+      } catch (error) {
+        setStorageStatus('Cloud sync is unavailable right now. ' + (error.message || String(error)), 'warn');
+        return false;
+      }
+    }
+
+    async function getSavedPlans() {
+      if (!(await shouldUseCloudPlans())) {
+        return getLocalSavedPlans();
+      }
+
+      try {
+        var plans = await window.carePlanCloudStorage.listPlans();
+        setLocalSavedPlans(plans);
+        return plans;
+      } catch (error) {
+        setStorageStatus('Cloud sync is unavailable right now. Falling back to this browser only. ' + (error.message || String(error)), 'warn');
+        return getLocalSavedPlans();
+      }
     }
 
     function syncFramesFromState() {
@@ -1018,7 +1050,7 @@
       });
     }
 
-    function saveNamedPlan() {
+    async function saveNamedPlan() {
       // Iframes auto-save via their own event listeners
       // No need to actively call saveState (causes CORS errors)
 
@@ -1034,23 +1066,45 @@
       name = name.trim();
       if (!name) return;
 
-      var plans = getSavedPlans();
+      var cloudEnabled = await shouldUseCloudPlans();
+      var plans = getLocalSavedPlans();
+      if (cloudEnabled) {
+        try {
+          plans = await window.carePlanCloudStorage.listPlans();
+        } catch (error) {
+          setStorageStatus('Cloud sync is unavailable right now. Saving in this browser only. ' + (error.message || String(error)), 'warn');
+          cloudEnabled = false;
+        }
+      }
       var isOverwrite = !!plans[name];
       if (!isOverwrite && Object.keys(plans).length >= MAX_SAVED_PLANS) {
         alert('You can save up to ' + MAX_SAVED_PLANS + ' plans. Delete one or overwrite an existing name.');
         return;
       }
-      plans[name] = {
+      var entry = {
         savedAt: new Date().toISOString(),
         state: s
       };
-      setSavedPlans(plans);
+
+      plans[name] = entry;
+
+      if (cloudEnabled) {
+        try {
+          await window.carePlanCloudStorage.savePlan(name, s);
+          setStorageStatus('Firebase cloud sync is on. Save Plan stores named plans online; unsaved typing still stays local.', 'ok');
+        } catch (error) {
+          setStorageStatus('Cloud save failed. Saving in this browser only. ' + (error.message || String(error)), 'warn');
+          cloudEnabled = false;
+        }
+      }
+
+      setLocalSavedPlans(plans);
       alert('Saved plan: ' + name);
     }
 
-    function loadNamedPlan() {
-      var plans = getSavedPlans();
-      var names = getSavedPlanNamesSorted();
+    async function loadNamedPlan() {
+      var plans = await getSavedPlans();
+      var names = getSavedPlanNamesSorted(plans);
       if (!names.length) {
         alert('No saved plans found.');
         return;
@@ -1083,9 +1137,9 @@
       alert('Loaded plan: ' + selected);
     }
 
-    function deleteNamedPlan() {
-      var plans = getSavedPlans();
-      var names = getSavedPlanNamesSorted();
+    async function deleteNamedPlan() {
+      var plans = await getSavedPlans();
+      var names = getSavedPlanNamesSorted(plans);
       if (!names.length) {
         alert('No saved plans found.');
         return;
@@ -1108,7 +1162,58 @@
       }
 
       if (!confirm('Delete saved plan: ' + selected + '?')) return;
+
+      var cloudEnabled = await shouldUseCloudPlans();
+      if (cloudEnabled) {
+        try {
+          await window.carePlanCloudStorage.deletePlan(selected);
+          setStorageStatus('Firebase cloud sync is on. Save Plan stores named plans online; unsaved typing still stays local.', 'ok');
+        } catch (error) {
+          setStorageStatus('Cloud delete failed. Removing local copy only. ' + (error.message || String(error)), 'warn');
+        }
+      }
+
       delete plans[selected];
-      setSavedPlans(plans);
+      setLocalSavedPlans(plans);
       alert('Deleted plan: ' + selected);
     }
+
+    async function printSavedPlansBatch() {
+      var plans = await getSavedPlans();
+      var names = Object.keys(plans).sort();
+      if (!names.length) {
+        alert('No saved plans found.');
+        return;
+      }
+
+      var defaults = names.slice(0, Math.min(2, names.length));
+      showSavedPlanPicker(names, defaults).then(function(selected) {
+        if (!selected || !selected.length) return;
+
+        var states = selected.slice(0, 4).map(function(name) {
+          var entry = plans[name] || {};
+          return entry.state ? JSON.parse(JSON.stringify(entry.state)) : null;
+        });
+
+        var slotOrder = ['sheet-slot-1', 'sheet-slot-2', 'sheet-slot-3', 'sheet-slot-4'];
+        for (var i = 0; i < slotOrder.length; i++) {
+          renderCardIntoSlot(slotOrder[i], states[i] || null);
+        }
+
+        setPrintMode('sheet');
+        document.getElementById('main-content').style.display = 'none';
+        document.getElementById('preview-screen').style.display = 'flex';
+        setTimeout(function() { printIsolated('sheet'); }, 320);
+      });
+    }
+
+    (function initStorageMode() {
+      enforceIframeNoScrollDefaults();
+
+      if (!window.carePlanCloudStorage) {
+        setStorageStatus('Plans you create and save will ONLY be available on this specific device', 'warn');
+        return;
+      }
+
+      shouldUseCloudPlans();
+    })();

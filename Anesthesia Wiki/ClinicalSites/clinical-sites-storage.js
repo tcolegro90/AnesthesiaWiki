@@ -17,6 +17,30 @@ function splitDataBySite(dataObj) {
     return buckets;
 }
 
+var clinicalSitesCloudUnsubscribe = null;
+var clinicalSitesLastCloudSavedAt = '';
+var clinicalSitesApplyingCloudUpdate = false;
+var clinicalSitesStatusTimer = null;
+
+function buildSyncPayload(savedAtIso) {
+    return {
+        version: 1,
+        savedAt: savedAtIso || new Date().toISOString(),
+        appData: appData || {}
+    };
+}
+
+function rememberCloudSavedAt(payload) {
+    clinicalSitesLastCloudSavedAt = String((payload && payload.savedAt) || '');
+}
+
+function isNewerCloudPayload(payload) {
+    var incoming = String((payload && payload.savedAt) || '');
+    if (!incoming) return true;
+    if (!clinicalSitesLastCloudSavedAt) return true;
+    return incoming > clinicalSitesLastCloudSavedAt;
+}
+
 function persistSiteData() {
     var buckets = splitDataBySite(appData);
     SITES.forEach(function(site) {
@@ -76,21 +100,68 @@ function loadData() {
     }
 }
 
-function saveAll() {
+async function saveAll() {
     persistSiteData();
+
+    var savedAt = new Date().toISOString();
+    var localStamp = new Date(savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if (clinicalSitesApplyingCloudUpdate) {
+        setStatusMessage('Saved locally ' + localStamp);
+        return;
+    }
+
+    if (!window.clinicalSitesCloud) {
+        setStatusMessage('Saved locally ' + localStamp + ' (cloud sync script not loaded)', { sticky: true });
+        return;
+    }
+
+    if (!window.clinicalSitesCloud.isEnabled()) {
+        var disabledStatus = window.clinicalSitesCloud.getStatus();
+        setStatusMessage('Saved locally ' + localStamp + ' (' + disabledStatus.message + ')', { sticky: true });
+        return;
+    }
+
+    try {
+        var ready = await window.clinicalSitesCloud.ensureReady();
+        if (!ready) {
+            setStatusMessage('Saved locally ' + localStamp + ' (cloud unavailable)');
+            return;
+        }
+
+        var payload = buildSyncPayload(savedAt);
+        await window.clinicalSitesCloud.saveSharedData(payload);
+        rememberCloudSavedAt(payload);
+        setStatusMessage('Saved locally + cloud ' + localStamp);
+    } catch (e) {
+        setStatusMessage('Saved locally ' + localStamp + ' (cloud sync failed)');
+    }
+}
+
+function setStatusMessage(text, options) {
     var status = document.getElementById('save-status');
-    status.textContent = 'Saved ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setTimeout(function() {
+    if (!status) return;
+    var sticky = !!(options && options.sticky);
+    if (clinicalSitesStatusTimer) {
+        clearTimeout(clinicalSitesStatusTimer);
+        clinicalSitesStatusTimer = null;
+    }
+    status.textContent = text;
+    if (sticky) return;
+    clinicalSitesStatusTimer = setTimeout(function() {
         status.textContent = '';
+        clinicalSitesStatusTimer = null;
     }, 3000);
 }
 
-function setStatusMessage(text) {
+function setPendingChangesMessage() {
     var status = document.getElementById('save-status');
-    status.textContent = text;
-    setTimeout(function() {
-        status.textContent = '';
-    }, 3000);
+    if (!status) return;
+    if (clinicalSitesStatusTimer) {
+        clearTimeout(clinicalSitesStatusTimer);
+        clinicalSitesStatusTimer = null;
+    }
+    status.textContent = 'Unsaved changes';
 }
 
 function applyImportedPayload(parsed) {
@@ -99,21 +170,81 @@ function applyImportedPayload(parsed) {
     }
 
     appData = parsed.appData || {};
-    favoriteSiteId = parsed.favoriteSiteId || '';
     persistSiteData();
-    localStorage.setItem(FAVORITE_KEY, favoriteSiteId);
     expandedState = {};
     if (favoriteSiteId) expandedState[favoriteSiteId] = true;
     buildUI();
 }
 
+function applyCloudPayload(parsed) {
+    if (!parsed || typeof parsed !== 'object' || typeof parsed.appData !== 'object') {
+        return false;
+    }
+
+    if (!isNewerCloudPayload(parsed)) {
+        return false;
+    }
+
+    clinicalSitesApplyingCloudUpdate = true;
+    applyImportedPayload(parsed);
+    clinicalSitesApplyingCloudUpdate = false;
+    rememberCloudSavedAt(parsed);
+    return true;
+}
+
+async function initClinicalSitesCloudSync(options) {
+    var presetsChanged = !!(options && options.presetsChanged);
+
+    if (!window.clinicalSitesCloud) {
+        setStatusMessage('Cloud sync script not loaded; using local data only', { sticky: true });
+        if (presetsChanged) saveAll();
+        return;
+    }
+
+    if (!window.clinicalSitesCloud.isEnabled()) {
+        setStatusMessage(window.clinicalSitesCloud.getStatus().message, { sticky: true });
+        if (presetsChanged) saveAll();
+        return;
+    }
+
+    try {
+        var ready = await window.clinicalSitesCloud.ensureReady();
+        var status = window.clinicalSitesCloud.getStatus();
+        setStatusMessage(status.message, { sticky: !ready });
+
+        if (!ready) {
+            if (presetsChanged) saveAll();
+            return;
+        }
+
+        var cloudPayload = await window.clinicalSitesCloud.loadSharedData();
+        if (cloudPayload && applyCloudPayload(cloudPayload)) {
+            setStatusMessage('Loaded shared Clinical Sites data from cloud');
+        } else if (presetsChanged) {
+            await saveAll();
+        }
+
+        if (typeof mergePresetContacts === 'function' && mergePresetContacts()) {
+            await saveAll();
+        }
+
+        if (!clinicalSitesCloudUnsubscribe) {
+            clinicalSitesCloudUnsubscribe = await window.clinicalSitesCloud.subscribeSharedData(function(payload) {
+                if (applyCloudPayload(payload)) {
+                    setStatusMessage('Cloud update received');
+                }
+            });
+        }
+    } catch (e) {
+        var initDetails = (e && e.message) ? e.message : 'using local data only';
+        setStatusMessage('Cloud sync unavailable; ' + initDetails, { sticky: true });
+        if (presetsChanged) saveAll();
+    }
+}
+
 function exportClinicalSites() {
-    var payload = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        appData: appData,
-        favoriteSiteId: favoriteSiteId
-    };
+    var payload = buildSyncPayload();
+    payload.exportedAt = new Date().toISOString();
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');

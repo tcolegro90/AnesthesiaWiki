@@ -14,12 +14,21 @@
         label { cursor: pointer; }
         .note { font-size: 0.85em; color: #7f8c8d; display: block; margin-top: 2px; }
         footer { margin-top: 30px; text-align: center; font-style: italic; color: #95a5a6; }
+        @media (max-width: 700px) {
+            .top-nav {
+                display: none;
+            }
+            body {
+                margin: 0;
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
-<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
-<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
-<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+<div class="top-nav" style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+
+
 </div>
 
     <h1>PACU Handoff Checklist</h1>

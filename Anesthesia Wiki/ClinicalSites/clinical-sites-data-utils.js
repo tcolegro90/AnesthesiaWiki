@@ -4,7 +4,47 @@ function normalizeAnesthesiologistName(name) {
     return String(name || '').replace(/,\s*(MD|DO)\s*$/i, '').trim();
 }
 
-function normalizePresetPerson(fieldKey, person) {
+function normalizeCrnaName(name) {
+    var normalized = String(name || '').trim();
+    var key = normalized.toLowerCase();
+    if (key === 'marilyn alleman' || key === 'marlyin alleman' || key === 'marlyn "nikki" alleman' || key === 'nikki alleman') {
+        return 'Marilyn "Nikki" Alleman';
+    }
+    return normalized;
+}
+
+function isRrhSite(siteId) {
+    return siteId === 'rgh' || siteId === 'unity';
+}
+
+function getRoleLabelForField(fieldKey) {
+    if (fieldKey === 'preceptor') return 'CRNA';
+    if (fieldKey === 'anesthesiologist') return 'MDA';
+    if (fieldKey === 'surgeon') return 'Surgeon';
+    return '';
+}
+
+function getSiteCompanyPrefix(siteId) {
+    var site = (typeof SITES !== 'undefined' && Array.isArray(SITES))
+        ? SITES.find(function(s) { return s.id === siteId; })
+        : null;
+    var label = String((site && site.label) || siteId || '').trim();
+    if (!label) return '';
+    return label.split(' - ')[0].trim();
+}
+
+function getExpectedCompanyLabel(siteId, fieldKey) {
+    var role = getRoleLabelForField(fieldKey);
+    if (!role) return '';
+    if (isRrhSite(siteId)) {
+        if (fieldKey === 'anesthesiologist') return 'RRH MDA';
+        return '';
+    }
+    var prefix = getSiteCompanyPrefix(siteId);
+    return prefix ? (prefix + ' ' + role) : role;
+}
+
+function normalizePresetPerson(siteId, fieldKey, person) {
     var normalized = {
         name: person && person.name ? String(person.name) : '',
         cell: person && person.cell ? String(person.cell) : '',
@@ -14,7 +54,15 @@ function normalizePresetPerson(fieldKey, person) {
 
     if (fieldKey === 'anesthesiologist') {
         normalized.name = normalizeAnesthesiologistName(normalized.name);
-        normalized.company = 'RRH MDA';
+    } else if (fieldKey === 'preceptor') {
+        normalized.name = normalizeCrnaName(normalized.name);
+    }
+
+    var expectedCompany = getExpectedCompanyLabel(siteId, fieldKey);
+    if (!isRrhSite(siteId) && expectedCompany) {
+        normalized.company = expectedCompany;
+    } else if (!normalized.company && expectedCompany) {
+        normalized.company = expectedCompany;
     }
 
     return normalized;
@@ -42,6 +90,82 @@ function normalizeExistingAnesthesiologists() {
     return changed;
 }
 
+function normalizeExistingCrnaAliases() {
+    var changed = false;
+    ['rgh', 'unity'].forEach(function(siteId) {
+        var count = parseInt(appData[countId(siteId, 'preceptor')], 10) || 0;
+        for (var i = 0; i < count; i++) {
+            var nameKey = fieldId(siteId, 'preceptor', 'name', i);
+            var nextName = normalizeCrnaName(appData[nameKey]);
+            if (appData[nameKey] !== nextName) {
+                appData[nameKey] = nextName;
+                changed = true;
+            }
+        }
+    });
+    return changed;
+}
+
+function migrateNikkiAllemanPreferences() {
+    var changed = false;
+    ['rgh', 'unity'].forEach(function(siteId) {
+        var count = parseInt(appData[countId(siteId, 'preceptor')], 10) || 0;
+        var preferredIndex = -1;
+        var legacyIndex = -1;
+
+        for (var i = 0; i < count; i++) {
+            var nameKey = fieldId(siteId, 'preceptor', 'name', i);
+            var rawName = String(appData[nameKey] || '').trim().toLowerCase();
+            if (rawName === 'marilyn "nikki" alleman') preferredIndex = i;
+            if (rawName === 'marlyn "nikki" alleman' || rawName === 'nikki alleman') legacyIndex = i;
+        }
+
+        if (legacyIndex === -1) return;
+
+        var legacyPref = typeof getPersonPreferencesValue === 'function'
+            ? String(getPersonPreferencesValue(siteId, 'preceptor', legacyIndex) || '')
+            : String(appData[fieldId(siteId, 'preferences', 'memo', legacyIndex)] || '');
+
+        if (preferredIndex !== -1 && legacyPref) {
+            var existingPref = typeof getPersonPreferencesValue === 'function'
+                ? String(getPersonPreferencesValue(siteId, 'preceptor', preferredIndex) || '')
+                : String(appData[fieldId(siteId, 'preferences', 'memo', preferredIndex)] || '');
+            if (!existingPref) {
+                if (typeof setPersonPreferencesValue === 'function') {
+                    setPersonPreferencesValue(siteId, 'preceptor', preferredIndex, legacyPref);
+                } else {
+                    appData[fieldId(siteId, 'preferences', 'memo', preferredIndex)] = legacyPref;
+                }
+                changed = true;
+            }
+        }
+
+        for (var j = legacyIndex; j < count - 1; j++) {
+            appData[fieldId(siteId, 'preceptor', 'name', j)] = appData[fieldId(siteId, 'preceptor', 'name', j + 1)] || '';
+            appData[fieldId(siteId, 'preceptor', 'phone', j)] = appData[fieldId(siteId, 'preceptor', 'phone', j + 1)] || '';
+            appData[fieldId(siteId, 'preceptor', 'memo', j)] = appData[fieldId(siteId, 'preceptor', 'memo', j + 1)] || '';
+            if (typeof setPersonPreferencesValue === 'function' && typeof getPersonPreferencesValue === 'function') {
+                setPersonPreferencesValue(siteId, 'preceptor', j, getPersonPreferencesValue(siteId, 'preceptor', j + 1) || '');
+            } else {
+                appData[fieldId(siteId, 'preferences', 'memo', j)] = appData[fieldId(siteId, 'preferences', 'memo', j + 1)] || '';
+            }
+        }
+
+        if (count > 0) {
+            delete appData[fieldId(siteId, 'preceptor', 'name', count - 1)];
+            delete appData[fieldId(siteId, 'preceptor', 'phone', count - 1)];
+            delete appData[fieldId(siteId, 'preceptor', 'memo', count - 1)];
+            if (typeof deletePersonPreferencesValue === 'function') {
+                deletePersonPreferencesValue(siteId, 'preceptor', count - 1);
+            }
+            delete appData[fieldId(siteId, 'preferences', 'memo', count - 1)];
+            appData[countId(siteId, 'preceptor')] = count - 1 > 0 ? count - 1 : 1;
+            changed = true;
+        }
+    });
+    return changed;
+}
+
 function mergePresetPeopleIntoField(siteIds, fieldKey, people) {
     var changed = false;
     siteIds.forEach(function(siteId) {
@@ -57,12 +181,12 @@ function mergePresetPeopleIntoField(siteIds, fieldKey, people) {
         }
 
         var toAdd = people.filter(function(person) {
-            var normalizedPerson = normalizePresetPerson(fieldKey, person);
+            var normalizedPerson = normalizePresetPerson(siteId, fieldKey, person);
             return existingNames.indexOf(String(normalizedPerson.name || '').trim().toLowerCase()) === -1;
         });
 
         toAdd.forEach(function(person, idx) {
-            var normalizedPerson = normalizePresetPerson(fieldKey, person);
+            var normalizedPerson = normalizePresetPerson(siteId, fieldKey, person);
             var insertAt = existingCount + idx;
             appData[fieldId(siteId, fieldKey, 'name', insertAt)] = normalizedPerson.name || '';
             appData[fieldId(siteId, fieldKey, 'phone', insertAt)] = normalizedPerson.cell || '';
@@ -78,15 +202,273 @@ function mergePresetPeopleIntoField(siteIds, fieldKey, people) {
     return changed;
 }
 
+function normalizeNonRrhTeamCompanyLabels() {
+    var changed = false;
+    SITES.forEach(function(site) {
+        if (isRrhSite(site.id)) return;
+
+        ['preceptor', 'anesthesiologist', 'surgeon'].forEach(function(fieldKey) {
+            var expectedCompany = getExpectedCompanyLabel(site.id, fieldKey);
+            if (!expectedCompany) return;
+
+            var count = parseInt(appData[countId(site.id, fieldKey)], 10) || 0;
+            for (var i = 0; i < count; i++) {
+                var name = String(appData[fieldId(site.id, fieldKey, 'name', i)] || '').trim();
+                var phone = String(appData[fieldId(site.id, fieldKey, 'phone', i)] || '').trim();
+                if (!name && !phone) continue;
+
+                var memoKey = fieldId(site.id, fieldKey, 'memo', i);
+                if (String(appData[memoKey] || '').trim() !== expectedCompany) {
+                    appData[memoKey] = expectedCompany;
+                    changed = true;
+                }
+            }
+        });
+    });
+    return changed;
+}
+
+// Site preset registry
+// - rgh: RRH shared CRNA + RRH MDA presets
+// - unity: RRH shared CRNA + RRH MDA presets
+// - stjoes: St. Joes CRNA + St. Joes MDA presets
+// - crause: Crause CRNA presets
+// To add a new hospital-specific phone list, define a <SITE>_..._LIST array
+// and map it below under that site's field key.
+function getSiteTeamPresetMap() {
+    return {
+        rgh: {
+            preceptor: (typeof CRNA_LIST !== 'undefined' ? CRNA_LIST : []),
+            anesthesiologist: (typeof MDA_LIST !== 'undefined' ? MDA_LIST : [])
+        },
+        unity: {
+            preceptor: (typeof CRNA_LIST !== 'undefined' ? CRNA_LIST : []),
+            anesthesiologist: (typeof MDA_LIST !== 'undefined' ? MDA_LIST : [])
+        },
+        stjoes: {
+            preceptor: (typeof STJOES_CRNA_LIST !== 'undefined' ? STJOES_CRNA_LIST : []),
+            anesthesiologist: (typeof STJOES_MDA_LIST !== 'undefined' ? STJOES_MDA_LIST : [])
+        },
+        crause: {
+            preceptor: (typeof CRAUSE_CRNA_LIST !== 'undefined' ? CRAUSE_CRNA_LIST : [])
+        }
+    };
+}
+
 function mergePresetContacts() {
     var changed = normalizeExistingAnesthesiologists();
-    if (typeof CRNA_LIST !== 'undefined' && Array.isArray(CRNA_LIST) && CRNA_LIST.length) {
-        changed = mergePresetPeopleIntoField(['rgh', 'unity'], 'preceptor', CRNA_LIST) || changed;
+    changed = normalizeExistingCrnaAliases() || changed;
+    changed = migrateNikkiAllemanPreferences() || changed;
+    changed = clearLegacyRrhMdaFromIndependentSites() || changed;
+    changed = normalizeNonRrhTeamCompanyLabels() || changed;
+
+    var presetMap = getSiteTeamPresetMap();
+    Object.keys(presetMap).forEach(function(siteId) {
+        var fieldMap = presetMap[siteId] || {};
+        Object.keys(fieldMap).forEach(function(fieldKey) {
+            var people = fieldMap[fieldKey];
+            if (Array.isArray(people) && people.length) {
+                changed = mergePresetPeopleIntoField([siteId], fieldKey, people) || changed;
+            }
+        });
+    });
+
+    return changed;
+}
+
+function initializeDefaultLockers() {
+    var changed = false;
+    var defaultLockers = [
+        { key: 'mensLocker', location: 'by OR', number: '19', combo: '34-43-5' },
+        { key: 'womensLocker', location: 'by OR', number: '8', combo: '37-40-0' }
+    ];
+    
+    SITES.forEach(function(site) {
+        defaultLockers.forEach(function(locker) {
+            var locationKey = fieldId(site.id, locker.key, 'location', 0);
+            var nameKey = fieldId(site.id, locker.key, 'name', 0);
+            var phoneKey = fieldId(site.id, locker.key, 'phone', 0);
+
+            if (site.id === 'rgh') {
+                // Only seed defaults for RGH.
+                if (!appData[locationKey]) {
+                    appData[locationKey] = locker.location;
+                    changed = true;
+                }
+                if (!appData[nameKey]) {
+                    appData[nameKey] = locker.number;
+                    changed = true;
+                }
+                if (!appData[phoneKey]) {
+                    appData[phoneKey] = locker.combo;
+                    changed = true;
+                }
+            } else {
+                // Remove previously auto-seeded defaults from non-RGH sites.
+                if (String(appData[locationKey] || '').trim() === locker.location) {
+                    delete appData[locationKey];
+                    changed = true;
+                }
+                if (String(appData[nameKey] || '').trim() === locker.number) {
+                    delete appData[nameKey];
+                    changed = true;
+                }
+                if (String(appData[phoneKey] || '').trim() === locker.combo) {
+                    delete appData[phoneKey];
+                    changed = true;
+                }
+            }
+        });
+    });
+    
+    return changed;
+}
+
+function clearLegacyRrhMdaFromIndependentSites() {
+    var changed = false;
+    var rrhMdaNames = {};
+    if (typeof MDA_LIST !== 'undefined' && Array.isArray(MDA_LIST)) {
+        MDA_LIST.forEach(function(person) {
+            var normalized = normalizeAnesthesiologistName(person && person.name);
+            if (normalized) rrhMdaNames[normalized.toLowerCase()] = true;
+        });
     }
-    if (typeof MDA_LIST !== 'undefined' && Array.isArray(MDA_LIST) && MDA_LIST.length) {
-        var siteIds = SITES.map(function(site) { return site.id; });
-        changed = mergePresetPeopleIntoField(siteIds, 'anesthesiologist', MDA_LIST) || changed;
-    }
+
+    SITES.forEach(function(site) {
+        if (site.id === 'rgh' || site.id === 'unity') return;
+
+        var fieldKey = 'anesthesiologist';
+        var count = parseInt(appData[countId(site.id, fieldKey)], 10) || 0;
+        if (!count) return;
+
+        var siteChanged = false;
+
+        var kept = [];
+        for (var i = 0; i < count; i++) {
+            var name = String(appData[fieldId(site.id, fieldKey, 'name', i)] || '').trim();
+            var phone = String(appData[fieldId(site.id, fieldKey, 'phone', i)] || '').trim();
+            var memo = String(appData[fieldId(site.id, fieldKey, 'memo', i)] || '').trim();
+            var pref = String(getPersonPreferencesValue(site.id, fieldKey, i) || '');
+
+            var lowerName = normalizeAnesthesiologistName(name).toLowerCase();
+            var looksRrhSeed = (memo === 'RRH MDA' || memo === 'MDA') && rrhMdaNames[lowerName];
+            if (!looksRrhSeed) {
+                kept.push({ name: name, phone: phone, memo: memo, pref: pref });
+            } else {
+                siteChanged = true;
+            }
+        }
+
+        if (!siteChanged) return;
+        changed = true;
+
+        for (var j = 0; j < kept.length; j++) {
+            appData[fieldId(site.id, fieldKey, 'name', j)] = kept[j].name;
+            appData[fieldId(site.id, fieldKey, 'phone', j)] = kept[j].phone;
+            appData[fieldId(site.id, fieldKey, 'memo', j)] = kept[j].memo;
+            setPersonPreferencesValue(site.id, fieldKey, j, kept[j].pref);
+        }
+
+        for (var k = kept.length; k < count; k++) {
+            delete appData[fieldId(site.id, fieldKey, 'name', k)];
+            delete appData[fieldId(site.id, fieldKey, 'phone', k)];
+            delete appData[fieldId(site.id, fieldKey, 'memo', k)];
+            deletePersonPreferencesValue(site.id, fieldKey, k);
+            delete appData[fieldId(site.id, 'preferences', 'memo', k)];
+        }
+
+        if (kept.length > 0) {
+            appData[countId(site.id, fieldKey)] = kept.length;
+        } else {
+            delete appData[countId(site.id, fieldKey)];
+        }
+
+        var selKey = selectedId(site.id, fieldKey);
+        var sel = parseInt(appData[selKey], 10);
+        if (isNaN(sel) || sel < 0) sel = 0;
+        if (kept.length === 0) {
+            delete appData[selKey];
+        } else if (sel >= kept.length) {
+            appData[selKey] = String(kept.length - 1);
+        }
+    });
+
+    return changed;
+}
+
+function initializeDefaultClinicalCoordinator() {
+    var changed = false;
+    var defaultCoordinatorBySite = {
+        rgh: {
+            name: 'Tamara Kiernan',
+            phone: '(585) 261-7818',
+            email: 'tamara.kieran@rochesterregional.org'
+        },
+        crause: {
+            name: 'Adam Wojdyla',
+            phone: '716-604-7326',
+            email: ''
+        }
+    };
+
+    SITES.forEach(function(site) {
+        var nameKey = fieldId(site.id, 'clinicalCoordinator', 'name', 0);
+        var phoneKey = fieldId(site.id, 'clinicalCoordinator', 'phone', 0);
+        var emailKey = fieldId(site.id, 'clinicalCoordinator', 'email', 0);
+        var siteDefault = defaultCoordinatorBySite[site.id] || null;
+
+        if (siteDefault) {
+            // Migrate old Crause seed from Tamara to Adam.
+            if (
+                site.id === 'crause' &&
+                String(appData[nameKey] || '').trim() === 'Tamara Kiernan'
+            ) {
+                appData[nameKey] = siteDefault.name;
+                appData[phoneKey] = siteDefault.phone;
+                if (siteDefault.email) appData[emailKey] = siteDefault.email;
+                changed = true;
+            }
+
+            if (!String(appData[nameKey] || '').trim()) {
+                appData[nameKey] = siteDefault.name;
+                changed = true;
+            }
+            if (!String(appData[phoneKey] || '').trim()) {
+                appData[phoneKey] = siteDefault.phone;
+                changed = true;
+            }
+            if (siteDefault.email && !String(appData[emailKey] || '').trim()) {
+                appData[emailKey] = siteDefault.email;
+                changed = true;
+            }
+        } else {
+            if (String(appData[nameKey] || '').trim() === 'Tamara Kiernan' || String(appData[nameKey] || '').trim() === 'Adam Wojdyla') {
+                delete appData[nameKey];
+                changed = true;
+            }
+            if (String(appData[phoneKey] || '').trim() === '(585) 261-7818' || String(appData[phoneKey] || '').trim() === '716-604-7326') {
+                delete appData[phoneKey];
+                changed = true;
+            }
+        }
+    });
+
+    return changed;
+}
+
+function initializeDefaultRrhSharedContacts() {
+    var changed = false;
+    var rrhSiteIds = ['rgh', 'unity'];
+    var rrhItHelpNumber = '585-922-4357';
+
+    rrhSiteIds.forEach(function(siteId) {
+        var key = fieldId(siteId, 'itHelp', 'name', 0);
+        if (String(appData[key] || '').trim() !== rrhItHelpNumber) {
+            appData[key] = rrhItHelpNumber;
+            changed = true;
+        }
+    });
+
     return changed;
 }
 // --- BEGIN: Pre-populated MDA (Physician) data for all sites ---
@@ -171,8 +553,9 @@ var FIELDS = [
     { key: 'itHelp', label: 'IT Help', type: 'plain', placeholder: 'Phone number', section: 'Facilities' },
     { key: 'parking', label: 'Parking', type: 'plain', placeholder: 'Phone number', section: 'Facilities' },
     { key: 'security', label: 'Security', type: 'plain', placeholder: 'Phone number', section: 'Facilities' },
+    { key: 'additionalImportantNumber', label: 'Additional Number', type: 'contact', canRepeat: true, showAsTile: true, section: 'Facilities' },
     { key: 'preceptor', label: 'CRNAs', type: 'person-list', section: 'Team' },
-    { key: 'anesthesiologist', label: 'Anesthesiologist', type: 'person-list', section: 'Team' },
+    { key: 'anesthesiologist', label: 'MDA', type: 'person-list', section: 'Team' },
     { key: 'surgeon', label: 'Surgeons', type: 'person-list', section: 'Team' },
     { key: 'mensLocker', label: "Men's Locker", type: 'locker', section: 'General' },
     { key: 'womensLocker', label: "Women's Locker", type: 'locker', section: 'General' },
@@ -209,7 +592,7 @@ var CRNA_LIST = [
     { name: "Greg Standish", cell: "585-315-7787", company: "RRH CRNA", preferences: "" },
     // Locum CRNAs
     { name: "Richard L. Allen", cell: "985-986-5719", company: "RRH Locum CRNA" },
-    { name: "Marilyn Alleman", cell: "256-483-9427", company: "RRH Locum CRNA" },
+    { name: "Marilyn \"Nikki\" Alleman", cell: "256-483-9427", company: "RRH Locum CRNA", preferences: "" },
     { name: "Denis Eta Awu", cell: "678-665-1056", company: "RRH Locum CRNA" },
     { name: "Charles Bartha", cell: "917-748-1987", company: "RRH Locum CRNA" },
     { name: "Keesha Bellamy", cell: "770-402-9927", company: "RRH Locum CRNA" },
@@ -268,6 +651,104 @@ var CRNA_LIST = [
     { name: "Foaad Zaid", cell: "716-986-5142", company: "RRH Locum CRNA" },
     { name: "Jande Weeks", cell: "305-496-2968", company: "RRH Locum CRNA" }
 ];
+
+// --- BEGIN: Pre-populated CRNA data for Crause ---
+var CRAUSE_CRNA_LIST = [
+    { name: "Adam Wojdyla", cell: "716-604-7326", company: "Crause CRNA", preferences: "" },
+    { name: "Maria Borczuk", cell: "315-254-6263", company: "Crause CRNA", preferences: "" },
+    { name: "Ken Cuda", cell: "315-256-8038", company: "Crause CRNA", preferences: "" },
+    { name: "Joe Perkowski", cell: "315-317-4899", company: "Crause CRNA", preferences: "" },
+    { name: "Joe Sciarrino", cell: "315-569-5456", company: "Crause CRNA", preferences: "" },
+    { name: "Beth TenEyck", cell: "315-396-6258", company: "Crause CRNA", preferences: "" },
+    { name: "Bryan Houck", cell: "607-423-4116", company: "Crause CRNA", preferences: "" },
+    { name: "Charlie Au", cell: "512-296-8709", company: "Crause CRNA", preferences: "" },
+    { name: "Julie Greenberg", cell: "917-750-1225", company: "Crause CRNA", preferences: "" },
+    { name: "Stacie Tittamin", cell: "973-960-8417", company: "Crause CRNA", preferences: "" },
+    { name: "Clyde Casimiro", cell: "917-650-6728", company: "Crause CRNA", preferences: "" },
+    { name: "Alexander Igoe", cell: "518-859-8643", company: "Crause CRNA", preferences: "" },
+    { name: "Kat Pinzon", cell: "954-274-1746", company: "Crause CRNA", preferences: "" },
+    { name: "Marc Zabate", cell: "305-336-7455", company: "Crause CRNA", preferences: "" },
+    { name: "Kristen Ryder", cell: "315-256-5276", company: "Crause CRNA", preferences: "" },
+    { name: "Anthony Escano", cell: "631-569-1235", company: "Crause CRNA", preferences: "" },
+    { name: "Jaspa K", cell: "678-431-9570", company: "Crause CRNA", preferences: "" },
+    { name: "Shannon Meyers", cell: "315-409-6957", company: "Crause CRNA", preferences: "" },
+    { name: "Luke", cell: "518-332-6118", company: "Crause CRNA", preferences: "" }
+];
+// --- END: Pre-populated CRNA data for Crause ---
+
+// --- BEGIN: Pre-populated CRNA data for St. Joes ---
+var STJOES_CRNA_LIST = [
+    { name: "Aliu", cell: "315-657-7156", company: "St. Joes CRNA", preferences: "" },
+    { name: "Alletzhauser", cell: "315-256-7309", company: "St. Joes CRNA", preferences: "" },
+    { name: "Bauer", cell: "315-382-5130", company: "St. Joes CRNA", preferences: "" },
+    { name: "Bell", cell: "315-247-8632", company: "St. Joes CRNA", preferences: "" },
+    { name: "Bippus", cell: "315-439-4221", company: "St. Joes CRNA", preferences: "" },
+    { name: "Bristow", cell: "315-559-0055", company: "St. Joes CRNA", preferences: "" },
+    { name: "Crandall", cell: "315-744-2759", company: "St. Joes CRNA", preferences: "" },
+    { name: "DeGennaro", cell: "518-605-2645", company: "St. Joes CRNA", preferences: "" },
+    { name: "Diana", cell: "315-491-4927", company: "St. Joes CRNA", preferences: "" },
+    { name: "Dodge", cell: "315-430-0024", company: "St. Joes CRNA", preferences: "" },
+    { name: "Enders", cell: "315-430-2331", company: "St. Joes CRNA", preferences: "" },
+    { name: "Fabian", cell: "315-391-2727", company: "St. Joes CRNA", preferences: "" },
+    { name: "Fisher", cell: "315-256-8568", company: "St. Joes CRNA", preferences: "" },
+    { name: "Fruces", cell: "315-532-4831", company: "St. Joes CRNA", preferences: "" },
+    { name: "Gordon", cell: "315-657-0497", company: "St. Joes CRNA", preferences: "" },
+    { name: "Graham", cell: "607-643-6957", company: "St. Joes CRNA", preferences: "" },
+    { name: "Grant", cell: "518-569-1154", company: "St. Joes CRNA", preferences: "" },
+    { name: "Hooko", cell: "607-821-8800", company: "St. Joes CRNA", preferences: "" },
+    { name: "Locastro", cell: "315-283-4042", company: "St. Joes CRNA", preferences: "" },
+    { name: "McCarthy", cell: "315-806-2553", company: "St. Joes CRNA", preferences: "" },
+    { name: "Mosier", cell: "315-486-0228", company: "St. Joes CRNA", preferences: "" },
+    { name: "O'Loughlin", cell: "315-481-3579", company: "St. Joes CRNA", preferences: "" },
+    { name: "O'Shea", cell: "315-569-3369", company: "St. Joes CRNA", preferences: "" },
+    { name: "Robinson", cell: "315-937-7462", company: "St. Joes CRNA", preferences: "" },
+    { name: "Sellers", cell: "607-227-1912", company: "St. Joes CRNA", preferences: "" },
+    { name: "Shanturov", cell: "315-481-9503", company: "St. Joes CRNA", preferences: "" },
+    { name: "Sierra", cell: "757-642-0593", company: "St. Joes CRNA", preferences: "" },
+    { name: "Smith", cell: "315-247-5939", company: "St. Joes CRNA", preferences: "" },
+    { name: "Straigis", cell: "609-364-3063", company: "St. Joes CRNA", preferences: "" },
+    { name: "Vanetti", cell: "315-877-1110", company: "St. Joes CRNA", preferences: "" },
+    { name: "Walker", cell: "315-663-5147", company: "St. Joes CRNA", preferences: "" },
+    { name: "Wisniewski", cell: "315-744-7034", company: "St. Joes CRNA", preferences: "" },
+    { name: "Zauski", cell: "585-683-5473", company: "St. Joes CRNA", preferences: "" },
+    { name: "Redfield", cell: "585-267-9814", company: "St. Joes CRNA", preferences: "" },
+    { name: "Androshchuk", cell: "607-423-0555", company: "St. Joes CRNA", preferences: "" },
+    { name: "Keoka Hunter", cell: "206-399-5452", company: "St. Joes CRNA", preferences: "" },
+    { name: "Ed Milosz", cell: "423-794-7380", company: "St. Joes CRNA", preferences: "" },
+    { name: "Adnan Huric", cell: "315-327-8530", company: "St. Joes CRNA", preferences: "" },
+    { name: "Jason Miller", cell: "585-694-9956", company: "St. Joes CRNA", preferences: "" },
+    { name: "Mark Kucharski", cell: "585-413-6412", company: "St. Joes CRNA", preferences: "" },
+    { name: "Whitney Booth", cell: "585-233-3459", company: "St. Joes CRNA", preferences: "" }
+];
+// --- END: Pre-populated CRNA data for St. Joes ---
+
+// --- BEGIN: Pre-populated MDA data for St. Joes ---
+var STJOES_MDA_LIST = [
+    { name: "Ascioti", cell: "315-491-7766", company: "St. Joes MDA", preferences: "" },
+    { name: "Badran", cell: "315-350-4748", company: "St. Joes MDA", preferences: "" },
+    { name: "Bryz-Gornia", cell: "315-506-5680", company: "St. Joes MDA", preferences: "" },
+    { name: "Cady", cell: "315-436-0824", company: "St. Joes MDA", preferences: "" },
+    { name: "Chanatry", cell: "315-256-2172", company: "St. Joes MDA", preferences: "" },
+    { name: "Constantine", cell: "315-382-3156", company: "St. Joes MDA", preferences: "" },
+    { name: "Corso", cell: "315-200-0798", company: "St. Joes MDA", preferences: "" },
+    { name: "Dalton", cell: "315-278-6270", company: "St. Joes MDA", preferences: "" },
+    { name: "Enany", cell: "315-420-8418", company: "St. Joes MDA", preferences: "" },
+    { name: "Fetterman", cell: "315-877-2730", company: "St. Joes MDA", preferences: "" },
+    { name: "Franckowiak", cell: "716-864-8978", company: "St. Joes MDA", preferences: "" },
+    { name: "Leighton", cell: "914-482-2597", company: "St. Joes MDA", preferences: "" },
+    { name: "Lubinga", cell: "315-529-1902", company: "St. Joes MDA", preferences: "" },
+    { name: "Marino", cell: "607-239-1289", company: "St. Joes MDA", preferences: "" },
+    { name: "McConn", cell: "315-427-5006", company: "St. Joes MDA", preferences: "" },
+    { name: "Mcniff", cell: "315-383-9070", company: "St. Joes MDA", preferences: "" },
+    { name: "Nelson", cell: "315-559-0375", company: "St. Joes MDA", preferences: "" },
+    { name: "Puc", cell: "315-378-5787", company: "St. Joes MDA", preferences: "" },
+    { name: "Rahaman", cell: "315-256-8383", company: "St. Joes MDA", preferences: "" },
+    { name: "Santos", cell: "315-439-1018", company: "St. Joes MDA", preferences: "" },
+    { name: "Thandla", cell: "716-353-3465", company: "St. Joes MDA", preferences: "" },
+    { name: "Velez", cell: "315-200-2905", company: "St. Joes MDA", preferences: "" },
+    { name: "Yulaman", cell: "832-598-6797", company: "St. Joes MDA", preferences: "" }
+];
+// --- END: Pre-populated MDA data for St. Joes ---
 
 // --- END: Pre-populated CRNA and Locum CRNA data ---
 var editState = {};
@@ -432,7 +913,7 @@ function parseContactAction(value) {
     return { kind: 'none', value: '' };
 }
 
-function buildRowContactHref(site, field, rowIndex, nameValue, phoneValue) {
+function buildRowContactHref(site, field, rowIndex, nameValue, phoneValue, emailValue, memoValue) {
     var lines = ['BEGIN:VCARD', 'VERSION:3.0'];
 
     var titleLabel = field.label + (rowIndex > 0 ? ' ' + (rowIndex + 1) : '');
@@ -461,9 +942,16 @@ function buildRowContactHref(site, field, rowIndex, nameValue, phoneValue) {
         }
     }
 
-    var orgLabel = field.key === 'anesthesiologist' ? 'RRH MDA'
-                 : field.key === 'preceptor'      ? 'RRH CRNA'
-                 : (field.label + ' - ' + site.label);
+    var explicitEmail = String(emailValue || '').trim();
+    if (explicitEmail) {
+        lines.push('EMAIL;TYPE=INTERNET:' + sanitizeVcf(explicitEmail));
+    }
+
+    var explicitOrg = String(memoValue || '').trim();
+    var expectedOrg = getExpectedCompanyLabel(site.id, field.key);
+    var fallbackOrg = expectedOrg || (field.label + ' - ' + site.label);
+    // Non-RRH exports are always normalized to "<Hospital> <Role>".
+    var orgLabel = (!isRrhSite(site.id) && expectedOrg) ? expectedOrg : (explicitOrg || fallbackOrg);
     lines.push('ORG:' + sanitizeVcf(orgLabel));
     lines.push('END:VCARD');
     return 'data:text/vcard;charset=utf-8,' + encodeURIComponent(lines.join('\n'));

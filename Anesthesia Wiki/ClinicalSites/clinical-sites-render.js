@@ -1,5 +1,9 @@
+function getCoordinatorEmail(siteId, rowIndex) {
+    return String(appData[fieldId(siteId, 'clinicalCoordinator', 'email', rowIndex)] || '').trim();
+}
+
 // Renders the action cell for a contact row (call, text, add contact)
-function renderActionCell(site, field, rowIndex, nameValue, phoneValue) {
+function renderActionCell(site, field, rowIndex, nameValue, phoneValue, emailValue) {
     if (editState[site.id]) {
         if (field.canRepeat) {
             if (rowIndex > 0) {
@@ -12,6 +16,34 @@ function renderActionCell(site, field, rowIndex, nameValue, phoneValue) {
     var actions = [];
     var phone = (phoneValue || '').trim();
     var name = (nameValue || '').trim();
+    var email = (emailValue || '').trim();
+    var memo = String(appData[fieldId(site.id, field.key, 'memo', rowIndex)] || '').trim();
+
+    if (field.key === 'clinicalCoordinator') {
+        var coordinatorAction = parseContactAction(phone);
+        if (coordinatorAction.kind === 'phone') {
+            actions.push('<a class="row-action-btn small" href="tel:' + escAttr(coordinatorAction.value) + '">Call</a>');
+            actions.push('<a class="row-action-btn small" href="sms:' + escAttr(coordinatorAction.value) + '">Text</a>');
+        } else {
+            actions.push('<span class="row-action-btn small disabled" aria-disabled="true">Call</span>');
+            actions.push('<span class="row-action-btn small disabled" aria-disabled="true">Text</span>');
+        }
+
+        if (email) {
+            actions.push('<a class="row-action-btn small" href="mailto:' + escAttr(email) + '">Email</a>');
+        } else {
+            actions.push('<span class="row-action-btn small disabled" aria-disabled="true">Email</span>');
+        }
+
+        if (name || phone || email) {
+            actions.push('<a class="row-action-btn small" href="' + buildRowContactHref(site, field, rowIndex, name, phone, email, memo) + '" download="' + fileSafe(site.label + '-' + field.label + (rowIndex > 0 ? '-' + (rowIndex + 1) : '')) + '.vcf">Add contact</a>');
+        } else {
+            actions.push('<span class="row-action-btn small disabled" aria-disabled="true">Add contact</span>');
+        }
+
+        return actions.length ? '<div class="row-actions-compact">' + actions.join('') + '</div>' : '';
+    }
+
     var action = parseContactAction(phone);
     if (action.kind === 'phone') {
         actions.push('<a class="row-action-btn small" href="tel:' + escAttr(action.value) + '">Call</a>');
@@ -23,10 +55,19 @@ function renderActionCell(site, field, rowIndex, nameValue, phoneValue) {
     }
     // Allow adding contact if name or phone is present, except for surgeons
     if ((name || phone) && field.key !== 'surgeon') {
-        actions.push('<a class="row-action-btn small" href="' + buildRowContactHref(site, field, rowIndex, name, phone) + '" download="' + fileSafe(site.label + '-' + field.label + (rowIndex > 0 ? '-' + (rowIndex + 1) : '')) + '.vcf">Add contact to phone</a>');
+        actions.push('<a class="row-action-btn small" href="' + buildRowContactHref(site, field, rowIndex, name, phone, '', memo) + '" download="' + fileSafe(site.label + '-' + field.label + (rowIndex > 0 ? '-' + (rowIndex + 1) : '')) + '.vcf">Add contact to phone</a>');
     }
     return actions.length ? '<div class="row-actions">' + actions.join('') + '</div>' : '';
 }
+
+function getSiteDisplayLabel(site) {
+    var mobile = window.matchMedia && window.matchMedia('(max-width: 700px)').matches;
+    if (!mobile) return site.label;
+    if (site.id === 'rgh') return 'RGH';
+    if (site.id === 'smh') return 'SMH';
+    return site.label;
+}
+
 function renderSitePicker(container) {
     var picker = document.createElement('div');
     picker.className = 'site-picker';
@@ -39,8 +80,7 @@ function renderSitePicker(container) {
         card.className = 'site-picker-card';
         card.setAttribute('onclick', 'selectSite(\'' + site.id + '\')');
         card.innerHTML =
-            '<span class="picker-icon">🏥</span>' +
-            '<span class="picker-label">' + escHtml(site.label) + '</span>' +
+            '<span class="picker-label">' + escHtml(getSiteDisplayLabel(site)) + '</span>' +
             (favoriteSiteId === site.id ? '<span class="picker-fav">★</span>' : '');
         return card;
     }
@@ -193,23 +233,17 @@ function buildUI() {
     var site = SITES.find(function(s) { return s.id === activeSiteId; });
     if (!site) { activeSiteId = null; renderSitePicker(container); return; }
 
-    var backBtn = document.createElement('button');
-    backBtn.type = 'button';
-    backBtn.className = 'detail-back-btn';
-    backBtn.innerHTML = '&#8592; All Sites';
-    backBtn.setAttribute('onclick', 'backToSites()');
-    container.appendChild(backBtn);
-
     var card = document.createElement('div');
     card.className = 'site-card' + (editState[site.id] ? ' editing' : '');
 
     var header = document.createElement('div');
     header.className = 'site-card-header';
     header.innerHTML =
-        '<div class="site-title"><span>🏥</span><span>' + escHtml(site.label) + '</span>' + (favoriteSiteId === site.id ? '<span class="favorite-star">★</span>' : '') + '</div>' +
+        '<div class="site-title"><span>' + escHtml(getSiteDisplayLabel(site)) + '</span>' + (favoriteSiteId === site.id ? '<span class="favorite-star">★</span>' : '') + '</div>' +
         '<div class="site-actions">' +
             '<button type="button" class="site-action-btn favorite-btn' + (favoriteSiteId === site.id ? ' active' : '') + '" onclick="toggleFavorite(\'' + site.id + '\')">' + (favoriteSiteId === site.id ? '&#9733;' : '&#9734;') + '</button>' +
-            '<button type="button" class="site-action-btn edit-btn" onclick="toggleEdit(\'' + site.id + '\')">' + (editState[site.id] ? 'Done' : 'Edit') + '</button>' +
+            '<button type="button" class="site-action-btn edit-btn" onclick="toggleEdit(\'' + site.id + '\')">' + (editState[site.id] ? 'Save' : 'Edit') + '</button>' +
+            '<button type="button" class="site-action-btn all-sites-btn" onclick="backToSites()">All Sites</button>' +
         '</div>';
     card.appendChild(header);
 
@@ -217,7 +251,7 @@ function buildUI() {
     body.className = 'site-card-body';
 
     var plainFields = FIELDS.filter(function(f) { return f.type === 'plain'; });
-    var otherFields = FIELDS.filter(function(f) { return f.type !== 'plain'; });
+    var otherFields = FIELDS.filter(function(f) { return f.type !== 'plain' && !f.showAsTile; });
 
     if (editState[site.id]) {
         var editTable = document.createElement('table');
@@ -250,6 +284,25 @@ function buildUI() {
             tile.textContent = field.label;
             tilesGrid.appendChild(tile);
             tileCount++;
+        });
+        var tileShowFields = FIELDS.filter(function(f) { return f.showAsTile; });
+        tileShowFields.forEach(function(field) {
+            var rc = getRepeatCount(site.id, field.key);
+            for (var ti = 0; ti < rc; ti++) {
+                var tileName = String(appData[fieldId(site.id, field.key, 'name', ti)] || '').trim();
+                var tilePhone = String(appData[fieldId(site.id, field.key, 'phone', ti)] || '').trim();
+                if (!tilePhone) continue;
+                var tAction = parseContactAction(tilePhone);
+                var tHref = tAction.kind === 'phone' ? 'tel:' + tAction.value
+                          : tAction.kind === 'email' ? 'mailto:' + tAction.value : null;
+                if (!tHref) continue;
+                var tile = document.createElement('a');
+                tile.className = 'plain-tile';
+                tile.href = tHref;
+                tile.textContent = tileName || field.label;
+                tilesGrid.appendChild(tile);
+                tileCount++;
+            }
         });
         if (tileCount) {
             body.appendChild(tilesGrid);
@@ -421,13 +474,18 @@ function renderPersonListSection(site, field) {
                 surgeonEditPerson = rowEditPerson || sel || { idx: 0, name: '', phone: '', memo: '', preferences: '' };
             }
             viewHtml += '<td class="name-cell" style="padding:4px 0">';
-            viewHtml += '<select class="compact-select" onchange="setSelectedContact(\'' + site.id + '\',\'' + field.key + '\',this.value)">';
-            viewHtml += '<option value="-1"' + (selIdx === -1 ? ' selected' : '') + '>— Select —</option>';
+            var selectHtml = '<select class="compact-select" onchange="setSelectedContact(\'' + site.id + '\',\'' + field.key + '\',this.value)">';
+            selectHtml += '<option value="-1"' + (selIdx === -1 ? ' selected' : '') + '>— Select —</option>';
             people.forEach(function(person) {
                 var label = getPersonSortLabel(person);
-                viewHtml += '<option value="' + person.idx + '"' + (person.idx === selIdx ? ' selected' : '') + '>' + escHtml(label) + '</option>';
+                selectHtml += '<option value="' + person.idx + '"' + (person.idx === selIdx ? ' selected' : '') + '>' + escHtml(label) + '</option>';
             });
-            viewHtml += '</select>';
+            selectHtml += '</select>';
+            if (field.key === 'surgeon' && !isRowEditOpen) {
+                viewHtml += '<div class="surgeon-select-inline">' + selectHtml + '<button type="button" class="row-action-btn small mobile-inline-add" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add New</button></div>';
+            } else {
+                viewHtml += selectHtml;
+            }
             if (sel && (field.key === 'preceptor' || field.key === 'anesthesiologist')) {
                 if (isPrefEditOpen) {
                     viewHtml += '<textarea class="pe-notes inline-pref-editor" id="pref-edit-' + site.id + '-' + field.key + '-' + sel.idx + '" placeholder="Preferences...">' + escHtml(sel.preferences || '') + '</textarea>';
@@ -444,8 +502,6 @@ function renderPersonListSection(site, field) {
                 }
                 if (surgeonPrefLines.length) {
                     viewHtml += '<ul class="pl-memo">' + surgeonPrefLines.map(function(line) { return '<li>' + escHtml(line) + '</li>'; }).join('') + '</ul>';
-                } else {
-                    viewHtml += renderPreferencesEmptyHint();
                 }
             }
             if (surgeonEditPerson) {
@@ -479,7 +535,7 @@ function renderPersonListSection(site, field) {
             var actionHtmlPl = '';
             if (sel && (sel.name || sel.phone)) {
                 var action = parseContactAction(sel.phone);
-                actionHtmlPl += '<div class="row-actions">';
+                actionHtmlPl += '<div class="row-actions-compact">';
                 if (action.kind === 'phone') {
                     actionHtmlPl += '<a class="row-action-btn small" href="tel:' + escAttr(action.value) + '">Call</a>';
                     actionHtmlPl += '<a class="row-action-btn small" href="sms:' + escAttr(action.value) + '">Text</a>';
@@ -489,34 +545,31 @@ function renderPersonListSection(site, field) {
                     actionHtmlPl += '<a class="row-action-btn small" href="' + escAttr(action.value) + '" target="_blank" rel="noreferrer">Open</a>';
                 }
                 if (field.key !== 'surgeon') {
-                    actionHtmlPl += '<a class="row-action-btn small" href="' + buildRowContactHref(site, field, sel.idx, sel.name, sel.phone) + '" download="' + fileSafe(site.label + '-' + field.label + (sel.idx > 0 ? '-' + (sel.idx + 1) : '')) + '.vcf">Add contact to phone</a>';
+                    actionHtmlPl += '<a class="row-action-btn small" href="' + buildRowContactHref(site, field, sel.idx, sel.name, sel.phone) + '" download="' + fileSafe(site.label + '-' + field.label + (sel.idx > 0 ? '-' + (sel.idx + 1) : '')) + '.vcf">Add contact</a>';
                 }
                 if (field.key === 'preceptor' || field.key === 'anesthesiologist') {
                     if (isPrefEditOpen) {
-                        actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="savePersonPreferencesEdit(\'' + site.id + '\',\'' + field.key + '\',' + sel.idx + ')">Save</button>';
+                        actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="savePersonPreferencesEdit(\'' + site.id + '\',\'' + field.key + '\',' + sel.idx + ')">Save Pref</button>';
                         actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="closePersonPreferencesEdit()">Cancel</button>';
                     } else {
-                        actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="togglePersonPreferencesEdit(\'' + site.id + '\',\'' + field.key + '\',' + sel.idx + ')">Edit preferences</button>';
+                        actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="togglePersonPreferencesEdit(\'' + site.id + '\',\'' + field.key + '\',' + sel.idx + ')">Edit Pref</button>';
                     }
                 } else if (field.key === 'surgeon') {
                     if (isRowEditOpen) {
                         actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="savePersonRowEdit()">Save</button>';
                         actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="cancelPersonRowEdit()">Cancel</button>';
                     } else {
-                        actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add New</button>';
                         actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="startPersonRowEdit(\'' + site.id + '\',\'' + field.key + '\')">Edit</button>';
                     }
                 }
                 actionHtmlPl += '</div>';
             } else if (field.key === 'surgeon' && isRowEditOpen) {
-                actionHtmlPl += '<div class="row-actions">';
+                actionHtmlPl += '<div class="row-actions-compact">';
                 actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="savePersonRowEdit()">Save</button>';
                 actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="cancelPersonRowEdit()">Cancel</button>';
                 actionHtmlPl += '</div>';
             } else if (field.key === 'surgeon' && !isRowEditOpen) {
-                actionHtmlPl += '<div class="row-actions">';
-                actionHtmlPl += '<button type="button" class="row-action-btn small" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add New</button>';
-                actionHtmlPl += '</div>';
+                actionHtmlPl += '';
             }
             viewHtml += '<td class="action-cell">' + actionHtmlPl + '</td>';
         }
@@ -627,6 +680,10 @@ function renderRow(site, field, rowIndex) {
     if (field.type === 'notes') {
         tr.className = 'data-row row-notes';
         var notesValue = String(appData[fieldId(site.id, field.key, 'name', rowIndex)] || '');
+        if (!editState[site.id] && !notesValue.trim()) {
+            tr.style.display = 'none';
+            return tr;
+        }
         tr.innerHTML =
             '<td class="label-cell">' + escHtml(label) + '</td>' +
             '<td class="notes-cell" colspan="2">' + renderNotesCell(site.id, field, rowIndex, notesValue) + '</td>' +
@@ -636,13 +693,14 @@ function renderRow(site, field, rowIndex) {
 
     var nameValue = String(appData[fieldId(site.id, field.key, 'name', rowIndex)] || '');
     var phoneValue = String(appData[fieldId(site.id, field.key, 'phone', rowIndex)] || '');
+    var emailValue = field.key === 'clinicalCoordinator' ? getCoordinatorEmail(site.id, rowIndex) : '';
     var hidePhoneInView = !editState[site.id] && field.type === 'contact';
 
     tr.innerHTML =
         '<td class="label-cell">' + escHtml(label) + '</td>' +
         '<td class="name-cell">' + renderNameCell(site.id, field, rowIndex, nameValue) + '</td>' +
         '<td class="phone-cell">' + (hidePhoneInView ? '' : renderPhoneCell(site.id, field, rowIndex, phoneValue)) + '</td>' +
-        '<td class="action-cell">' + renderActionCell(site, field, rowIndex, nameValue, phoneValue) + '</td>';
+        '<td class="action-cell">' + renderActionCell(site, field, rowIndex, nameValue, phoneValue, emailValue) + '</td>';
     return tr;
 }
 
@@ -716,15 +774,31 @@ function renderNameCell(siteId, field, rowIndex, value) {
         var placeholder = field.type === 'contact' ? 'Name / Primary info' : 'Primary info';
         return '<input class="contact-input" type="text" placeholder="' + escAttr(placeholder) + '" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="name" data-row-index="' + rowIndex + '">';
     }
+    if (field.key === 'clinicalCoordinator' && value.trim()) {
+        return '<span class="value-display coordinator-name">' + escHtml(value.trim()) + '</span>';
+    }
     return value.trim() ? '<span class="value-display">' + escHtml(value.trim()) + '</span>' : '<span class="value-empty">No name added</span>';
 }
 
 function renderPhoneCell(siteId, field, rowIndex, value) {
     if (editState[siteId]) {
-        return '<input class="contact-input" type="text" placeholder="Phone / Pager / Email / Link" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="phone" data-row-index="' + rowIndex + '">';
+        if (field.key === 'clinicalCoordinator') {
+            var emailValue = String(appData[fieldId(siteId, field.key, 'email', rowIndex)] || '').trim();
+            return '<div class="coordinator-inputs">'
+                + '<input class="contact-input" type="text" placeholder="Phone" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="phone" data-row-index="' + rowIndex + '">'
+                + '<input class="contact-input" type="email" placeholder="Email" value="' + escAttr(emailValue) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="email" data-row-index="' + rowIndex + '">'
+                + '</div>';
+        }
+        return '<input class="contact-input" type="text" placeholder="Phone number" value="' + escAttr(value) + '" data-site-id="' + siteId + '" data-field-key="' + field.key + '" data-part="phone" data-row-index="' + rowIndex + '">';
     }
 
     var trimmed = value.trim();
+    if (field.key === 'clinicalCoordinator') {
+        var emailOnly = getCoordinatorEmail(siteId, rowIndex);
+        var phoneText = trimmed ? '<span class="value-display">' + escHtml(trimmed) + '</span>' : '<span class="value-empty">No phone added</span>';
+        var emailText = emailOnly ? '<a class="value-display" href="mailto:' + escAttr(emailOnly) + '">' + escHtml(emailOnly) + '</a>' : '<span class="value-empty">No email added</span>';
+        return '<div class="coordinator-view">' + phoneText + emailText + '</div>';
+    }
     if (!trimmed) {
         return '<span class="value-empty">No phone or link added</span>';
     }

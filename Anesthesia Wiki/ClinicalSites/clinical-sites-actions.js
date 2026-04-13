@@ -91,20 +91,33 @@ document.addEventListener('input', function(e) {
             syncLinkedPersonField(siteId, syncFieldKey);
         }
 
-        clearTimeout(window._autoSaveTimer);
-        window._autoSaveTimer = setTimeout(function() {
-            saveAll();
-        }, 1200);
+        if (typeof setPendingChangesMessage === 'function') {
+            setPendingChangesMessage();
+        }
     }
-});
-
-window.addEventListener('pagehide', function() {
-    saveAll();
 });
 
 favoriteSiteId = loadFavorite();
 appData = loadData();
-if (typeof mergePresetContacts === 'function' && mergePresetContacts()) {
-    saveAll();
+var presetsChangedAtBoot = false;
+if (typeof mergePresetContacts === 'function') {
+    presetsChangedAtBoot = mergePresetContacts();
+}
+var lockersInitializedAtBoot = false;
+if (typeof initializeDefaultLockers === 'function') {
+    lockersInitializedAtBoot = initializeDefaultLockers();
+}
+var coordinatorInitializedAtBoot = false;
+if (typeof initializeDefaultClinicalCoordinator === 'function') {
+    coordinatorInitializedAtBoot = initializeDefaultClinicalCoordinator();
+}
+var rrhSharedContactsInitializedAtBoot = false;
+if (typeof initializeDefaultRrhSharedContacts === 'function') {
+    rrhSharedContactsInitializedAtBoot = initializeDefaultRrhSharedContacts();
 }
 buildUI();
+if (typeof initClinicalSitesCloudSync === 'function') {
+    initClinicalSitesCloudSync({ presetsChanged: presetsChangedAtBoot || lockersInitializedAtBoot || coordinatorInitializedAtBoot || rrhSharedContactsInitializedAtBoot });
+} else if (presetsChangedAtBoot || lockersInitializedAtBoot || coordinatorInitializedAtBoot || rrhSharedContactsInitializedAtBoot) {
+    saveAll();
+}

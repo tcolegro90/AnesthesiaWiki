@@ -4,7 +4,7 @@
    <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Anesthesia Wiki</title>
+      <title>Anesthesia Clinical Tool</title>
       <style>
          :root {
             --primary: #1f2a37;
@@ -201,6 +201,28 @@
             background: #f0f5ff;
          }
 
+         .wip-note {
+            margin: 0 0 10px;
+            padding: 10px 12px;
+            border: 1px solid #f2c7c7;
+            border-left: 4px solid var(--red);
+            border-radius: 8px;
+            background: #fff5f5;
+            color: #8a2f2f;
+            font-size: 0.82rem;
+            font-weight: 700;
+         }
+
+         .tile.wip {
+            border-top-color: var(--red);
+            background: #fffafb;
+         }
+
+         .tile.wip .tile-sub {
+            color: #9a3d3d;
+            font-weight: 600;
+         }
+
          /* Crisis tile — full-width red */
          .crisis-tile {
             background: #fff5f5;
@@ -374,7 +396,7 @@
    <body>
 
       <header>
-         <h1>Anesthesia Wiki</h1>
+         <h1>Anesthesia Clinical Tool</h1>
       </header>
 
       <div class="search-wrap">
@@ -411,18 +433,6 @@
                   <span class="tile-icon">🤝</span>
                   PACU Handoff
                </a>
-            </div>
-         </div>
-
-         <!-- Crisis Algorithms -->
-         <div class="section-header open" onclick="toggleSection('crisis')">
-            <div class="icon" style="background:#fff0f0;">🚨</div>
-            <h2>Crisis Algorithms</h2>
-            <div class="section-line"></div>
-            <span class="section-toggle">▼</span>
-         </div>
-         <div id="sec-crisis" class="section-body">
-            <div class="tile-grid">
                <a href="CrisisAlgorithms/Index.html" class="tile t-red">
                   <span class="tile-icon">🚨</span>
                   Emergency Algorithms
@@ -439,35 +449,55 @@
          </div>
          <div id="sec-reference" class="section-body">
             <div class="tile-grid">
-               <a href="Meds/Index.html" class="tile t-teal" id="tile-medications">
-                  <span class="tile-icon">💊</span>
-                  Medications
-               </a>
-               <a href="AirwayManagement.html" class="tile t-teal">
-                  <span class="tile-icon">🫁</span>
-                  Airway Management
-               </a>
-               <a href="ClinicalSites.html" class="tile t-blue">
+               <a href="ClinicalSites.html?v=20260411c" class="tile t-blue">
                   <span class="tile-icon">🏥</span>
                   Clinical Sites
-               </a>
-               <a href="Comorbidities.html" class="tile t-purple">
-                  <span class="tile-icon">🫀</span>
-                  Comorbidities
                </a>
                <a href="Calculators/Index.html" class="tile t-green" id="tile-calculators">
                   <span class="tile-icon">🧮</span>
                   Calculators &amp; Charts
+               </a>
+               <a href="Studies.html" class="tile t-teal">
+                  <span class="tile-icon">📚</span>
+                  Studies
                </a>
                <a href="MedicationColors.html" class="tile t-orange">
                   <span class="tile-icon">🎨</span>
                   Medication Colors
                   <span class="tile-sub">OR Sticker Reference</span>
                </a>
-               <a href="TopDrawerMeds.html" class="tile t-orange">
+            </div>
+         </div>
+
+         <!-- Work in Progress -->
+         <div class="section-header" onclick="toggleSection('wip')">
+            <div class="icon" style="background:#fff1f1;">🚧</div>
+            <h2>Work in Progress</h2>
+            <div class="section-line"></div>
+            <span class="section-toggle">▼</span>
+         </div>
+         <div id="sec-wip" class="section-body collapsed">
+            <p class="wip-note">Use caution: these pages are works in progress and may be incomplete or change frequently.</p>
+            <div class="tile-grid">
+               <a href="Meds/Index.html" class="tile wip" id="tile-medications">
+                  <span class="tile-icon">💊</span>
+                  Medications
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+               <a href="AirwayManagement.html" class="tile wip">
+                  <span class="tile-icon">🫁</span>
+                  Airway Management
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+               <a href="Comorbidities.html" class="tile wip">
+                  <span class="tile-icon">🫀</span>
+                  Comorbidities
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+               <a href="TopDrawerMeds.html" class="tile wip">
                   <span class="tile-icon">🗂️</span>
                   Top Drawer Meds
-                  <span class="tile-sub">Drug Tray Quick Reference</span>
+                  <span class="tile-sub">Work in progress - use caution</span>
                </a>
             </div>
          </div>

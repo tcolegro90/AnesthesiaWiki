@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studies</title>
+  <style>
+    :root {
+      --bg: #f7f6f2;
+      --panel: #ffffff;
+      --line: #ddd7cd;
+      --text: #2f2b25;
+      --muted: #6b675f;
+      --accent: #3b6f5e;
+      --accent-soft: #e9f3ee;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at 15% 0%, #ffffff 0%, var(--bg) 48%, #efede8 100%);
+      color: var(--text);
+      padding: 70px 16px 38px;
+    }
+
+    .top-nav {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 20;
+      display: flex;
+      gap: 8px;
+    }
+
+    .top-nav a,
+    .top-nav button {
+      border: none;
+      background: #1f2a37;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #f4f8f5 0%, #ffffff 72%);
+      border: 1px solid #d6e6de;
+      border-left: 6px solid var(--accent);
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 10px 26px rgba(55, 78, 69, 0.08);
+    }
+
+    .hero h1 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1.7rem;
+      text-align: center;
+    }
+
+    .section {
+      margin-top: 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(62, 58, 49, 0.06);
+    }
+
+    .section h2 {
+      margin: 0 0 12px;
+      font-size: 0.98rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4f665d;
+    }
+
+    .tile-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tile {
+      display: block;
+      text-decoration: none;
+      border: 1px solid #d8d2c8;
+      border-top: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 14px 13px;
+      color: var(--text);
+      background: linear-gradient(180deg, #ffffff 0%, #fdfbf8 100%);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .tile:hover {
+      transform: translateY(-1px);
+      background: var(--accent-soft);
+      box-shadow: 0 8px 16px rgba(59, 111, 94, 0.14);
+    }
+
+    .tile-grid .tile:nth-child(1) {
+      border-top-color: #8d5d3a;
+      background: linear-gradient(180deg, #ffffff 0%, #faf3ee 100%);
+    }
+
+    .tile-grid .tile:nth-child(1):hover {
+      background: #f4e7dd;
+    }
+
+    .tile-grid .tile:nth-child(2) {
+      border-top-color: #ad6a43;
+      background: linear-gradient(180deg, #ffffff 0%, #fbf3ee 100%);
+    }
+
+    .tile-grid .tile:nth-child(2):hover {
+      background: #f7e9de;
+    }
+
+    .tile-grid .tile:nth-child(3) {
+      border-top-color: #6f5f8e;
+      background: linear-gradient(180deg, #ffffff 0%, #f5f1fb 100%);
+    }
+
+    .tile-grid .tile:nth-child(3):hover {
+      background: #ece4f7;
+    }
+
+    .tile .label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.94rem;
+      margin-bottom: 4px;
+    }
+
+    .tile .sub {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .tile.placeholder {
+      border-top-color: #9ab7ad;
+      background: #fcfbf8;
+      cursor: default;
+    }
+
+    .tile.placeholder:hover {
+      transform: none;
+      background: #fcfbf8;
+      box-shadow: none;
+    }
+
+    @media (max-width: 700px) {
+      body { padding-top: 16px; }
+      .top-nav { display: none; }
+      .hero { padding: 14px; }
+      .hero h1 { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav">
+    <button type="button" onclick="window.history.back()">&larr; Back</button>
+    <a href="AnesthesiaWiki.html">Wiki Home</a>
+  </div>
+
+  <div class="page">
+    <section class="hero">
+      <h1>Studies</h1>
+    </section>
+
+    <section class="section">
+      <h2>Study Library</h2>
+      <div class="tile-grid">
+        <a class="tile" href="Studies/Cephalosporins-Penicillin-Allergy.html">
+          <span class="label">Cephalosporins in Penicillin Allergy</span>
+          <span class="sub">Mini-review on protocol-based cefazolin use, SSI reduction, and stewardship outcomes.</span>
+        </a>
+        <div class="tile placeholder" aria-disabled="true">
+          <span class="label">Study Placeholder 2</span>
+          <span class="sub">Coming soon.</span>
+        </div>
+        <div class="tile placeholder" aria-disabled="true">
+          <span class="label">Study Placeholder 3</span>
+          <span class="sub">Coming soon.</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

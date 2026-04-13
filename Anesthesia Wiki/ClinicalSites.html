@@ -4,34 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinical Sites</title>
-    <link rel="stylesheet" href="ClinicalSites/clinical-sites.css">
+    <link rel="stylesheet" href="ClinicalSites/clinical-sites.css?v=20260411h">
 </head>
 <body>
 <div class="top-nav">
-<button type="button" class="top-nav-btn" onclick="window.history.back()">&#8592; Back</button>
-<a href="AnesthesiaWiki.html" class="top-nav-btn">Wiki Home</a>
+
+
 </div>
 
 <header>
     <h1>🏥 Clinical Sites</h1>
 </header>
 
-<div class="save-bar">
-    <div class="save-actions">
-        <button class="save-btn" onclick="saveAll()">Save All</button>
-        <button class="aux-btn" onclick="exportClinicalSites()">Export</button>
-        <button class="aux-btn" onclick="triggerImportClinicalSites()">Import</button>
-    </div>
-    <span id="save-status"></span>
-</div>
+<div id="save-status" style="text-align: center; padding: 8px; font-size: 0.82rem; color: #6ecfa0;"></div>
 
 <input id="import-file" type="file" accept="application/json" style="display:none" onchange="importClinicalSites(event)">
 
 <div class="container" id="sites-container"></div>
 
-<script src="ClinicalSites/clinical-sites-data-utils.js"></script>
-<script src="ClinicalSites/clinical-sites-storage.js"></script>
-<script src="ClinicalSites/clinical-sites-render.js"></script>
-<script src="ClinicalSites/clinical-sites-actions.js"></script>
+<script src="ClinicalSites/clinical-sites-data-utils.js?v=20260411h"></script>
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
+<script src="ClinicalSites/clinical-sites-firebase-config.js?v=20260411h"></script>
+<script src="ClinicalSites/clinical-sites-cloud.js?v=20260411h"></script>
+<script src="ClinicalSites/clinical-sites-storage.js?v=20260411h"></script>
+<script src="ClinicalSites/clinical-sites-render.js?v=20260411h"></script>
+<script src="ClinicalSites/clinical-sites-actions.js?v=20260411h"></script>
 </body>
 </html>

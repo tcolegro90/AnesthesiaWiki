@@ -119,27 +119,42 @@
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
+        @media (max-width: 700px) {
+            .top-nav {
+                display: none;
+            }
+            body {
+                padding: 10px;
+            }
+            .header {
+                padding: 10px 12px;
+            }
+            .header h1 {
+                margin: 0;
+                font-size: 1.2rem;
+                line-height: 1.2;
+            }
+            summary {
+                font-size: 0.95rem;
+                padding: 8px;
+            }
+        }
     </style>
 </head>
 <body>
-<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
-<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
-<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+<div class="top-nav" style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+
+
 </div>
 
 <div class="header">
     <h1>Pre-Op Interview</h1>
 </div>
 
-<div class="controls">
-    <button class="control-btn" onclick="toggleAll(true)">Expand All</button>
-    <button class="control-btn" onclick="toggleAll(false)">Collapse All</button>
-</div>
-
 <div class="container">
     
     <details open>
-        <summary class="color-basics">1. Introduction & Rapport</summary>
+        <summary class="color-basics">1. Inro / Rapport</summary>
         <label class="check-item"><input type="checkbox"><span class="text-content">Introduction and Title</span></label>
         <label class="check-item"><input type="checkbox"><span class="text-content">"Reviewed chart, want to cofirm..."</span></label>
         <label class="check-item"><input type="checkbox"><span class="text-content">Verify Name / DOB / Surgery</span></label>
@@ -202,8 +217,8 @@
 
     <details open>
         <summary class="color-questions">9. Questions</summary>
-        <label class="check-item"><input type="checkbox"><span class="text-content">"Have you had the chance to talk with Dr. ________________ and go over the anesthesia plan with them?"</span></label>
         <label class="check-item"><input type="checkbox"><span class="text-content">"What else should I know?"</span></label>
+        <label class="check-item"><input type="checkbox"><span class="text-content">"Spoke with Dr. ________________ about the anesthesia plan?"</span></label>
         <label class="check-item"><input type="checkbox"><span class="text-content">"Questions for me?"</span></label>
     </details>
 </div>

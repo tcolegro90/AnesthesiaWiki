@@ -67,6 +67,16 @@
       margin-bottom: 12px;
       font-size: 0.95rem;
     }
+    .note[data-tone="ok"] {
+      background: #edf8f2;
+      border-color: #c6e7d1;
+      color: #215a36;
+    }
+    .note[data-tone="warn"] {
+      background: #fff7e8;
+      border-color: #eed19a;
+      color: #7a4e16;
+    }
     .quick-links {
       display: flex;
       flex-wrap: wrap;
@@ -291,8 +301,8 @@
 </head>
 <body>
 <div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
-<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
-<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+
+
 </div>
   <div id="preview-screen">
     <div id="preview-actions" style="margin-bottom:20px;display:flex;gap:10px;">
@@ -443,13 +453,14 @@
 
   <div id="main-content" class="wrap">
     <h1>Anesthetic Care Plan</h1>
+    <div class="note" id="storage-status" data-tone="warn">Checking save storage mode...</div>
     <div class="top-actions">
       <button type="button" class="action-btn" onclick="openPreview()">Print Preview</button>
       <button type="button" class="action-btn" onclick="printSavedPlansBatch()">Print 1-4 Saved Plans</button>
       <button type="button" class="action-btn" onclick="saveNamedPlan()">Save Plan</button>
       <button type="button" class="action-btn" onclick="loadNamedPlan()">Load Plan</button>
       <button type="button" class="action-btn" onclick="deleteNamedPlan()">Delete Plan</button>
-      <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear All Data</button>
+      <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear current care plan</button>
     </div>
 
     <div class="section"><h2>Patient Demographics</h2><iframe id="frame-1" src="1-Patient-Demographics.html" title="Section 1"></iframe></div>
@@ -468,10 +479,14 @@
       <button type="button" class="action-btn" onclick="saveNamedPlan()">Save Plan</button>
       <button type="button" class="action-btn" onclick="loadNamedPlan()">Load Plan</button>
       <button type="button" class="action-btn" onclick="deleteNamedPlan()">Delete Plan</button>
-      <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear All Data</button>
+      <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear current care plan</button>
     </div>
   </div>
 
-  <script src="combined.js?v=4.3"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js?v=1"></script>
+  <script src="firebase-care-plans.js?v=1"></script>
+  <script src="combined.js?v=4.6"></script>
 </body>
 </html>

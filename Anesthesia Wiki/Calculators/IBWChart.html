@@ -81,12 +81,22 @@
         .female-mode tbody tr:nth-child(even) td { background: #ffeef5; }
         .female-mode tr:hover td { background: #ffdce9; }
         .female-mode td:first-child { color: #6f2a48; }
+
+        @media (max-width: 700px) {
+            .top-nav {
+                display: none;
+            }
+
+            body {
+                padding-top: 0;
+            }
+        }
     </style>
 </head>
 <body>
-<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
-<button type="button" onclick="window.history.back()" style="background:#1f2a37;color:#fff;border:none;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;">&#8592; Back</button>
-<a href="../AnesthesiaWiki.html" style="background:#1f2a37;color:#fff;text-decoration:none;padding:7px 13px;border-radius:20px;font-size:0.8rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;">Wiki Home</a>
+<div class="top-nav" style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+
+
 </div>
 
 <header>
