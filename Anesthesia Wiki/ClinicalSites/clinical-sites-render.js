@@ -71,9 +71,18 @@ function getSiteDisplayLabel(site) {
 function renderSitePicker(container) {
     var picker = document.createElement('div');
     picker.className = 'site-picker';
+    var wipIds = { smh: true, highland: true };
 
-    var favSites = SITES.filter(function(s) { return s.id === favoriteSiteId; });
-    var otherSites = SITES.filter(function(s) { return s.id !== favoriteSiteId; });
+    var mainSites = SITES.filter(function(s) { return !wipIds[s.id]; });
+    var wipSites = SITES.filter(function(s) { return wipIds[s.id]; });
+
+    function favoriteFirst(list) {
+        return list.slice().sort(function(a, b) {
+            if (a.id === favoriteSiteId) return -1;
+            if (b.id === favoriteSiteId) return 1;
+            return 0;
+        });
+    }
 
     function makeCard(site) {
         var card = document.createElement('div');
@@ -85,15 +94,17 @@ function renderSitePicker(container) {
         return card;
     }
 
-    favSites.forEach(function(site) { picker.appendChild(makeCard(site)); });
+    favoriteFirst(mainSites).forEach(function(site) { picker.appendChild(makeCard(site)); });
 
-    if (favSites.length && otherSites.length) {
-        var gap = document.createElement('div');
-        gap.style.marginTop = '14px';
-        picker.appendChild(gap);
+    if (wipSites.length) {
+        var wipSection = document.createElement('div');
+        wipSection.className = 'site-picker-section';
+        wipSection.innerHTML = '<div class="site-picker-section-title">WIP sites</div>';
+        favoriteFirst(wipSites).forEach(function(site) {
+            wipSection.appendChild(makeCard(site));
+        });
+        picker.appendChild(wipSection);
     }
-
-    otherSites.forEach(function(site) { picker.appendChild(makeCard(site)); });
 
     container.appendChild(picker);
 }
@@ -463,7 +474,7 @@ function renderPersonListSection(site, field) {
             } else {
                 viewHtml += '<td class="name-cell" colspan="2"><span class="value-empty">None added yet</span></td><td class="action-cell">';
                 if (field.key === 'surgeon') {
-                    viewHtml += '<div class="row-actions"><button type="button" class="row-action-btn small" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add New</button><button type="button" class="row-action-btn small" onclick="startPersonRowEdit(\'' + site.id + '\',\'' + field.key + '\')">Edit</button></div>';
+                    viewHtml += '<div class="row-actions"><button type="button" class="row-action-btn small" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add Surgeon</button><button type="button" class="row-action-btn small" onclick="startPersonRowEdit(\'' + site.id + '\',\'' + field.key + '\')">Edit</button></div>';
                 }
                 viewHtml += '</td>';
             }
@@ -482,7 +493,7 @@ function renderPersonListSection(site, field) {
             });
             selectHtml += '</select>';
             if (field.key === 'surgeon' && !isRowEditOpen) {
-                viewHtml += '<div class="surgeon-select-inline">' + selectHtml + '<button type="button" class="row-action-btn small mobile-inline-add" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add New</button></div>';
+                viewHtml += '<div class="surgeon-select-inline">' + selectHtml + '<button type="button" class="row-action-btn small mobile-inline-add" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add Surgeon</button></div>';
             } else {
                 viewHtml += selectHtml;
             }

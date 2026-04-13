@@ -40,7 +40,7 @@
         <div><label>Surgery Type</label><br><input id="pat-surgery" class="long" /></div>
         <div>
           <label>Positioning</label><br>
-          <select id="pat-position" class="position-wide">
+          <select id="pat-position" class="position-wide" style="width:255px;max-width:100%;">
             <option value="">Select...</option>
             <option>Supine</option>
             <option>Prone</option>
@@ -62,6 +62,9 @@
           <label><input type="radio" name="pat-insufflation" id="pat-insufflation-yes" value="Yes"> Yes</label>
           <label><input type="radio" name="pat-insufflation" id="pat-insufflation-no" value="No"> No</label>
         </div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:0;"></div>
+        <button type="button" class="add-row-btn" onclick="addExtraSurgRow()">+ Add surgery / position</button>
         <div style="flex-basis:100%;height:0;"></div>
         <div><label>Surgery Start</label><br><input id="pat-sched-surg-time" class="short-text" placeholder="HH:MM" /></div>
         <div><label>Surgery End</label><br><input id="pat-surg-end-time" class="short-text" placeholder="HH:MM" /></div>
@@ -112,10 +115,32 @@
             <option>Ulner</option>
           </select>
         </div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div>
+          <label>Anticipated Antibiotic</label><br>
+          <select id="pat-anticipated-antibiotic" class="med" style="width:240px;max-width:100%;">
+            <option value="">Select...</option>
+            <option>Cefazolin</option>
+            <option>Cefoxitin</option>
+            <option>Cefuroxime</option>
+            <option>Ampicillin-Sulbactam</option>
+            <option>Clindamycin</option>
+            <option>Vancomycin</option>
+            <option>Gentamicin</option>
+            <option>Metronidazole</option>
+            <option>Ciprofloxacin</option>
+            <option>Piperacillin-Tazobactam</option>
+          </select>
+        </div>
+        <div>
+          <label>Dose / Unit</label><br>
+          <input id="pat-anticipated-antibiotic-dose" class="short-text" placeholder="e.g. 2 g" />
+        </div>
+        <div>
+          <label>Redose (hours)</label><br>
+          <input id="pat-anticipated-antibiotic-redose-hours" type="number" step="0.5" min="0" inputmode="decimal" class="short-text" placeholder="e.g. 4" />
+        </div>
       </div>
-
-      <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-      <button type="button" class="add-row-btn" onclick="addExtraSurgRow()" style="margin-bottom:12px;">+ Add surgery / position</button>
 
       <div class="row top-demographics-row">
         <div><label>Initials</label><br><input id="pat-initials" type="text" class="tiny-text" /></div>
@@ -133,6 +158,14 @@
         <div><label>BMI</label><br><input id="pat-bmi" type="number" step="0.1" inputmode="decimal" class="small" /></div>
       </div>
 
+      <div class="row" id="pat-pregnant-row" style="margin-top:6px;display:none;">
+        <div>
+          <label>Pregnant</label><br>
+          <label><input type="radio" name="pat-pregnant" id="pat-pregnant-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-pregnant" id="pat-pregnant-no" value="No"> No</label>
+        </div>
+      </div>
+
       <hr>
 
       <div class="row" style="margin-top:10px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
@@ -146,8 +179,8 @@
       <div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
         <div>
           <label>Interpreter</label><br>
-          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-no" value="No"> No</label>
           <label><input type="radio" name="pat-interpreter" id="pat-interpreter-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-no" value="No"> No</label>
         </div>
         <div id="pat-interpreter-language-wrap" style="display:none;">
           <label>Language</label><br>
@@ -155,13 +188,25 @@
         </div>
         <div>
           <label>Hearing Loss</label><br>
-          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-no" value="No"> No</label>
           <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-no" value="No"> No</label>
         </div>
         <div id="pat-hearing-aids-wrap" style="display:none;">
           <label>Hearing Aids</label><br>
           <label><input type="radio" name="pat-hearing-aids" id="pat-hearing-aids-yes" value="Yes"> Yes</label>
           <label><input type="radio" name="pat-hearing-aids" id="pat-hearing-aids-no" value="No"> No</label>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+        <div>
+          <label>Prior Anesthetic in Chart?</label><br>
+          <label><input type="radio" name="pat-prior-anesthetic" id="pat-prior-anesthetic-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-prior-anesthetic" id="pat-prior-anesthetic-no" value="No"> No</label>
+        </div>
+        <div id="pat-prior-anesthetic-notes-wrap" style="display:none;">
+          <label>Notes</label><br>
+          <textarea id="pat-prior-anesthetic-notes" class="med" rows="1" style="width:420px;max-width:100%;min-height:34px;resize:vertical;overflow:hidden;line-height:1.35;" placeholder="200 prop, 50 fent, required vaso, easy airway"></textarea>
         </div>
       </div>
 
@@ -277,6 +322,47 @@
         document.getElementById('pat-hearing-aids-no').checked = false;
       }
       saveState();
+    }
+
+    function syncPriorAnestheticUi() {
+      const yes = document.getElementById('pat-prior-anesthetic-yes').checked;
+      var notesEl = document.getElementById('pat-prior-anesthetic-notes');
+      document.getElementById('pat-prior-anesthetic-notes-wrap').style.display = yes ? 'block' : 'none';
+      if (!yes) {
+        notesEl.value = '';
+        notesEl.style.height = '34px';
+      } else {
+        autoResizePriorAnestheticNotes();
+      }
+      saveState();
+    }
+
+    function syncPregnancyUi() {
+      var gender = document.getElementById('pat-gender').value;
+      var age = parseFloat(document.getElementById('pat-age').value);
+      var inRange = !isNaN(age) && age >= 12 && age <= 55;
+      var show = gender === 'F' && inRange;
+      var row = document.getElementById('pat-pregnant-row');
+      var yes = document.getElementById('pat-pregnant-yes');
+      var no = document.getElementById('pat-pregnant-no');
+
+      row.style.display = show ? 'flex' : 'none';
+
+      if (!show) {
+        yes.checked = false;
+        no.checked = true;
+      } else if (!yes.checked && !no.checked) {
+        no.checked = true;
+      }
+
+      saveState();
+    }
+
+    function autoResizePriorAnestheticNotes() {
+      var el = document.getElementById('pat-prior-anesthetic-notes');
+      if (!el) return;
+      el.style.height = '34px';
+      el.style.height = Math.max(34, el.scrollHeight) + 'px';
     }
 
     var surgeryTimeSyncInProgress = false;
@@ -460,7 +546,11 @@
       document.getElementById('pat-weight-kg').addEventListener('input', recalculateFromWeightKg);
       document.getElementById('pat-weight-lbs').addEventListener('input', recalculateFromWeightLbs);
       document.getElementById('pat-bmi').addEventListener('input', recalculateFromBMI);
-      document.getElementById('pat-gender').addEventListener('change', updateIBWandTV);
+      document.getElementById('pat-gender').addEventListener('change', function() {
+        updateIBWandTV();
+        syncPregnancyUi();
+      });
+      document.getElementById('pat-age').addEventListener('input', syncPregnancyUi);
       document.getElementById('pat-position').addEventListener('change', syncPositionOther);
       document.getElementById('pat-surg-date-mode').addEventListener('change', syncSurgicalDate);
       document.getElementById('pat-surg-date-other').addEventListener('input', syncSurgicalDate);
@@ -473,7 +563,17 @@
       document.querySelectorAll('input[name="pat-hearing-aids"]').forEach(function(el) {
         el.addEventListener('change', saveState);
       });
+      document.querySelectorAll('input[name="pat-prior-anesthetic"]').forEach(function(el) {
+        el.addEventListener('change', syncPriorAnestheticUi);
+      });
+      document.querySelectorAll('input[name="pat-pregnant"]').forEach(function(el) {
+        el.addEventListener('change', saveState);
+      });
       document.getElementById('pat-interpreter-language').addEventListener('input', saveState);
+      document.getElementById('pat-prior-anesthetic-notes').addEventListener('input', function() {
+        autoResizePriorAnestheticNotes();
+        saveState();
+      });
       ['pat-sched-surg-time', 'pat-surg-end-time', 'pat-surg-length'].forEach(function(id) {
         document.getElementById(id).addEventListener('input', function() { syncSurgeryTimeFields(id); });
         document.getElementById(id).addEventListener('change', function() { syncSurgeryTimeFields(id); });
@@ -492,10 +592,18 @@
       if (!document.getElementById('pat-hearing-loss-yes').checked && !document.getElementById('pat-hearing-loss-no').checked) {
         document.getElementById('pat-hearing-loss-no').checked = true;
       }
+      if (!document.getElementById('pat-prior-anesthetic-yes').checked && !document.getElementById('pat-prior-anesthetic-no').checked) {
+        document.getElementById('pat-prior-anesthetic-no').checked = true;
+      }
+      if (!document.getElementById('pat-pregnant-yes').checked && !document.getElementById('pat-pregnant-no').checked) {
+        document.getElementById('pat-pregnant-no').checked = true;
+      }
       syncPacerUi();
       syncPositionOther();
       syncInterpreterUi();
       syncHearingUi();
+      syncPriorAnestheticUi();
+      syncPregnancyUi();
       syncSurgicalDate();
       syncSurgeryTimeFields();
       restoreExtraSurg();

@@ -200,9 +200,40 @@
       setText('pr-surgery', s['pat-surgery'] || '_');
       setText('pr-allergies', s['pat-allergies'] || 'NKDA');
 
+      var pregRow = document.getElementById('pr-pregnant-row');
+      var pregValEl = document.getElementById('pr-pregnant');
+      var ageNum = parseFloat(s['pat-age']);
+      var pregApplicable = s['pat-gender'] === 'F' && !isNaN(ageNum) && ageNum >= 12 && ageNum <= 55;
+      if (pregRow && pregValEl) {
+        if (pregApplicable) {
+          var pregVal = yn(s, 'pat-pregnant-yes', 'pat-pregnant-no');
+          setText('pr-pregnant', pregVal);
+          pregRow.style.display = 'flex';
+          if (pregVal === 'Yes') {
+            pregRow.style.color = '#c41c3b';
+            pregRow.style.fontWeight = 'bold';
+          } else {
+            pregRow.style.color = '';
+            pregRow.style.fontWeight = '';
+          }
+        } else {
+          pregRow.style.display = 'none';
+          pregRow.style.color = '';
+          pregRow.style.fontWeight = '';
+        }
+      }
+
       var pos = s['pat-position'] === 'Other' ? (s['pat-position-other'] || '_') : (s['pat-position'] || '_');
       setText('pr-position', pos);
       setText('pr-nerve-stim', s['pat-nerve-stim-location'] || 'None');
+      var abxName = (s['pat-anticipated-antibiotic'] || '').trim();
+      var abxDose = (s['pat-anticipated-antibiotic-dose'] || '').trim();
+      var abxRedoseHrs = (s['pat-anticipated-antibiotic-redose-hours'] || '').trim();
+      var abxParts = [];
+      if (abxName) abxParts.push(abxName);
+      if (abxDose) abxParts.push(abxDose);
+      if (abxRedoseHrs) abxParts.push('Redose ' + abxRedoseHrs + ' hr');
+      setOptionalRow('pr-antibiotic-plan-row', 'pr-antibiotic-plan', abxParts.join(' | '));
       setText('pr-asa-class', s['pat-asa-class'] || '_');
       setText('pr-insufflation', yn(s, 'pat-insufflation-yes', 'pat-insufflation-no'));
 
@@ -227,6 +258,17 @@
           hearingRow.style.display = 'flex';
         } else {
           hearingRow.style.display = 'none';
+        }
+      }
+
+      var priorAnestheticRow = document.getElementById('pr-prior-anesthetic-row');
+      if (priorAnestheticRow) {
+        if (s['pat-prior-anesthetic-yes']) {
+          var priorNotes = (s['pat-prior-anesthetic-notes'] || '').trim();
+          setText('pr-prior-anesthetic', priorNotes ? ('Yes - ' + priorNotes) : 'Yes');
+          priorAnestheticRow.style.display = 'flex';
+        } else {
+          priorAnestheticRow.style.display = 'none';
         }
       }
 

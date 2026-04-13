@@ -5,18 +5,224 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anaphylaxis</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; background: #f7f4f1; color: #2e2a26; padding: 76px 16px 32px; }
-        .top-nav { position: fixed; top: 10px; left: 10px; display: flex; gap: 8px; z-index: 10; }
-        .top-nav a, .top-nav button { background: #1f2a37; color: #fff; border: none; text-decoration: none; padding: 8px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.2); cursor: pointer; }
-        .card { max-width: 760px; margin: 0 auto; background: #fff; border: 1px solid #eadbd0; border-left: 6px solid #b56d17; border-radius: 16px; padding: 24px 22px; box-shadow: 0 8px 24px rgba(90,50,40,0.08); }
-        h1 { margin: 0 0 8px; color: #8f5310; }
-        p { margin: 0; color: #6f655e; line-height: 1.5; }
-        .tag { display: inline-block; margin-top: 14px; padding: 6px 10px; border-radius: 999px; background: #fff4df; color: #8f5310; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-        @media (max-width: 700px) { body { padding-top: 12px; } .top-nav { position: static; margin-bottom: 12px; } .top-nav a, .top-nav button { min-height: 44px; font-size: 0.9rem; } }
+        :root {
+            --bg: #f7f4f1;
+            --panel: #ffffff;
+            --line: #eadbd0;
+            --text: #2e2a26;
+            --muted: #6f655e;
+            --alert: #b32424;
+            --accent: #8f5310;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            background: #f7f4f1;
+            color: var(--text);
+            padding: 76px 16px 32px;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .top-nav a,
+        .top-nav button {
+            background: #1f2a37;
+            color: #fff;
+            border: none;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        .page {
+            max-width: 920px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-left: 6px solid var(--accent);
+            border-radius: 16px;
+            padding: 20px 20px;
+            box-shadow: 0 8px 24px rgba(90,50,40,0.08);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            color: var(--accent);
+            font-size: 1.6rem;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .tag {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #fff4df;
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .critical {
+            margin-top: 14px;
+            border: 1px solid #efc3c3;
+            border-left: 6px solid var(--alert);
+            border-radius: 12px;
+            background: #fff6f6;
+            padding: 12px 13px;
+        }
+
+        .critical h2 {
+            margin: 0 0 8px;
+            font-size: 0.96rem;
+            color: var(--alert);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .critical ul {
+            margin: 0;
+            padding-left: 18px;
+            line-height: 1.45;
+        }
+
+        .grid {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 13px;
+        }
+
+        .card h3 {
+            margin: 0 0 8px;
+            color: #6f3f0b;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card ul {
+            margin: 0;
+            padding-left: 18px;
+            line-height: 1.45;
+        }
+
+        .card li + li {
+            margin-top: 6px;
+        }
+
+        .foot {
+            margin-top: 14px;
+            font-size: 0.82rem;
+            color: #5f5751;
+            line-height: 1.45;
+        }
+
+        @media (max-width: 760px) {
+            body { padding-top: 12px; }
+            .top-nav { position: static; margin-bottom: 12px; }
+            .top-nav a, .top-nav button { min-height: 44px; font-size: 0.9rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-    <div class="top-nav"><a href="../Index.html">Emergency Algorithms</a></div>
-    <div class="card"><h1>Anaphylaxis</h1><p>This emergency algorithm page is a work in progress.</p><div class="tag">Work In Progress</div></div>
+    <div class="top-nav">
+        <a href="../Index.html">Emergency Algorithms</a>
+    </div>
+
+    <div class="page">
+        <section class="hero">
+            <h1>Anaphylaxis</h1>
+            <p>Example high-speed OR crisis layout for review. If this format looks right, I will apply it to all remaining crisis topics.</p>
+            <div class="tag">Example Format - Review First</div>
+        </section>
+
+        <section class="critical">
+            <h2>First 60 Seconds</h2>
+            <ul>
+                <li>Call for help and announce suspected anaphylaxis.</li>
+                <li>Stop potential trigger exposure if possible.</li>
+                <li>100% oxygen, secure airway, and support ventilation.</li>
+                <li>Start epinephrine promptly for hypotension, bronchospasm, or airway edema.</li>
+                <li>Begin rapid IV fluid bolus and prepare vasopressor infusion if unstable.</li>
+            </ul>
+        </section>
+
+        <section class="grid">
+            <article class="card">
+                <h3>Recognition Clues</h3>
+                <ul>
+                    <li>Sudden hypotension after drug, antiseptic, latex, or blood product exposure.</li>
+                    <li>Rising peak airway pressures, wheeze, bronchospasm, poor ventilation.</li>
+                    <li>Cutaneous signs: flushing, urticaria, angioedema (may be absent under drapes).</li>
+                    <li>Cardiovascular collapse, tachycardia or bradycardia, pulselessness in severe cases.</li>
+                </ul>
+            </article>
+
+            <article class="card">
+                <h3>Immediate Treatment Priorities</h3>
+                <ul>
+                    <li>Epinephrine IV bolus, titrated to response in severe reaction.</li>
+                    <li>Large-volume crystalloid resuscitation.</li>
+                    <li>Adjuncts after epinephrine: antihistamine, steroid, bronchodilator.</li>
+                    <li>Consider infusion support if repeated boluses are required.</li>
+                </ul>
+            </article>
+
+            <article class="card">
+                <h3>Differential To Keep In Mind</h3>
+                <ul>
+                    <li>Hemorrhage or occult major blood loss.</li>
+                    <li>Tension pneumothorax, severe bronchospasm, or tube obstruction.</li>
+                    <li>Pulmonary embolism, venous air embolism, high spinal, or MI.</li>
+                    <li>Medication effect or overdose not related to allergy.</li>
+                </ul>
+            </article>
+
+            <article class="card">
+                <h3>Stabilization And Aftercare</h3>
+                <ul>
+                    <li>Draw serum tryptase per institutional workflow (initial and follow-up sample).</li>
+                    <li>Document likely trigger timing and all meds given.</li>
+                    <li>Place clear allergy warning in chart and handoff.</li>
+                    <li>Plan monitored disposition (PACU/ICU) based on severity and recurrence risk.</li>
+                </ul>
+            </article>
+        </section>
+
+        <p class="foot"><strong>Safety note:</strong> Use this as a rapid cognitive aid, and follow your local protocol/attending direction for exact dosing, escalation sequence, and post-event testing.</p>
+    </div>
 </body>
 </html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stanford Crisis Manual</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f4f7fb;
+      margin: 0;
+      padding: 14px;
+      color: #2e4057;
+    }
+    .top-nav {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+    .top-nav a,
+    .top-nav button {
+      background: #1f2a37;
+      color: #fff;
+      border: none;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .container {
+      width: 100%;
+      max-width: 860px;
+      margin: 44px auto 0;
+      background: #fff;
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+      border-top: 10px solid #2e4057;
+    }
+    h1 {
+      margin: 0;
+      color: #2e4057;
+      text-align: center;
+      text-transform: uppercase;
+      border-bottom: 2px solid #2e4057;
+      padding-bottom: 8px;
+      font-size: 1.45rem;
+      letter-spacing: 0.02em;
+    }
+    .actions-row {
+      margin: 12px 0 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: end;
+    }
+    .actions-row .reset-btn {
+      margin-left: auto;
+    }
+    h2 {
+      background: #2e4057;
+      color: #fff;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 1.02rem;
+      margin-top: 16px;
+      margin-bottom: 10px;
+    }
+    .recognition-box {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .event-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .event-item {
+      font-size: 14px;
+      padding: 6px;
+      border-bottom: 1px solid #e9eef2;
+      color: #2d3b4a;
+    }
+    .labs-line {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #d7dee7;
+      font-size: 0.86rem;
+      color: #34495e;
+      line-height: 1.4;
+      display: none;
+    }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #e6ebf0;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .step input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+      accent-color: #2e4057;
+      flex: 0 0 auto;
+    }
+    .step-text {
+      font-size: 0.95rem;
+      color: #2f3e4c;
+      line-height: 1.35;
+    }
+    .step input[type="checkbox"]:checked + .step-text {
+      text-decoration: line-through;
+      opacity: 0.62;
+    }
+    .priority-box {
+      background: #fff3cd;
+      border: 1px solid #f0df9b;
+      border-radius: 8px;
+      padding: 12px;
+      line-height: 1.45;
+      color: #5a4b1f;
+    }
+    .priority-box ul,
+    .aftercare ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .aftercare {
+      background: #eef5ff;
+      border: 1px solid #cfddf3;
+      border-radius: 8px;
+      padding: 12px;
+      line-height: 1.45;
+      color: #2a4668;
+    }
+    .therapy-box {
+      background: #fff7df;
+      border: 1px solid #ecd899;
+      border-radius: 8px;
+      padding: 12px;
+      line-height: 1.45;
+      color: #5a4b1f;
+    }
+    .therapy-box p {
+      margin: 0 0 8px;
+    }
+    .therapy-box p:last-child {
+      margin-bottom: 0;
+    }
+    .therapy-box ul {
+      margin: 6px 0 0;
+      padding-left: 18px;
+    }
+    .reset-btn {
+      border: 1px solid #bccbdb;
+      border-radius: 8px;
+      background: #f4f8fc;
+      color: #2e4057;
+      padding: 8px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .foot-note {
+      margin-top: 12px;
+      font-size: 0.82rem;
+      color: #5d6d7e;
+      line-height: 1.4;
+      border-top: 1px solid #d7e1ea;
+      padding-top: 10px;
+    }
+    .data-warning {
+      display: none;
+      margin-top: 10px;
+      border: 1px solid #efc7c7;
+      border-left: 4px solid #b32424;
+      background: #fff5f5;
+      color: #7f1d1d;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.88rem;
+    }
+    @media (max-width: 720px) {
+      .top-nav { position: static; margin-bottom: 10px; }
+      .container { margin-top: 0; }
+      .event-grid { grid-template-columns: 1fr; }
+      .actions-row .reset-btn { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav">
+    <button type="button" onclick="window.history.back()">&larr; Back</button>
+    <a href="Index.html">Emergency Algorithms</a>
+  </div>
+
+  <main class="container">
+    <h1 id="topic-title">Crisis Topic</h1>
+    <div class="actions-row">
+      <button type="button" class="reset-btn" onclick="clearChecks()">Clear All Checks</button>
+    </div>
+    <div class="data-warning" id="data-warning">Crisis manual data could not be loaded. Reload the page and try again.</div>
+    <h2>1. Clinical Presentation</h2>
+    <div class="recognition-box">
+      <div class="event-grid" id="presentation-grid"></div>
+      <div class="labs-line" id="labs-line"></div>
+    </div>
+
+    <h2>2. Interventions</h2>
+    <div id="interventions-list"></div>
+
+    <h2>3. Key Priorities</h2>
+    <div class="priority-box"><ul id="priority-list"></ul></div>
+
+    <h2>4. Post-Crisis / Handoff</h2>
+    <div class="aftercare"><ul id="aftercare-list"></ul></div>
+
+    <div id="therapy-section" style="display:none;">
+      <h2>5. Key Dosing / Therapy Notes</h2>
+      <div class="therapy-box" id="therapy-box"></div>
+    </div>
+
+    <p class="foot-note"><strong>Safety note:</strong> This is a rapid checklist aid. Follow attending direction and your institution's formal protocol for exact medication choices, timing, and escalation pathways.</p>
+  </main>
+
+  <script src="stanford-crisis-topics.js?v=20260413a"></script>
+  <script>
+    function getTopicSlug() {
+      var params = new URLSearchParams(window.location.search);
+      var slug = params.get("topic") || "malignant-hyperthermia";
+      if (!window.CRISIS_MANUAL_TOPICS || !window.CRISIS_MANUAL_TOPICS[slug]) return "malignant-hyperthermia";
+      return slug;
+    }
+
+    function renderList(containerId, items) {
+      var target = document.getElementById(containerId);
+      if (!target) return;
+      target.innerHTML = (items || []).map(function (item) {
+        return "<li>" + item + "</li>";
+      }).join("");
+    }
+
+    function renderTopic(slug) {
+      var topic = (window.CRISIS_MANUAL_TOPICS || {})[slug];
+      var warning = document.getElementById("data-warning");
+      if (!topic) {
+        if (warning) warning.style.display = "block";
+        return;
+      }
+      if (warning) warning.style.display = "none";
+
+      document.title = topic.title + " - Stanford Crisis Manual";
+      document.getElementById("topic-title").textContent = topic.title;
+
+      var presentation = document.getElementById("presentation-grid");
+      presentation.innerHTML = (topic.presentation || []).map(function (line) {
+        return '<div class="event-item">' + line + '</div>';
+      }).join("");
+
+      var labsLine = document.getElementById("labs-line");
+      if (topic.labs) {
+        labsLine.innerHTML = "<strong>Labs:</strong> " + topic.labs;
+        labsLine.style.display = "block";
+      } else {
+        labsLine.textContent = "";
+        labsLine.style.display = "none";
+      }
+
+      var interventions = document.getElementById("interventions-list");
+      interventions.innerHTML = (topic.interventions || []).map(function (line, idx) {
+        var id = "intervention-" + slug + "-" + idx;
+        return '<label class="step" for="' + id + '"><input type="checkbox" id="' + id + '"><span class="step-text">' + line + '</span></label>';
+      }).join("");
+
+      renderList("priority-list", topic.priorities || []);
+      renderList("aftercare-list", topic.aftercare || []);
+
+      var therapySection = document.getElementById("therapy-section");
+      var therapyBox = document.getElementById("therapy-box");
+      if (topic.therapy && therapyBox && therapySection) {
+        var therapyHtml = "";
+        if (topic.therapy.dantroleneDose) {
+          therapyHtml += "<p><strong>Dantrolene:</strong> " + topic.therapy.dantroleneDose + "</p>";
+        }
+        if (topic.therapy.warning) {
+          therapyHtml += "<p><strong>Warning:</strong> " + topic.therapy.warning + "</p>";
+        }
+        if (topic.therapy.clinicalNote) {
+          therapyHtml += "<p><strong>Clinical note:</strong> " + topic.therapy.clinicalNote + "</p>";
+        }
+        if (topic.therapy.reconstitution && topic.therapy.reconstitution.length) {
+          therapyHtml += "<p><strong>Reconstitution:</strong></p><ul>" + topic.therapy.reconstitution.map(function (line) {
+            return "<li>" + line + "</li>";
+          }).join("") + "</ul>";
+        }
+        therapyBox.innerHTML = therapyHtml;
+        therapySection.style.display = "block";
+      } else if (therapySection && therapyBox) {
+        therapyBox.innerHTML = "";
+        therapySection.style.display = "none";
+      }
+    }
+
+    function clearChecks() {
+      document.querySelectorAll('#interventions-list input[type="checkbox"]').forEach(function (box) {
+        box.checked = false;
+      });
+    }
+
+    var initialSlug = getTopicSlug();
+    renderTopic(initialSlug);
+  </script>
+</body>
+</html>

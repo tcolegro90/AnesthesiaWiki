@@ -113,13 +113,14 @@
         }
 
         .alg-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 12px;
         }
 
         .alg-tile {
             display: block;
+            width: 100%;
             text-decoration: none;
             color: inherit;
             background: var(--card);
@@ -202,8 +203,8 @@
         }
 
         .wip-tools {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 12px;
         }
 
@@ -213,6 +214,22 @@
 
         .game-tile:hover {
             background: #f4f8ff;
+        }
+
+        .manual-tile {
+            border-top-color: #5b3ea6;
+        }
+
+        .manual-tile:hover {
+            background: #f7f4ff;
+        }
+
+        .manual-v1 {
+            border-top-color: #36557d;
+        }
+
+        .manual-v1:hover {
+            background: #f2f7ff;
         }
 
         @media (max-width: 700px) {
@@ -247,81 +264,40 @@
         </div>
 
         <div class="section">
-            <h2 style="margin: 0 0 12px;">Current Algorithms</h2>
+            <button type="button" class="section-toggle-btn" aria-expanded="true" onclick="toggleSectionContent('stanford-manual-content', this)">
+                <h2>Stanford Crisis Manual</h2>
+                <span class="caret">▶</span>
+            </button>
+            <div class="section-content open" id="stanford-manual-content">
             <div class="alg-grid">
-                <a class="alg-tile" href="MH_Crisis.html">
-                    <span class="label">Malignant Hyperthermia</span>
-                </a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=anaphylaxis&v=20260413a"><span class="label">Anaphylaxis</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=bradycardia&v=20260413a"><span class="label">Bradycardia</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=bronchospasm&v=20260413a"><span class="label">Bronchospasm</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=delayed-emergence&v=20260413a"><span class="label">Delayed Emergence</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=difficult-airway&v=20260413a"><span class="label">Difficult Airway</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=fire&v=20260413a"><span class="label">Fire</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=high-spinal&v=20260413a"><span class="label">High Spinal</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=hyperkalemia&v=20260413a"><span class="label">Hyperkalemia</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=hypotension&v=20260413a"><span class="label">Hypotension</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=hypoxia&v=20260413a"><span class="label">Hypoxia</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=laryngospasm&v=20260413a"><span class="label">Laryngospasm</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=last&v=20260413a"><span class="label">LAST</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=loss-of-evoked-potential&v=20260413a"><span class="label">Loss of Evoked Potential</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=malignant-hyperthermia&v=20260413a"><span class="label">Malignant Hyperthermia</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=mass-transfusion-protocol&v=20260413a"><span class="label">Mass Transfusion Protocol</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=mi&v=20260413a"><span class="label">MI</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=pea&v=20260413a"><span class="label">PEA</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=power-outage&v=20260413a"><span class="label">Power Outage</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=systole&v=20260413a"><span class="label">Systole</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=tachycardia&v=20260413a"><span class="label">Tachycardia</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=transfusion-reaction&v=20260413a"><span class="label">Transfusion Reaction</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=venous-air-emboli&v=20260413a"><span class="label">Venous Air Emboli</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=vfib&v=20260413a"><span class="label">Vfib</span></a>
+                <a class="alg-tile manual-v1" href="Stanford-Crisis-Version-1.html?topic=vtach&v=20260413a"><span class="label">Vtach</span></a>
+            </div>
             </div>
         </div>
 
-        <div class="section">
-            <button type="button" class="section-toggle-btn" aria-expanded="true" onclick="toggleSectionContent('needs-review-content', this)">
-                <h2>Needs Review</h2>
-                <span class="caret">▶</span>
-            </button>
-            <div class="section-content open" id="needs-review-content">
-                <div class="alg-grid">
-                    <a class="alg-tile" href="LAST.html"><span class="label">LAST</span></a>
-                    <a class="alg-tile" href="Bronchospasm.html"><span class="label">Bronchospasm</span></a>
-                    <a class="alg-tile wip" href="Work%20in%20Progress/Laryngospasm.html">
-                        <span class="label">Laryngospasm</span>
-                        <span class="sub">Work in progress.</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <button type="button" class="section-toggle-btn" aria-expanded="true" onclick="toggleSectionContent('wip-main-content', this)">
-                <h2>Work In Progress</h2>
-                <span class="caret">▶</span>
-            </button>
-            <div class="section-content open" id="wip-main-content">
-                <div class="wip-tools">
-                    <button type="button" class="alg-tile wip folder-tile" id="wip-folder-toggle" onclick="toggleWipFolder()">
-                        <div class="folder-head">
-                            <span class="folder-icon">📁</span>
-                            <div class="folder-meta">
-                                <span class="label">Work In Progress</span>
-                                <span class="sub">Open the folder to see all unfinished emergency algorithms.</span>
-                            </div>
-                            <span class="folder-caret">▶</span>
-                        </div>
-                    </button>
-                    <a class="alg-tile game-tile" href="CrisisManagementGame.html">
-                        <span class="label">Crisis Management Game</span>
-                        <span class="sub">Practice the treatment steps in order.</span>
-                    </a>
-                </div>
-
-                <div class="folder-content" id="wip-folder-content">
-                    <div class="alg-grid">
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Hypoxia.html"><span class="label">Hypoxia</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/DelayedEmergence.html"><span class="label">Delayed Emergence</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/LossOfEvokedPotential.html"><span class="label">Loss of Evoked Potential</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/MassTransfusionProtocol.html"><span class="label">Mass Transfusion Protocol</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/TransfusionReaction.html"><span class="label">Transfusion Reaction</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Anaphylaxis.html"><span class="label">Anaphylaxis</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Hyperkalemia.html"><span class="label">Hyperkalemia</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Hypotension.html"><span class="label">Hypotension</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Fire.html"><span class="label">Fire</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/VenousAirEmboli.html"><span class="label">Venous Air Emboli</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/PowerOutage.html"><span class="label">Power Outage</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/HighSpinal.html"><span class="label">High Spinal</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Laryngospasm.html"><span class="label">Laryngospasm</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/DifficultAirway.html"><span class="label">Difficult Airway</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Systole.html"><span class="label">Systole</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/PEA.html"><span class="label">PEA</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/MI.html"><span class="label">MI</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Vtach.html"><span class="label">Vtach</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Vfib.html"><span class="label">Vfib</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Bradycardia.html"><span class="label">Bradycardia</span><span class="sub">Work in progress.</span></a>
-                        <a class="alg-tile wip" href="Work%20in%20Progress/Tachycardia.html"><span class="label">Tachycardia</span><span class="sub">Work in progress.</span></a>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -330,14 +306,6 @@
             if (!content || !btn) return;
             var isOpen = content.classList.toggle('open');
             btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        }
-
-        function toggleWipFolder() {
-            var folder = document.getElementById('wip-folder-content');
-            var toggle = document.getElementById('wip-folder-toggle');
-            if (!folder || !toggle) return;
-            folder.classList.toggle('open');
-            toggle.classList.toggle('open', folder.classList.contains('open'));
         }
     </script>
 </body>

@@ -132,10 +132,10 @@
       width: 3.95in;
       height: 5.5in;
       background: #fff;
-      padding: 0.1in 0.06in;
+      padding: 0.08in 0.05in;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
       font-family: Arial, sans-serif;
-      font-size: 7.1pt;
+      font-size: 6.8pt;
       color: #000;
       box-sizing: border-box;
       border: 1px solid #000;
@@ -182,9 +182,24 @@
     .print-card .print-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 2px;
-      line-height: 1.2;
+      margin-bottom: 1px;
+      line-height: 1.1;
       gap: 4px;
+    }
+    #print-container #pr-lab-a1c-row,
+    .print-card #pr-lab-a1c-row {
+      margin-top: 5px;
+    }
+    #print-container .compact-lab-row,
+    .print-card .compact-lab-row {
+      justify-content: flex-start;
+      gap: 3px;
+    }
+    #print-container .compact-lab-row span:last-child,
+    .print-card .compact-lab-row span:last-child {
+      flex: 0;
+      text-align: left;
+      white-space: nowrap;
     }
     #print-container .print-row span:first-child,
     .print-card .print-row span:first-child {
@@ -316,6 +331,7 @@
           <h3>Patient Details</h3>
           <div class="print-row"><span>Age / Gender:</span><span id="pr-age-gen">_</span></div>
           <div class="print-row"><span></span><span><span id="pr-height">_</span> / <span id="pr-weight">_</span> / <span id="pr-bmi">_</span></span></div>
+          <div class="print-row" id="pr-pregnant-row" style="display:none;"><span>Pregnant:</span><span id="pr-pregnant">_</span></div>
           <div class="print-row"><span>Smoker:</span><span id="pr-smoker">_</span></div>
           <div class="print-row"><span>Fasted:</span><span id="pr-fasted">_</span></div>
           <div class="print-row" id="pr-interpreter-row" style="display:none;"><span>Interpreter:</span><span id="pr-interpreter">_</span></div>
@@ -327,6 +343,7 @@
             <span style="font-weight:bold; display:block; margin-bottom:2px;">At Home Meds:</span>
             <div id="pr-meds-list" style="font-size:0.9em; padding-left: 5px;"></div>
           </div>
+          <div class="print-row" id="pr-prior-anesthetic-row" style="display:none;"><span>Prior Anes:</span><span id="pr-prior-anesthetic">_</span></div>
           <div class="print-row" id="pr-pacer-row" style="display:none;"><span>Device:</span><span id="pr-pacer">_</span></div>
         </div>
 
@@ -375,12 +392,12 @@
                 <span style="position:absolute;right:3px;top:18px;background:#fff;padding:0;line-height:1;" id="pr-lab-ptt">—</span>
               </div>
             </div>
-            <div class="print-row" id="pr-lab-a1c-row" style="display:none;"><span>A1C:</span><span id="pr-lab-a1c">_</span></div>
-            <div class="print-row" id="pr-lab-alb-row" style="display:none;"><span>Alb:</span><span id="pr-lab-alb">_</span></div>
-            <div class="print-row" id="pr-lab-ast-row" style="display:none;"><span>AST:</span><span id="pr-lab-ast">_</span></div>
-            <div class="print-row" id="pr-lab-alt-row" style="display:none;"><span>ALT:</span><span id="pr-lab-alt">_</span></div>
-            <div class="print-row" id="pr-lab-ica-row" style="display:none;"><span>iCa:</span><span id="pr-lab-ica">_</span></div>
-            <div class="print-row" id="pr-lab-ca-row" style="display:none;"><span>Ca:</span><span id="pr-lab-ca">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-a1c-row" style="display:none;"><span>A1C:</span><span id="pr-lab-a1c">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-alb-row" style="display:none;"><span>Albumin:</span><span id="pr-lab-alb">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-ast-row" style="display:none;"><span>AST:</span><span id="pr-lab-ast">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-alt-row" style="display:none;"><span>ALT:</span><span id="pr-lab-alt">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-ica-row" style="display:none;"><span>iCa:</span><span id="pr-lab-ica">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-ca-row" style="display:none;"><span>Ca:</span><span id="pr-lab-ca">_</span></div>
             <div class="print-row" id="pr-gas-row" style="display:none;"><span id="pr-gas-label">Gas:</span><span id="pr-gas-values">_</span></div>
           </div>
           <div class="print-row" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;"><span>Procedure:</span><span id="pr-surgery">_</span></div>
@@ -389,6 +406,7 @@
           <div class="print-row"><span>Insufflation:</span><span id="pr-insufflation">_</span></div>
           <div class="print-row"><span>ASA Class:</span><span id="pr-asa-class">_</span></div>
           <div class="print-row"><span>Nerve Stim:</span><span id="pr-nerve-stim">_</span></div>
+          <div class="print-row" id="pr-antibiotic-plan-row" style="display:none;"><span>Antibiotic:</span><span id="pr-antibiotic-plan">_</span></div>
           <div class="print-row" id="pr-row-awareness" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Awareness Hx</span></div>
           <div class="print-row" id="pr-row-famhx" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Fam Hx Anes Comp</span></div>
           <div class="print-row" id="pr-row-mh" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Malignant Hyperthermia</span></div>

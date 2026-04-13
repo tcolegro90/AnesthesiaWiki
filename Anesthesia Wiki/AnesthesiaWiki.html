@@ -4,6 +4,9 @@
    <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+      <meta http-equiv="Pragma" content="no-cache">
+      <meta http-equiv="Expires" content="0">
       <title>Anesthesia Clinical Tool</title>
       <style>
          :root {
@@ -457,10 +460,6 @@
                   <span class="tile-icon">🧮</span>
                   Calculators &amp; Charts
                </a>
-               <a href="Studies.html" class="tile t-teal">
-                  <span class="tile-icon">📚</span>
-                  Studies
-               </a>
                <a href="MedicationColors.html" class="tile t-orange">
                   <span class="tile-icon">🎨</span>
                   Medication Colors
@@ -499,6 +498,16 @@
                   Top Drawer Meds
                   <span class="tile-sub">Work in progress - use caution</span>
                </a>
+               <a href="Studies.html?v=20260413b" class="tile wip">
+                  <span class="tile-icon">📚</span>
+                  Studies
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+               <a href="SetupAndHandoffs/PACUHandoff.html" class="tile wip">
+                  <span class="tile-icon">🤝</span>
+                  Jenny's PACU Handoff
+                  <span class="tile-sub">will update with Jenny's soon</span>
+               </a>
             </div>
          </div>
          
@@ -506,6 +515,15 @@
 
       <script src="CarePlanGenerator/med-catalog.js"></script>
       <script>
+         var APP_VERSION = '20260413b';
+
+         (function ensureVersionedPage() {
+            var currentUrl = new URL(window.location.href);
+            if (currentUrl.searchParams.get('v') === APP_VERSION) return;
+            currentUrl.searchParams.set('v', APP_VERSION);
+            window.location.replace(currentUrl.toString());
+         })();
+
          function toggleSection(id) {
             var body = document.getElementById('sec-' + id);
             if (!body) return;
@@ -600,6 +618,29 @@
                });
             });
          }
+
+         function appendVersionToInternalLinks() {
+            document.querySelectorAll('a[href]').forEach(function (link) {
+               var href = link.getAttribute('href');
+               if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+               try {
+                  var resolved = new URL(href, window.location.href);
+                  if (resolved.origin !== window.location.origin || !resolved.pathname.endsWith('.html')) return;
+                  resolved.searchParams.set('v', APP_VERSION);
+                  link.setAttribute('href', resolved.pathname.replace(/^\//, '') + resolved.search + resolved.hash);
+               } catch (error) {
+               }
+            });
+         }
+
+         window.addEventListener('pageshow', function (event) {
+            var navigationEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+            if (event.persisted || (navigationEntry && navigationEntry.type === 'back_forward')) {
+               window.location.reload();
+            }
+         });
+
+         appendVersionToInternalLinks();
 
          function filterIndex(q) {
             q = q.toLowerCase().trim();

@@ -104,7 +104,7 @@
       margin-left: 10px;
     }
     .section-lbl {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 600;
       color: #2c3e50;
       margin-bottom: 6px;
@@ -130,8 +130,36 @@
       font-weight: 600;
     }
     .gas-btn.active { background: #4a6fa5; color: #fff; border-color: #3a5a8a; }
-    .gas-fishbone .fb-cell { background: #f3fff3; border-color: #a0c4a0; }
-    .gas-fishbone { border-color: #5a8a5a; }
+    .gas-fishbone {
+      border-color: #5a8a5a;
+      display: flex;
+      flex-direction: column;
+      width: 240px;
+      max-width: 100%;
+    }
+    .gas-fishbone .fb-cell {
+      background: #f3fff3;
+      border-color: #a0c4a0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-left: none;
+      border-right: none;
+      border-top: 1px solid #a0c4a0;
+      border-bottom: none;
+      padding: 8px 10px;
+    }
+    .gas-fishbone .fb-cell:first-child {
+      border-top: none;
+    }
+    .gas-fishbone .lab-lbl {
+      margin-bottom: 0;
+      font-size: 12px;
+    }
+    .gas-fishbone .lab-input {
+      width: 92px;
+    }
   </style>
 </head>
 <body>
@@ -156,17 +184,25 @@
             <div class="hcell"><span class="lab-lbl">Glu</span><input id="pat-glu" class="lab-input" placeholder="—"></div>
             <div class="hcell"><span class="lab-lbl">Mg</span><input id="pat-mg" class="lab-input" placeholder="—"></div>
           </div>
-          <div class="supp-row">
-            <div class="supp-cell"><span class="lab-lbl">Alb</span><input id="pat-alb" class="lab-input" placeholder="—"></div>
-            <div class="supp-cell"><span class="lab-lbl">AST</span><input id="pat-ast" class="lab-input" placeholder="—"></div>
-            <div class="supp-cell"><span class="lab-lbl">ALT</span><input id="pat-alt" class="lab-input" placeholder="—"></div>
-            <div class="supp-cell a1c-gap"><span class="lab-lbl">A1C</span><input id="pat-a1c" class="lab-input" placeholder="—"></div>
+          <div style="margin-top:8px;">
+            <div class="section-lbl">A1C</div>
+            <div class="hrow" style="margin-top:0;">
+              <div class="hcell"><input id="pat-a1c" class="lab-input" placeholder="—"></div>
+            </div>
           </div>
           <div style="margin-top:8px;">
-            <div class="section-lbl">Additional Chemistries</div>
-            <div class="supp-row" style="margin-top:0;">
-              <div class="supp-cell"><span class="lab-lbl">iCa</span><input id="pat-ica" class="lab-input" placeholder="—"></div>
-              <div class="supp-cell"><span class="lab-lbl">Ca</span><input id="pat-ca" class="lab-input" placeholder="—"></div>
+            <div class="section-lbl">Liver</div>
+            <div class="hrow" style="margin-top:0;">
+              <div class="hcell"><span class="lab-lbl">Albumin</span><input id="pat-alb" class="lab-input" placeholder="—"></div>
+              <div class="hcell"><span class="lab-lbl">AST</span><input id="pat-ast" class="lab-input" placeholder="—"></div>
+              <div class="hcell"><span class="lab-lbl">ALT</span><input id="pat-alt" class="lab-input" placeholder="—"></div>
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="section-lbl">Calcium</div>
+            <div class="hrow" style="margin-top:0;">
+              <div class="hcell"><span class="lab-lbl">iCa</span><input id="pat-ica" class="lab-input" placeholder="—"></div>
+              <div class="hcell"><span class="lab-lbl">Ca</span><input id="pat-ca" class="lab-input" placeholder="—"></div>
             </div>
           </div>
         </div>
