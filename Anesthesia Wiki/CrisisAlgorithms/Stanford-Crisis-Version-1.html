@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stanford Crisis Manual</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: #f4f7fb;
@@ -51,16 +55,6 @@
       padding-bottom: 8px;
       font-size: 1.45rem;
       letter-spacing: 0.02em;
-    }
-    .actions-row {
-      margin: 12px 0 10px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: end;
-    }
-    .actions-row .reset-btn {
-      margin-left: auto;
     }
     h2 {
       background: #2e4057;
@@ -162,16 +156,6 @@
       margin: 6px 0 0;
       padding-left: 18px;
     }
-    .reset-btn {
-      border: 1px solid #bccbdb;
-      border-radius: 8px;
-      background: #f4f8fc;
-      color: #2e4057;
-      padding: 8px 12px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 6px;
-    }
     .foot-note {
       margin-top: 12px;
       font-size: 0.82rem;
@@ -193,9 +177,9 @@
     }
     @media (max-width: 720px) {
       .top-nav { position: static; margin-bottom: 10px; }
+      .top-nav { flex-wrap: wrap; max-width: 100%; }
       .container { margin-top: 0; }
       .event-grid { grid-template-columns: 1fr; }
-      .actions-row .reset-btn { margin-left: 0; }
     }
   </style>
 </head>
@@ -207,9 +191,6 @@
 
   <main class="container">
     <h1 id="topic-title">Crisis Topic</h1>
-    <div class="actions-row">
-      <button type="button" class="reset-btn" onclick="clearChecks()">Clear All Checks</button>
-    </div>
     <div class="data-warning" id="data-warning">Crisis manual data could not be loaded. Reload the page and try again.</div>
     <h2>1. Clinical Presentation</h2>
     <div class="recognition-box">
@@ -310,12 +291,6 @@
         therapyBox.innerHTML = "";
         therapySection.style.display = "none";
       }
-    }
-
-    function clearChecks() {
-      document.querySelectorAll('#interventions-list input[type="checkbox"]').forEach(function (box) {
-        box.checked = false;
-      });
     }
 
     var initialSlug = getTopicSlug();
