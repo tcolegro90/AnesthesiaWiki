@@ -208,5 +208,45 @@
       restoreSurgicalHistory();
     });
   </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
 </body>
 </html>

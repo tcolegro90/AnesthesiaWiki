@@ -22,4 +22,43 @@ body { margin:0; font-family: 'Avenir Next','Segoe UI',Roboto,Arial,sans-serif; 
 .content code { background:#eef4fb; border:1px solid #d8e4f3; border-radius:5px; padding:1px 5px; font-size:.86em; color:#184a77; }
 </style></head>
 <body><header class="topbar"><div class="topbar-row"><div><h1 style="margin:0;font-size:1.15rem;">Ephedrine</h1><p style="margin:2px 0 0;color:#a9bfd7;font-size:.8rem;">Medication reference profile</p></div></div></header>
-<main class="shell"><section class="card"><div class="meta"><span class="chip">Classification: Vasoactive</span><span class="chip">Source: Vasoactive/ephedrine.md</span></div><article class="content"><h1>Ephedrine</h1><h2>Quick Facts</h2><ul><li>Generic: Ephedrine</li><li>Brand: Multiple</li><li>Class: Mixed-acting sympathomimetic (indirect + direct)</li><li>Controlled substance: No</li><li>Last updated: 2026-04-04</li></ul><h2>Indication-Specific Guidance</h2><h3>1) Perioperative Hypotension with Bradycardia</h3><h4>Dosing</h4><ul><li>5 to 10 mg IV bolus, repeat as needed</li></ul><h4>Practical Considerations</h4><ul><li>Often raises BP and HR together</li><li>Tachyphylaxis can occur with repeated boluses</li></ul><h2>Onset and Duration</h2><ul><li>Onset: 1–2 minutes IV</li><li>Duration: 10–60 minutes (variable)</li></ul><h2>Mechanism of Action</h2><ul><li>Indirectly releases endogenous norepinephrine and has some direct alpha/beta agonist activity</li></ul><h2>Contraindications / Avoid</h2><ul><li>Relative caution in severe tachyarrhythmias</li></ul><h2>Key Warnings and Cautions</h2><ul><li>Less effective when catecholamine stores are depleted</li><li>Can increase myocardial oxygen demand via tachycardia</li></ul><h2>Common Adverse Effects</h2><ul><li>Tachycardia</li><li>Hypertension</li><li>Arrhythmias</li></ul><h2>Monitoring</h2><ul><li>BP and HR after each bolus</li></ul><h2>Important Interactions</h2><ul><li>Potentiated by MAO inhibitors and some antidepressants</li></ul><h2>Notes for Local Customization</h2><ul><li>Useful in neuraxial-induced hypotension when accompanying bradycardia is present.</li></ul></article></section></main></body></html>
+<main class="shell"><section class="card"><div class="meta"><span class="chip">Classification: Vasoactive</span><span class="chip">Source: Vasoactive/ephedrine.md</span></div><article class="content"><h1>Ephedrine</h1><h2>Quick Facts</h2><ul><li>Generic: Ephedrine</li><li>Brand: Multiple</li><li>Class: Mixed-acting sympathomimetic (indirect + direct)</li><li>Controlled substance: No</li><li>Last updated: 2026-04-04</li></ul><h2>Indication-Specific Guidance</h2><h3>1) Perioperative Hypotension with Bradycardia</h3><h4>Dosing</h4><ul><li>5 to 10 mg IV bolus, repeat as needed</li></ul><h4>Practical Considerations</h4><ul><li>Often raises BP and HR together</li><li>Tachyphylaxis can occur with repeated boluses</li></ul><h2>Onset and Duration</h2><ul><li>Onset: 1–2 minutes IV</li><li>Duration: 10–60 minutes (variable)</li></ul><h2>Mechanism of Action</h2><ul><li>Indirectly releases endogenous norepinephrine and has some direct alpha/beta agonist activity</li></ul><h2>Contraindications / Avoid</h2><ul><li>Relative caution in severe tachyarrhythmias</li></ul><h2>Key Warnings and Cautions</h2><ul><li>Less effective when catecholamine stores are depleted</li><li>Can increase myocardial oxygen demand via tachycardia</li></ul><h2>Common Adverse Effects</h2><ul><li>Tachycardia</li><li>Hypertension</li><li>Arrhythmias</li></ul><h2>Monitoring</h2><ul><li>BP and HR after each bolus</li></ul><h2>Important Interactions</h2><ul><li>Potentiated by MAO inhibitors and some antidepressants</li></ul><h2>Notes for Local Customization</h2><ul><li>Useful in neuraxial-induced hypotension when accompanying bradycardia is present.</li></ul></article></section></main>
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+</body></html>

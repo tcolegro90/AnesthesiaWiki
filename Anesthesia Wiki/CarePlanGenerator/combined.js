@@ -1,6 +1,8 @@
     var mirroredState = {};
     var stateRevision = 0;
     var suspendIncomingStateUntil = 0;
+    var previewMode = 'single';
+    var multiPreviewSelectedNames = [];
 
     function fitIframe(frame) {
       // Cannot access iframe contentDocument due to CORS restrictions on local files
@@ -697,7 +699,7 @@
       }
     }
 
-    function setPrintPageSize(sizeSpec) {
+    function setPrintPageSize(sizeSpec, pageMargin) {
       var styleId = 'dynamic-print-page-style';
       var tag = document.getElementById(styleId);
       if (!tag) {
@@ -705,27 +707,53 @@
         tag.id = styleId;
         document.head.appendChild(tag);
       }
-      tag.textContent = '@media print { @page { margin: 0.25in; size: ' + sizeSpec + '; } }';
+      var margin = pageMargin || '0.1in 0.25in';
+      tag.textContent = '@media print { @page { margin: ' + margin + '; size: ' + sizeSpec + '; } }';
     }
 
     function setPrintMode(mode) {
       var sheet = document.getElementById('print-sheet');
       var single = document.getElementById('print-container');
-      if (!sheet || !single) return;
+      var multi = document.getElementById('multi-preview-container');
+      if (!sheet || !single || !multi) return;
       if (mode === 'sheet') {
         document.body.classList.add('print-mode-sheet');
         sheet.style.display = 'block';
         single.style.display = 'none';
+        multi.style.display = 'none';
+      } else if (mode === 'multi') {
+        document.body.classList.remove('print-mode-sheet');
+        sheet.style.display = 'none';
+        single.style.display = 'none';
+        multi.style.display = 'flex';
+        multi.style.flexDirection = 'column';
+        multi.style.alignItems = 'center';
       } else {
         document.body.classList.remove('print-mode-sheet');
         sheet.style.display = 'none';
         single.style.display = 'block';
+        multi.style.display = 'none';
       }
-      // Keep a stable, printer-friendly page size in all modes.
-      setPrintPageSize('8.5in 11in');
+      // Keep a stable page size; use zero margin in multi mode so 2 x 5.5in cards fit one sheet.
+      setPrintPageSize('8.5in 11in', mode === 'multi' ? '0in' : '0.1in 0.25in');
+    }
+
+    function setPreviewActionMode(mode) {
+      previewMode = mode === 'multi' ? 'multi' : 'single';
+      var singlePrintBtn = document.getElementById('btn-preview-print-single');
+      var singleEmailBtn = document.getElementById('btn-preview-email-single');
+      var multiPrintBtn = document.getElementById('btn-preview-print-multi');
+      var multiEmailBtn = document.getElementById('btn-preview-email-multi');
+      var isMulti = previewMode === 'multi';
+
+      if (singlePrintBtn) singlePrintBtn.style.display = isMulti ? 'none' : 'inline-block';
+      if (singleEmailBtn) singleEmailBtn.style.display = isMulti ? 'none' : 'inline-block';
+      if (multiPrintBtn) multiPrintBtn.style.display = isMulti ? 'inline-block' : 'none';
+      if (multiEmailBtn) multiEmailBtn.style.display = isMulti ? 'inline-block' : 'none';
     }
 
     function openPreview() {
+      setPreviewActionMode('single');
       setPrintMode('single');
       buildPrintCard();
       document.getElementById('main-content').style.display = 'none';
@@ -735,14 +763,16 @@
     function closePreview() {
       document.getElementById('preview-screen').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
+      setPreviewActionMode('single');
       setPrintMode('single');
       fitAll();
     }
 
     function printIsolated(mode) {
-      var source = (mode === 'sheet')
-        ? document.getElementById('print-sheet')
-        : document.getElementById('print-container');
+      var source = null;
+      if (mode === 'sheet') source = document.getElementById('print-sheet');
+      else if (mode === 'multi') source = document.getElementById('multi-preview-container');
+      else source = document.getElementById('print-container');
       if (!source) {
         window.print();
         return;
@@ -770,11 +800,22 @@
       }
 
       doc.open();
+      var printPageMargin = mode === 'multi' ? '0in' : '0.1in 0.25in';
       doc.write(
         '<!doctype html><html><head><meta charset="utf-8">' +
         '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
         styles +
-        '<style>@media print { @page { margin: 0.25in; size: 8.5in 11in; } body { margin: 0; padding: 0; background: #fff; } } body { margin: 0; padding: 0; background: #fff; }</style>' +
+        '<style>' +
+        '@media print {' +
+        '  @page { margin: ' + printPageMargin + '; size: 8.5in 11in; }' +
+        '  body { margin: 0; padding: 0; background: #fff; }' +
+        '  #multi-preview-container { display: block !important; width: 8in !important; margin: 0 auto !important; }' +
+        '  .multi-sheet-page { width: 8in !important; height: 10.95in !important; margin: 0 auto !important; box-shadow: none !important; page-break-after: always; break-after: page; }' +
+        '  .multi-sheet-page:last-child { page-break-after: auto; break-after: auto; }' +
+        '}' +
+        'body { margin: 0; padding: 0; background: #fff; }' +
+        '#multi-preview-container { margin: 0 auto; }' +
+        '</style>' +
         '</head><body class="' + (mode === 'sheet' ? 'print-mode-sheet' : '') + '">' +
         source.outerHTML +
         '</body></html>'
@@ -805,7 +846,9 @@
       if (!previewVisible) openPreview();
       // Allow preview DOM/layout to settle before printing to avoid blank output.
       setTimeout(function() {
-        var mode = document.body.classList.contains('print-mode-sheet') ? 'sheet' : 'single';
+        var mode = previewMode === 'multi'
+          ? 'multi'
+          : (document.body.classList.contains('print-mode-sheet') ? 'sheet' : 'single');
         printIsolated(mode);
       }, 320);
     }
@@ -839,13 +882,20 @@
       document.head.appendChild(style);
     }
 
-    function showSavedPlanPicker(names, defaultPick) {
+    function showSavedPlanPicker(names, defaultPick, options) {
       ensureSavedPlanPickerStyles();
       return new Promise(function(resolve) {
+        var opts = options || {};
+        var maxSelection = parseInt(opts.maxSelection, 10);
+        if (!(maxSelection > 0)) maxSelection = 4;
+        var titleText = String(opts.title || ('Select up to ' + maxSelection + ' saved plans'));
+        var subtitleText = String(opts.subtitle || 'Click the bubbles to choose plans.');
+        var confirmLabel = String(opts.confirmLabel || 'Print Selected');
+
         var prior = document.getElementById('saved-plan-picker-overlay');
         if (prior && prior.parentNode) prior.parentNode.removeChild(prior);
 
-        var defaults = Array.isArray(defaultPick) ? defaultPick.slice(0, 4) : [];
+        var defaults = Array.isArray(defaultPick) ? defaultPick.slice(0, maxSelection) : [];
         var selectedOrder = [];
         defaults.forEach(function(n) {
           if (names.indexOf(n) !== -1 && selectedOrder.indexOf(n) === -1) {
@@ -863,7 +913,11 @@
 
         var head = document.createElement('div');
         head.className = 'spp-head';
-        head.innerHTML = '<div class="spp-title">Select up to 4 saved plans</div><div class="spp-sub">Click the bubbles to choose plans. <span class="spp-count" id="spp-count">0/4 selected</span></div>';
+        head.innerHTML = '<div class="spp-title"></div><div class="spp-sub"></div>';
+        var titleEl = head.querySelector('.spp-title');
+        var subtitleEl = head.querySelector('.spp-sub');
+        if (titleEl) titleEl.textContent = titleText;
+        if (subtitleEl) subtitleEl.innerHTML = escapeHtml(subtitleText) + ' <span class="spp-count" id="spp-count">0/' + maxSelection + ' selected</span>';
         dialog.appendChild(head);
 
         var list = document.createElement('div');
@@ -886,7 +940,9 @@
 
         var foot = document.createElement('div');
         foot.className = 'spp-foot';
-        foot.innerHTML = '<button type="button" class="spp-btn" id="spp-cancel">Cancel</button><button type="button" class="spp-btn spp-primary" id="spp-print">Print Selected</button>';
+        foot.innerHTML = '<button type="button" class="spp-btn" id="spp-cancel">Cancel</button><button type="button" class="spp-btn spp-primary" id="spp-confirm"></button>';
+        var confirmBtn = foot.querySelector('#spp-confirm');
+        if (confirmBtn) confirmBtn.textContent = confirmLabel;
         dialog.appendChild(foot);
 
         function getSelectedNames() {
@@ -902,10 +958,10 @@
         function refreshState() {
           var picked = getSelectedNames();
           var count = picked.length;
-          var maxed = count >= 4;
+          var maxed = count >= maxSelection;
 
           var countEl = dialog.querySelector('#spp-count');
-          if (countEl) countEl.textContent = count + '/4 selected';
+          if (countEl) countEl.textContent = count + '/' + maxSelection + ' selected';
 
           list.querySelectorAll('.spp-option').forEach(function(row) {
             var input = row.querySelector('.spp-check');
@@ -919,8 +975,8 @@
             row.setAttribute('data-disabled', disabled ? '1' : '0');
           });
 
-          var printBtn = dialog.querySelector('#spp-print');
-          if (printBtn) printBtn.disabled = count === 0;
+          var pickedBtn = dialog.querySelector('#spp-confirm');
+          if (pickedBtn) pickedBtn.disabled = count === 0;
         }
 
         function closeWith(value) {
@@ -945,7 +1001,7 @@
 
           if (target.checked) {
             if (selectedOrder.indexOf(name) === -1) {
-              if (selectedOrder.length >= 4) {
+              if (selectedOrder.length >= maxSelection) {
                 target.checked = false;
               } else {
                 selectedOrder.push(name);
@@ -965,9 +1021,9 @@
         dialog.querySelector('#spp-cancel').addEventListener('click', function() {
           closeWith(null);
         });
-        dialog.querySelector('#spp-print').addEventListener('click', function() {
+        dialog.querySelector('#spp-confirm').addEventListener('click', function() {
           var picked = getSelectedNames();
-          closeWith(picked.slice(0, 4));
+          closeWith(picked.slice(0, maxSelection));
         });
 
         document.body.appendChild(overlay);
@@ -1052,7 +1108,7 @@
 
     async function shouldUseCloudPlans() {
       if (!window.carePlanCloudStorage || !window.carePlanCloudStorage.isEnabled()) {
-        setStorageStatus('Plans you create and save will ONLY be available on this specific device', 'warn');
+        setStorageStatus('Plans you create and save will ONLY be available on this specific device UNLESS you log in', 'warn');
         return false;
       }
 
@@ -1152,21 +1208,14 @@
         return;
       }
 
-      var list = names.map(function(n, i) { return (i + 1) + '. ' + n; }).join('\n');
-      var pick = prompt('Load which plan? Enter number or exact name:\n\n' + list, '1');
-      if (!pick) return;
-
-      var selected = null;
-      var idx = parseInt(pick, 10);
-      if (!isNaN(idx) && idx >= 1 && idx <= names.length) {
-        selected = names[idx - 1];
-      } else if (plans[pick]) {
-        selected = pick;
-      }
-      if (!selected) {
-        alert('Plan not found.');
-        return;
-      }
+      var picked = await showSavedPlanPicker(names, names.slice(0, 1), {
+        maxSelection: 1,
+        title: 'Select a saved plan to load',
+        subtitle: 'Click one bubble, then load it.',
+        confirmLabel: 'Load Selected'
+      });
+      if (!picked || !picked.length) return;
+      var selected = picked[0];
 
       var entry = plans[selected];
       var nextState = (entry && entry.state) ? JSON.parse(JSON.stringify(entry.state)) : {};
@@ -1220,40 +1269,442 @@
       alert('Deleted plan: ' + selected);
     }
 
-    async function printSavedPlansBatch() {
+    function buildPrintCardHtml(state) {
+      buildPrintCard(state || {});
+      var source = document.getElementById('print-container');
+      return source ? source.innerHTML : '';
+    }
+
+    function ensureMultiPreviewStyles() {
+      if (document.getElementById('multi-preview-style')) return;
+      var style = document.createElement('style');
+      style.id = 'multi-preview-style';
+      style.textContent = [
+        '#multi-preview-container{display:flex;flex-direction:column;gap:18px;align-items:center;width:100%;}',
+        '.multi-sheet-page{position:relative;width:8.0in;height:10.95in;background:#fff;box-shadow:0 0 20px rgba(0,0,0,0.5);overflow:hidden;}',
+        '.multi-sheet-page .sheet-slot{position:absolute;width:3.95in;height:5.5in;overflow:hidden;}',
+        '.multi-sheet-page .slot-1{left:0;top:0;}',
+        '.multi-sheet-page .slot-2{left:0;top:5.5in;}',
+        '.multi-sheet-page .slot-3{left:4.05in;top:0;}',
+        '.multi-sheet-page .slot-4{left:4.05in;top:5.5in;}',
+        '.multi-sheet-page .sheet-slot .print-card{width:3.95in !important;height:5.5in !important;margin:0;box-shadow:none;border:1px solid #000;}',
+        '.multi-sheet-page .sheet-slot.upside-down .print-card{transform:rotate(180deg);transform-origin:center center;}',
+        '@media print{#multi-preview-container{gap:0;} .multi-sheet-page{box-shadow:none;page-break-after:always;break-after:page;} .multi-sheet-page:last-child{page-break-after:auto;break-after:auto;}}'
+      ].join('');
+      document.head.appendChild(style);
+    }
+
+    function buildMultiPreviewPages(selectedNames, plans) {
+      var container = document.getElementById('multi-preview-container');
+      if (!container) return;
+      ensureMultiPreviewStyles();
+      container.innerHTML = '';
+
+      for (var i = 0; i < selectedNames.length; i += 4) {
+        var chunk = selectedNames.slice(i, i + 4);
+        var page = document.createElement('div');
+        page.className = 'multi-sheet-page';
+        page.innerHTML = '<div class="sheet-slot slot-1"></div><div class="sheet-slot slot-2"></div><div class="sheet-slot slot-3"></div><div class="sheet-slot slot-4"></div>';
+
+        chunk.forEach(function(name, idx) {
+          var entry = plans[name] || {};
+          var state = entry.state ? JSON.parse(JSON.stringify(entry.state)) : {};
+          var html = buildPrintCardHtml(state);
+          var slotClass = ['slot-1', 'slot-2', 'slot-3', 'slot-4'][idx];
+          var slot = page.querySelector('.' + slotClass);
+          if (slot) slot.innerHTML = '<div class="print-card">' + html + '</div>';
+        });
+
+        container.appendChild(page);
+      }
+    }
+
+    function openMultiPlansPreview(selectedNames, plans) {
+      multiPreviewSelectedNames = (selectedNames || []).slice();
+      buildMultiPreviewPages(multiPreviewSelectedNames, plans || {});
+      setPreviewActionMode('multi');
+      setPrintMode('multi');
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('preview-screen').style.display = 'flex';
+    }
+
+    async function buildMultiPreviewPdfBlob(filename) {
+      var hasDirectPdf = !!(window.html2canvas && window.jspdf && window.jspdf.jsPDF);
+      var hasHtml2Pdf = typeof window.html2pdf === 'function';
+      if (!hasDirectPdf && !hasHtml2Pdf) throw new Error('PDF library unavailable');
+      var source = document.getElementById('multi-preview-container');
+      if (!source || !source.children.length) throw new Error('No multi-plan preview content');
+
+      var host = document.createElement('div');
+      host.style.position = 'fixed';
+      host.style.left = '0';
+      host.style.top = '0';
+      host.style.width = '8.5in';
+      host.style.minHeight = '11in';
+      host.style.visibility = 'visible';
+      host.style.opacity = '0';
+      host.style.pointerEvents = 'none';
+      host.style.overflow = 'visible';
+      host.style.zIndex = '-1';
+      host.style.background = '#fff';
+
+      var pageClones = Array.from(source.querySelectorAll('.multi-sheet-page')).map(function(page) {
+        var pageClone = page.cloneNode(true);
+        pageClone.style.width = '8in';
+        pageClone.style.height = '10.95in';
+        pageClone.style.margin = '0';
+        pageClone.style.boxShadow = 'none';
+        pageClone.style.background = '#fff';
+        return pageClone;
+      });
+      document.body.appendChild(host);
+
+      try {
+        if (hasDirectPdf) {
+          var pdf = new window.jspdf.jsPDF({ unit: 'in', format: 'letter', orientation: 'portrait', compress: true });
+          for (var i = 0; i < pageClones.length; i++) {
+            host.innerHTML = '';
+            host.appendChild(pageClones[i]);
+
+            var canvas = await window.html2canvas(pageClones[i], {
+              scale: 2,
+              backgroundColor: '#ffffff',
+              useCORS: true,
+              scrollX: 0,
+              scrollY: 0,
+              windowWidth: 816,
+              windowHeight: 1056
+            });
+
+            var imgData = canvas.toDataURL('image/jpeg', 0.98);
+            if (i > 0) pdf.addPage('letter', 'portrait');
+            pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
+          }
+
+          var blob = pdf.output('blob');
+          if (!blob) throw new Error('Failed to create PDF blob');
+          return blob;
+        }
+
+        // Fallback: use html2pdf worker when jspdf isn't exposed on window.
+        host.innerHTML = '';
+        var exportRoot = document.createElement('div');
+        exportRoot.style.width = '8in';
+        exportRoot.style.margin = '0';
+        exportRoot.style.padding = '0';
+        exportRoot.style.background = '#fff';
+        pageClones.forEach(function(pageClone, idx) {
+          pageClone.style.pageBreakAfter = idx < pageClones.length - 1 ? 'always' : 'auto';
+          pageClone.style.breakAfter = idx < pageClones.length - 1 ? 'page' : 'auto';
+          exportRoot.appendChild(pageClone);
+        });
+        host.appendChild(exportRoot);
+
+        var worker = window.html2pdf()
+          .set({
+            filename: filename,
+            margin: [0, 0, 0, 0],
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: {
+              scale: 2,
+              backgroundColor: '#ffffff',
+              useCORS: true,
+              scrollX: 0,
+              scrollY: 0,
+              windowWidth: 816,
+              windowHeight: 1056
+            },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+            pagebreak: { mode: ['css', 'legacy'] }
+          })
+          .from(exportRoot)
+          .toPdf();
+        var workerPdf = await worker.get('pdf');
+        var workerBlob = workerPdf.output('blob');
+        if (!workerBlob) throw new Error('Failed to create PDF blob');
+        return workerBlob;
+      } finally {
+        if (host.parentNode) host.parentNode.removeChild(host);
+      }
+    }
+
+    function printSavedPlansSelection(selectedNames, plans) {
+      if (!selectedNames || !selectedNames.length) return;
+      openMultiPlansPreview(selectedNames, plans);
+      setTimeout(function() { printIsolated('multi'); }, 320);
+    }
+
+    async function emailSavedPlansSelection(selectedNames, plans) {
+      if (!selectedNames || !selectedNames.length) return;
+      openMultiPlansPreview(selectedNames, plans);
+
+      var filename = 'Anesthetic_Care_Plans_' + String(selectedNames.length) + '_plans.pdf';
+      var blob;
+      try {
+        blob = await buildMultiPreviewPdfBlob(filename);
+      } catch (err) {
+        alert('Could not generate combined PDF for selected plans.');
+        return;
+      }
+
+      var file = null;
+      try { file = new File([blob], filename, { type: 'application/pdf' }); } catch (e) {}
+
+      var subject = 'Anesthetic Care Plans - ' + String(selectedNames.length) + ' plan' + (selectedNames.length === 1 ? '' : 's');
+      var canShareFile = !!(navigator.share && navigator.canShare && file && navigator.canShare({ files: [file] }));
+      if (canShareFile) {
+        try {
+          await navigator.share({
+            title: subject,
+            text: 'Attached anesthetic care plans PDF (4 cards per page).',
+            files: [file]
+          });
+          return;
+        } catch (shareErr) {
+          // Continue to fallback.
+        }
+      }
+
+      downloadBlob(blob, filename);
+      var body = [
+        'Attached is the anesthetic care plans PDF (4 cards per page).',
+        '',
+        'Selected plans:',
+        selectedNames.map(function(n, idx) { return String(idx + 1) + '. ' + n; }).join('\n'),
+        '',
+        'If attachment is missing, please attach: ' + filename
+      ].join('\n');
+      window.location.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      alert('Combined PDF downloaded. An email draft opened; please attach the downloaded PDF.');
+    }
+
+    async function printOrEmailSavedPlans() {
       var plans = await getSavedPlans();
-      var names = Object.keys(plans).sort();
+      var names = getSavedPlanNamesSorted(plans);
       if (!names.length) {
         alert('No saved plans found.');
         return;
       }
 
-      var defaults = names.slice(0, Math.min(2, names.length));
-      showSavedPlanPicker(names, defaults).then(function(selected) {
-        if (!selected || !selected.length) return;
-
-        var states = selected.slice(0, 4).map(function(name) {
-          var entry = plans[name] || {};
-          return entry.state ? JSON.parse(JSON.stringify(entry.state)) : null;
-        });
-
-        var slotOrder = ['sheet-slot-1', 'sheet-slot-2', 'sheet-slot-3', 'sheet-slot-4'];
-        for (var i = 0; i < slotOrder.length; i++) {
-          renderCardIntoSlot(slotOrder[i], states[i] || null);
-        }
-
-        setPrintMode('sheet');
-        document.getElementById('main-content').style.display = 'none';
-        document.getElementById('preview-screen').style.display = 'flex';
-        setTimeout(function() { printIsolated('sheet'); }, 320);
+      var maxSelectable = Math.min(20, names.length);
+      var defaults = names.slice(0, Math.min(2, maxSelectable));
+      var selected = await showSavedPlanPicker(names, defaults, {
+        maxSelection: maxSelectable,
+        title: 'Select up to ' + maxSelectable + ' saved plans',
+        subtitle: 'Click the bubbles to choose plans.',
+        confirmLabel: 'Preview Selected'
       });
+      if (!selected || !selected.length) return;
+
+      openMultiPlansPreview(selected, plans);
+    }
+
+    function printSelectedPlansFromPreview() {
+      if (!multiPreviewSelectedNames.length) {
+        alert('No selected plans in preview.');
+        return;
+      }
+      printIsolated('multi');
+    }
+
+    async function emailSelectedPlansFromPreview() {
+      if (!multiPreviewSelectedNames.length) {
+        alert('No selected plans in preview.');
+        return;
+      }
+
+      var filename = 'Anesthetic_Care_Plans_' + String(multiPreviewSelectedNames.length) + '_plans.pdf';
+      var blob;
+      try {
+        blob = await buildMultiPreviewPdfBlob(filename);
+      } catch (err) {
+        alert('Could not generate combined PDF from preview.');
+        return;
+      }
+
+      var file = null;
+      try { file = new File([blob], filename, { type: 'application/pdf' }); } catch (e) {}
+
+      var subject = 'Anesthetic Care Plans - ' + String(multiPreviewSelectedNames.length) + ' plan' + (multiPreviewSelectedNames.length === 1 ? '' : 's');
+      var canShareFile = !!(navigator.share && navigator.canShare && file && navigator.canShare({ files: [file] }));
+      if (canShareFile) {
+        try {
+          await navigator.share({
+            title: subject,
+            text: 'Attached anesthetic care plans PDF (4 cards per page).',
+            files: [file]
+          });
+          return;
+        } catch (shareErr) {
+          // Continue to fallback.
+        }
+      }
+
+      downloadBlob(blob, filename);
+      var body = [
+        'Attached is the anesthetic care plans PDF (4 cards per page).',
+        '',
+        'Selected plans:',
+        multiPreviewSelectedNames.map(function(n, idx) { return String(idx + 1) + '. ' + n; }).join('\n'),
+        '',
+        'If attachment is missing, please attach: ' + filename
+      ].join('\n');
+      window.location.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      alert('Combined PDF downloaded. An email draft opened; please attach the downloaded PDF.');
+    }
+
+    // Backward-compatible wrapper for older button hooks.
+    async function printSavedPlansBatch() {
+      await printOrEmailSavedPlans();
+    }
+
+    // Backward-compatible wrapper for older button hooks.
+    async function emailSavedPlans() {
+      await printOrEmailSavedPlans();
+    }
+
+    function formatTextForEmail(rawText) {
+      return String(rawText || '')
+        .replace(/\r/g, '\n')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .split('\n')
+        .map(function(line) { return line.trim(); })
+        .join('\n')
+        .trim();
+    }
+
+    function buildEmailPlanText(state) {
+      // Always derive email content from the rendered print card so print/email stay in sync.
+      buildPrintCard(state || {});
+      var printCard = document.getElementById('print-container');
+      if (!printCard) return 'Anesthetic Care Plan';
+      return formatTextForEmail(printCard.innerText || printCard.textContent || 'Anesthetic Care Plan');
+    }
+
+    function safeFilePart(value, fallback) {
+      var out = String(value || '').trim();
+      if (!out) out = fallback || 'Plan';
+      return out.replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/^_+|_+$/g, '') || (fallback || 'Plan');
+    }
+
+    async function buildCurrentPlanPdfBlob(state, filename) {
+      if (typeof window.html2pdf !== 'function') {
+        throw new Error('PDF library unavailable');
+      }
+
+      buildPrintCard(state || {});
+      var printCard = document.getElementById('print-container');
+      if (!printCard) throw new Error('Print card not found');
+
+      var host = document.createElement('div');
+      host.style.position = 'fixed';
+      host.style.left = '-10000px';
+      host.style.top = '0';
+      host.style.background = '#fff';
+      host.style.zIndex = '-1';
+      host.style.padding = '0';
+
+      var clone = printCard.cloneNode(true);
+      clone.id = '';
+      clone.className = 'print-card';
+      clone.style.display = 'block';
+      clone.style.margin = '0';
+      clone.style.boxShadow = 'none';
+
+      host.appendChild(clone);
+      document.body.appendChild(host);
+
+      try {
+        var worker = window.html2pdf()
+          .set({
+            filename: filename,
+            margin: [0, 0, 0, 0],
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
+            jsPDF: { unit: 'in', format: [3.95, 5.5], orientation: 'portrait' }
+          })
+          .from(clone)
+          .toPdf();
+
+        var pdf = await worker.get('pdf');
+        var blob = pdf.output('blob');
+        if (!blob) throw new Error('Failed to create PDF blob');
+        return blob;
+      } finally {
+        if (host.parentNode) host.parentNode.removeChild(host);
+      }
+    }
+
+    function downloadBlob(blob, filename) {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(url); }, 1200);
+    }
+
+    async function emailCurrentPlan() {
+      var state = (mirroredState && Object.keys(mirroredState).length) ? mirroredState : getState();
+      var initials = String(state['pat-initials'] || 'Patient').trim();
+      var surgery = String(state['pat-surgery'] || 'Procedure').trim();
+      var subject = 'Anesthetic Care Plan - ' + initials + ' - ' + surgery;
+      var filename = [
+        'Anesthetic_Care_Plan',
+        safeFilePart(initials, 'Patient'),
+        safeFilePart(state['pat-surg-date'] || '', 'NoDate')
+      ].join('_') + '.pdf';
+
+      var blob;
+      try {
+        blob = await buildCurrentPlanPdfBlob(state, filename);
+      } catch (pdfErr) {
+        var fallbackBody = buildEmailPlanText(state);
+        var fallbackHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(fallbackBody);
+        window.location.href = fallbackHref;
+        alert('PDF generation was unavailable, so a text email draft was opened.');
+        return;
+      }
+
+      var file = null;
+      try {
+        file = new File([blob], filename, { type: 'application/pdf' });
+      } catch (e) {}
+
+      var canNativeShareFile = !!(navigator.share && navigator.canShare && file && navigator.canShare({ files: [file] }));
+      if (canNativeShareFile) {
+        try {
+          await navigator.share({
+            title: subject,
+            text: 'Anesthetic care plan PDF',
+            files: [file]
+          });
+          return;
+        } catch (shareErr) {
+          // If user cancels share, silently continue to fallback.
+        }
+      }
+
+      downloadBlob(blob, filename);
+
+      var attachBody = [
+        'Attached is the anesthetic care plan PDF.',
+        '',
+        'If attachment is missing, please attach: ' + filename
+      ].join('\n');
+      var mailtoHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(attachBody);
+      window.location.href = mailtoHref;
+      alert('PDF downloaded. An email draft opened; please attach the downloaded PDF.');
     }
 
     (function initStorageMode() {
       enforceIframeNoScrollDefaults();
 
       if (!window.carePlanCloudStorage) {
-        setStorageStatus('Plans you create and save will ONLY be available on this specific device', 'warn');
+        setStorageStatus('Plans you create and save will ONLY be available on this specific device UNLESS you log in', 'warn');
         return;
       }
 

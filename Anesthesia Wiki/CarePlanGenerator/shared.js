@@ -6,6 +6,60 @@ function initAutoSave() {
   });
 }
 
+const __selectTypeaheadState = new WeakMap();
+
+function initSelectTypeaheadNavigation() {
+  if (window.__carePlanSelectTypeaheadReady) return;
+  window.__carePlanSelectTypeaheadReady = true;
+
+  document.addEventListener('keydown', function(e) {
+    const select = e.target;
+    if (!select || select.tagName !== 'SELECT') return;
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key.length !== 1) return;
+
+    const typed = e.key.toLowerCase();
+    if (!/[a-z0-9]/.test(typed)) return;
+
+    const now = Date.now();
+    const prev = __selectTypeaheadState.get(select) || { buffer: '', ts: 0 };
+    const buffer = (now - prev.ts > 700 ? '' : prev.buffer) + typed;
+    __selectTypeaheadState.set(select, { buffer: buffer, ts: now });
+
+    const options = Array.from(select.options || []);
+    if (!options.length) return;
+
+    const start = select.selectedIndex >= 0 ? (select.selectedIndex + 1) % options.length : 0;
+
+    function optionText(opt) {
+      return String((opt && (opt.textContent || opt.label)) || '').trim().toLowerCase();
+    }
+
+    function findMatch(prefix) {
+      if (!prefix) return -1;
+      for (let i = 0; i < options.length; i++) {
+        const idx = (start + i) % options.length;
+        const opt = options[idx];
+        if (!opt || opt.disabled) continue;
+        if (optionText(opt).indexOf(prefix) === 0) return idx;
+      }
+      return -1;
+    }
+
+    // Try cumulative typing first (e.g., "li" -> Lisinopril), then fall back to single key cycling.
+    let nextIndex = findMatch(buffer);
+    if (nextIndex === -1 && buffer.length > 1) {
+      nextIndex = findMatch(typed);
+      __selectTypeaheadState.set(select, { buffer: typed, ts: now });
+    }
+    if (nextIndex === -1 || nextIndex === select.selectedIndex) return;
+
+    select.selectedIndex = nextIndex;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    e.preventDefault();
+  }, true);
+}
+
 function saveState() {
   if (window.__carePlanSuspendSave) return;
 
@@ -136,6 +190,7 @@ function pageBoot(extraInit, onExternalUpdate) {
     booted = true;
     restoreState();
     applyMobileKeyboardHints();
+    initSelectTypeaheadNavigation();
     if (typeof extraInit === 'function') extraInit();
     initAutoSave();
     window.__carePlanSuspendSave = false;

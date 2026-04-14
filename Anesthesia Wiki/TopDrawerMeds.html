@@ -73,6 +73,90 @@
       font-size: 1.1rem;
     }
 
+    .mode-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mode-row h2 {
+      margin: 0;
+    }
+
+    .switch-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      user-select: none;
+    }
+
+    .switch {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      display: inline-block;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #d2dfeb;
+      border: 1px solid #bed0df;
+      border-radius: 999px;
+      transition: 0.2s;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      transition: 0.2s;
+    }
+
+    .switch input:checked + .slider {
+      background: #1d6fa5;
+      border-color: #1d6fa5;
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(22px);
+    }
+
+    .mode-note {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .dose-highlight {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fff4cf;
+      border: 1px solid #efd98f;
+      color: #6e4b00;
+      font-weight: 800;
+    }
+
     .med-table {
       width: 100%;
       border-collapse: collapse;
@@ -154,6 +238,10 @@
       font-size: 0.92rem;
     }
 
+    .is-hidden {
+      display: none;
+    }
+
     @media (max-width: 760px) {
       .grid {
         grid-template-columns: 1fr;
@@ -181,8 +269,21 @@
 
     <div class="grid">
       <section class="card">
-        <h2>Drug Concentrations</h2>
-        <table class="med-table">
+        <div class="mode-row">
+          <h2 id="drug-mode-title">Drug Concentrations</h2>
+          <div class="switch-wrap">
+            <span>Drug Concentrations</span>
+            <label class="switch" for="dose-mode-toggle" aria-label="Switch between concentration and dose mode">
+              <input type="checkbox" id="dose-mode-toggle" />
+              <span class="slider"></span>
+            </label>
+            <span>Drug Dose</span>
+          </div>
+        </div>
+
+        <p class="mode-note" id="mode-note">Concentration quick reference for top drawer medications.</p>
+
+        <table class="med-table" id="table-concentration-view">
           <thead>
             <tr>
               <th>Drug</th>
@@ -219,6 +320,43 @@
           </tbody>
         </table>
 
+        <table class="med-table is-hidden" id="table-dose-view">
+          <thead>
+            <tr>
+              <th>Drug</th>
+              <th>Common Dose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Propofol</td><td>20-50 mg</td></tr>
+            <tr><td>Ephedrine</td><td>5-10 mg</td></tr>
+            <tr><td>Epinephrine</td><td>5-10 mcg push dose</td></tr>
+            <tr><td>Phenylephrine</td><td>50-100 mcg bolus</td></tr>
+            <tr><td>Sugammadex</td><td>2 mg/kg (routine) or 4 mg/kg (deep)</td></tr>
+            <tr><td>Dexamethasone</td><td>4-10 mg</td></tr>
+            <tr><td>Atropine</td><td>0.4-0.6 mg</td></tr>
+            <tr><td>Hydralazine</td><td>5-10 mg</td></tr>
+            <tr><td>Furosemide</td><td><span class="dose-highlight">10-20 mg</span></td></tr>
+            <tr><td>Verapamil</td><td>2.5-5 mg slow IV</td></tr>
+            <tr><td>Glycopyrrolate</td><td>0.2 mg</td></tr>
+            <tr><td>Ondansetron</td><td>4 mg</td></tr>
+            <tr><td>Diphenhydramine</td><td>25-50 mg</td></tr>
+            <tr><td>Vasopressin</td><td>1-2 units</td></tr>
+            <tr><td>Etomidate</td><td>0.2-0.4 mg/kg induction</td></tr>
+            <tr><td>Lidocaine</td><td><span class="dose-highlight">40-100 mg</span></td></tr>
+            <tr><td>Neostigmine</td><td>0.04-0.07 mg/kg</td></tr>
+            <tr><td>Metoprolol</td><td>1-5 mg</td></tr>
+            <tr><td>Esmolol</td><td>10-30 mg</td></tr>
+            <tr><td>Succinylcholine</td><td>1-1.5 mg/kg</td></tr>
+            <tr><td>Rocuronium</td><td>0.6-1.2 mg/kg</td></tr>
+            <tr><td>Metoclopramide <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+            <tr><td>Ketorolac <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+            <tr><td>Naloxone <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+            <tr><td>Vecuronium <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+            <tr><td>Amiodarone <span class="pending-chip">pending</span></td><td>Need concentration</td></tr>
+          </tbody>
+        </table>
+
         <div class="cta-wrap">
           <a class="cta-btn" href="TopDrawerMedsQuiz.html">Play Top Drawer Meds Quiz</a>
         </div>
@@ -246,5 +384,72 @@
       </div>
     </div>
   </div>
+
+  <script>
+    (function () {
+      var toggle = document.getElementById('dose-mode-toggle');
+      var title = document.getElementById('drug-mode-title');
+      var note = document.getElementById('mode-note');
+      var concTable = document.getElementById('table-concentration-view');
+      var doseTable = document.getElementById('table-dose-view');
+
+      function setMode() {
+        var showDose = toggle && toggle.checked;
+        if (title) title.textContent = showDose ? 'Drug Dose' : 'Drug Concentrations';
+        if (note) {
+          note.textContent = showDose
+            ? 'Common dose quick guide. Verify exact dose with attending/institutional protocol.'
+            : 'Concentration quick reference for top drawer medications.';
+        }
+        if (concTable) concTable.classList.toggle('is-hidden', showDose);
+        if (doseTable) doseTable.classList.toggle('is-hidden', !showDose);
+      }
+
+      if (toggle) {
+        toggle.addEventListener('change', setMode);
+      }
+
+      setMode();
+    })();
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
 </body>
 </html>

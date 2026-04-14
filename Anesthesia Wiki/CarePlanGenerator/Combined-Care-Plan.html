@@ -135,7 +135,7 @@
       padding: 0.08in 0.05in;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
       font-family: Arial, sans-serif;
-      font-size: 6.8pt;
+      font-size: 6.5pt;
       color: #000;
       box-sizing: border-box;
       border: 1px solid #000;
@@ -145,10 +145,11 @@
     .print-card .print-header {
       text-align: center;
       border-bottom: 1px solid #000;
-      padding-bottom: 2px;
-      margin-bottom: 4px;
-      font-size: 10pt;
-      font-weight: bold;
+      padding-bottom: 1px;
+      margin-bottom: 3px;
+      font-size: 7pt;
+      font-weight: 600;
+      line-height: 1.1;
     }
     #print-container .print-grid,
     .print-card .print-grid {
@@ -172,10 +173,12 @@
     #print-container .print-section h3,
     .print-card .print-section h3 {
       margin-top: 0;
-      margin-bottom: 3px;
+      margin-bottom: 1px;
       border-bottom: 1px solid #ddd;
-      padding-bottom: 1px;
-      font-size: 7.4pt;
+      padding-bottom: 0;
+      font-size: 7.0pt;
+      font-weight: 600;
+      line-height: 1.1;
       text-align: center;
     }
     #print-container .print-row,
@@ -244,74 +247,59 @@
     }
     .sheet-slot {
       position: absolute;
-      width: 3.90in;
-      height: 5.15in;
+      width: 3.95in;
+      height: 5.5in;
       overflow: hidden;
       page-break-inside: avoid;
       break-inside: avoid-page;
     }
     .slot-1 { left: 0; top: 0; }
-    .slot-2 { left: 0; top: 5.25in; }
-    .slot-3 { left: 4.10in; top: 0; }
-    .slot-4 { left: 4.10in; top: 5.25in; }
+    .slot-2 { left: 0; top: 5.5in; }
+    .slot-3 { left: 4.05in; top: 0; }
+    .slot-4 { left: 4.05in; top: 5.5in; }
     .sheet-slot .print-card {
-      #print-sheet {
-        display: none;
-        width: 7.40in;
-        height: 9.80in;
-        background: #fff;
-        position: relative;
-        box-sizing: border-box;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        overflow: hidden;
-      }
-      .sheet-slot {
-        position: absolute;
-        width: 3.65in;
-        height: 4.85in;
-        overflow: hidden;
-        box-sizing: border-box;
-      }
-      .slot-1 { left: 0; top: 0; }
-      .slot-2 { left: 0; top: 4.89in; }
-      .slot-3 { left: 3.69in; top: 0; }
-      .slot-4 { left: 3.69in; top: 4.89in; }
-      .sheet-slot .print-card {
-        width: 3.65in !important;
-        height: 4.85in !important;
-        margin: 0;
-        box-shadow: none;
-        border: 1px solid #000;
-        transform: none !important;
-      }
-      .sheet-slot.upside-down .print-card {
-        transform: rotate(180deg) !important;
-        transform-origin: center center;
-      }
-      #print-container {
-        display: block !important;
-        width: 3.95in !important;
-        height: 5.5in !important;
-        margin: 0 !important;
-        padding: 0.1in 0.06in !important;
-        box-shadow: none !important;
-        border: 1px solid #000 !important;
-        page-break-after: avoid !important;
-        break-after: avoid-page !important;
-      }
-      #print-sheet {
-        width: 7.40in !important;
-        height: 9.80in !important;
-        margin: 0 auto !important;
-        box-shadow: none !important;
-        page-break-after: avoid !important;
-        break-after: avoid-page !important;
-      }
-      body.print-mode-sheet #print-container { display: none !important; }
-      body.print-mode-sheet #print-sheet { visibility: visible !important; }
-      body:not(.print-mode-sheet) #print-sheet { visibility: hidden !important; }
-      #preview-actions { display: none !important; }
+      width: 3.95in !important;
+      height: 5.5in !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      border: 1px solid #000 !important;
+      transform: none !important;
     }
+    .sheet-slot.upside-down .print-card {
+      transform: rotate(180deg) !important;
+      transform-origin: center center;
+    }
+    #print-sheet {
+      display: none;
+      width: 7.40in;
+      height: 9.80in;
+      background: #fff;
+      position: relative;
+      box-sizing: border-box;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    #print-container {
+      width: 3.95in !important;
+      height: 5.5in !important;
+      margin: 0 !important;
+      padding: 0.08in 0.05in !important;
+      box-shadow: none !important;
+      border: 1px solid #000 !important;
+      page-break-after: avoid !important;
+      break-after: avoid-page !important;
+    }
+    #print-sheet {
+      width: 7.40in !important;
+      height: 9.80in !important;
+      margin: 0 auto !important;
+      box-shadow: none !important;
+      page-break-after: avoid !important;
+      break-after: avoid-page !important;
+    }
+    body.print-mode-sheet #print-container { display: none !important; }
+    body.print-mode-sheet #print-sheet { visibility: visible !important; }
+    body:not(.print-mode-sheet) #print-sheet { visibility: hidden !important; }
   </style>
 </head>
 <body>
@@ -322,7 +310,10 @@
   <div id="preview-screen">
     <div id="preview-actions" style="margin-bottom:20px;display:flex;gap:10px;">
       <button type="button" class="action-btn" onclick="closePreview()">Back to Edit</button>
-      <button type="button" class="action-btn" onclick="printSavedPlansBatch()">Print 1-4 Saved Plans</button>
+      <button type="button" class="action-btn" id="btn-preview-print-single" onclick="printNow()">Print This Plan</button>
+      <button type="button" class="action-btn" id="btn-preview-email-single" onclick="emailCurrentPlan()">Email This Plan (PDF)</button>
+      <button type="button" class="action-btn" id="btn-preview-print-multi" onclick="printSelectedPlansFromPreview()" style="display:none;">Print Selected Plans</button>
+      <button type="button" class="action-btn" id="btn-preview-email-multi" onclick="emailSelectedPlansFromPreview()" style="display:none;">Email Selected Plans (PDF)</button>
     </div>
     <div id="print-container">
       <div class="print-header"><span id="pr-header-initials">_</span> | <span id="pr-header-time">_</span> | <span id="pr-header-surgery">_</span></div>
@@ -467,14 +458,15 @@
       <div id="sheet-slot-3" class="sheet-slot slot-3"></div>
       <div id="sheet-slot-4" class="sheet-slot slot-4 upside-down"></div>
     </div>
+    <div id="multi-preview-container" style="display:none;"></div>
   </div>
 
   <div id="main-content" class="wrap">
     <h1>Anesthetic Care Plan</h1>
     <div class="note" id="storage-status" data-tone="warn">Checking save storage mode...</div>
     <div class="top-actions">
-      <button type="button" class="action-btn" onclick="openPreview()">Print Preview</button>
-      <button type="button" class="action-btn" onclick="printSavedPlansBatch()">Print 1-4 Saved Plans</button>
+      <button type="button" class="action-btn" onclick="openPreview()">Print / Email</button>
+      <button type="button" class="action-btn" onclick="printOrEmailSavedPlans()">Print / Email Multiple Plans</button>
       <button type="button" class="action-btn" onclick="saveNamedPlan()">Save Plan</button>
       <button type="button" class="action-btn" onclick="loadNamedPlan()">Load Plan</button>
       <button type="button" class="action-btn" onclick="deleteNamedPlan()">Delete Plan</button>
@@ -492,8 +484,8 @@
     <div class="section"><h2>APFEL &amp; PONV</h2><iframe id="frame-7b" src="7b-APFEL-PONV.html" title="Section 7b"></iframe></div>
     <div class="section"><h2>Fluid &amp; Blood Plan</h2><iframe id="frame-8" src="8-Fluid-Blood-Plan.html" title="Section 8"></iframe></div>
     <div class="top-actions" style="margin-top:20px;margin-bottom:20px;">
-      <button type="button" class="action-btn" onclick="openPreview()">Print Preview</button>
-      <button type="button" class="action-btn" onclick="printSavedPlansBatch()">Print 1-4 Saved Plans</button>
+      <button type="button" class="action-btn" onclick="openPreview()">Print / Email</button>
+      <button type="button" class="action-btn" onclick="printOrEmailSavedPlans()">Print / Email Multiple Plans</button>
       <button type="button" class="action-btn" onclick="saveNamedPlan()">Save Plan</button>
       <button type="button" class="action-btn" onclick="loadNamedPlan()">Load Plan</button>
       <button type="button" class="action-btn" onclick="deleteNamedPlan()">Delete Plan</button>
@@ -503,8 +495,49 @@
 
   <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="firebase-care-plans.js?v=1"></script>
-  <script src="combined.js?v=4.6"></script>
+  <script src="combined.js?v=5.1"></script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
 </body>
 </html>

@@ -184,10 +184,10 @@
 
     <div class="card">
       <h1>Top Drawer Meds Quiz</h1>
-      <p class="sub" id="modeHelp">Pick the correct concentration for each medication.</p>
+      <p class="sub" id="modeHelp">Pick the correct dose range for each medication.</p>
       <div class="mode-switch">
-        <button type="button" class="mode-btn active" id="modeMedToConc" onclick="setMode('med-to-conc')">Medication -> Concentration</button>
-        <button type="button" class="mode-btn" id="modeConcToMed" onclick="setMode('conc-to-med')">Concentration -> Medication</button>
+        <button type="button" class="mode-btn active" id="modeMedToDose" onclick="setMode('med-to-dose')">Medication -> Dose Range</button>
+        <button type="button" class="mode-btn" id="modeDoseToMed" onclick="setMode('dose-to-med')">Dose Range -> Medication</button>
       </div>
       <div class="progress" id="progress"></div>
       <div class="question" id="questionLabel">Medication</div>
@@ -199,44 +199,44 @@
         <button type="button" class="btn btn-ghost" onclick="restartQuiz()">Restart</button>
       </div>
       <div class="score" id="score"></div>
-      <p class="note">Reminder: add pending meds to this quiz after concentrations are provided.</p>
+      <p class="note">Dose ranges are quick-reference only. Verify final dosing with attending and institutional protocol.</p>
     </div>
   </div>
 
   <script>
     const cards = [
-      { med: 'Propofol', conc: '10 mg/1 mL' },
-      { med: 'Ephedrine', conc: '5 mg/mL' },
-      { med: 'Epinephrine', conc: '10 mcg/mL' },
-      { med: 'Phenylephrine', conc: '100 mcg/mL' },
-      { med: 'Sugammadex', conc: '100 mg/mL' },
-      { med: 'Dexamethasone', conc: '4 mg/mL' },
-      { med: 'Atropine', conc: '0.4 mg/mL vial or 0.1 mg/mL syringe' },
-      { med: 'Hydralazine', conc: '20 mg/mL vial, dilute to 2 mg/mL' },
-      { med: 'Furosemide', conc: '10 mg/mL' },
-      { med: 'Verapamil', conc: '2.5 mg/mL' },
-      { med: 'Glycopyrrolate', conc: '0.2 mg/mL' },
-      { med: 'Ondansetron', conc: '2 mg/mL' },
-      { med: 'Diphenhydramine', conc: '50 mg/mL' },
-      { med: 'Vasopressin', conc: '20 units/mL vial or 0.2 units/mL syringe' },
-      { med: 'Etomidate', conc: '2 mg/1 mL' },
-      { med: 'Lidocaine', conc: '10 mg/mL' },
-      { med: 'Neostigmine', conc: '1 mg/mL' },
-      { med: 'Metoprolol', conc: '1 mg/mL' },
-      { med: 'Esmolol', conc: '10 mg/mL' },
-      { med: 'Succinylcholine', conc: '20 mg/mL' },
-      { med: 'Rocuronium', conc: '10 mg/mL' },
-      { med: 'Pre-filled Calcium Chloride syringe', conc: '100 mg code dose' },
-      { med: 'Pre-filled Epinephrine syringe', conc: '1 mg code dose' },
-      { med: 'Pre-filled Lidocaine syringe', conc: '100 mg code dose' },
-      { med: 'Sodium Bicarbonate amp', conc: '50 mEq code dose' }
+      { med: 'Propofol', dose: '20-50 mg' },
+      { med: 'Ephedrine', dose: '5-10 mg' },
+      { med: 'Epinephrine', dose: '5-10 mcg push dose' },
+      { med: 'Phenylephrine', dose: '50-100 mcg' },
+      { med: 'Sugammadex', dose: '2 mg/kg (routine) or 4 mg/kg (deep)' },
+      { med: 'Dexamethasone', dose: '4-10 mg' },
+      { med: 'Atropine', dose: '0.4-0.6 mg' },
+      { med: 'Hydralazine', dose: '5-10 mg' },
+      { med: 'Furosemide', dose: '10-20 mg' },
+      { med: 'Verapamil', dose: '2.5-5 mg slow IV' },
+      { med: 'Glycopyrrolate', dose: '0.2 mg' },
+      { med: 'Ondansetron', dose: '4 mg' },
+      { med: 'Diphenhydramine', dose: '25-50 mg' },
+      { med: 'Vasopressin', dose: '1-2 units' },
+      { med: 'Etomidate', dose: '0.2-0.4 mg/kg induction' },
+      { med: 'Lidocaine', dose: '40-100 mg' },
+      { med: 'Neostigmine', dose: '0.04-0.07 mg/kg' },
+      { med: 'Metoprolol', dose: '1-5 mg' },
+      { med: 'Esmolol', dose: '10-30 mg' },
+      { med: 'Succinylcholine', dose: '1-1.5 mg/kg' },
+      { med: 'Rocuronium', dose: '0.6-1.2 mg/kg' },
+      { med: 'Pre-filled Calcium Chloride syringe', dose: '100 mg code dose' },
+      { med: 'Pre-filled Epinephrine syringe', dose: '1 mg code dose' },
+      { med: 'Pre-filled Lidocaine syringe', dose: '100 mg code dose' },
+      { med: 'Sodium Bicarbonate amp', dose: '50 mEq code dose' }
     ];
 
     let deck = [];
     let idx = 0;
     let score = 0;
     let answered = false;
-    let currentMode = 'med-to-conc';
+    let currentMode = 'med-to-dose';
     let currentAnswer = '';
 
     function shuffle(arr) {
@@ -258,11 +258,11 @@
     }
 
     function syncModeUI() {
-      document.getElementById('modeMedToConc').classList.toggle('active', currentMode === 'med-to-conc');
-      document.getElementById('modeConcToMed').classList.toggle('active', currentMode === 'conc-to-med');
-      document.getElementById('modeHelp').textContent = currentMode === 'med-to-conc'
-        ? 'Pick the correct concentration for each medication.'
-        : 'Pick the correct medication for each concentration.';
+      document.getElementById('modeMedToDose').classList.toggle('active', currentMode === 'med-to-dose');
+      document.getElementById('modeDoseToMed').classList.toggle('active', currentMode === 'dose-to-med');
+      document.getElementById('modeHelp').textContent = currentMode === 'med-to-dose'
+        ? 'Pick the correct dose range for each medication.'
+        : 'Pick the correct medication for each dose range.';
     }
 
     function renderQuestion() {
@@ -278,20 +278,20 @@
       nextBtn.style.display = 'none';
       feedback.textContent = '';
       feedback.className = 'feedback';
-      if (currentMode === 'med-to-conc') {
+      if (currentMode === 'med-to-dose') {
         document.getElementById('questionLabel').textContent = 'Medication';
         prompt.textContent = card.med;
-        currentAnswer = card.conc;
+        currentAnswer = card.dose;
       } else {
-        document.getElementById('questionLabel').textContent = 'Concentration';
-        prompt.textContent = card.conc;
+        document.getElementById('questionLabel').textContent = 'Dose Range';
+        prompt.textContent = card.dose;
         currentAnswer = card.med;
       }
       progress.textContent = 'Question ' + (idx + 1) + ' of ' + deck.length;
       scoreNode.textContent = 'Score: ' + score + ' / ' + deck.length;
 
-      const options = currentMode === 'med-to-conc'
-        ? buildChoices(card.conc, 'conc')
+      const options = currentMode === 'med-to-dose'
+        ? buildChoices(card.dose, 'dose')
         : buildChoices(card.med, 'med');
       choices.innerHTML = options.map(function(option) {
         return '<button type="button" class="choice" data-choice="' + encodeURIComponent(option) + '">' + option + '</button>';
@@ -370,7 +370,7 @@
     };
 
     window.setMode = function(mode) {
-      if (mode !== 'med-to-conc' && mode !== 'conc-to-med') return;
+      if (mode !== 'med-to-dose' && mode !== 'dose-to-med') return;
       if (mode === currentMode) return;
       currentMode = mode;
       restartQuiz();
@@ -378,5 +378,44 @@
 
     restartQuiz();
   </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
 </body>
 </html>

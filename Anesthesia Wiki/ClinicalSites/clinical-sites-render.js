@@ -150,10 +150,10 @@ function startPersonRowEdit(siteId, fieldKey) {
         appData[countId(siteId, fieldKey)] = count;
     }
 
-    var selIdx = parseInt(appData[selectedId(siteId, fieldKey)], 10);
+    var selIdx = parseInt(getSelectedContactValue(siteId, fieldKey), 10);
     if (isNaN(selIdx) || selIdx < 0 || selIdx >= count) {
         selIdx = 0;
-        appData[selectedId(siteId, fieldKey)] = String(selIdx);
+        setSelectedContactValue(siteId, fieldKey, selIdx);
     }
 
     personRowEditState = {};
@@ -207,6 +207,148 @@ function sortPeopleAlphabetical(people) {
     return people.slice().sort(function(a, b) {
         return getPersonSortLabel(a).toLowerCase().localeCompare(getPersonSortLabel(b).toLowerCase());
     });
+}
+
+function isLocalOnlySelectedField(fieldKey) {
+    return fieldKey === 'preceptor' || fieldKey === 'anesthesiologist' || fieldKey === 'surgeon';
+}
+
+function localSelectedStorageKey(siteId, fieldKey) {
+    return 'clinicalSitesLocalSelected__' + siteId + '__' + fieldKey;
+}
+
+function getSelectedContactValue(siteId, fieldKey) {
+    if (isLocalOnlySelectedField(fieldKey)) {
+        try {
+            return localStorage.getItem(localSelectedStorageKey(siteId, fieldKey)) || '';
+        } catch (e) {
+            return '';
+        }
+    }
+    return String(appData[selectedId(siteId, fieldKey)] || '');
+}
+
+function setSelectedContactValue(siteId, fieldKey, value) {
+    var next = String(value == null ? '' : value);
+    if (isLocalOnlySelectedField(fieldKey)) {
+        try {
+            localStorage.setItem(localSelectedStorageKey(siteId, fieldKey), next);
+        } catch (e) {
+        }
+        return;
+    }
+    appData[selectedId(siteId, fieldKey)] = next;
+}
+
+var personListViewState = {};
+
+function personListViewKey(siteId, fieldKey) {
+    return siteId + '__' + fieldKey + '__listview';
+}
+
+function getPersonListViewState(siteId, fieldKey) {
+    var key = personListViewKey(siteId, fieldKey);
+    if (!personListViewState[key]) {
+        personListViewState[key] = { searchQuery: '' };
+    }
+    return personListViewState[key];
+}
+
+function isSearchEnabledPersonField(fieldKey) {
+    return fieldKey === 'preceptor' || fieldKey === 'anesthesiologist';
+}
+
+function normalizePersonNameParts(name) {
+    var trimmed = String(name || '').trim();
+    if (!trimmed) return { first: '', last: '' };
+
+    var commaParts = trimmed.split(',');
+    if (commaParts.length > 1) {
+        var lastComma = String(commaParts[0] || '').trim();
+        var firstComma = String(commaParts.slice(1).join(' ') || '').trim();
+        return { first: firstComma.toLowerCase(), last: lastComma.toLowerCase() };
+    }
+
+    var tokens = trimmed.split(/\s+/).filter(function(tok) { return tok; });
+    if (!tokens.length) return { first: '', last: '' };
+
+    var suffixes = {
+        'jr': true, 'jr.': true, 'sr': true, 'sr.': true,
+        'ii': true, 'iii': true, 'iv': true
+    };
+    var lastIdx = tokens.length - 1;
+    while (lastIdx > 0 && suffixes[String(tokens[lastIdx] || '').toLowerCase()]) {
+        lastIdx -= 1;
+    }
+
+    return {
+        first: String(tokens[0] || '').toLowerCase(),
+        last: String(tokens[lastIdx] || tokens[0] || '').toLowerCase()
+    };
+}
+
+function personSortKey(person) {
+    var label = getPersonSortLabel(person).toLowerCase();
+    var name = String(person.name || '').trim();
+    if (!name) return label;
+    var parts = normalizePersonNameParts(name);
+    return (parts.first + ' ' + parts.last).trim();
+}
+
+function getVisiblePeople(siteId, fieldKey, people) {
+    var state = getPersonListViewState(siteId, fieldKey);
+    var q = isSearchEnabledPersonField(fieldKey)
+        ? String(state.searchQuery || '').trim().toLowerCase()
+        : '';
+
+    var filtered = people.filter(function(person) {
+        if (!q) return true;
+        var name = String(person.name || '').toLowerCase();
+        var phone = String(person.phone || '').toLowerCase();
+        return name.indexOf(q) !== -1 || phone.indexOf(q) !== -1;
+    });
+
+    return filtered.slice().sort(function(a, b) {
+        var aKey = personSortKey(a);
+        var bKey = personSortKey(b);
+        var cmp = aKey.localeCompare(bKey);
+        if (cmp !== 0) return cmp;
+        return getPersonSortLabel(a).toLowerCase().localeCompare(getPersonSortLabel(b).toLowerCase());
+    });
+}
+
+function renderPersonListControls(siteId, fieldKey) {
+    if (!isSearchEnabledPersonField(fieldKey)) return '';
+    var state = getPersonListViewState(siteId, fieldKey);
+    var searchId = 'pl-search-' + siteId + '-' + fieldKey;
+
+    return '<div class="person-list-controls">'
+        + '<input id="' + escAttr(searchId) + '" class="pl-search-input" type="text" placeholder="Search names" value="' + escAttr(state.searchQuery || '') + '" oninput="setPersonListSearch(\'' + siteId + '\',\'' + fieldKey + '\', this.value)">'
+        + '</div>';
+}
+
+function getPersonSelectAttributes(siteId, fieldKey, optionCount) {
+    if (!isSearchEnabledPersonField(fieldKey)) return '';
+    var state = getPersonListViewState(siteId, fieldKey);
+    var hasSearch = Boolean(String(state.searchQuery || '').trim());
+    if (!hasSearch || optionCount <= 1) return '';
+    var size = Math.min(8, optionCount);
+    return ' size="' + size + '" class="compact-select compact-select-open"';
+}
+
+function setPersonListSearch(siteId, fieldKey, query) {
+    if (!isSearchEnabledPersonField(fieldKey)) return;
+    var state = getPersonListViewState(siteId, fieldKey);
+    state.searchQuery = String(query || '');
+    buildUI();
+
+    var inputId = 'pl-search-' + siteId + '-' + fieldKey;
+    var input = document.getElementById(inputId);
+    if (input) {
+        input.focus();
+        var len = state.searchQuery.length;
+        if (typeof input.setSelectionRange === 'function') input.setSelectionRange(len, len);
+    }
 }
 
 function getPersonMemoPlaceholder(fieldKey) {
@@ -361,9 +503,8 @@ function renderPersonListSection(site, field) {
                 });
             }
 
-            var sortedEditPeople = sortPeopleAlphabetical(allPeople);
-            var selKeyEdit = selectedId(site.id, field.key);
-            var selectedEditIdx = parseInt(appData[selKeyEdit], 10);
+            var sortedEditPeople = getVisiblePeople(site.id, field.key, allPeople);
+            var selectedEditIdx = parseInt(getSelectedContactValue(site.id, field.key), 10);
             var selectedExists = sortedEditPeople.some(function(person) { return person.idx === selectedEditIdx; });
             if (!selectedExists) {
                 selectedEditIdx = sortedEditPeople.length ? sortedEditPeople[0].idx : 0;
@@ -371,15 +512,19 @@ function renderPersonListSection(site, field) {
             var selectedEditPerson = sortedEditPeople.find(function(person) { return person.idx === selectedEditIdx; }) || allPeople[0];
 
             var editHtmlSingle = '<td class="label-cell">' + escHtml(field.label) + '</td><td colspan="3" style="padding:8px 10px 8px 0">';
+            editHtmlSingle += renderPersonListControls(site.id, field.key);
             if (sortedEditPeople.length > 0) {
                 editHtmlSingle += '<div class="pl-select-row">';
-                editHtmlSingle += '<select class="compact-select" onchange="setSelectedContact(\'' + site.id + '\',\'' + field.key + '\',this.value)">';
+                var editSelectAttrs = getPersonSelectAttributes(site.id, field.key, sortedEditPeople.length);
+                editHtmlSingle += '<select' + (editSelectAttrs || ' class="compact-select"') + ' onchange="setSelectedContact(\'' + site.id + '\',\'' + field.key + '\',this.value)">';
                 sortedEditPeople.forEach(function(person) {
                     var personLabel = getPersonSortLabel(person);
                     editHtmlSingle += '<option value="' + person.idx + '"' + (person.idx === selectedEditIdx ? ' selected' : '') + '>' + escHtml(personLabel) + '</option>';
                 });
                 editHtmlSingle += '</select>';
                 editHtmlSingle += '</div>';
+            } else {
+                editHtmlSingle += '<div class="person-subline">No matching names</div>';
             }
 
             if (selectedEditPerson) {
@@ -434,17 +579,16 @@ function renderPersonListSection(site, field) {
             people.push({ idx: j, name: n, phone: p, memo: m, preferences: pref });
         }
         if (isSingleEditPersonField(field.key)) {
-            people = sortPeopleAlphabetical(people);
+            people = getVisiblePeople(site.id, field.key, people);
         }
 
-        var selKey = selectedId(site.id, field.key);
-        var selIdx = parseInt(appData[selKey], 10);
+        var selIdx = parseInt(getSelectedContactValue(site.id, field.key), 10);
         var hasSelected = people.some(function(person) { return person.idx === selIdx; });
         if (!hasSelected) selIdx = -1;
         var sel = people.find(function(person) { return person.idx === selIdx; }) || null;
         var isPrefEditOpen = sel && isSingleEditPersonField(field.key) && isEditingPersonPreferences(site.id, field.key, sel.idx);
         var isRowEditOpen = field.key === 'surgeon' && isEditingPersonRow(site.id, field.key);
-        var rowEditIdx = parseInt(appData[selectedId(site.id, field.key)], 10);
+        var rowEditIdx = parseInt(getSelectedContactValue(site.id, field.key), 10);
         if (isNaN(rowEditIdx) || rowEditIdx < 0) rowEditIdx = 0;
         var rowEditPerson = null;
         if (isRowEditOpen && field.key === 'surgeon') {
@@ -472,7 +616,16 @@ function renderPersonListSection(site, field) {
                 viewHtml += '</td>';
                 viewHtml += '<td class="action-cell"><div class="row-actions"><button type="button" class="row-action-btn small" onclick="savePersonRowEdit()">Save</button><button type="button" class="row-action-btn small" onclick="cancelPersonRowEdit()">Cancel</button></div></td>';
             } else {
-                viewHtml += '<td class="name-cell" colspan="2"><span class="value-empty">None added yet</span></td><td class="action-cell">';
+                var emptyMsg = 'None added yet';
+                if (isSingleEditPersonField(field.key)) {
+                    var stateEmpty = getPersonListViewState(site.id, field.key);
+                    if (String(stateEmpty.searchQuery || '').trim()) emptyMsg = 'No matching names';
+                }
+                viewHtml += '<td class="name-cell" colspan="2">';
+                if (isSingleEditPersonField(field.key)) {
+                    viewHtml += renderPersonListControls(site.id, field.key);
+                }
+                viewHtml += '<span class="value-empty">' + escHtml(emptyMsg) + '</span></td><td class="action-cell">';
                 if (field.key === 'surgeon') {
                     viewHtml += '<div class="row-actions"><button type="button" class="row-action-btn small" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add Surgeon</button><button type="button" class="row-action-btn small" onclick="startPersonRowEdit(\'' + site.id + '\',\'' + field.key + '\')">Edit</button></div>';
                 }
@@ -485,7 +638,11 @@ function renderPersonListSection(site, field) {
                 surgeonEditPerson = rowEditPerson || sel || { idx: 0, name: '', phone: '', memo: '', preferences: '' };
             }
             viewHtml += '<td class="name-cell" style="padding:4px 0">';
-            var selectHtml = '<select class="compact-select" onchange="setSelectedContact(\'' + site.id + '\',\'' + field.key + '\',this.value)">';
+            if (isSingleEditPersonField(field.key)) {
+                viewHtml += renderPersonListControls(site.id, field.key);
+            }
+            var viewSelectAttrs = getPersonSelectAttributes(site.id, field.key, people.length + 1);
+            var selectHtml = '<select' + (viewSelectAttrs || ' class="compact-select"') + ' onchange="setSelectedContact(\'' + site.id + '\',\'' + field.key + '\',this.value)">';
             selectHtml += '<option value="-1"' + (selIdx === -1 ? ' selected' : '') + '>— Select —</option>';
             people.forEach(function(person) {
                 var label = getPersonSortLabel(person);
@@ -593,7 +750,7 @@ function addPersonEntry(siteId, fieldKey) {
     var count = parseInt(appData[countId(siteId, fieldKey)], 10);
     if (!(count > 0)) count = 1;
     appData[countId(siteId, fieldKey)] = count + 1;
-    appData[selectedId(siteId, fieldKey)] = String(count);
+    setSelectedContactValue(siteId, fieldKey, count);
     if (fieldKey === 'surgeon') {
         personRowEditState = {};
         personRowEditState[personRowEditKey(siteId, fieldKey)] = true;
@@ -628,12 +785,12 @@ function removePersonEntry(siteId, fieldKey, removeIndex) {
     var newCount = count - 1 > 0 ? count - 1 : 1;
     appData[countId(siteId, fieldKey)] = newCount;
 
-    var selIdx = parseInt(appData[selectedId(siteId, fieldKey)], 10);
+    var selIdx = parseInt(getSelectedContactValue(siteId, fieldKey), 10);
     if (isNaN(selIdx) || selIdx < 0) selIdx = 0;
     if (selIdx > removeIndex) selIdx -= 1;
     if (selIdx >= newCount) selIdx = newCount - 1;
     if (selIdx < 0) selIdx = 0;
-    appData[selectedId(siteId, fieldKey)] = String(selIdx);
+    setSelectedContactValue(siteId, fieldKey, selIdx);
 
     if (typeof syncLinkedPersonField === 'function') {
         syncLinkedPersonField(siteId, fieldKey);
@@ -655,7 +812,7 @@ function renderCompactContactRow(site, field) {
         rows.push({ index: i, name: name, phone: phone });
     }
 
-    var selected = parseInt(appData[selectedId(site.id, field.key)], 10);
+    var selected = parseInt(getSelectedContactValue(site.id, field.key), 10);
     if (isNaN(selected) || selected < 0 || selected >= rows.length) {
         selected = 0;
     }
@@ -863,10 +1020,19 @@ function addRepeatRow(siteId, fieldKey, afterIndex) {
 }
 
 function setSelectedContact(siteId, fieldKey, selectedIndex) {
-    appData[selectedId(siteId, fieldKey)] = String(selectedIndex);
-    if (typeof syncLinkedPersonField === 'function') {
+    var localOnly = isLocalOnlySelectedField(fieldKey);
+    setSelectedContactValue(siteId, fieldKey, selectedIndex);
+
+    if (isSearchEnabledPersonField(fieldKey)) {
+        var state = getPersonListViewState(siteId, fieldKey);
+        if (String(state.searchQuery || '').trim()) {
+            state.searchQuery = '';
+        }
+    }
+
+    if (!localOnly && typeof syncLinkedPersonField === 'function') {
         syncLinkedPersonField(siteId, fieldKey);
     }
-    saveAll();
+    if (!localOnly) saveAll();
     buildUI();
 }

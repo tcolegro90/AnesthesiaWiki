@@ -108,58 +108,98 @@ function normalizeExistingCrnaAliases() {
 
 function migrateNikkiAllemanPreferences() {
     var changed = false;
+
+    function isNikkiAllemanAlias(rawLower) {
+        return rawLower === 'marilyn "nikki" alleman'
+            || rawLower === 'marlyn "nikki" alleman'
+            || rawLower === 'marlyin alleman'
+            || rawLower === 'marilyn alleman'
+            || rawLower === 'nikki alleman';
+    }
+
     ['rgh', 'unity'].forEach(function(siteId) {
         var count = parseInt(appData[countId(siteId, 'preceptor')], 10) || 0;
-        var preferredIndex = -1;
-        var legacyIndex = -1;
+        if (!(count > 0)) return;
+
+        var rebuilt = [];
+        var mergedNikki = null;
+        var nikkiInsertIndex = -1;
 
         for (var i = 0; i < count; i++) {
-            var nameKey = fieldId(siteId, 'preceptor', 'name', i);
-            var rawName = String(appData[nameKey] || '').trim().toLowerCase();
-            if (rawName === 'marilyn "nikki" alleman') preferredIndex = i;
-            if (rawName === 'marlyn "nikki" alleman' || rawName === 'nikki alleman') legacyIndex = i;
-        }
+            var row = {
+                name: String(appData[fieldId(siteId, 'preceptor', 'name', i)] || ''),
+                phone: String(appData[fieldId(siteId, 'preceptor', 'phone', i)] || ''),
+                memo: String(appData[fieldId(siteId, 'preceptor', 'memo', i)] || ''),
+                preferences: typeof getPersonPreferencesValue === 'function'
+                    ? String(getPersonPreferencesValue(siteId, 'preceptor', i) || '')
+                    : String(appData[fieldId(siteId, 'preferences', 'memo', i)] || '')
+            };
 
-        if (legacyIndex === -1) return;
-
-        var legacyPref = typeof getPersonPreferencesValue === 'function'
-            ? String(getPersonPreferencesValue(siteId, 'preceptor', legacyIndex) || '')
-            : String(appData[fieldId(siteId, 'preferences', 'memo', legacyIndex)] || '');
-
-        if (preferredIndex !== -1 && legacyPref) {
-            var existingPref = typeof getPersonPreferencesValue === 'function'
-                ? String(getPersonPreferencesValue(siteId, 'preceptor', preferredIndex) || '')
-                : String(appData[fieldId(siteId, 'preferences', 'memo', preferredIndex)] || '');
-            if (!existingPref) {
-                if (typeof setPersonPreferencesValue === 'function') {
-                    setPersonPreferencesValue(siteId, 'preceptor', preferredIndex, legacyPref);
-                } else {
-                    appData[fieldId(siteId, 'preferences', 'memo', preferredIndex)] = legacyPref;
-                }
-                changed = true;
+            var rawLower = row.name.trim().toLowerCase();
+            if (!isNikkiAllemanAlias(rawLower)) {
+                rebuilt.push(row);
+                continue;
             }
-        }
 
-        for (var j = legacyIndex; j < count - 1; j++) {
-            appData[fieldId(siteId, 'preceptor', 'name', j)] = appData[fieldId(siteId, 'preceptor', 'name', j + 1)] || '';
-            appData[fieldId(siteId, 'preceptor', 'phone', j)] = appData[fieldId(siteId, 'preceptor', 'phone', j + 1)] || '';
-            appData[fieldId(siteId, 'preceptor', 'memo', j)] = appData[fieldId(siteId, 'preceptor', 'memo', j + 1)] || '';
-            if (typeof setPersonPreferencesValue === 'function' && typeof getPersonPreferencesValue === 'function') {
-                setPersonPreferencesValue(siteId, 'preceptor', j, getPersonPreferencesValue(siteId, 'preceptor', j + 1) || '');
+            if (nikkiInsertIndex === -1) nikkiInsertIndex = rebuilt.length;
+
+            if (!mergedNikki) {
+                mergedNikki = {
+                    name: 'Marilyn "Nikki" Alleman',
+                    phone: row.phone,
+                    memo: row.memo,
+                    preferences: row.preferences
+                };
             } else {
-                appData[fieldId(siteId, 'preferences', 'memo', j)] = appData[fieldId(siteId, 'preferences', 'memo', j + 1)] || '';
+                if (!mergedNikki.phone && row.phone) mergedNikki.phone = row.phone;
+                if (!mergedNikki.memo && row.memo) mergedNikki.memo = row.memo;
+                if (!mergedNikki.preferences && row.preferences) mergedNikki.preferences = row.preferences;
             }
         }
 
-        if (count > 0) {
-            delete appData[fieldId(siteId, 'preceptor', 'name', count - 1)];
-            delete appData[fieldId(siteId, 'preceptor', 'phone', count - 1)];
-            delete appData[fieldId(siteId, 'preceptor', 'memo', count - 1)];
-            if (typeof deletePersonPreferencesValue === 'function') {
-                deletePersonPreferencesValue(siteId, 'preceptor', count - 1);
+        if (!mergedNikki) return;
+
+        if (nikkiInsertIndex < 0) nikkiInsertIndex = rebuilt.length;
+        rebuilt.splice(nikkiInsertIndex, 0, mergedNikki);
+
+        for (var j = 0; j < rebuilt.length; j++) {
+            var next = rebuilt[j];
+            if (appData[fieldId(siteId, 'preceptor', 'name', j)] !== next.name) changed = true;
+            if (appData[fieldId(siteId, 'preceptor', 'phone', j)] !== next.phone) changed = true;
+            if (appData[fieldId(siteId, 'preceptor', 'memo', j)] !== next.memo) changed = true;
+
+            appData[fieldId(siteId, 'preceptor', 'name', j)] = next.name;
+            appData[fieldId(siteId, 'preceptor', 'phone', j)] = next.phone;
+            appData[fieldId(siteId, 'preceptor', 'memo', j)] = next.memo;
+
+            if (typeof setPersonPreferencesValue === 'function') {
+                setPersonPreferencesValue(siteId, 'preceptor', j, next.preferences || '');
+            } else {
+                appData[fieldId(siteId, 'preferences', 'memo', j)] = next.preferences || '';
             }
-            delete appData[fieldId(siteId, 'preferences', 'memo', count - 1)];
-            appData[countId(siteId, 'preceptor')] = count - 1 > 0 ? count - 1 : 1;
+        }
+
+        for (var k = rebuilt.length; k < count; k++) {
+            delete appData[fieldId(siteId, 'preceptor', 'name', k)];
+            delete appData[fieldId(siteId, 'preceptor', 'phone', k)];
+            delete appData[fieldId(siteId, 'preceptor', 'memo', k)];
+            if (typeof deletePersonPreferencesValue === 'function') {
+                deletePersonPreferencesValue(siteId, 'preceptor', k);
+            }
+            delete appData[fieldId(siteId, 'preferences', 'memo', k)];
+            changed = true;
+        }
+
+        var newCount = rebuilt.length > 0 ? rebuilt.length : 1;
+        if (parseInt(appData[countId(siteId, 'preceptor')], 10) !== newCount) {
+            appData[countId(siteId, 'preceptor')] = newCount;
+            changed = true;
+        }
+
+        var selectedKey = selectedId(siteId, 'preceptor');
+        var selected = parseInt(appData[selectedKey], 10);
+        if (isNaN(selected) || selected < 0 || selected >= newCount) {
+            appData[selectedKey] = String(Math.max(0, nikkiInsertIndex));
             changed = true;
         }
     });
