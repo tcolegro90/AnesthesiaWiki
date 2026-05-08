@@ -20,6 +20,26 @@
       gap: 14px;
       align-items: flex-end;
     }
+    .surgery-subrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: flex-end;
+      width: 100%;
+    }
+    .surgery-top-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 14px;
+      align-items: flex-end;
+      width: 100%;
+    }
+    .conditional-inline {
+      display: none;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
     .add-row-btn {
       padding: 3px 12px;
       font-size: 12px;
@@ -37,30 +57,56 @@
   <div class="container">
     <div class="card">
       <div class="row surgery-row">
-        <div><label>Surgery Type</label><br><input id="pat-surgery" class="long" /></div>
-        <div>
-          <label>Positioning</label><br>
-          <select id="pat-position" class="position-wide" style="width:255px;max-width:100%;">
-            <option value="">Select...</option>
-            <option>Supine</option>
-            <option>Prone</option>
-            <option>Lateral Decubitus</option>
-            <option>Lithotomy</option>
-            <option>Trendelenburg</option>
-            <option>Steep Trendelenburg</option>
-            <option>Reverse Trendelenburg</option>
-            <option>Sitting / Beach Chair</option>
-            <option>Jackknife</option>
-            <option>Fowler / Semi-Fowler</option>
-            <option>Knee-Chest</option>
-            <option value="Other">Other</option>
-          </select>
-          <input id="pat-position-other" class="med" style="display:none;margin-top:6px;" placeholder="Enter positioning" />
+        <div class="surgery-top-row">
+          <div style="flex:1 1 auto;min-width:120px;"><label>Surgery Type</label><br><input id="pat-surgery" style="width:100%;" /></div>
+          <div style="flex:0 0 auto;"><label>Positioning</label><br>
+            <select id="pat-position" style="width:200px;">
+              <option value="">Select...</option>
+              <option>Supine</option>
+              <option>Prone</option>
+              <option>Lateral Decubitus</option>
+              <option>Lithotomy</option>
+              <option>Trendelenburg</option>
+              <option>Steep Trendelenburg</option>
+              <option>Reverse Trendelenburg</option>
+              <option>Sitting / Beach Chair</option>
+              <option>Jackknife</option>
+              <option>Fowler / Semi-Fowler</option>
+              <option>Knee-Chest</option>
+              <option value="Other">Other</option>
+            </select>
+            <input id="pat-position-other" class="med" style="display:none;margin-top:6px;" placeholder="Enter positioning" />
+          </div>
+          <div>
+            <label>Insufflation</label><br>
+            <label><input type="radio" name="pat-insufflation" id="pat-insufflation-yes" value="Yes"> Yes</label>
+            <label><input type="radio" name="pat-insufflation" id="pat-insufflation-no" value="No"> No</label>
+          </div>
         </div>
-        <div>
-          <label>Insufflation</label><br>
-          <label><input type="radio" name="pat-insufflation" id="pat-insufflation-yes" value="Yes"> Yes</label>
-          <label><input type="radio" name="pat-insufflation" id="pat-insufflation-no" value="No"> No</label>
+        <div class="surgery-subrow" style="margin-top:10px;">
+          <div>
+            <label>Anticipated EBL</label><br>
+            <select id="pat-anticipated-ebl" class="med" style="width:150px;max-width:100%;">
+              <option value="">Select...</option>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+            </select>
+          </div>
+          <div id="pat-obtain-ts-wrap" class="conditional-inline">
+            <div>
+              <label>Obtain T+S</label><br>
+              <label><input type="radio" name="pat-obtain-ts" id="pat-obtain-ts-yes" value="Yes"> Yes</label>
+              <label><input type="radio" name="pat-obtain-ts" id="pat-obtain-ts-no" value="No"> No</label>
+            </div>
+          </div>
+          <div id="pat-blood-room-wrap" class="conditional-inline">
+            <div>
+              <label>Blood in Room</label><br>
+              <label><input type="radio" name="pat-blood-room" id="pat-blood-room-yes" value="Yes"> Yes</label>
+              <label><input type="radio" name="pat-blood-room" id="pat-blood-room-no" value="No"> No</label>
+            </div>
+          </div>
         </div>
         <div style="flex-basis:100%;height:0;"></div>
         <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:0;"></div>
@@ -70,7 +116,7 @@
         <div><label>Surgery End</label><br><input id="pat-surg-end-time" class="short-text" placeholder="HH:MM" /></div>
         <div><label>Surgical Length (minutes)</label><br><input id="pat-surg-length" type="number" step="1" min="0" inputmode="numeric" class="short-text" /></div>
         <div>
-          <label>ASA Class</label><br>
+          <label>ASA Class <button type="button" id="asa-help-btn" aria-label="ASA classification help" onclick="document.getElementById('asa-modal').style.display='flex'" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid #5a7ea0;background:#e8f0fb;color:#1a4f82;font-size:10px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:4px;padding:0;line-height:1;">?</button></label><br>
           <select id="pat-asa-class" class="small">
             <option value="">-</option>
             <option>1</option>
@@ -104,7 +150,7 @@
             <option value="Tomorrow">Tomorrow</option>
             <option value="Other">Other</option>
           </select>
-          <input id="pat-surg-date-other" class="med" style="display:none;margin-top:6px;" placeholder="Type date" />
+          <input id="pat-surg-date-other" type="text" inputmode="numeric" maxlength="10" class="med" style="display:none;margin-top:6px;" placeholder="MM/DD/YYYY" />
           <input id="pat-surg-date" type="hidden" />
         </div>
         <div>
@@ -156,14 +202,6 @@
         <div><label>Weight (kg)</label><br><input id="pat-weight-kg" type="number" inputmode="decimal" class="small" /></div>
         <div><label>Weight (lbs)</label><br><input id="pat-weight-lbs" type="number" inputmode="decimal" class="small" /></div>
         <div><label>BMI</label><br><input id="pat-bmi" type="number" step="0.1" inputmode="decimal" class="small" /></div>
-      </div>
-
-      <div class="row" id="pat-pregnant-row" style="margin-top:6px;display:none;">
-        <div>
-          <label>Pregnant</label><br>
-          <label><input type="radio" name="pat-pregnant" id="pat-pregnant-yes" value="Yes"> Yes</label>
-          <label><input type="radio" name="pat-pregnant" id="pat-pregnant-no" value="No"> No</label>
-        </div>
       </div>
 
       <hr>
@@ -301,6 +339,28 @@
       saveState();
     }
 
+    function syncAnticipatedBloodPrep(shouldSave) {
+      var anticipated = document.getElementById('pat-anticipated-ebl').value;
+      var showTS = anticipated === 'Medium' || anticipated === 'High';
+      var showBloodRoom = anticipated === 'High';
+      var tsWrap = document.getElementById('pat-obtain-ts-wrap');
+      var bloodWrap = document.getElementById('pat-blood-room-wrap');
+
+      if (tsWrap) tsWrap.style.display = showTS ? 'flex' : 'none';
+      if (bloodWrap) bloodWrap.style.display = showBloodRoom ? 'flex' : 'none';
+
+      if (!showTS) {
+        document.getElementById('pat-obtain-ts-yes').checked = false;
+        document.getElementById('pat-obtain-ts-no').checked = false;
+      }
+      if (!showBloodRoom) {
+        document.getElementById('pat-blood-room-yes').checked = false;
+        document.getElementById('pat-blood-room-no').checked = false;
+      }
+
+      if (shouldSave !== false) saveState();
+    }
+
     function syncInterpreterUi() {
       const yes = document.getElementById('pat-interpreter-yes').checked;
       document.getElementById('pat-interpreter-language-wrap').style.display = yes ? 'block' : 'none';
@@ -334,27 +394,6 @@
       } else {
         autoResizePriorAnestheticNotes();
       }
-      saveState();
-    }
-
-    function syncPregnancyUi() {
-      var gender = document.getElementById('pat-gender').value;
-      var age = parseFloat(document.getElementById('pat-age').value);
-      var inRange = !isNaN(age) && age >= 12 && age <= 55;
-      var show = gender === 'F' && inRange;
-      var row = document.getElementById('pat-pregnant-row');
-      var yes = document.getElementById('pat-pregnant-yes');
-      var no = document.getElementById('pat-pregnant-no');
-
-      row.style.display = show ? 'flex' : 'none';
-
-      if (!show) {
-        yes.checked = false;
-        no.checked = true;
-      } else if (!yes.checked && !no.checked) {
-        no.checked = true;
-      }
-
       saveState();
     }
 
@@ -459,6 +498,20 @@
       return (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
     }
 
+    function formatSurgicalDateValue(raw) {
+      var text = String(raw || '').trim();
+      if (!text) return '';
+
+      var iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (iso) return iso[2] + '/' + iso[3] + '/' + iso[1];
+
+      var digits = text.replace(/\D/g, '').slice(0, 8);
+      if (!digits) return '';
+      if (digits.length <= 2) return digits + (digits.length === 2 ? '/' : '');
+      if (digits.length <= 4) return digits.slice(0, 2) + '/' + digits.slice(2) + (digits.length === 4 ? '/' : '');
+      return digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+    }
+
     function syncSurgicalDate() {
       var modeEl = document.getElementById('pat-surg-date-mode');
       var otherEl = document.getElementById('pat-surg-date-other');
@@ -467,7 +520,9 @@
 
       otherEl.style.display = mode === 'Other' ? 'inline-block' : 'none';
       if (mode === 'Other') {
-        outEl.value = otherEl.value || '';
+        var formatted = formatSurgicalDateValue(otherEl.value || '');
+        if (otherEl.value !== formatted) otherEl.value = formatted;
+        outEl.value = formatted;
       } else {
         outEl.value = getTomorrowDateText();
       }
@@ -548,10 +603,11 @@
       document.getElementById('pat-bmi').addEventListener('input', recalculateFromBMI);
       document.getElementById('pat-gender').addEventListener('change', function() {
         updateIBWandTV();
-        syncPregnancyUi();
       });
-      document.getElementById('pat-age').addEventListener('input', syncPregnancyUi);
       document.getElementById('pat-position').addEventListener('change', syncPositionOther);
+      document.getElementById('pat-anticipated-ebl').addEventListener('change', function() {
+        syncAnticipatedBloodPrep();
+      });
       document.getElementById('pat-surg-date-mode').addEventListener('change', syncSurgicalDate);
       document.getElementById('pat-surg-date-other').addEventListener('input', syncSurgicalDate);
       document.querySelectorAll('input[name="pat-interpreter"]').forEach(function(el) {
@@ -566,7 +622,7 @@
       document.querySelectorAll('input[name="pat-prior-anesthetic"]').forEach(function(el) {
         el.addEventListener('change', syncPriorAnestheticUi);
       });
-      document.querySelectorAll('input[name="pat-pregnant"]').forEach(function(el) {
+      document.querySelectorAll('input[name="pat-obtain-ts"], input[name="pat-blood-room"]').forEach(function(el) {
         el.addEventListener('change', saveState);
       });
       document.getElementById('pat-interpreter-language').addEventListener('input', saveState);
@@ -595,15 +651,12 @@
       if (!document.getElementById('pat-prior-anesthetic-yes').checked && !document.getElementById('pat-prior-anesthetic-no').checked) {
         document.getElementById('pat-prior-anesthetic-no').checked = true;
       }
-      if (!document.getElementById('pat-pregnant-yes').checked && !document.getElementById('pat-pregnant-no').checked) {
-        document.getElementById('pat-pregnant-no').checked = true;
-      }
       syncPacerUi();
       syncPositionOther();
       syncInterpreterUi();
       syncHearingUi();
       syncPriorAnestheticUi();
-      syncPregnancyUi();
+      syncAnticipatedBloodPrep(false);
       syncSurgicalDate();
       syncSurgeryTimeFields();
       restoreExtraSurg();
@@ -611,7 +664,7 @@
       setTimeout(function() { updateIBWandTV(); }, 0);
     }
 
-    pageBoot(boot, function() { restoreExtraSurg(); updateIBWandTV(); });
+    pageBoot(boot, function() { restoreExtraSurg(); updateIBWandTV(); syncAnticipatedBloodPrep(false); });
   </script>
 
 <style>
@@ -653,5 +706,29 @@
   document.body.appendChild(a);
 })();
 </script>
+
+<!-- ASA Classification Modal -->
+<div id="asa-modal" style="display:none;position:fixed;inset:0;background:rgba(15,25,40,.5);z-index:99999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:13px;box-shadow:0 20px 48px rgba(0,0,0,.28);width:min(520px,100%);max-height:85vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+    <div style="padding:14px 16px 10px;border-bottom:1px solid #dde6f0;display:flex;align-items:center;justify-content:space-between;background:#f4f8ff;border-radius:13px 13px 0 0;">
+      <span style="font-weight:700;font-size:1rem;color:#1a3a5c;">ASA Physical Status Classifications</span>
+      <button type="button" onclick="document.getElementById('asa-modal').style.display='none'" style="background:none;border:none;font-size:1.3rem;color:#5a7488;cursor:pointer;line-height:1;padding:0 2px;">&times;</button>
+    </div>
+    <div style="padding:14px 16px;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
+        <thead><tr style="background:#eef4ff;"><th style="text-align:left;padding:7px 10px;color:#1a3a5c;border-bottom:2px solid #c8d9ee;">Class</th><th style="text-align:left;padding:7px 10px;color:#1a3a5c;border-bottom:2px solid #c8d9ee;">Description</th></tr></thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#2a5080;white-space:nowrap;">ASA I</td><td style="padding:8px 10px;color:#1d2938;">Normal healthy patient — non-smoker, no or minimal alcohol use.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#2a5080;white-space:nowrap;">ASA II</td><td style="padding:8px 10px;color:#1d2938;">Mild systemic disease — e.g., social drinker, active smoker, pregnancy, obesity (BMI 30–40), well-controlled DM or HTN.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#c97a00;white-space:nowrap;">ASA III</td><td style="padding:8px 10px;color:#1d2938;">Severe systemic disease — e.g., BMI ≥40, poorly controlled DM or HTN, stable angina, h/o MI or CVA &gt;3 months ago, ESRD on dialysis.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#c0420a;white-space:nowrap;">ASA IV</td><td style="padding:8px 10px;color:#1d2938;">Severe systemic disease — constant threat to life. E.g., recent MI or CVA &lt;3 months, unstable angina, severe valve dysfunction, sepsis.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#b32424;white-space:nowrap;">ASA V</td><td style="padding:8px 10px;color:#1d2938;">Moribund — not expected to survive without surgery. E.g., ruptured aneurysm, massive trauma.</td></tr>
+          <tr style="background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#6b3fa0;white-space:nowrap;">ASA VI</td><td style="padding:8px 10px;color:#1d2938;">Brain-dead patient awaiting organ procurement.</td></tr>
+        </tbody>
+      </table>
+      <p style="margin:10px 0 0;font-size:0.78rem;color:#6b7d90;">Append <strong>E</strong> for emergency procedures (e.g., ASA IIE).</p>
+    </div>
+  </div>
+</div>
 </body>
 </html>

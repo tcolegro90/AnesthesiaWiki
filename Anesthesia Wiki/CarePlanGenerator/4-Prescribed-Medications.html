@@ -23,6 +23,27 @@
       align-items: center;
       gap: 10px;
     }
+    .med-search-wrap {
+      margin: 8px 0 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .med-search-wrap label {
+      font-weight: 600;
+      color: #2b3f59;
+      font-size: 13px;
+    }
+    .med-search-input {
+      min-width: 320px;
+      flex: 1;
+      max-width: 520px;
+      border: 1px solid #bfd2ec;
+      border-radius: 6px;
+      padding: 7px 9px;
+      font-size: 14px;
+    }
     .row-remove-btn {
       border: 1px solid #e7b7b7;
       background: #fff4f4;
@@ -36,11 +57,64 @@
       font-weight: 700;
     }
     .row-remove-btn:hover { background: #ffe6e6; border-color: #d68f8f; }
+    .med-info-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid #5a7ea0;
+      background: #e8f0fb;
+      color: #1a4f82;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .med-info-btn:hover { background: #d0e0f8; }
+    .med-info-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .med-info-modal-box {
+      background: #fff;
+      border-radius: 8px;
+      padding: 24px 28px 20px;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      position: relative;
+    }
+    .med-info-modal-close {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #888;
+      line-height: 1;
+    }
+    .med-info-modal-close:hover { color: #222; }
+
   </style>
 </head>
 <body>
   <div class="container">
     <h1>4. Home Meds</h1>
+    <div class="med-search-wrap">
+      <label for="med-quick-search">Search Home Meds:</label>
+      <input id="med-quick-search" class="med-search-input" list="home-med-suggestions" placeholder="Type med name or brand... press Enter" autocomplete="off" />
+    </div>
     <div class="nav">
       <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Home Meds</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
     </div>
@@ -49,6 +123,26 @@
       <button type="button" class="add-row-btn" onclick="addMedRow()">+ Add more</button>
     </div>
   </div>
+
+  <!-- Med info modal -->
+  <div id="med-info-modal" class="med-info-modal-overlay" onclick="if(event.target===this)closeMedInfoModal()">
+    <div class="med-info-modal-box">
+      <button class="med-info-modal-close" onclick="closeMedInfoModal()" aria-label="Close">&times;</button>
+      <h3 id="med-info-name" style="margin:0 0 14px;color:#1a4f82;font-size:17px;padding-right:24px;"></h3>
+      <table style="border-collapse:collapse;width:100%;">
+        <tr>
+          <td style="padding:6px 10px 6px 0;font-weight:700;color:#2b3f59;vertical-align:top;white-space:nowrap;font-size:13px;">Drug Class</td>
+          <td id="med-info-class" style="padding:6px 0 6px 8px;color:#333;font-size:13px;"></td>
+        </tr>
+        <tr style="border-top:1px solid #eef0f4;">
+          <td style="padding:8px 10px 6px 0;font-weight:700;color:#2b3f59;vertical-align:top;white-space:nowrap;font-size:13px;">Common Indications</td>
+          <td id="med-info-ind" style="padding:8px 0 6px 8px;color:#333;font-size:13px;"></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <datalist id="home-med-suggestions"></datalist>
   <script src="med-catalog.js"></script>
   <script src="shared.js?v=23"></script>
   <script>
@@ -61,7 +155,259 @@
     const betaBlockers = ['Atenolol','Carvedilol','Esmolol','Metoprolol','Propranolol'];
     const aceArbs = ['Enalapril','Lisinopril','Losartan','Valsartan'];
     const doseTimes = ['Today AM','Today PM','Last Night','Yesterday AM','Yesterday PM','Unknown'];
+    const brandToGeneric = {
+      'Tylenol': 'Acetaminophen',
+      'Advil': 'Ibuprofen',
+      'Motrin': 'Ibuprofen',
+      'Aleve': 'Naproxen',
+      'Xanax': 'Alprazolam',
+      'Ativan': 'Lorazepam',
+      'Valium': 'Diazepam',
+      'Klonopin': 'Clonazepam',
+      'Ambien': 'Zolpidem',
+      'Lunesta': 'Eszopiclone',
+      'Benadryl': 'Diphenhydramine',
+      'Claritin': 'Loratadine',
+      'Zyrtec': 'Cetirizine',
+      'Allegra': 'Fexofenadine',
+      'Singulair': 'Montelukast',
+      'Flonase': 'Fluticasone',
+      'Ventolin': 'Albuterol',
+      'ProAir': 'Albuterol',
+      'Xopenex': 'Levalbuterol',
+      'Spiriva': 'Tiotropium',
+      'Atrovent': 'Ipratropium',
+      'Symbicort': 'Budesonide-Formoterol',
+      'Advair': 'Fluticasone-Salmeterol',
+      'Pulmicort': 'Budesonide',
+      'Qvar': 'Beclomethasone',
+      'Breo': 'Fluticasone-Vilanterol',
+      'Dulera': 'Mometasone-Formoterol',
+      'Lipitor': 'Atorvastatin',
+      'Crestor': 'Rosuvastatin',
+      'Zocor': 'Simvastatin',
+      'Pravachol': 'Pravastatin',
+      'Mevacor': 'Lovastatin',
+      'Lescol': 'Fluvastatin',
+      'Livalo': 'Pitavastatin',
+      'Plavix': 'Clopidogrel',
+      'Brilinta': 'Ticagrelor',
+      'Effient': 'Prasugrel',
+      'Eliquis': 'Apixaban',
+      'Xarelto': 'Rivaroxaban',
+      'Pradaxa': 'Dabigatran',
+      'Savaysa': 'Edoxaban',
+      'Coumadin': 'Warfarin',
+      'Lovenox': 'Enoxaparin',
+      'Toprol': 'Metoprolol',
+      'Lopressor': 'Metoprolol',
+      'Tenormin': 'Atenolol',
+      'Coreg': 'Carvedilol',
+      'Inderal': 'Propranolol',
+      'Zebeta': 'Bisoprolol',
+      'Bystolic': 'Nebivolol',
+      'Norvasc': 'Amlodipine',
+      'Cardizem': 'Diltiazem',
+      'Procardia': 'Nifedipine',
+      'Catapres': 'Clonidine',
+      'HydroDiuril': 'Hydrochlorothiazide',
+      'Lasix': 'Furosemide',
+      'Bumex': 'Bumetanide',
+      'Demadex': 'Torsemide',
+      'Aldactone': 'Spironolactone',
+      'Dyrenium': 'Triamterene',
+      'Midamor': 'Amiloride',
+      'Lisinopril': 'Lisinopril',
+      'Zestril': 'Lisinopril',
+      'Prinivil': 'Lisinopril',
+      'Vasotec': 'Enalapril',
+      'Accupril': 'Quinapril',
+      'Altace': 'Ramipril',
+      'Mavik': 'Trandolapril',
+      'Cozaar': 'Losartan',
+      'Diovan': 'Valsartan',
+      'Benicar': 'Olmesartan',
+      'Micardis': 'Telmisartan',
+      'Avapro': 'Irbesartan',
+      'Atacand': 'Candesartan',
+      'Edarbi': 'Azilsartan',
+      'Tekturna': 'Aliskiren',
+      'Synthroid': 'Levothyroxine',
+      'Levoxyl': 'Levothyroxine',
+      'Glucophage': 'Metformin',
+      'Januvia': 'Sitagliptin',
+      'Tradjenta': 'Linagliptin',
+      'Onglyza': 'Saxagliptin',
+      'Nesina': 'Alogliptin',
+      'Amaryl': 'Glimepiride',
+      'Glucotrol': 'Glipizide',
+      'Diabeta': 'Glyburide',
+      'Actos': 'Pioglitazone',
+      'Starlix': 'Nateglinide',
+      'Prandin': 'Repaglinide',
+      'Invokana': 'Canagliflozin',
+      'Farxiga': 'Dapagliflozin',
+      'Jardiance': 'Empagliflozin',
+      'Victoza': 'Liraglutide',
+      'Ozempic': 'Semaglutide',
+      'Trulicity': 'Dulaglutide',
+      'Lantus': 'Insulin Glargine',
+      'Levemir': 'Insulin Detemir',
+      'Tresiba': 'Insulin Degludec',
+      'Novolog': 'Insulin Aspart',
+      'Humalog': 'Insulin Lispro',
+      'Apidra': 'Insulin Glulisine',
+      'Humulin N': 'Insulin NPH',
+      'Protonix': 'Pantoprazole',
+      'Prilosec': 'Omeprazole',
+      'Nexium': 'Esomeprazole',
+      'Prevacid': 'Lansoprazole',
+      'Dexilant': 'Dexlansoprazole',
+      'Aciphex': 'Rabeprazole',
+      'Pepcid': 'Famotidine',
+      'Carafate': 'Sucralfate',
+      'Reglan': 'Metoclopramide',
+      'Zofran': 'Ondansetron',
+      'Imodium': 'Loperamide',
+      'Linzess': 'Linaclotide',
+      'Trulance': 'Plecanatide',
+      'Amitiza': 'Lubiprostone',
+      'Metamucil': 'Psyllium',
+      'Colace': 'Docusate',
+      'Senokot': 'Senna',
+      'Miralax': 'Polyethylene Glycol',
+      'Celexa': 'Citalopram',
+      'Lexapro': 'Escitalopram',
+      'Zoloft': 'Sertraline',
+      'Prozac': 'Fluoxetine',
+      'Paxil': 'Paroxetine',
+      'Luvox': 'Fluvoxamine',
+      'Effexor': 'Venlafaxine',
+      'Pristiq': 'Desvenlafaxine',
+      'Cymbalta': 'Duloxetine',
+      'Wellbutrin': 'Bupropion',
+      'Remeron': 'Mirtazapine',
+      'Seroquel': 'Quetiapine',
+      'Risperdal': 'Risperidone',
+      'Zyprexa': 'Olanzapine',
+      'Geodon': 'Ziprasidone',
+      'Abilify': 'Aripiprazole',
+      'Vraylar': 'Cariprazine',
+      'Rexulti': 'Brexpiprazole',
+      'Latuda': 'Lurasidone',
+      'Haldol': 'Haloperidol',
+      'Namenda': 'Memantine',
+      'Aricept': 'Donepezil',
+      'Razadyne': 'Galantamine',
+      'Exelon': 'Rivastigmine',
+      'Neurontin': 'Gabapentin',
+      'Lyrica': 'Pregabalin',
+      'Lamictal': 'Lamotrigine',
+      'Keppra': 'Levetiracetam',
+      'Trileptal': 'Oxcarbazepine',
+      'Topamax': 'Topiramate',
+      'Dilantin': 'Phenytoin',
+      'Tegretol': 'Carbamazepine',
+      'Depakote': 'Valproate',
+      'Zyloprim': 'Allopurinol',
+      'Uloric': 'Febuxostat',
+      'Colcrys': 'Colchicine',
+      'Plaquenil': 'Hydroxychloroquine',
+      'Arava': 'Leflunomide',
+      'Enbrel': 'Etanercept',
+      'Humira': 'Adalimumab',
+      'Prolia': 'Denosumab',
+      'Fosamax': 'Alendronate',
+      'Boniva': 'Ibandronate',
+      'Actonel': 'Risedronate',
+      'Forteo': 'Teriparatide',
+      'Flomax': 'Tamsulosin',
+      'Uroxatral': 'Alfuzosin',
+      'Cardura': 'Doxazosin',
+      'Hytrin': 'Terazosin',
+      'Proscar': 'Finasteride',
+      'Avodart': 'Dutasteride',
+      'Myrbetriq': 'Mirabegron',
+      'Ditropan': 'Oxybutynin',
+      'Detrol': 'Tolterodine',
+      'Vesicare': 'Solifenacin',
+      'Viagra': 'Sildenafil',
+      'Cialis': 'Tadalafil',
+      'Levitra': 'Vardenafil',
+      'Fosrenol': 'Lanthanum Carbonate',
+      'Vitamin D': 'Vitamin D3'
+    };
+
+    let medAliasLookup = null;
     let currentMedRow = 0;
+
+    function normalizeMedKey(text) {
+      return String(text || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function buildMedAliasLookup() {
+      const map = new Map();
+      const add = function(alias, med) {
+        const key = normalizeMedKey(alias);
+        if (!key || !med) return;
+        if (!map.has(key)) map.set(key, med);
+      };
+
+      homeMeds.forEach(m => add(m, m));
+      Object.keys(brandToGeneric).forEach(alias => {
+        const generic = brandToGeneric[alias];
+        if (homeMeds.indexOf(generic) !== -1) add(alias, generic);
+      });
+
+      return map;
+    }
+
+    function resolveMedication(query) {
+      const raw = String(query || '').trim();
+      if (!raw) return '';
+      if (!medAliasLookup) medAliasLookup = buildMedAliasLookup();
+
+      const exact = medAliasLookup.get(normalizeMedKey(raw));
+      if (exact) return exact;
+
+      const q = normalizeMedKey(raw);
+      if (!q) return '';
+
+      // Prefix match against all aliases/generics.
+      const keys = Array.from(medAliasLookup.keys());
+      for (let i = 0; i < keys.length; i++) {
+        if (keys[i].indexOf(q) === 0) return medAliasLookup.get(keys[i]) || '';
+      }
+
+      // Contains match fallback.
+      for (let i = 0; i < keys.length; i++) {
+        if (keys[i].indexOf(q) !== -1) return medAliasLookup.get(keys[i]) || '';
+      }
+      return '';
+    }
+
+    function ensureSuggestionList() {
+      const list = document.getElementById('home-med-suggestions');
+      if (!list || list.dataset.ready === '1') return;
+
+      const frag = document.createDocumentFragment();
+
+      homeMeds.forEach(function(m) {
+        const opt = document.createElement('option');
+        opt.value = m;
+        frag.appendChild(opt);
+      });
+      Object.keys(brandToGeneric).forEach(function(alias) {
+        const generic = brandToGeneric[alias];
+        if (homeMeds.indexOf(generic) === -1) return;
+        const opt = document.createElement('option');
+        opt.value = alias;
+        opt.label = generic;
+        frag.appendChild(opt);
+      });
+      list.appendChild(frag);
+      list.dataset.ready = '1';
+    }
 
     function buildMedOptions() {
       let options = '<option value="">Select Medication...</option>';
@@ -71,6 +417,377 @@
 
       options += '<option value="Other">Other...</option>';
       return options;
+    }
+
+    // ── Med info modal ────────────────────────────────────────────────────────
+    const MED_INFO = {
+      'Acamprosate':                   { cls: 'GABA analogue / anti-craving agent', ind: 'Alcohol use disorder (maintaining abstinence)' },
+      'Acarbose':                      { cls: 'Alpha-glucosidase inhibitor', ind: 'Type 2 diabetes mellitus' },
+      'Acebutolol':                    { cls: 'Beta-1 selective blocker', ind: 'HTN, ventricular arrhythmias' },
+      'Acetaminophen':                 { cls: 'Non-opioid analgesic / antipyretic', ind: 'Pain, fever' },
+      'Acyclovir':                     { cls: 'Antiviral (nucleoside analogue)', ind: 'HSV, VZV infections (herpes, shingles)' },
+      'Adalimumab':                    { cls: 'TNF-alpha inhibitor (biologic DMARD)', ind: 'Rheumatoid arthritis, Crohn disease, psoriasis, ankylosing spondylitis' },
+      'Alendronate':                   { cls: 'Bisphosphonate', ind: 'Osteoporosis, Paget disease' },
+      'Alfuzosin':                     { cls: 'Alpha-1 blocker', ind: 'Benign prostatic hyperplasia (BPH)' },
+      'Alirocumab':                    { cls: 'PCSK9 inhibitor', ind: 'Hyperlipidemia, cardiovascular risk reduction (LDL lowering)' },
+      'Aliskiren':                     { cls: 'Direct renin inhibitor', ind: 'Hypertension' },
+      'Allopurinol':                   { cls: 'Xanthine oxidase inhibitor', ind: 'Gout prophylaxis, hyperuricemia' },
+      'Almotriptan':                   { cls: 'Serotonin 5-HT1B/1D agonist (triptan)', ind: 'Acute migraine' },
+      'Alogliptin':                    { cls: 'DPP-4 inhibitor', ind: 'Type 2 diabetes mellitus' },
+      'Alprazolam':                    { cls: 'Benzodiazepine', ind: 'Anxiety disorders, panic disorder' },
+      'Amantadine':                    { cls: 'Dopamine agonist / NMDA antagonist', ind: 'Parkinson disease, drug-induced EPS, influenza A' },
+      'Amiloride':                     { cls: 'Potassium-sparing diuretic', ind: 'HTN, edema, hypokalemia prevention' },
+      'Aminophylline':                 { cls: 'Methylxanthine bronchodilator', ind: 'Asthma, COPD (adjunct)' },
+      'Amitriptyline':                 { cls: 'Tricyclic antidepressant (TCA)', ind: 'Depression, neuropathic pain, migraine prophylaxis, insomnia' },
+      'Amlodipine':                    { cls: 'Dihydropyridine calcium channel blocker', ind: 'HTN, stable angina, vasospastic angina' },
+      'Amoxicillin':                   { cls: 'Aminopenicillin antibiotic', ind: 'Otitis media, sinusitis, pneumonia, H. pylori, UTI' },
+      'Amoxicillin-Clavulanate':       { cls: 'Beta-lactam / beta-lactamase inhibitor', ind: 'Sinusitis, otitis media, skin infections, pneumonia, bite wounds' },
+      'Amphetamine':                   { cls: 'CNS stimulant', ind: 'ADHD, narcolepsy' },
+      'Anagrelide':                    { cls: 'Platelet-reducing agent', ind: 'Essential thrombocythemia' },
+      'Anakinra':                      { cls: 'IL-1 receptor antagonist (biologic)', ind: 'Rheumatoid arthritis, periodic fever syndromes' },
+      'Anastrozole':                   { cls: 'Aromatase inhibitor', ind: 'Hormone receptor-positive breast cancer (postmenopausal)' },
+      'Apixaban':                      { cls: 'Factor Xa inhibitor (DOAC)', ind: 'Afib stroke prevention, DVT/PE treatment & prevention' },
+      'Aripiprazole':                  { cls: 'Atypical antipsychotic (D2 partial agonist)', ind: 'Schizophrenia, bipolar disorder, MDD (adjunct), Tourette syndrome' },
+      'Aspirin':                       { cls: 'Antiplatelet / NSAID / salicylate', ind: 'Cardiovascular risk reduction, pain, fever, anti-inflammatory' },
+      'Atenolol':                      { cls: 'Beta-1 selective blocker', ind: 'HTN, angina, post-MI' },
+      'Atomoxetine':                   { cls: 'NE reuptake inhibitor (non-stimulant)', ind: 'ADHD' },
+      'Atorvastatin':                  { cls: 'HMG-CoA reductase inhibitor (statin)', ind: 'Hyperlipidemia, primary/secondary ASCVD prevention' },
+      'Atovaquone':                    { cls: 'Antiprotozoal / antiparasitic', ind: 'PCP prophylaxis/treatment, toxoplasmosis' },
+      'Azathioprine':                  { cls: 'Purine antimetabolite / immunosuppressant', ind: 'Rheumatoid arthritis, IBD, solid organ transplant, SLE' },
+      'Azelastine':                    { cls: 'H1 antihistamine (intranasal)', ind: 'Allergic rhinitis, non-allergic rhinitis' },
+      'Azilsartan':                    { cls: 'Angiotensin receptor blocker (ARB)', ind: 'Hypertension' },
+      'Azithromycin':                  { cls: 'Macrolide antibiotic', ind: 'CAP, sinusitis, pharyngitis, STIs, MAC prophylaxis' },
+      'Baclofen':                      { cls: 'GABA-B agonist / muscle relaxant', ind: 'Spasticity (MS, spinal cord injury), muscle spasm' },
+      'Balsalazide':                   { cls: '5-ASA prodrug (aminosalicylate)', ind: 'Ulcerative colitis (mild-moderate)' },
+      'Beclomethasone':                { cls: 'Inhaled corticosteroid (ICS)', ind: 'Asthma, allergic rhinitis' },
+      'Benazepril':                    { cls: 'ACE inhibitor', ind: 'HTN, heart failure, CKD / proteinuria' },
+      'Benzonatate':                   { cls: 'Non-narcotic antitussive', ind: 'Cough suppression' },
+      'Benztropine':                   { cls: 'Anticholinergic', ind: 'Drug-induced extrapyramidal symptoms, Parkinson disease' },
+      'Betamethasone':                 { cls: 'Corticosteroid', ind: 'Inflammatory skin conditions, fetal lung maturity, severe inflammation' },
+      'Bisacodyl':                     { cls: 'Stimulant laxative', ind: 'Constipation, bowel preparation' },
+      'Bisoprolol':                    { cls: 'Beta-1 selective blocker', ind: 'HTN, heart failure (HFrEF)' },
+      'Bosentan':                      { cls: 'Endothelin receptor antagonist', ind: 'Pulmonary arterial hypertension' },
+      'Brexpiprazole':                 { cls: 'Atypical antipsychotic (D2 partial agonist)', ind: 'Schizophrenia, MDD (adjunct)' },
+      'Brimonidine':                   { cls: 'Alpha-2 agonist (ophthalmic)', ind: 'Glaucoma, elevated intraocular pressure' },
+      'Albuterol':                     { cls: 'Short-acting beta-2 agonist (SABA)', ind: 'Acute asthma/COPD bronchospasm, exercise-induced bronchoconstriction' },
+      'Budesonide':                    { cls: 'Corticosteroid (inhaled / oral)', ind: 'Asthma, COPD, Crohn disease, microscopic colitis, allergic rhinitis' },
+      'Budesonide-Formoterol':         { cls: 'ICS + LABA combination', ind: 'Asthma, COPD maintenance' },
+      'Bumetanide':                    { cls: 'Loop diuretic', ind: 'Edema (heart failure, cirrhosis, renal disease), HTN' },
+      'Buprenorphine':                 { cls: 'Partial opioid agonist', ind: 'Opioid use disorder (MAT), chronic pain' },
+      'Bupropion':                     { cls: 'NDRI antidepressant', ind: 'MDD, seasonal affective disorder, smoking cessation, ADHD' },
+      'Buspirone':                     { cls: '5-HT1A partial agonist / anxiolytic', ind: 'Generalized anxiety disorder (GAD)' },
+      'Cabergoline':                   { cls: 'Dopamine agonist', ind: 'Hyperprolactinemia, prolactinoma' },
+      'Calcium Carbonate':             { cls: 'Calcium supplement / antacid', ind: 'Calcium supplementation, osteoporosis prevention, antacid' },
+      'Calcium Citrate':               { cls: 'Calcium supplement', ind: 'Calcium supplementation, osteoporosis prevention' },
+      'Canagliflozin':                 { cls: 'SGLT-2 inhibitor', ind: 'Type 2 diabetes, cardiovascular risk reduction, CKD' },
+      'Candesartan':                   { cls: 'Angiotensin receptor blocker (ARB)', ind: 'HTN, heart failure' },
+      'Captopril':                     { cls: 'ACE inhibitor', ind: 'HTN, heart failure, post-MI, diabetic nephropathy' },
+      'Carbamazepine':                 { cls: 'Anticonvulsant / mood stabilizer', ind: 'Epilepsy, bipolar disorder, trigeminal neuralgia' },
+      'Carbidopa-Levodopa':            { cls: 'Dopamine precursor + decarboxylase inhibitor', ind: 'Parkinson disease' },
+      'Cariprazine':                   { cls: 'Atypical antipsychotic (D2/D3 partial agonist)', ind: 'Schizophrenia, bipolar disorder' },
+      'Carvedilol':                    { cls: 'Non-selective beta + alpha-1 blocker', ind: 'Heart failure (HFrEF), HTN, post-MI LV dysfunction' },
+      'Cefdinir':                      { cls: '3rd gen cephalosporin antibiotic', ind: 'Sinusitis, otitis media, skin infections, pneumonia' },
+      'Cefuroxime':                    { cls: '2nd gen cephalosporin antibiotic', ind: 'Pneumonia, sinusitis, UTI, Lyme disease, skin infections' },
+      'Celecoxib':                     { cls: 'COX-2 selective NSAID', ind: 'OA, RA, acute pain, familial adenomatous polyposis' },
+      'Cephalexin':                    { cls: '1st gen cephalosporin antibiotic', ind: 'Skin/soft tissue infections, UTI, strep pharyngitis' },
+      'Cetirizine':                    { cls: '2nd gen H1 antihistamine', ind: 'Allergic rhinitis, urticaria, allergic conjunctivitis' },
+      'Chlorthalidone':                { cls: 'Thiazide-like diuretic', ind: 'HTN, edema, heart failure' },
+      'Ciclesonide':                   { cls: 'Inhaled corticosteroid (ICS)', ind: 'Asthma, allergic rhinitis' },
+      'Ciprofloxacin':                 { cls: 'Fluoroquinolone antibiotic', ind: 'UTI, complicated intra-abdominal infections, respiratory infections (select)' },
+      'Citalopram':                    { cls: 'SSRI antidepressant', ind: 'MDD, anxiety (off-label)' },
+      'Clarithromycin':                { cls: 'Macrolide antibiotic', ind: 'CAP, sinusitis, H. pylori triple therapy, MAC' },
+      'Clindamycin':                   { cls: 'Lincosamide antibiotic', ind: 'Anaerobic infections, skin/soft tissue, dental prophylaxis, MRSA (topical)' },
+      'Clobetasol':                    { cls: 'High-potency topical corticosteroid', ind: 'Severe inflammatory skin conditions (psoriasis, eczema)' },
+      'Clonazepam':                    { cls: 'Benzodiazepine / anticonvulsant', ind: 'Epilepsy, panic disorder, anxiety' },
+      'Clonidine':                     { cls: 'Central alpha-2 agonist', ind: 'HTN, ADHD, opioid withdrawal, hot flashes' },
+      'Clopidogrel':                   { cls: 'ADP receptor antagonist (antiplatelet)', ind: 'ACS, PCI (stent), stroke/TIA prevention, CAD' },
+      'Clozapine':                     { cls: 'Atypical antipsychotic', ind: 'Treatment-resistant schizophrenia, suicidality in schizophrenia' },
+      'Colchicine':                    { cls: 'Anti-inflammatory (microtubule inhibitor)', ind: 'Acute gout, gout prophylaxis, pericarditis, FMF' },
+      'Colesevelam':                   { cls: 'Bile acid sequestrant', ind: 'Hyperlipidemia, type 2 diabetes (adjunct)' },
+      'Colestipol':                    { cls: 'Bile acid sequestrant', ind: 'Hyperlipidemia' },
+      'Cyanocobalamin':                { cls: 'Vitamin B12 supplement', ind: 'B12 deficiency, pernicious anemia, neuropathy' },
+      'Cyclobenzaprine':               { cls: 'Centrally acting muscle relaxant (TCA-related)', ind: 'Acute muscle spasm, musculoskeletal pain' },
+      'Dabigatran':                    { cls: 'Direct thrombin inhibitor (DOAC)', ind: 'Afib stroke prevention, DVT/PE treatment & prevention' },
+      'Dapagliflozin':                 { cls: 'SGLT-2 inhibitor', ind: 'Type 2 diabetes, heart failure (HFrEF, HFpEF), CKD' },
+      'Darifenacin':                   { cls: 'Muscarinic M3 antagonist (anticholinergic)', ind: 'Overactive bladder, urinary urge incontinence' },
+      'Denosumab':                     { cls: 'RANK-L inhibitor (monoclonal antibody)', ind: 'Osteoporosis, metastatic bone disease' },
+      'Desmopressin':                  { cls: 'ADH / vasopressin analogue', ind: 'Central DI, nocturnal enuresis, vWD type 1, mild hemophilia A' },
+      'Desvenlafaxine':                { cls: 'SNRI antidepressant', ind: 'MDD' },
+      'Dexlansoprazole':               { cls: 'Proton pump inhibitor (PPI)', ind: 'GERD, erosive esophagitis' },
+      'Dextroamphetamine':             { cls: 'CNS stimulant', ind: 'ADHD, narcolepsy' },
+      'Diazepam':                      { cls: 'Benzodiazepine', ind: 'Anxiety, seizures, alcohol withdrawal, muscle spasm, procedural sedation' },
+      'Diclofenac':                    { cls: 'NSAID', ind: 'OA, RA, acute pain, ankylosing spondylitis, dysmenorrhea' },
+      'Dicyclomine':                   { cls: 'Anticholinergic / antispasmodic', ind: 'Irritable bowel syndrome (IBS)' },
+      'Digoxin':                       { cls: 'Cardiac glycoside', ind: 'Afib rate control, heart failure (HFrEF, symptom relief)' },
+      'Diltiazem':                     { cls: 'Non-dihydropyridine calcium channel blocker', ind: 'HTN, angina, Afib/flutter rate control, SVT' },
+      'Diphenhydramine':               { cls: '1st gen H1 antihistamine / sedative', ind: 'Allergic reactions, urticaria, insomnia, motion sickness, EPS' },
+      'Docusate':                      { cls: 'Stool softener', ind: 'Constipation prevention, stool softening' },
+      'Donepezil':                     { cls: 'Acetylcholinesterase inhibitor', ind: 'Alzheimer disease (mild–severe), vascular dementia' },
+      'Doxazosin':                     { cls: 'Alpha-1 blocker', ind: 'HTN, BPH' },
+      'Doxycycline':                   { cls: 'Tetracycline antibiotic', ind: 'CAP, Lyme disease, chlamydia, malaria prophylaxis, MRSA skin' },
+      'Dulaglutide':                   { cls: 'GLP-1 receptor agonist', ind: 'Type 2 diabetes, cardiovascular risk reduction' },
+      'Duloxetine':                    { cls: 'SNRI antidepressant', ind: 'MDD, GAD, diabetic neuropathy, fibromyalgia, musculoskeletal pain' },
+      'Dutasteride':                   { cls: '5-alpha reductase inhibitor', ind: 'BPH, androgenetic alopecia' },
+      'Edoxaban':                      { cls: 'Factor Xa inhibitor (DOAC)', ind: 'Afib stroke prevention, DVT/PE treatment' },
+      'Eletriptan':                    { cls: 'Serotonin 5-HT1B/1D agonist (triptan)', ind: 'Acute migraine' },
+      'Empagliflozin':                 { cls: 'SGLT-2 inhibitor', ind: 'Type 2 diabetes, heart failure, CKD' },
+      'Enalapril':                     { cls: 'ACE inhibitor', ind: 'HTN, heart failure, post-MI, diabetic nephropathy' },
+      'Entacapone':                    { cls: 'COMT inhibitor', ind: 'Parkinson disease (adjunct to carbidopa-levodopa, motor fluctuations)' },
+      'Eplerenone':                    { cls: 'Selective aldosterone antagonist (MRA)', ind: 'HTN, heart failure post-MI, HFrEF' },
+      'Eprosartan':                    { cls: 'Angiotensin receptor blocker (ARB)', ind: 'Hypertension' },
+      'Erythromycin':                  { cls: 'Macrolide antibiotic / prokinetic', ind: 'Strep infections, skin infections, CAP (mild), gastroparesis' },
+      'Escitalopram':                  { cls: 'SSRI antidepressant', ind: 'MDD, GAD' },
+      'Esomeprazole':                  { cls: 'Proton pump inhibitor (PPI)', ind: 'GERD, erosive esophagitis, H. pylori, NSAID ulcer prevention' },
+      'Estradiol':                     { cls: 'Estrogen hormone', ind: 'Menopausal symptoms (HRT), hypogonadism, osteoporosis prevention' },
+      'Etanercept':                    { cls: 'TNF-alpha inhibitor (biologic)', ind: 'Rheumatoid arthritis, psoriatic arthritis, ankylosing spondylitis, psoriasis' },
+      'Ethambutol':                    { cls: 'Antimycobacterial antibiotic', ind: 'Tuberculosis (multi-drug regimen)' },
+      'Ethosuximide':                  { cls: 'Anticonvulsant (succinimide)', ind: 'Absence seizures' },
+      'Evolocumab':                    { cls: 'PCSK9 inhibitor', ind: 'Hyperlipidemia, ASCVD risk reduction' },
+      'Ezetimibe':                     { cls: 'Cholesterol absorption inhibitor', ind: 'Hyperlipidemia (adjunct to statin or monotherapy)' },
+      'Famciclovir':                   { cls: 'Antiviral (nucleoside analogue)', ind: 'Herpes zoster, genital herpes' },
+      'Famotidine':                    { cls: 'H2 receptor antagonist', ind: 'GERD, peptic ulcer disease, heartburn' },
+      'Febuxostat':                    { cls: 'Xanthine oxidase inhibitor', ind: 'Gout prophylaxis, hyperuricemia' },
+      'Felodipine':                    { cls: 'Dihydropyridine calcium channel blocker', ind: 'HTN, angina' },
+      'Fenofibrate':                   { cls: 'Fibric acid derivative (fibrate)', ind: 'Hypertriglyceridemia, mixed dyslipidemia' },
+      'Ferrous Gluconate':             { cls: 'Oral iron supplement', ind: 'Iron deficiency anemia' },
+      'Ferrous Sulfate':               { cls: 'Oral iron supplement', ind: 'Iron deficiency anemia' },
+      'Fexofenadine':                  { cls: '2nd gen H1 antihistamine', ind: 'Allergic rhinitis, chronic urticaria' },
+      'Finasteride':                   { cls: '5-alpha reductase inhibitor', ind: 'BPH, androgenetic alopecia' },
+      'Flecainide':                    { cls: 'Class IC antiarrhythmic', ind: 'Paroxysmal Afib/flutter rhythm control, SVT, ventricular arrhythmias' },
+      'Fluconazole':                   { cls: 'Azole antifungal', ind: 'Candidiasis, cryptococcal meningitis, invasive fungal infections' },
+      'Fluoxetine':                    { cls: 'SSRI antidepressant', ind: 'MDD, OCD, bulimia nervosa, panic disorder, PMDD' },
+      'Fluticasone':                   { cls: 'Corticosteroid (inhaled or intranasal)', ind: 'Asthma, allergic rhinitis, COPD (combo)' },
+      'Fluticasone-Salmeterol':        { cls: 'ICS + LABA combination', ind: 'Asthma maintenance, COPD maintenance (Advair)' },
+      'Fluticasone-Vilanterol':        { cls: 'ICS + LABA combination', ind: 'Asthma maintenance, COPD maintenance (Breo Ellipta)' },
+      'Fluvastatin':                   { cls: 'HMG-CoA reductase inhibitor (statin)', ind: 'Hyperlipidemia, ASCVD prevention' },
+      'Fluvoxamine':                   { cls: 'SSRI antidepressant', ind: 'OCD, social anxiety disorder' },
+      'Folic Acid':                    { cls: 'B-vitamin supplement', ind: 'Folate deficiency, neural tube defect prevention (pregnancy), megaloblastic anemia' },
+      'Formoterol':                    { cls: 'Long-acting beta-2 agonist (LABA)', ind: 'Asthma maintenance (with ICS), COPD maintenance' },
+      'Fosinopril':                    { cls: 'ACE inhibitor', ind: 'HTN, heart failure' },
+      'Frovatriptan':                  { cls: 'Serotonin 5-HT1B/1D agonist (triptan)', ind: 'Acute migraine' },
+      'Furosemide':                    { cls: 'Loop diuretic', ind: 'Edema (heart failure, renal, hepatic), HTN, acute pulmonary edema, hypercalcemia' },
+      'Gabapentin':                    { cls: 'Anticonvulsant / gabapentinoid', ind: 'Epilepsy, neuropathic pain, postherpetic neuralgia, RLS, fibromyalgia' },
+      'Galantamine':                   { cls: 'Acetylcholinesterase inhibitor', ind: 'Alzheimer disease (mild–moderate)' },
+      'Gemfibrozil':                   { cls: 'Fibric acid derivative (fibrate)', ind: 'Hypertriglyceridemia, mixed dyslipidemia' },
+      'Glimepiride':                   { cls: 'Sulfonylurea', ind: 'Type 2 diabetes mellitus' },
+      'Glipizide':                     { cls: 'Sulfonylurea', ind: 'Type 2 diabetes mellitus' },
+      'Glyburide':                     { cls: 'Sulfonylurea', ind: 'Type 2 diabetes mellitus' },
+      'Guanfacine':                    { cls: 'Central alpha-2 agonist', ind: 'ADHD, HTN' },
+      'Haloperidol':                   { cls: 'Typical antipsychotic (butyrophenone)', ind: 'Schizophrenia, acute psychosis, delirium, Tourette syndrome, agitation' },
+      'Hydrochlorothiazide':           { cls: 'Thiazide diuretic', ind: 'HTN, edema (heart failure, CKD), hypercalciuria / nephrolithiasis' },
+      'Hydrocodone':                   { cls: 'Opioid analgesic', ind: 'Moderate–severe pain, cough suppression (combo products)' },
+      'Hydrocortisone':                { cls: 'Corticosteroid', ind: 'Adrenal insufficiency, inflammatory conditions, allergic reactions, stress dosing' },
+      'Hydroxychloroquine':            { cls: 'Antimalarial / DMARD', ind: 'Rheumatoid arthritis, SLE, Sjögren syndrome, malaria' },
+      'Hydroxyzine':                   { cls: 'H1 antihistamine / anxiolytic', ind: 'Anxiety, pruritus, urticaria, nausea, preoperative sedation' },
+      'Ibandronate':                   { cls: 'Bisphosphonate', ind: 'Osteoporosis (postmenopausal)' },
+      'Indapamide':                    { cls: 'Thiazide-like diuretic', ind: 'HTN, edema' },
+      'Indacaterol':                   { cls: 'Long-acting beta-2 agonist (LABA)', ind: 'COPD maintenance (Arcapta Neohaler)' },
+      'Indomethacin':                  { cls: 'NSAID', ind: 'Acute gout, ankylosing spondylitis, acute pericarditis, PDA closure (neonates)' },
+      'Insulin Aspart':                { cls: 'Rapid-acting insulin', ind: 'Type 1 & 2 diabetes (mealtime bolus)' },
+      'Insulin Degludec':              { cls: 'Ultra-long-acting insulin', ind: 'Type 1 & 2 diabetes (basal)' },
+      'Insulin Detemir':               { cls: 'Long-acting insulin', ind: 'Type 1 & 2 diabetes (basal)' },
+      'Insulin Glargine':              { cls: 'Long-acting insulin', ind: 'Type 1 & 2 diabetes (basal)' },
+      'Insulin Glulisine':             { cls: 'Rapid-acting insulin', ind: 'Type 1 & 2 diabetes (mealtime bolus)' },
+      'Insulin Lispro':                { cls: 'Rapid-acting insulin', ind: 'Type 1 & 2 diabetes (mealtime bolus)' },
+      'Insulin NPH':                   { cls: 'Intermediate-acting insulin', ind: 'Type 1 & 2 diabetes (basal/mixed)' },
+      'Ipratropium':                   { cls: 'Anticholinergic bronchodilator (SAMA)', ind: 'COPD maintenance, asthma (adjunct), rhinorrhea' },
+      'Irbesartan':                    { cls: 'Angiotensin receptor blocker (ARB)', ind: 'HTN, diabetic nephropathy' },
+      'Isoniazid':                     { cls: 'Antimycobacterial antibiotic', ind: 'Active and latent tuberculosis' },
+      'Isosorbide Dinitrate':          { cls: 'Nitrate / vasodilator', ind: 'Angina treatment & prophylaxis, heart failure' },
+      'Isosorbide Mononitrate':        { cls: 'Nitrate / vasodilator', ind: 'Angina prophylaxis, heart failure' },
+      'Itraconazole':                  { cls: 'Azole antifungal', ind: 'Blastomycosis, histoplasmosis, aspergillosis, onychomycosis, candidiasis' },
+      'Lactulose':                     { cls: 'Osmotic laxative', ind: 'Constipation, hepatic encephalopathy' },
+      'Lamotrigine':                   { cls: 'Anticonvulsant / mood stabilizer', ind: 'Epilepsy (focal & generalized), bipolar disorder' },
+      'Lansoprazole':                  { cls: 'Proton pump inhibitor (PPI)', ind: 'GERD, peptic ulcer disease, H. pylori, NSAID-associated ulcers' },
+      'Latanoprost':                   { cls: 'Prostaglandin analogue (ophthalmic)', ind: 'Glaucoma, ocular hypertension' },
+      'Leflunomide':                   { cls: 'Pyrimidine synthesis inhibitor (DMARD)', ind: 'Rheumatoid arthritis, psoriatic arthritis' },
+      'Levalbuterol':                  { cls: 'Short-acting beta-2 agonist (SABA)', ind: 'Acute asthma/COPD bronchospasm (preferred in patients sensitive to albuterol side effects)' },
+      'Levetiracetam':                 { cls: 'Anticonvulsant (SV2A modulator)', ind: 'Focal seizures, generalized seizures, myoclonic epilepsy, seizure prophylaxis' },
+      'Levocetirizine':                { cls: '2nd gen H1 antihistamine', ind: 'Allergic rhinitis, chronic urticaria' },
+      'Levofloxacin':                  { cls: 'Fluoroquinolone antibiotic', ind: 'CAP, complicated UTI, sinusitis, pyelonephritis' },
+      'Levonorgestrel':                { cls: 'Progestin hormone', ind: 'Emergency contraception, contraception (IUD/implant), HRT' },
+      'Levothyroxine':                 { cls: 'Thyroid hormone replacement', ind: 'Hypothyroidism, TSH suppression (thyroid cancer)' },
+      'Linaclotide':                   { cls: 'Guanylate cyclase-C agonist', ind: 'IBS-C, chronic idiopathic constipation' },
+      'Linagliptin':                   { cls: 'DPP-4 inhibitor', ind: 'Type 2 diabetes mellitus' },
+      'Liraglutide':                   { cls: 'GLP-1 receptor agonist', ind: 'Type 2 diabetes, cardiovascular risk reduction, obesity (Saxenda)' },
+      'Lisdexamfetamine':              { cls: 'CNS stimulant (amphetamine prodrug)', ind: 'ADHD, binge eating disorder' },
+      'Lisinopril':                    { cls: 'ACE inhibitor', ind: 'HTN, heart failure, post-MI, diabetic nephropathy' },
+      'Lithium':                       { cls: 'Mood stabilizer', ind: 'Bipolar disorder (mania & maintenance), MDD augmentation, cluster headache' },
+      'Loperamide':                    { cls: 'Opioid receptor agonist (GI-selective)', ind: 'Acute & chronic diarrhea, ileostomy output control' },
+      'Loratadine':                    { cls: '2nd gen H1 antihistamine', ind: 'Allergic rhinitis, chronic urticaria' },
+      'Lorazepam':                     { cls: 'Benzodiazepine', ind: 'Anxiety, seizures, alcohol withdrawal, procedural sedation, insomnia' },
+      'Losartan':                      { cls: 'Angiotensin receptor blocker (ARB)', ind: 'HTN, heart failure, diabetic nephropathy, stroke prevention (Afib)' },
+      'Lovastatin':                    { cls: 'HMG-CoA reductase inhibitor (statin)', ind: 'Hyperlipidemia, ASCVD prevention' },
+      'Lubiprostone':                  { cls: 'Chloride channel activator (secretagogue)', ind: 'Chronic idiopathic constipation, IBS-C, opioid-induced constipation' },
+      'Lurasidone':                    { cls: 'Atypical antipsychotic', ind: 'Schizophrenia, bipolar depression' },
+      'Magnesium Oxide':               { cls: 'Magnesium supplement / antacid', ind: 'Hypomagnesemia, constipation, heartburn' },
+      'Medroxyprogesterone':           { cls: 'Progestin hormone', ind: 'Contraception, HRT (endometrial protection), amenorrhea, endometriosis' },
+      'Meloxicam':                     { cls: 'Preferential COX-2 NSAID', ind: 'OA, RA, ankylosing spondylitis, acute pain' },
+      'Memantine':                     { cls: 'NMDA receptor antagonist', ind: 'Alzheimer disease (moderate–severe), vascular dementia' },
+      'Mesalamine':                    { cls: '5-ASA / aminosalicylate', ind: 'Ulcerative colitis, Crohn disease (colonic)' },
+      'Metformin':                     { cls: 'Biguanide', ind: 'Type 2 diabetes (first-line), PCOS, metabolic syndrome' },
+      'Methimazole':                   { cls: 'Thionamide / antithyroid agent', ind: 'Hyperthyroidism, Graves disease' },
+      'Methocarbamol':                 { cls: 'Centrally acting muscle relaxant', ind: 'Acute musculoskeletal pain and spasm' },
+      'Methylphenidate':               { cls: 'CNS stimulant (NE/DA reuptake inhibitor)', ind: 'ADHD, narcolepsy' },
+      'Methylprednisolone':            { cls: 'Corticosteroid', ind: 'Severe inflammation, asthma exacerbations, allergic reactions, MS relapses' },
+      'Metoprolol':                    { cls: 'Beta-1 selective blocker', ind: 'HTN, angina, heart failure (HFrEF), post-MI, Afib rate control, SVT' },
+      'Metronidazole':                 { cls: 'Nitroimidazole antibiotic / antiprotozoal', ind: 'Anaerobic infections, H. pylori, C. diff, Trichomonas, bacterial vaginosis, giardia' },
+      'Mexiletine':                    { cls: 'Class IB antiarrhythmic / Na channel blocker', ind: 'Ventricular arrhythmias, neuropathic pain' },
+      'Midodrine':                     { cls: 'Alpha-1 agonist', ind: 'Orthostatic hypotension' },
+      'Miglitol':                      { cls: 'Alpha-glucosidase inhibitor', ind: 'Type 2 diabetes mellitus' },
+      'Milnacipran':                   { cls: 'SNRI', ind: 'Fibromyalgia' },
+      'Minocycline':                   { cls: 'Tetracycline antibiotic', ind: 'Acne, MRSA skin infections, CAP, Lyme disease, chlamydia' },
+      'Mirabegron':                    { cls: 'Beta-3 adrenergic agonist', ind: 'Overactive bladder, urinary urge incontinence' },
+      'Mirtazapine':                   { cls: 'NaSSA antidepressant (alpha-2 antagonist)', ind: 'MDD, appetite stimulation, insomnia, nausea' },
+      'Modafinil':                     { cls: 'Wakefulness-promoting agent', ind: 'Narcolepsy, shift work sleep disorder, sleep apnea (adjunct)' },
+      'Mometasone':                    { cls: 'Inhaled/intranasal corticosteroid (ICS)', ind: 'Asthma maintenance, allergic rhinitis' },
+      'Mometasone-Formoterol':         { cls: 'ICS + LABA combination', ind: 'Asthma maintenance (Dulera)' },
+      'Montelukast':                   { cls: 'Leukotriene receptor antagonist (LTRA)', ind: 'Asthma prophylaxis, allergic rhinitis, exercise-induced bronchoconstriction' },
+      'Moxifloxacin':                  { cls: 'Fluoroquinolone antibiotic', ind: 'CAP, acute sinusitis, complicated skin/intra-abdominal infections' },
+      'Naproxen':                      { cls: 'NSAID', ind: 'Pain, inflammation, OA, RA, gout, dysmenorrhea, bursitis' },
+      'Naratriptan':                   { cls: 'Serotonin 5-HT1B/1D agonist (triptan)', ind: 'Acute migraine' },
+      'Nateglinide':                   { cls: 'Meglitinide (insulin secretagogue)', ind: 'Type 2 diabetes mellitus (mealtime glucose control)' },
+      'Nebivolol':                     { cls: 'Beta-1 selective blocker (with NO release)', ind: 'HTN, heart failure' },
+      'Niacin':                        { cls: 'Vitamin B3 / lipid-modifying agent', ind: 'Dyslipidemia (low HDL, high TG), niacin deficiency' },
+      'Nifedipine':                    { cls: 'Dihydropyridine calcium channel blocker', ind: 'HTN, angina, Raynaud phenomenon, preterm labor tocolysis' },
+      'Nisoldipine':                   { cls: 'Dihydropyridine calcium channel blocker', ind: 'Hypertension' },
+      'Nitrofurantoin':                { cls: 'Nitrofuran antibiotic', ind: 'Uncomplicated lower UTI, UTI prophylaxis' },
+      'Norethindrone':                 { cls: 'Progestin hormone', ind: 'Contraception, endometriosis, abnormal uterine bleeding, amenorrhea' },
+      'Nortriptyline':                 { cls: 'Tricyclic antidepressant (TCA)', ind: 'Depression, neuropathic pain, migraine prophylaxis, smoking cessation' },
+      'Olanzapine':                    { cls: 'Atypical antipsychotic', ind: 'Schizophrenia, bipolar mania, MDD adjunct' },
+      'Olmesartan':                    { cls: 'Angiotensin receptor blocker (ARB)', ind: 'Hypertension' },
+      'Omega-3 Fatty Acids':           { cls: 'Lipid-modifying agent', ind: 'Severe hypertriglyceridemia, cardiovascular risk reduction' },
+      'Omeprazole':                    { cls: 'Proton pump inhibitor (PPI)', ind: 'GERD, peptic ulcer disease, H. pylori, Zollinger-Ellison syndrome' },
+      'Oxazepam':                      { cls: 'Benzodiazepine', ind: 'Anxiety, alcohol withdrawal (preferred in hepatic impairment)' },
+      'Oxcarbazepine':                 { cls: 'Anticonvulsant', ind: 'Focal seizures, trigeminal neuralgia, bipolar disorder adjunct' },
+      'Oxybutynin':                    { cls: 'Anticholinergic / antispasmodic', ind: 'Overactive bladder, urge incontinence, neurogenic bladder' },
+      'Oxycodone':                     { cls: 'Opioid analgesic', ind: 'Moderate–severe pain (acute & chronic)' },
+      'Pantoprazole':                  { cls: 'Proton pump inhibitor (PPI)', ind: 'GERD, erosive esophagitis, Zollinger-Ellison syndrome' },
+      'Paroxetine':                    { cls: 'SSRI antidepressant', ind: 'MDD, OCD, panic disorder, PTSD, GAD, social anxiety disorder, menopausal hot flashes' },
+      'Penicillin':                    { cls: 'Beta-lactam antibiotic', ind: 'Strep pharyngitis, skin/soft tissue, pneumococcal infections, syphilis, rheumatic fever prophylaxis' },
+      'Phenazopyridine':               { cls: 'Urinary analgesic (not antibacterial)', ind: 'Urinary burning/pain/urgency (UTI symptom relief only)' },
+      'Phenobarbital':                 { cls: 'Barbiturate / anticonvulsant', ind: 'Epilepsy, febrile seizures, alcohol withdrawal, sedation' },
+      'Phenytoin':                     { cls: 'Anticonvulsant (hydantoin)', ind: 'Focal & tonic-clonic seizures, status epilepticus, trigeminal neuralgia' },
+      'Pioglitazone':                  { cls: 'Thiazolidinedione (PPAR-gamma agonist)', ind: 'Type 2 diabetes, NASH (off-label)' },
+      'Pitavastatin':                  { cls: 'HMG-CoA reductase inhibitor (statin)', ind: 'Hyperlipidemia, ASCVD prevention' },
+      'Plecanatide':                   { cls: 'Guanylate cyclase-C agonist', ind: 'Chronic idiopathic constipation, IBS-C' },
+      'Potassium Chloride':            { cls: 'Electrolyte supplement', ind: 'Hypokalemia, potassium maintenance' },
+      'Pramipexole':                   { cls: 'Dopamine D2/D3 agonist', ind: 'Parkinson disease, restless legs syndrome (RLS)' },
+      'Prasugrel':                     { cls: 'ADP receptor antagonist (antiplatelet)', ind: 'ACS managed with PCI' },
+      'Pravastatin':                   { cls: 'HMG-CoA reductase inhibitor (statin)', ind: 'Hyperlipidemia, primary/secondary ASCVD prevention' },
+      'Prednisone':                    { cls: 'Corticosteroid', ind: 'Anti-inflammatory, immunosuppression (asthma, COPD, IBD, RA, SLE, adrenal insufficiency)' },
+      'Pregabalin':                    { cls: 'Anticonvulsant / gabapentinoid', ind: 'Neuropathic pain, fibromyalgia, epilepsy (focal), GAD' },
+      'Progesterone':                  { cls: 'Progestin hormone', ind: 'HRT endometrial protection, infertility, preterm birth prevention' },
+      'Propafenone':                   { cls: 'Class IC antiarrhythmic', ind: 'Paroxysmal Afib/flutter rhythm control, SVT, ventricular arrhythmias' },
+      'Propranolol':                   { cls: 'Non-selective beta blocker', ind: 'HTN, angina, migraine prophylaxis, essential tremor, thyrotoxicosis, Afib rate control, portal HTN' },
+      'Propylthiouracil':              { cls: 'Thionamide / antithyroid agent', ind: 'Hyperthyroidism, Graves disease (preferred in pregnancy 1st trimester, thyroid storm)' },
+      'Psyllium':                      { cls: 'Bulk-forming laxative (fiber supplement)', ind: 'Constipation, IBS, cholesterol reduction adjunct' },
+      'Pyridostigmine':                { cls: 'Acetylcholinesterase inhibitor', ind: 'Myasthenia gravis, NMB reversal adjunct, nerve agent prophylaxis' },
+      'Quetiapine':                    { cls: 'Atypical antipsychotic', ind: 'Schizophrenia, bipolar disorder (mania/depression), MDD adjunct, insomnia (off-label)' },
+      'Quinapril':                     { cls: 'ACE inhibitor', ind: 'HTN, heart failure' },
+      'Rabeprazole':                   { cls: 'Proton pump inhibitor (PPI)', ind: 'GERD, peptic ulcer disease, H. pylori' },
+      'Ramipril':                      { cls: 'ACE inhibitor', ind: 'HTN, heart failure, post-MI, cardiovascular risk reduction, diabetic nephropathy' },
+      'Ranolazine':                    { cls: 'Late INa current inhibitor / anti-anginal', ind: 'Chronic stable angina (refractory, adjunct)' },
+      'Rasagiline':                    { cls: 'MAO-B inhibitor', ind: 'Parkinson disease (early monotherapy or adjunct)' },
+      'Repaglinide':                   { cls: 'Meglitinide (insulin secretagogue)', ind: 'Type 2 diabetes mellitus (mealtime glucose control)' },
+      'Rifampin':                      { cls: 'Rifamycin antibiotic', ind: 'Tuberculosis, meningococcal prophylaxis, Staph prosthetic infections' },
+      'Rifaximin':                     { cls: 'Rifamycin antibiotic (GI-selective)', ind: "Traveler's diarrhea, hepatic encephalopathy prophylaxis, IBS-D" },
+      'Riluzole':                      { cls: 'Glutamate antagonist / neuroprotective', ind: 'ALS (amyotrophic lateral sclerosis)' },
+      'Risedronate':                   { cls: 'Bisphosphonate', ind: 'Osteoporosis (treatment & prevention), Paget disease, glucocorticoid-induced osteoporosis' },
+      'Risperidone':                   { cls: 'Atypical antipsychotic', ind: 'Schizophrenia, bipolar disorder, irritability in autism' },
+      'Rivaroxaban':                   { cls: 'Factor Xa inhibitor (DOAC)', ind: 'Afib stroke prevention, DVT/PE treatment & prevention, post-surgical VTE prophylaxis, CAD/PAD' },
+      'Rivastigmine':                  { cls: 'Acetylcholinesterase inhibitor', ind: 'Alzheimer disease (mild–moderate), Parkinson disease dementia' },
+      'Rizatriptan':                   { cls: 'Serotonin 5-HT1B/1D agonist (triptan)', ind: 'Acute migraine' },
+      'Roflumilast':                   { cls: 'PDE-4 inhibitor', ind: 'Severe COPD with chronic bronchitis (reduce exacerbations)' },
+      'Ropinirole':                    { cls: 'Dopamine D2/D3 agonist', ind: 'Parkinson disease, restless legs syndrome (RLS)' },
+      'Rosuvastatin':                  { cls: 'HMG-CoA reductase inhibitor (statin)', ind: 'Hyperlipidemia, primary/secondary ASCVD prevention' },
+      'Sacubitril-Valsartan':          { cls: 'ARNI (neprilysin inhibitor + ARB)', ind: 'Heart failure (HFrEF) — reduces CV death & HF hospitalization' },
+      'Salmeterol':                    { cls: 'Long-acting beta-2 agonist (LABA)', ind: 'Asthma maintenance (with ICS), COPD maintenance' },
+      'Saxagliptin':                   { cls: 'DPP-4 inhibitor', ind: 'Type 2 diabetes mellitus' },
+      'Selegiline':                    { cls: 'MAO-B inhibitor', ind: 'Parkinson disease (early or adjunct), MDD (transdermal)' },
+      'Semaglutide':                   { cls: 'GLP-1 receptor agonist', ind: 'Type 2 diabetes, obesity, cardiovascular risk reduction' },
+      'Senna':                         { cls: 'Stimulant laxative (anthraquinone)', ind: 'Constipation, opioid-induced constipation, bowel preparation' },
+      'Sertraline':                    { cls: 'SSRI antidepressant', ind: 'MDD, OCD, panic disorder, PTSD, PMDD, social anxiety disorder' },
+      'Sildenafil':                    { cls: 'PDE-5 inhibitor', ind: 'Erectile dysfunction, pulmonary arterial hypertension' },
+      'Simvastatin':                   { cls: 'HMG-CoA reductase inhibitor (statin)', ind: 'Hyperlipidemia, ASCVD prevention' },
+      'Sitagliptin':                   { cls: 'DPP-4 inhibitor', ind: 'Type 2 diabetes mellitus' },
+      'Solifenacin':                   { cls: 'Muscarinic antagonist (anticholinergic)', ind: 'Overactive bladder, urge incontinence' },
+      'Sotalol':                       { cls: 'Class III antiarrhythmic / non-selective beta blocker', ind: 'Afib/flutter rhythm control, ventricular arrhythmias' },
+      'Spironolactone':                { cls: 'Aldosterone antagonist (potassium-sparing diuretic)', ind: 'Heart failure (HFrEF), HTN, primary hyperaldosteronism, edema, acne, hirsutism' },
+      'Sucralfate':                    { cls: 'Mucosal protectant', ind: 'Peptic ulcer disease, stress ulcer prophylaxis, GERD adjunct' },
+      'Sulfasalazine':                 { cls: '5-ASA + sulfapyridine / DMARD', ind: 'Ulcerative colitis, Crohn disease, rheumatoid arthritis, psoriatic arthritis' },
+      'Sumatriptan':                   { cls: 'Serotonin 5-HT1B/1D agonist (triptan)', ind: 'Acute migraine, cluster headache' },
+      'Tadalafil':                     { cls: 'PDE-5 inhibitor', ind: 'Erectile dysfunction, BPH, pulmonary arterial hypertension' },
+      'Tamsulosin':                    { cls: 'Alpha-1A blocker', ind: 'BPH, ureteral stone expulsion' },
+      'Telmisartan':                   { cls: 'Angiotensin receptor blocker (ARB)', ind: 'HTN, cardiovascular risk reduction' },
+      'Temazepam':                     { cls: 'Benzodiazepine', ind: 'Insomnia (short-term)' },
+      'Terazosin':                     { cls: 'Alpha-1 blocker', ind: 'HTN, BPH' },
+      'Terbinafine':                   { cls: 'Allylamine antifungal', ind: 'Onychomycosis, tinea pedis, tinea corporis' },
+      'Teriparatide':                  { cls: 'PTH analogue / anabolic bone agent', ind: 'Severe osteoporosis (high fracture risk), glucocorticoid-induced osteoporosis' },
+      'Testosterone':                  { cls: 'Androgen hormone', ind: 'Male hypogonadism, delayed puberty, gender-affirming therapy (transmasculine)' },
+      'Theophylline':                  { cls: 'Methylxanthine bronchodilator', ind: 'Asthma adjunct, COPD adjunct, apnea of prematurity' },
+      'Ticagrelor':                    { cls: 'P2Y12 receptor antagonist (antiplatelet)', ind: 'ACS (NSTEMI, STEMI), post-PCI, high-risk CAD, PAD' },
+      'Tiotropium':                    { cls: 'Long-acting anticholinergic bronchodilator (LAMA)', ind: 'COPD maintenance, asthma adjunct' },
+      'Tolterodine':                   { cls: 'Muscarinic antagonist (anticholinergic)', ind: 'Overactive bladder, urge incontinence, urinary frequency' },
+      'Topiramate':                    { cls: 'Anticonvulsant', ind: 'Epilepsy (focal & generalized), migraine prophylaxis, obesity adjunct' },
+      'Torsemide':                     { cls: 'Loop diuretic', ind: 'Edema (heart failure, renal, hepatic), HTN' },
+      'Tramadol':                      { cls: 'Weak opioid agonist + NE/5-HT reuptake inhibitor', ind: 'Moderate pain (acute & chronic), neuropathic pain' },
+      'Trandolapril':                  { cls: 'ACE inhibitor', ind: 'HTN, heart failure, post-MI LV dysfunction' },
+      'Trazodone':                     { cls: 'SARI antidepressant (5-HT2 antagonist + SRI)', ind: 'MDD, insomnia (off-label), anxiety adjunct' },
+      'Tretinoin':                     { cls: 'Retinoid (topical)', ind: 'Acne vulgaris, photoaged skin, fine wrinkles' },
+      'Triamterene':                   { cls: 'Potassium-sparing diuretic', ind: 'Edema, HTN (often combined with HCTZ), hypokalemia prevention' },
+      'Trimethoprim-Sulfamethoxazole': { cls: 'Antibiotic (folate synthesis inhibitor)', ind: 'UTI, PCP prophylaxis/treatment, MRSA skin, Nocardia, Listeria' },
+      'Umeclidinium':                  { cls: 'Long-acting anticholinergic bronchodilator (LAMA)', ind: 'COPD maintenance (Incruse Ellipta)' },
+      'Umeclidinium-Vilanterol':       { cls: 'LAMA + LABA combination', ind: 'COPD maintenance (Anoro Ellipta)' },
+      'Valacyclovir':                  { cls: 'Antiviral (prodrug of acyclovir)', ind: 'Herpes zoster (shingles), genital herpes, cold sores, CMV prevention (transplant)' },
+      'Valproate':                     { cls: 'Anticonvulsant / mood stabilizer', ind: 'Epilepsy (all types), bipolar disorder mania, migraine prophylaxis' },
+      'Valsartan':                     { cls: 'Angiotensin receptor blocker (ARB)', ind: 'HTN, heart failure (HFrEF), post-MI' },
+      'Vardenafil':                    { cls: 'PDE-5 inhibitor', ind: 'Erectile dysfunction' },
+      'Venlafaxine':                   { cls: 'SNRI antidepressant', ind: 'MDD, GAD, social anxiety disorder, panic disorder, neuropathic pain' },
+      'Vitamin D3':                    { cls: 'Fat-soluble vitamin supplement', ind: 'Vitamin D deficiency, osteoporosis prevention, bone health' },
+      'Warfarin':                      { cls: 'Vitamin K antagonist (anticoagulant)', ind: 'Afib stroke prevention, DVT/PE treatment & prevention, mechanical heart valves' },
+      'Zafirlukast':                   { cls: 'Leukotriene receptor antagonist (LTRA)', ind: 'Asthma prophylaxis, allergic rhinitis' },
+      'Zileuton':                      { cls: '5-lipoxygenase inhibitor', ind: 'Asthma prophylaxis (adjunct)' },
+      'Ziprasidone':                   { cls: 'Atypical antipsychotic', ind: 'Schizophrenia, bipolar disorder (mania, mixed)' },
+      'Zolmitriptan':                  { cls: 'Serotonin 5-HT1B/1D agonist (triptan)', ind: 'Acute migraine, cluster headache' },
+      'Zolpidem':                      { cls: 'Non-benzodiazepine hypnotic (Z-drug)', ind: 'Insomnia (short-term)' }
+    };
+
+    function showMedInfo(i) {
+      var sel = document.getElementById('med-select-' + i);
+      var other = document.getElementById('med-other-' + i);
+      if (!sel) return;
+      var rawName = sel.value === 'Other' ? (other ? other.value.trim() : '') : sel.value;
+      if (!rawName) return;
+
+      var modal = document.getElementById('med-info-modal');
+      var nameEl = document.getElementById('med-info-name');
+      var clsEl = document.getElementById('med-info-class');
+      var indEl = document.getElementById('med-info-ind');
+      if (!modal) return;
+
+      // Try direct lookup, then try resolving brand→generic
+      var resolved = rawName;
+      var info = MED_INFO[rawName];
+      if (!info) {
+        var gen = resolveMedication(rawName);
+        if (gen) { resolved = gen; info = MED_INFO[gen]; }
+      }
+
+      nameEl.textContent = resolved || rawName;
+      if (info) {
+        clsEl.textContent = info.cls;
+        indEl.textContent = info.ind;
+      } else {
+        clsEl.textContent = 'No information available';
+        indEl.textContent = '—';
+      }
+      modal.style.display = 'flex';
+    }
+
+    function closeMedInfoModal() {
+      var modal = document.getElementById('med-info-modal');
+      if (modal) modal.style.display = 'none';
     }
 
     function addMedRow(medValue, otherValue, timeValue) {
@@ -83,10 +800,11 @@
 
       let medOptions = buildMedOptions();
 
-      let timeOptions = '';
-      doseTimes.forEach(t => timeOptions += '<option value="' + t + '"' + (t === 'Today AM' ? ' selected' : '') + '>' + t + '</option>');
+      let timeOptions = '<option value="">Select time...</option>';
+      doseTimes.forEach(t => timeOptions += '<option value="' + t + '">' + t + '</option>');
 
-      row.innerHTML = '<select id="med-select-' + i + '" class="long" onchange="handleMedChange(this,' + i + ')">' + medOptions + '</select>' +
+      row.innerHTML = '<button type="button" class="med-info-btn" onclick="showMedInfo(' + i + ')" title="Drug info">?</button>' +
+        '<select id="med-select-' + i + '" class="long" onchange="handleMedChange(this,' + i + ')">' + medOptions + '</select>' +
         '<input id="med-other-' + i + '" class="med" style="display:none;" placeholder="Type name..." oninput="handleMedInput(' + i + ')">' +
         '<select id="med-time-' + i + '" class="med" onchange="checkMedicationRow(' + i + ')">' + timeOptions + '</select>' +
         '<button type="button" class="row-remove-btn" onclick="removeMedRow(' + i + ')">Delete</button>';
@@ -100,8 +818,54 @@
       if (medValue) select.value = medValue;
       if (otherValue) other.value = otherValue;
       if (timeValue) time.value = timeValue;
+
       other.style.display = select.value === 'Other' ? 'inline-block' : 'none';
       checkMedicationRow(i);
+    }
+
+    function findNextAvailableMedRowIndex() {
+      const rows = Array.from(document.querySelectorAll('#meds-container .med-row'));
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        const select = row.querySelector('select[id^="med-select-"]');
+        const other = row.querySelector('input[id^="med-other-"]');
+        const idx = parseInt(String((row.id || '').split('-').pop()), 10);
+        if (!select || isNaN(idx)) continue;
+        if (!select.value) return idx;
+        if (select.value === 'Other' && !(other && String(other.value || '').trim())) return idx;
+      }
+      addMedRow();
+      return currentMedRow;
+    }
+
+    function addMedicationFromTopSearch() {
+      const search = document.getElementById('med-quick-search');
+      if (!search) return;
+      const typed = String(search.value || '').trim();
+      if (!typed) return;
+
+      const i = findNextAvailableMedRowIndex();
+      const select = document.getElementById('med-select-' + i);
+      const other = document.getElementById('med-other-' + i);
+      if (!select || !other) return;
+
+      const matched = resolveMedication(typed);
+
+      if (matched) {
+        select.value = matched;
+        other.value = '';
+        other.style.display = 'none';
+      } else {
+        select.value = 'Other';
+        other.value = typed;
+        other.style.display = 'inline-block';
+      }
+
+      checkMedicationRow(i);
+      saveMedRows();
+
+      search.value = '';
+      search.focus();
     }
 
     function checkMedicationRow(i) {
@@ -143,7 +907,7 @@
         return {
           med: (select && select.value) || '',
           other: (other && other.value) || '',
-          time: (time && time.value) || 'Today AM'
+          time: (time && time.value) || ''
         };
       });
       s['med-list'] = JSON.stringify(rows);
@@ -158,15 +922,28 @@
       const s = getGlobalState();
       let rows = [];
       try { rows = JSON.parse(s['med-list']) || []; } catch (e) {}
-      if (!rows.length) rows = [{ med: '', other: '', time: 'Today AM' }];
+      if (!rows.length) rows = [{ med: '', other: '', time: '' }];
 
       rows.forEach(function(item) {
-        addMedRow(item.med || '', item.other || '', item.time || 'Today AM');
+        addMedRow(item.med || '', item.other || '', item.time || '');
       });
     }
 
     pageBoot(function() {
       restoreMedRows();
+
+      const topSearch = document.getElementById('med-quick-search');
+      if (topSearch) {
+        topSearch.addEventListener('input', ensureSuggestionList);
+        topSearch.addEventListener('keydown', function(ev) {
+          if (ev.key !== 'Enter') return;
+          ev.preventDefault();
+          const typed = String(topSearch.value || '').trim();
+          if (!typed) return;
+
+          addMedicationFromTopSearch();
+        });
+      }
     }, function() {
       restoreMedRows();
     });

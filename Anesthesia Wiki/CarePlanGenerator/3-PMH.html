@@ -55,6 +55,24 @@
       font-weight: 600;
     }
     .add-row-btn:hover { background: #dde8ff; }
+    .pmh-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .pmh-search-input {
+      flex: 1;
+      max-width: 480px;
+      border: 1px solid #bfd2ec;
+      border-radius: 6px;
+      padding: 7px 9px;
+      font-size: 14px;
+    }
+    .pmh-search-hint {
+      font-size: 12px;
+      color: #7a90aa;
+    }
     .surgical-history-panel {
       margin: 0;
       padding: 10px 12px;
@@ -116,10 +134,18 @@
         <label><input type="checkbox" id="pmh-anemia"> Anemia</label>
         <label><input type="checkbox" id="pmh-liver"> Liver Disease</label>
         <label><input type="checkbox" id="pmh-chronicpain"> Chronic Pain</label>
-        <label><input type="checkbox" id="pmh-depanx"> Dep/Anxi</label>
+        <label><input type="checkbox" id="pmh-depression"> Depression</label>
+        <label><input type="checkbox" id="pmh-anxiety"> Anxiety</label>
         <label><input type="checkbox" id="pmh-cancer"> Cancer</label>
       </div>
       <hr>
+      <div class="pmh-search-wrap">
+        <input id="pmh-search-input" class="pmh-search-input" list="pmh-dx-suggestions"
+               placeholder="Search diagnosis (e.g. HTN, diabetes)... press Enter"
+               autocomplete="off" />
+        <span class="pmh-search-hint">Enter to add</span>
+      </div>
+      <datalist id="pmh-dx-suggestions"></datalist>
       <div id="pmh-list" class="pmh-list"></div>
       <button type="button" class="add-row-btn" onclick="addPmhRow()">+ Add more</button>
     </div>
@@ -127,13 +153,165 @@
     <div class="card">
       <div class="surgical-history-panel">
         <label class="surgical-history-title">Past Surgical History</label>
-        <textarea id="pmh-surgical-history" class="long" style="width:100%;min-height:110px;resize:vertical;" placeholder="List previous surgeries, dates if known..."></textarea>
+        <div id="psh-list" class="pmh-list"></div>
+        <button type="button" class="add-row-btn" onclick="addPshRow()">+ Add more</button>
       </div>
     </div>
   </div>
   <script src="shared.js?v=23"></script>
   <script>
     var pmhRowCount = 0;
+
+    // ── PMH diagnosis autocomplete ──────────────────────────────────────────
+    var PMH_DIAGNOSES = [
+      // Cardiovascular
+      'HTN','Hypertension','HLD','Hyperlipidemia','Hypercholesterolemia','Dyslipidemia',
+      'CAD','Coronary Artery Disease','Angina','MI','Myocardial Infarction','CABG','PCI',
+      'CHF','Heart Failure','Congestive Heart Failure','HFrEF','HFpEF','A-fib','Atrial Fibrillation',
+      'Atrial Flutter','PAD','Peripheral Arterial Disease','PVD','Aortic Stenosis',
+      'Aortic Regurgitation','Mitral Regurgitation','Mitral Stenosis','Cardiomyopathy',
+      'Pacemaker','ICD','WPW','DVT','PE','Pulmonary Embolism','Pulmonary Hypertension',
+      'Hypertrophic Cardiomyopathy','Dilated Cardiomyopathy','Endocarditis',
+      // Pulmonary
+      'COPD','Emphysema','Chronic Bronchitis','Asthma','OSA','Obstructive Sleep Apnea',
+      'Sleep Apnea','Pulmonary Fibrosis','IPF','Sarcoidosis','Pleural Effusion',
+      'Reactive Airway Disease','Bronchiectasis','Cystic Fibrosis',
+      // Endocrine / Metabolic
+      'DM','Diabetes','Type 2 Diabetes','Type 1 Diabetes','T2DM','T1DM','Pre-diabetes',
+      'Hypothyroidism','Hyperthyroidism','Thyroid Disease','Graves Disease','Hashimoto Thyroiditis',
+      'Obesity','Metabolic Syndrome','Adrenal Insufficiency','Cushing Syndrome','Hyperparathyroidism',
+      'Hyperaldosteronism','Pheochromocytoma','Acromegaly',
+      // Neurological
+      'Stroke','TIA','CVA','Transient Ischemic Attack','Seizure Disorder','Epilepsy',
+      "Parkinson's Disease",'Parkinsonism',"Alzheimer's Disease",'Dementia','Cognitive Impairment',
+      'Multiple Sclerosis','Myasthenia Gravis','ALS','Neuropathy','Peripheral Neuropathy',
+      'Migraine','Headache Disorder','Cervical Myelopathy','Lumbar Stenosis','Radiculopathy',
+      // Renal
+      'CKD','Chronic Kidney Disease','ESRD','End Stage Renal Disease','Renal Failure',
+      'Nephrolithiasis','Kidney Stones','Nephrotic Syndrome','Glomerulonephritis','Dialysis',
+      // GI / Hepatic
+      'GERD','Reflux','Peptic Ulcer Disease','PUD','Crohn Disease','Ulcerative Colitis',
+      'IBD','Inflammatory Bowel Disease','IBS','Irritable Bowel Syndrome','Diverticulosis',
+      'Diverticulitis','Cirrhosis','Hepatitis','Hepatitis B','Hepatitis C','Liver Disease',
+      'NAFLD','NASH','Pancreatitis','Gallstones','Cholelithiasis','Cholecystitis',
+      'Celiac Disease','Gastroparesis',
+      // Hematological
+      'Anemia','Iron Deficiency Anemia','B12 Deficiency','Sickle Cell Disease','Thalassemia',
+      'Thrombocytopenia','Coagulopathy','Hemophilia','Von Willebrand Disease',
+      'Polycythemia Vera','DVT History','Anticoagulation','Factor V Leiden',
+      // Rheumatological / Musculoskeletal
+      'Rheumatoid Arthritis','RA','Osteoarthritis','Lupus','SLE','Systemic Lupus Erythematosus',
+      'Psoriatic Arthritis','Ankylosing Spondylitis','Gout','Fibromyalgia',
+      'Polymyalgia Rheumatica','Sjogren Syndrome','Scleroderma','Vasculitis','Myositis',
+      // Psychiatric
+      'Depression','Major Depressive Disorder','MDD','Anxiety','GAD','Generalized Anxiety Disorder',
+      'PTSD','Bipolar Disorder','Schizophrenia','ADHD','Substance Use Disorder',
+      'Alcohol Use Disorder','OCD','Panic Disorder','Borderline Personality Disorder',
+      // Oncology
+      'Cancer','Breast Cancer','Lung Cancer','Colon Cancer','Colorectal Cancer',
+      'Prostate Cancer','Bladder Cancer','Kidney Cancer','Thyroid Cancer','Lymphoma',
+      'Leukemia','Multiple Myeloma','Melanoma','Ovarian Cancer','Endometrial Cancer',
+      'Head and Neck Cancer','Esophageal Cancer','Gastric Cancer','Hepatocellular Carcinoma',
+      // Other / Infectious
+      'Chronic Pain','Osteoporosis','Osteopenia','HIV','AIDS','Transplant','Kidney Transplant',
+      'Liver Transplant','Heart Transplant','Bone Marrow Transplant','Dialysis',
+      'Eczema','Psoriasis','Glaucoma','Macular Degeneration','Cataracts',
+      'Obesity Hypoventilation Syndrome','OHS','Malnutrition','Chronic Steroid Use',
+      'Immunosuppression','Hereditary Angioedema','Latex Allergy'
+    ];
+
+    var PMH_CHECKBOX_ALIASES = {
+      'pmh-htn':         ['htn','hypertension','high blood pressure'],
+      'pmh-hld':         ['hld','hyperlipidemia','hypercholesterolemia','high cholesterol','dyslipidemia'],
+      'pmh-gerd':        ['gerd','reflux','acid reflux','gastroesophageal reflux','peptic ulcer','pud'],
+      'pmh-dm':          ['dm','diabetes','diabetes mellitus','type 2 diabetes','type 1 diabetes','t2dm','t1dm','dm2','dm1'],
+      'pmh-afib':        ['afib','a-fib','atrial fibrillation','af','atrial flutter'],
+      'pmh-cad':         ['cad','coronary artery disease','coronary disease','angina','mi','myocardial infarction'],
+      'pmh-chf':         ['chf','heart failure','congestive heart failure','hf','hfref','hfpef'],
+      'pmh-ckd':         ['ckd','chronic kidney disease','kidney disease','renal disease','renal failure','esrd','end stage renal disease'],
+      'pmh-copd':        ['copd','chronic obstructive pulmonary disease','emphysema','chronic bronchitis'],
+      'pmh-asthma':      ['asthma','reactive airway disease','rad'],
+      'pmh-osa':         ['osa','obstructive sleep apnea','sleep apnea','apnea'],
+      'pmh-obesity':     ['obesity','obese','morbid obesity'],
+      'pmh-hypothyroid': ['hypothyroid','hypothyroidism','thyroid','low thyroid','hashimoto'],
+      'pmh-stroketia':   ['stroke','tia','stroke/tia','transient ischemic attack','cva'],
+      'pmh-seizure':     ['seizure','seizures','epilepsy','convulsions','seizure disorder'],
+      'pmh-anemia':      ['anemia','anemic','iron deficiency anemia'],
+      'pmh-liver':       ['liver','liver disease','cirrhosis','hepatitis','hepatitis b','hepatitis c','hep b','hep c','nafld','nash'],
+      'pmh-chronicpain': ['chronic pain','pain'],
+      'pmh-depression':  ['depression','mdd','major depressive disorder'],
+      'pmh-anxiety':     ['anxiety','gad','generalized anxiety','generalized anxiety disorder','panic disorder'],
+      'pmh-cancer':      ['cancer','malignancy','tumor','carcinoma','lymphoma','leukemia','melanoma','multiple myeloma']
+    };
+
+    var pmhSuggestionsReady = false;
+    function ensurePmhSuggestions() {
+      if (pmhSuggestionsReady) return;
+      var list = document.getElementById('pmh-dx-suggestions');
+      if (!list) return;
+      var frag = document.createDocumentFragment();
+      PMH_DIAGNOSES.forEach(function(dx) {
+        var opt = document.createElement('option');
+        opt.value = dx;
+        frag.appendChild(opt);
+      });
+      list.appendChild(frag);
+      pmhSuggestionsReady = true;
+    }
+
+    function resolvePmhCheckbox(typed) {
+      var q = typed.toLowerCase().replace(/[^a-z0-9\/\- ]/g, '').trim();
+      if (!q) return null;
+      var ids = Object.keys(PMH_CHECKBOX_ALIASES);
+      for (var i = 0; i < ids.length; i++) {
+        var id = ids[i];
+        var aliases = PMH_CHECKBOX_ALIASES[id];
+        for (var j = 0; j < aliases.length; j++) {
+          if (q === aliases[j]) return id;
+        }
+      }
+      return null;
+    }
+
+    function getTopPmhSuggestion(typed) {
+      if (!typed) return typed;
+      var q = typed.toLowerCase();
+      var diagnoses = PMH_DIAGNOSES;
+      // Prefix match first
+      for (var i = 0; i < diagnoses.length; i++) {
+        if (diagnoses[i].toLowerCase().indexOf(q) === 0) return diagnoses[i];
+      }
+      // Contains match fallback
+      for (var i = 0; i < diagnoses.length; i++) {
+        if (diagnoses[i].toLowerCase().indexOf(q) !== -1) return diagnoses[i];
+      }
+      return typed;
+    }
+
+    function addPmhFromSearch() {
+      var input = document.getElementById('pmh-search-input');
+      if (!input) return;
+      var typed = (input.value || '').trim();
+      if (!typed) return;
+
+      // Use the top suggestion from the datalist if one exists
+      var resolved = getTopPmhSuggestion(typed);
+
+      var matchId = resolvePmhCheckbox(resolved) || resolvePmhCheckbox(typed);
+      if (matchId) {
+        var cb = document.getElementById(matchId);
+        if (cb && !cb.checked) {
+          cb.checked = true;
+          cb.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      } else {
+        addPmhRow(resolved);
+      }
+
+      input.value = '';
+      input.focus();
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     function addPmhRow(value) {
       if (pmhRowCount >= 30) return;
@@ -190,17 +368,87 @@
 
     function saveSurgicalHistory() {
       var s = getGlobalState();
-      s['pmh-surgical-history'] = document.getElementById('pmh-surgical-history').value;
+      var rows = Array.from(document.querySelectorAll('#psh-list .pmh-row input')).map(function(el) {
+        return el.value || '';
+      });
+      s['pmh-surgical-history'] = JSON.stringify(rows);
       setGlobalState(s);
     }
-    
+
+    var pshRowCount = 0;
+
+    function addPshRow(value) {
+      if (pshRowCount >= 30) return;
+      pshRowCount++;
+
+      var row = document.createElement('div');
+      row.className = 'pmh-row';
+
+      var input = document.createElement('input');
+      input.className = 'long';
+      input.placeholder = 'Surgery / procedure';
+      if (value) input.value = value;
+      input.addEventListener('input', saveSurgicalHistory);
+      input.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var rows = Array.from(document.querySelectorAll('#psh-list .pmh-row'));
+        var idx = rows.indexOf(row);
+        if (idx < rows.length - 1) {
+          var next = rows[idx + 1].querySelector('input');
+          if (next) next.focus();
+        } else {
+          addPshRow('');
+          var allRows = document.querySelectorAll('#psh-list .pmh-row');
+          var lastInput = allRows[allRows.length - 1].querySelector('input');
+          if (lastInput) lastInput.focus();
+        }
+      });
+
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'row-remove-btn';
+      rm.textContent = '×';
+      rm.onclick = function() {
+        row.remove();
+        if (document.querySelectorAll('#psh-list .pmh-row').length === 0) addPshRow('');
+        saveSurgicalHistory();
+      };
+
+      row.appendChild(input);
+      row.appendChild(rm);
+      document.getElementById('psh-list').appendChild(row);
+      saveSurgicalHistory();
+    }
+
     function restoreSurgicalHistory() {
+      var list = document.getElementById('psh-list');
+      list.innerHTML = '';
+      pshRowCount = 0;
+
       var s = getGlobalState();
-      document.getElementById('pmh-surgical-history').value = s['pmh-surgical-history'] || '';
+      var raw = s['pmh-surgical-history'] || '';
+      var rows = [];
+      try { rows = JSON.parse(raw); } catch (e) {
+        // Legacy: plain text — split by newline
+        if (raw.trim()) rows = raw.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+      }
+      if (!Array.isArray(rows) || !rows.length) rows = [''];
+      rows.forEach(function(item) { addPshRow(item || ''); });
     }
 
     pageBoot(function() {
-      document.getElementById('pmh-surgical-history').addEventListener('input', saveSurgicalHistory);
+      var searchInput = document.getElementById('pmh-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', ensurePmhSuggestions);
+        searchInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addPmhFromSearch();
+          }
+        });
+      }
+
       restorePmhRows();
       restoreSurgicalHistory();
     }, function() {

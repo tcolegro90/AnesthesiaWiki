@@ -143,6 +143,16 @@
         validateDoseInput(doseEl);
         saveAntiemeticRows();
       });
+      doseEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addAntiemeticRow();
+          // Focus the new row's select
+          var rows = container.querySelectorAll('.repeat-row');
+          var lastRow = rows[rows.length - 1];
+          if (lastRow) { var s = lastRow.querySelector('select'); if (s) s.focus(); }
+        }
+      });
 
       var rm = document.createElement('button');
       rm.type = 'button';
@@ -178,8 +188,12 @@
       var s = getGlobalState();
       var data = [];
       try { data = JSON.parse(s['plan-antiemetic-list']) || []; } catch(e) {}
-      if (data.length === 0) data = [{ drug: '', dose: '' }];
+      if (data.length === 0) data = [
+        { drug: 'Ondansetron', dose: '4' },
+        { drug: 'Dexamethasone', dose: '4' }
+      ];
       data.forEach(function(item) { addAntiemeticRow(item.drug || '', item.dose || '', true); });
+      updateAntiemeticOptions();
     }
 
     function getAntiemeticRowsFromState() {
@@ -187,7 +201,10 @@
       var data = [];
       try { data = JSON.parse(s['plan-antiemetic-list']) || []; } catch(e) {}
       if (!Array.isArray(data)) data = [];
-      if (data.length === 0) data = [{ drug: '', dose: '' }];
+      if (data.length === 0) data = [
+        { drug: 'Ondansetron', dose: '4' },
+        { drug: 'Dexamethasone', dose: '4' }
+      ];
       return data.map(function(item) {
         if (!item) return { drug: '', dose: '' };
         if (typeof item === 'string') return { drug: item, dose: '' };

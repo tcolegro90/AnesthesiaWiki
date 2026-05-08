@@ -99,7 +99,7 @@
          /* Tile grids */
          .tile-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
          }
 
@@ -434,7 +434,7 @@
                </a>
                <a href="SetupAndHandoffs/PACUHandoff.html" class="tile t-purple">
                   <span class="tile-icon">🤝</span>
-                  PACU Handoff
+                  Jenny's PACU Handoff
                </a>
                <a href="CrisisAlgorithms/Index.html" class="tile t-red">
                   <span class="tile-icon">🚨</span>
@@ -452,7 +452,7 @@
          </div>
          <div id="sec-reference" class="section-body">
             <div class="tile-grid">
-               <a href="ClinicalSites.html?v=20260411c" class="tile t-blue">
+               <a href="ClinicalSites/Index.html?v=20260411c" class="tile t-blue">
                   <span class="tile-icon">🏥</span>
                   Clinical Sites
                </a>
@@ -460,14 +460,15 @@
                   <span class="tile-icon">🧮</span>
                   Calculators &amp; Charts
                </a>
-               <a href="AirwayManagement.html#difficult-airway-infographic" class="tile t-navy">
-                  <span class="tile-icon">🚨</span>
-                  Difficult Airway Algorithm
-               </a>
-               <a href="MedicationColors.html" class="tile t-orange">
+               <a href="MedicationColors/Index.html" class="tile t-orange">
                   <span class="tile-icon">🎨</span>
                   Medication Colors
                   <span class="tile-sub">OR Sticker Reference</span>
+               </a>
+               <a href="http://www.ccanesthesiareview.com/qod/qod.asp" class="tile t-purple" target="_blank">
+                  <span class="tile-icon">📓</span>
+                  Boards QOTD
+                  <span class="tile-sub">CCAER Question of the Day</span>
                </a>
             </div>
          </div>
@@ -482,35 +483,55 @@
          <div id="sec-wip" class="section-body collapsed">
             <p class="wip-note">Use caution: these pages are works in progress and may be incomplete or change frequently.</p>
             <div class="tile-grid">
+               <a href="Help/QuickStartManual.html" class="tile wip">
+                  <span class="tile-icon">📘</span>
+                  Quick Start Manual
+                  <span class="tile-sub">Care Plan manual needs refinement</span>
+               </a>
                <a href="Meds/Index.html" class="tile wip" id="tile-medications">
                   <span class="tile-icon">💊</span>
                   Medications
                   <span class="tile-sub">Work in progress - use caution</span>
                </a>
-               <a href="AirwayManagement.html" class="tile wip">
+               <a href="Airway/AirwayManagement.html" class="tile wip">
                   <span class="tile-icon">🫁</span>
                   Airway Management
                   <span class="tile-sub">Work in progress - use caution</span>
                </a>
-               <a href="Comorbidities.html" class="tile wip">
+               <a href="Comorbidities/Index.html" class="tile wip">
                   <span class="tile-icon">🫀</span>
                   Comorbidities
                   <span class="tile-sub">Work in progress - use caution</span>
                </a>
-               <a href="TopDrawerMeds.html" class="tile wip">
+               <a href="TopDrawerMeds/Index.html" class="tile wip">
                   <span class="tile-icon">🗂️</span>
                   Top Drawer Meds
                   <span class="tile-sub">Work in progress - use caution</span>
                </a>
-               <a href="Studies.html?v=20260413b" class="tile wip">
+               <a href="PersonalGrowth/Index.html" class="tile wip">
+                  <span class="tile-icon">🌱</span>
+                  Clinical Growth Journal
+                  <span class="tile-sub">Daily goals &amp; session reflections</span>
+               </a>
+               <a href="Studies/Index.html?v=20260413b" class="tile wip">
                   <span class="tile-icon">📚</span>
                   Studies
                   <span class="tile-sub">Work in progress - use caution</span>
                </a>
+               <a href="Antibiotics/Index.html?v=20260415a" class="tile wip">
+                  <span class="tile-icon">💊</span>
+                  Antibiotics
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
                <a href="SetupAndHandoffs/PACUHandoff.html" class="tile wip">
                   <span class="tile-icon">🤝</span>
-                  Jenny's PACU Handoff
-                  <span class="tile-sub">will update with Jenny's soon</span>
+                  PACU Handoff
+                  <span class="tile-sub">Work in progress</span>
+               </a>
+               <a href="Typhon/TyphonCaseHelper.html" class="tile wip">
+                  <span class="tile-icon">🔒</span>
+                  Typhon Case Helper
+                  <span class="tile-sub">Passcode protected phone testing page</span>
                </a>
             </div>
          </div>
@@ -522,6 +543,7 @@
          var APP_VERSION = '20260413b';
 
          (function ensureVersionedPage() {
+            if (window.location.protocol === 'file:') return;
             var currentUrl = new URL(window.location.href);
             if (currentUrl.searchParams.get('v') === APP_VERSION) return;
             currentUrl.searchParams.set('v', APP_VERSION);
@@ -590,11 +612,37 @@
          ];
 
          var TOOL_PAGE_LINKS = [
+            { name: 'Quick Start Manual', href: 'Help/QuickStartManual.html' },
             { name: 'IBW & Ventilation Chart', href: 'Calculators/IBWChart.html' },
             { name: 'BMI Calculator', href: 'Calculators/BMICalculator.html' },
             { name: 'Fluid / ABL Calculator', href: 'Calculators/FluidCalculator.html' },
             { name: 'Local Anesthetic Max Dose Calculator', href: 'Meds/LocalAnestheticMaxDoseCalculator.html' },
-            { name: 'LMA Sizing Guide', href: 'AirwayManagement.html#lma' }
+            { name: 'LMA Sizing Guide', href: 'Airway/AirwayManagement.html#lma' },
+            // Emergency Algorithms
+            { name: 'Anaphylaxis Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=anaphylaxis' },
+            { name: 'Bradycardia Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=bradycardia' },
+            { name: 'Bronchospasm Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=bronchospasm' },
+            { name: 'Delayed Emergence Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=delayed-emergence' },
+            { name: 'Difficult Airway Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=difficult-airway' },
+            { name: 'Fire Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=fire' },
+            { name: 'High Spinal Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=high-spinal' },
+            { name: 'Hyperkalemia Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=hyperkalemia' },
+            { name: 'Hypotension Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=hypotension' },
+            { name: 'Hypoxia Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=hypoxia' },
+            { name: 'Laryngospasm Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=laryngospasm' },
+            { name: 'LAST Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=last' },
+            { name: 'Loss of Evoked Potential Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=loss-of-evoked-potential' },
+            { name: 'Malignant Hyperthermia Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=malignant-hyperthermia' },
+            { name: 'Mass Transfusion Protocol', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=mass-transfusion-protocol' },
+            { name: 'MI Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=mi' },
+            { name: 'PEA Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=pea' },
+            { name: 'Power Outage Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=power-outage' },
+            { name: 'Systole Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=systole' },
+            { name: 'Tachycardia Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=tachycardia' },
+            { name: 'Transfusion Reaction Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=transfusion-reaction' },
+            { name: 'Venous Air Emboli Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=venous-air-emboli' },
+            { name: 'Vfib Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=vfib' },
+            { name: 'Vtach Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=vtach' }
          ];
 
          function normalizeTokens(text) {
@@ -628,10 +676,16 @@
                var href = link.getAttribute('href');
                if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
                try {
-                  var resolved = new URL(href, window.location.href);
-                  if (resolved.origin !== window.location.origin || !resolved.pathname.endsWith('.html')) return;
+                  var hashIndex = href.indexOf('#');
+                  var hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
+                  var base = hashIndex >= 0 ? href.slice(0, hashIndex) : href;
+                  var queryIndex = base.indexOf('?');
+                  var path = queryIndex >= 0 ? base.slice(0, queryIndex) : base;
+                  if (!path.endsWith('.html')) return;
+                  var resolved = new URL(base, window.location.href);
                   resolved.searchParams.set('v', APP_VERSION);
-                  link.setAttribute('href', resolved.pathname.replace(/^\//, '') + resolved.search + resolved.hash);
+                  var query = resolved.searchParams.toString();
+                  link.setAttribute('href', path + (query ? '?' + query : '') + hash);
                } catch (error) {
                }
             });

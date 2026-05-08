@@ -33,8 +33,18 @@
       padding-bottom: 6px;
       color: #1a365d;
     }
-    #main-content > h1 {
-      text-align: center;
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    #main-content .main-header > h1 {
+      margin: 0;
+      flex: 1;
+      min-width: 280px;
     }
     .top-actions {
       display: flex;
@@ -76,6 +86,46 @@
       background: #fff7e8;
       border-color: #eed19a;
       color: #7a4e16;
+    }
+    .cloud-login {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 0;
+      background: #fff;
+      border: 1px solid #dbe5f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .cloud-login label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1a365d;
+    }
+    .cloud-login input {
+      min-width: 180px;
+      border: 1px solid #bfd2ec;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 0.92rem;
+    }
+    .cloud-login .who {
+      font-size: 0.88rem;
+      color: #355271;
+      margin-left: 4px;
+    }
+    @media (max-width: 760px) {
+      .main-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #main-content .main-header > h1 {
+        min-width: 0;
+      }
+      .cloud-login {
+        width: 100%;
+      }
     }
     .quick-links {
       display: flex;
@@ -196,12 +246,16 @@
     #print-container .compact-lab-row,
     .print-card .compact-lab-row {
       justify-content: flex-start;
-      gap: 3px;
+      gap: 0;
+    }
+    #print-container .compact-lab-row span:first-child,
+    .print-card .compact-lab-row span:first-child {
+      margin-right: 2px !important;
     }
     #print-container .compact-lab-row span:last-child,
     .print-card .compact-lab-row span:last-child {
-      flex: 0;
-      text-align: left;
+      flex: 0 !important;
+      text-align: left !important;
       white-space: nowrap;
     }
     #print-container .print-row span:first-child,
@@ -215,6 +269,10 @@
       text-align: right;
       white-space: pre-line;
       flex: 1;
+    }
+    #print-container #pr-height,
+    .print-card #pr-height {
+      font-weight: normal;
     }
     #print-container .med-print-row,
     .print-card .med-print-row {
@@ -322,18 +380,18 @@
           <h3>Patient Details</h3>
           <div class="print-row"><span>Age / Gender:</span><span id="pr-age-gen">_</span></div>
           <div class="print-row"><span></span><span><span id="pr-height">_</span> / <span id="pr-weight">_</span> / <span id="pr-bmi">_</span></span></div>
-          <div class="print-row" id="pr-pregnant-row" style="display:none;"><span>Pregnant:</span><span id="pr-pregnant">_</span></div>
-          <div class="print-row"><span>Smoker:</span><span id="pr-smoker">_</span></div>
-          <div class="print-row"><span>Fasted:</span><span id="pr-fasted">_</span></div>
-          <div class="print-row" id="pr-interpreter-row" style="display:none;"><span>Interpreter:</span><span id="pr-interpreter">_</span></div>
-          <div class="print-row" id="pr-hearing-row" style="display:none;"><span>Hearing Loss:</span><span id="pr-hearing">_</span></div>
-          <div class="print-row"><span>Allergies:</span><span id="pr-allergies">_</span></div>
           <div class="print-row"><span>PMH:</span><span id="pr-pmh">_</span></div>
           <div class="print-row" id="pr-past-surg-row" style="display:none;"><span>PSH:</span><span id="pr-past-surg">_</span></div>
           <div style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px; margin-bottom: 6px;">
             <span style="font-weight:bold; display:block; margin-bottom:2px;">At Home Meds:</span>
             <div id="pr-meds-list" style="font-size:0.9em; padding-left: 5px;"></div>
           </div>
+          <div class="print-row" id="pr-pregnant-row" style="display:none;"><span>Pregnant:</span><span id="pr-pregnant">_</span></div>
+          <div class="print-row"><span>Allergies:</span><span id="pr-allergies">_</span></div>
+          <div class="print-row"><span>Smoker:</span><span id="pr-smoker">_</span></div>
+          <div class="print-row"><span>Fasted:</span><span id="pr-fasted">_</span></div>
+          <div class="print-row" id="pr-interpreter-row" style="display:none;"><span>Interpreter:</span><span id="pr-interpreter">_</span></div>
+          <div class="print-row" id="pr-hearing-row" style="display:none;"><span>Hearing Loss:</span><span id="pr-hearing">_</span></div>
           <div class="print-row" id="pr-prior-anesthetic-row" style="display:none;"><span>Prior Anes:</span><span id="pr-prior-anesthetic">_</span></div>
           <div class="print-row" id="pr-pacer-row" style="display:none;"><span>Device:</span><span id="pr-pacer">_</span></div>
         </div>
@@ -387,14 +445,17 @@
             <div class="print-row compact-lab-row" id="pr-lab-alb-row" style="display:none;"><span>Albumin:</span><span id="pr-lab-alb">_</span></div>
             <div class="print-row compact-lab-row" id="pr-lab-ast-row" style="display:none;"><span>AST:</span><span id="pr-lab-ast">_</span></div>
             <div class="print-row compact-lab-row" id="pr-lab-alt-row" style="display:none;"><span>ALT:</span><span id="pr-lab-alt">_</span></div>
-            <div class="print-row compact-lab-row" id="pr-lab-ica-row" style="display:none;"><span>iCa:</span><span id="pr-lab-ica">_</span></div>
             <div class="print-row compact-lab-row" id="pr-lab-ca-row" style="display:none;"><span>Ca:</span><span id="pr-lab-ca">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-ica-row" style="display:none;"><span>iCa:</span><span id="pr-lab-ica">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-ts-date-row" style="display:none;"><span>T+S Date:</span><span id="pr-lab-ts-date">_</span></div>
             <div class="print-row" id="pr-gas-row" style="display:none;"><span id="pr-gas-label">Gas:</span><span id="pr-gas-values">_</span></div>
           </div>
           <div class="print-row" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;"><span>Procedure:</span><span id="pr-surgery">_</span></div>
           <div class="print-row" id="pr-extra-surg-row" style="display:none;"><span>Additional:</span><span id="pr-extra-surg">_</span></div>
           <div class="print-row"><span>Positioning:</span><span id="pr-position">_</span></div>
           <div class="print-row"><span>Insufflation:</span><span id="pr-insufflation">_</span></div>
+          <div class="print-row" id="pr-obtain-ts-row" style="display:none;"><span>Obtain T+S:</span><span id="pr-obtain-ts">_</span></div>
+          <div class="print-row" id="pr-blood-room-row" style="display:none;"><span>Blood in room:</span><span id="pr-blood-room">_</span></div>
           <div class="print-row"><span>ASA Class:</span><span id="pr-asa-class">_</span></div>
           <div class="print-row"><span>Nerve Stim:</span><span id="pr-nerve-stim">_</span></div>
           <div class="print-row" id="pr-antibiotic-plan-row" style="display:none;"><span>Antibiotic:</span><span id="pr-antibiotic-plan">_</span></div>
@@ -446,7 +507,12 @@
             <div class="print-row"><span>Hr 3:</span><span id="pr-fluid-hr3">_</span></div>
             <div class="print-row"><span>Hr 4+:</span><span id="pr-fluid-hr4">_</span></div>
             <div class="print-row"><span>EBV / ABL:</span><span id="pr-ebv-abl">_</span></div>
+            <div class="print-row" id="pr-anticipated-ebl-row" style="display:none;"><span>Anticip EBL:</span><span id="pr-anticipated-ebl">_</span></div>
             <div class="print-row"><span>Target TV:</span><span id="pr-target-tv-plan">_</span></div>
+          </div>
+          <div id="pr-notes-section" style="display:none;margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
+            <div style="font-size:6.2pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#444;margin-bottom:2px;">Notes</div>
+            <div id="pr-notes" style="font-size:6.4pt;line-height:1.35;white-space:pre-wrap;word-break:break-word;"></div>
           </div>
         </div>
         </div>
@@ -462,7 +528,16 @@
   </div>
 
   <div id="main-content" class="wrap">
-    <h1>Anesthetic Care Plan</h1>
+    <div class="main-header">
+      <h1>Anesthetic Care Plan</h1>
+      <div class="cloud-login">
+        <label id="cloud-user-label" for="cloud-user-id">Login ID</label>
+        <input id="cloud-user-id" type="text" placeholder="e.g., jsmith" autocomplete="off" spellcheck="false" />
+        <button type="button" id="cloud-login-btn" class="action-btn" onclick="applyCloudLogin()">Log In</button>
+        <button type="button" id="cloud-logout-btn" class="action-btn" onclick="clearCloudLogin()">Log Out</button>
+        <span id="cloud-user-display" class="who">Not logged in</span>
+      </div>
+    </div>
     <div class="note" id="storage-status" data-tone="warn">Checking save storage mode...</div>
     <div class="top-actions">
       <button type="button" class="action-btn" onclick="openPreview()">Print / Email</button>
@@ -473,7 +548,7 @@
       <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear current care plan</button>
     </div>
 
-    <div class="section"><h2>Patient Demographics</h2><iframe id="frame-1" src="1-Patient-Demographics.html" title="Section 1"></iframe></div>
+    <div class="section"><h2>Patient Demographics</h2><iframe id="frame-1" src="1-Patient-Demographics.html?v=2" title="Section 1"></iframe></div>
     <div class="section"><h2>Past Medical History</h2><iframe id="frame-3" src="3-PMH.html" title="Section 3"></iframe></div>
     <div class="section"><h2>Home Meds</h2><iframe id="frame-4" src="4-Prescribed-Medications.html" title="Section 4"></iframe></div>
     <div class="section"><h2>Labs</h2><iframe id="frame-2" src="2-Labs-Chemistries.html" title="Section 2"></iframe></div>
@@ -483,6 +558,10 @@
     <div class="section"><h2>Anesthetic Plan</h2><iframe id="frame-7" src="7-Anesthetic-Plan.html" title="Section 7"></iframe></div>
     <div class="section"><h2>APFEL &amp; PONV</h2><iframe id="frame-7b" src="7b-APFEL-PONV.html" title="Section 7b"></iframe></div>
     <div class="section"><h2>Fluid &amp; Blood Plan</h2><iframe id="frame-8" src="8-Fluid-Blood-Plan.html" title="Section 8"></iframe></div>
+    <div class="section" style="margin-top:16px;">
+      <h2 style="margin-bottom:8px;">Notes</h2>
+      <textarea id="notes-freetext" placeholder="Add your own notes here..." style="width:100%;min-height:100px;resize:vertical;font-family:inherit;font-size:0.92rem;padding:10px;border:1px solid #c9d6e3;border-radius:8px;background:#fafcff;color:#1d2938;line-height:1.5;box-sizing:border-box;"></textarea>
+    </div>
     <div class="top-actions" style="margin-top:20px;margin-bottom:20px;">
       <button type="button" class="action-btn" onclick="openPreview()">Print / Email</button>
       <button type="button" class="action-btn" onclick="printOrEmailSavedPlans()">Print / Email Multiple Plans</button>
@@ -498,7 +577,28 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="firebase-care-plans.js?v=1"></script>
-  <script src="combined.js?v=5.1"></script>
+  <script src="combined.js?v=5.4"></script>
+  <script>
+    (function initNotes() {
+      var ta = document.getElementById('notes-freetext');
+      if (!ta) return;
+      // Load persisted value
+      try {
+        var saved = JSON.parse(localStorage.getItem('carePlanSplitState') || '{}');
+        if (saved && saved['notes-freetext']) ta.value = saved['notes-freetext'];
+      } catch (e) {}
+      // Save on input
+      ta.addEventListener('input', function() {
+        try {
+          var state = JSON.parse(localStorage.getItem('carePlanSplitState') || '{}') || {};
+          state['notes-freetext'] = ta.value;
+          localStorage.setItem('carePlanSplitState', JSON.stringify(state));
+          // Mirror into parent mirroredState so buildPrintCard picks it up live
+          if (typeof mirroredState !== 'undefined') mirroredState['notes-freetext'] = ta.value;
+        } catch (e) {}
+      });
+    })();
+  </script>
 
 <style>
 .global-home-btn {

@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow each user to read/write only their own UID-scoped document
+    match /typhonCases/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Fallback for anonymous/unauthenticated users (optional)
+    match /typhonCases/default {
+      allow read, write: if request.auth == null;
+    }
+
+    // Clinical Sites: shared document, open read/write (no patient data)
+    match /clinicalSites/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

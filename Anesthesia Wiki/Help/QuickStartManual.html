@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Care Plan Generator Quick Start</title>
+   <style>
+      :root {
+         --primary: #1f2a37;
+         --blue: #114a8d;
+         --teal: #0e7490;
+         --green: #1a7c50;
+         --gold: #d4920a;
+         --red: #b32424;
+         --bg: #f3f7fb;
+         --white: #ffffff;
+         --line: #dbe5f0;
+         --muted: #607286;
+      }
+
+      * {
+         box-sizing: border-box;
+      }
+
+      body {
+         margin: 0;
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+         background:
+            radial-gradient(circle at top right, rgba(17, 74, 141, 0.08), transparent 30%),
+            linear-gradient(180deg, #f7fbff 0%, var(--bg) 100%);
+         color: var(--primary);
+      }
+
+      header {
+         background: linear-gradient(135deg, #162233 0%, #114a8d 70%, #0b6f84 100%);
+         color: #fff;
+         padding: 28px 20px 24px;
+         box-shadow: 0 10px 26px rgba(17, 74, 141, 0.15);
+      }
+
+      .header-inner {
+         max-width: 1080px;
+         margin: 0 auto;
+         display: flex;
+         gap: 16px;
+         align-items: flex-start;
+      }
+
+      .header-badge {
+         width: 58px;
+         height: 58px;
+         border-radius: 15px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         background: rgba(255, 255, 255, 0.12);
+         border: 1px solid rgba(255, 255, 255, 0.18);
+         font-size: 1.75rem;
+         flex-shrink: 0;
+      }
+
+      header h1 {
+         margin: 0 0 8px;
+         font-size: 1.7rem;
+      }
+
+      header p {
+         margin: 0;
+         max-width: 780px;
+         color: #d9e8f7;
+         line-height: 1.58;
+         font-size: 0.97rem;
+      }
+
+      .header-actions {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 10px;
+         margin-top: 16px;
+      }
+
+      .button {
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         text-decoration: none;
+         border-radius: 999px;
+         padding: 10px 14px;
+         font-size: 0.9rem;
+         font-weight: 700;
+         border: 1px solid transparent;
+      }
+
+      .button-primary {
+         background: #fff;
+         color: var(--blue);
+      }
+
+      .button-secondary {
+         background: rgba(255, 255, 255, 0.08);
+         color: #fff;
+         border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      .container {
+         max-width: 1080px;
+         margin: 0 auto;
+         padding: 22px 16px 40px;
+      }
+
+      .hero-grid {
+         display: grid;
+         grid-template-columns: 1.35fr 0.65fr;
+         gap: 16px;
+         margin-top: -18px;
+      }
+
+      .card {
+         background: var(--white);
+         border: 1px solid var(--line);
+         border-radius: 18px;
+         padding: 18px;
+         box-shadow: 0 8px 22px rgba(25, 45, 70, 0.06);
+      }
+
+      .card h2,
+      .card h3 {
+         margin: 0 0 12px;
+      }
+
+      .lead {
+         font-size: 0.96rem;
+         line-height: 1.62;
+         color: #35506b;
+      }
+
+      .pill-row {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 8px;
+         margin-top: 14px;
+      }
+
+      .pill {
+         display: inline-flex;
+         align-items: center;
+         gap: 6px;
+         border-radius: 999px;
+         padding: 7px 11px;
+         font-size: 0.8rem;
+         font-weight: 700;
+         background: #eef6ff;
+         color: var(--blue);
+         border: 1px solid #cfe2f8;
+      }
+
+      .warning {
+         background: #fff7e7;
+         border: 1px solid #efd7a2;
+      }
+
+      .warning p,
+      .card p,
+      .card li,
+      footer p {
+         line-height: 1.58;
+         color: #41586f;
+         font-size: 0.92rem;
+      }
+
+      .section-title {
+         display: flex;
+         align-items: center;
+         gap: 10px;
+         margin: 28px 0 14px;
+      }
+
+      .section-title span {
+         width: 36px;
+         height: 36px;
+         border-radius: 10px;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         background: #eaf3ff;
+      }
+
+      .section-title h2 {
+         margin: 0;
+         font-size: 1rem;
+         text-transform: uppercase;
+         letter-spacing: 0.05em;
+      }
+
+      .section-line {
+         flex: 1;
+         height: 1px;
+         background: var(--line);
+      }
+
+      .step-grid {
+         display: grid;
+         grid-template-columns: repeat(3, minmax(0, 1fr));
+         gap: 14px;
+      }
+
+      .step-card {
+         background: var(--white);
+         border: 1px solid var(--line);
+         border-radius: 16px;
+         padding: 18px;
+      }
+
+      .step-num {
+         width: 34px;
+         height: 34px;
+         border-radius: 50%;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         background: var(--blue);
+         color: #fff;
+         font-weight: 800;
+         margin-bottom: 12px;
+      }
+
+      .step-card ul,
+      .tip-card ul {
+         margin: 0;
+         padding-left: 18px;
+      }
+
+      .walkthrough-grid {
+         display: grid;
+         grid-template-columns: repeat(3, minmax(0, 1fr));
+         gap: 14px;
+      }
+
+      .screen-card {
+         background: var(--white);
+         border: 1px solid var(--line);
+         border-radius: 18px;
+         padding: 16px;
+      }
+
+      .screen {
+         position: relative;
+         min-height: 250px;
+         border-radius: 14px;
+         overflow: hidden;
+         background: linear-gradient(180deg, #fbfdff 0%, #eef4fb 100%);
+         border: 1px solid #d5e4f5;
+         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      }
+
+      .screen-top {
+         display: flex;
+         align-items: center;
+         gap: 6px;
+         padding: 10px 12px;
+         border-bottom: 1px solid #dbe5f0;
+         background: #f3f8fe;
+      }
+
+      .dot {
+         width: 8px;
+         height: 8px;
+         border-radius: 50%;
+         background: #bed0e6;
+      }
+
+      .screen-title {
+         margin-left: 6px;
+         font-size: 0.82rem;
+         font-weight: 700;
+         color: #46627e;
+      }
+
+      .mock-chip-row,
+      .mock-section-list,
+      .mock-action-row {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 8px;
+         padding: 12px;
+      }
+
+      .mock-chip,
+      .mock-action,
+      .mock-section {
+         border-radius: 10px;
+         border: 1px solid #d7e5f4;
+         background: #fff;
+         color: #33506d;
+         font-size: 0.8rem;
+         font-weight: 600;
+      }
+
+      .mock-chip,
+      .mock-action {
+         padding: 7px 10px;
+      }
+
+      .mock-section-list {
+         display: grid;
+         grid-template-columns: 1fr;
+      }
+
+      .mock-section {
+         padding: 10px 12px;
+         background: linear-gradient(180deg, #ffffff 0%, #f9fbfe 100%);
+      }
+
+      .mock-section strong {
+         display: block;
+         color: var(--blue);
+         margin-bottom: 3px;
+      }
+
+      .callout {
+         position: absolute;
+         max-width: 170px;
+         padding: 8px 10px;
+         border-radius: 12px;
+         background: #0f4f88;
+         color: #fff;
+         font-size: 0.77rem;
+         line-height: 1.45;
+         box-shadow: 0 8px 20px rgba(15, 79, 136, 0.22);
+      }
+
+      .callout::after {
+         content: "";
+         position: absolute;
+         width: 12px;
+         height: 12px;
+         background: #0f4f88;
+         transform: rotate(45deg);
+      }
+
+      .callout-one {
+         right: 10px;
+         top: 52px;
+      }
+
+      .callout-one::after {
+         left: -6px;
+         top: 16px;
+      }
+
+      .callout-two {
+         left: 10px;
+         bottom: 16px;
+      }
+
+      .callout-two::after {
+         right: -6px;
+         top: 16px;
+      }
+
+      .callout-three {
+         right: 10px;
+         bottom: 16px;
+         background: #0e7490;
+      }
+
+      .callout-three::after {
+         left: -6px;
+         top: 16px;
+         background: #0e7490;
+      }
+
+      .tip-grid {
+         display: grid;
+         grid-template-columns: repeat(3, minmax(0, 1fr));
+         gap: 14px;
+      }
+
+      .tip-card {
+         background: var(--white);
+         border: 1px solid var(--line);
+         border-radius: 16px;
+         padding: 18px;
+      }
+
+      code {
+         font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+         font-size: 0.84em;
+         background: #edf3fa;
+         border-radius: 6px;
+         padding: 1px 6px;
+         color: #1b456e;
+      }
+
+      footer {
+         max-width: 1080px;
+         margin: 24px auto 0;
+         padding: 0 16px 40px;
+      }
+
+      @media (max-width: 920px) {
+         .hero-grid,
+         .step-grid,
+         .walkthrough-grid,
+         .tip-grid {
+            grid-template-columns: 1fr;
+         }
+
+         .header-inner {
+            flex-direction: column;
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <header>
+      <div class="header-inner">
+         <div class="header-badge">📝</div>
+         <div>
+            <h1>Care Plan Generator Quick Start</h1>
+            <p>This manual is focused on the Care Plan Generator. It shows the fastest way to enter a case, review the important sections, save the plan, and print or email the final card without digging through the rest of the wiki.</p>
+            <div class="header-actions">
+               <a class="button button-primary" href="../CarePlanGenerator/Combined-Care-Plan.html">Open Care Plan Generator</a>
+               <a class="button button-secondary" href="../AnesthesiaWiki.html">Back to Main Index</a>
+            </div>
+         </div>
+      </div>
+   </header>
+
+   <main class="container">
+      <div class="hero-grid">
+         <section class="card">
+            <h2>What This Page Does</h2>
+            <p class="lead">The Care Plan Generator pulls the pre-op story, airway, medications, labs, PONV risk, and fluid plan into one working document. Use it when you want one structured place to build the plan you will print, email, or revisit later.</p>
+            <div class="pill-row">
+               <div class="pill">One-page workflow</div>
+               <div class="pill">Save and reload plans</div>
+               <div class="pill">Print or email output</div>
+            </div>
+         </section>
+
+         <aside class="card warning">
+            <h2>Clinical Guardrail</h2>
+            <p>The generator is for organization and speed. It does not replace chart review, current vitals, local policy, or attending direction. Double-check any output before using it for patient care.</p>
+         </aside>
+      </div>
+
+      <div class="section-title">
+         <span>🚀</span>
+         <h2>Fastest Workflow</h2>
+         <div class="section-line"></div>
+      </div>
+
+      <section class="step-grid">
+         <article class="step-card">
+            <div class="step-num">1</div>
+            <h3>Start at the top bar</h3>
+            <p>If you use saved plans, enter your login ID first. Then decide whether you are building a new plan or loading an old one.</p>
+            <ul>
+               <li><strong>Log In</strong> if you want cloud-linked save behavior.</li>
+               <li><strong>Load Plan</strong> if the case already exists.</li>
+               <li><strong>Clear current care plan</strong> before starting over on a different patient.</li>
+            </ul>
+         </article>
+
+         <article class="step-card">
+            <div class="step-num">2</div>
+            <h3>Fill sections in order</h3>
+            <p>The page is already organized into the normal review flow. Moving top to bottom reduces missed fields and keeps the printed output coherent.</p>
+            <ul>
+               <li>Demographics, PMH, home meds, labs</li>
+               <li>Preoperative history, airway exam, extras</li>
+               <li>Anesthetic plan, PONV, fluid and blood plan</li>
+            </ul>
+         </article>
+
+         <article class="step-card">
+            <div class="step-num">3</div>
+            <h3>Finish with output actions</h3>
+            <p>When the case is ready, save it, then use the preview to print or email. The preview is where you confirm the condensed card looks right before sending it out.</p>
+            <ul>
+               <li><strong>Save Plan</strong> before printing.</li>
+               <li><strong>Print / Email</strong> for the current plan.</li>
+               <li><strong>Print / Email Multiple Plans</strong> only when batching saved cases.</li>
+            </ul>
+         </article>
+      </section>
+
+      <div class="section-title">
+         <span>🖼️</span>
+         <h2>Visual Walkthrough</h2>
+         <div class="section-line"></div>
+      </div>
+
+      <section class="walkthrough-grid">
+         <article class="screen-card">
+            <h3>1. Top control bar</h3>
+            <div class="screen">
+               <div class="screen-top">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="screen-title">Anesthetic Care Plan</div>
+               </div>
+               <div class="mock-chip-row">
+                  <div class="mock-chip">Login ID</div>
+                  <div class="mock-chip">Log In</div>
+                  <div class="mock-chip">Not logged in</div>
+               </div>
+               <div class="mock-action-row">
+                  <div class="mock-action">Print / Email</div>
+                  <div class="mock-action">Save Plan</div>
+                  <div class="mock-action">Load Plan</div>
+                  <div class="mock-action">Delete Plan</div>
+               </div>
+               <div class="callout callout-one">Start here. This bar controls login, saving, loading, and final output.</div>
+            </div>
+            <p>Use the top controls before touching the detailed sections if you need to load an existing case.</p>
+         </article>
+
+         <article class="screen-card">
+            <h3>2. Main section flow</h3>
+            <div class="screen">
+               <div class="screen-top">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="screen-title">Section Stack</div>
+               </div>
+               <div class="mock-section-list">
+                  <div class="mock-section"><strong>Patient Demographics</strong> Core identifiers and patient basics</div>
+                  <div class="mock-section"><strong>Past Medical History</strong> PMH, home meds, labs, pre-op issues</div>
+                  <div class="mock-section"><strong>Airway + Plan</strong> Airway exam, anesthetic plan, APFEL, fluid plan</div>
+               </div>
+               <div class="callout callout-two">Work top to bottom. The page order mirrors how the printed summary is assembled.</div>
+            </div>
+            <p>Most missed details happen when users jump directly to the plan section before entering the history and airway data.</p>
+         </article>
+
+         <article class="screen-card">
+            <h3>3. Preview and final check</h3>
+            <div class="screen">
+               <div class="screen-top">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="screen-title">Print Preview</div>
+               </div>
+               <div class="mock-action-row">
+                  <div class="mock-action">Back to Edit</div>
+                  <div class="mock-action">Print This Plan</div>
+                  <div class="mock-action">Email This Plan (PDF)</div>
+               </div>
+               <div class="mock-section-list">
+                  <div class="mock-section"><strong>Patient Details</strong> Demographics, allergies, PMH</div>
+                  <div class="mock-section"><strong>Preop &amp; Airway</strong> Procedure, ASA, airway exam, alerts</div>
+                  <div class="mock-section"><strong>Anesthetic Plan</strong> Type, induction, antiemetics, fluids</div>
+               </div>
+               <div class="callout callout-three">This is the final safety check. If the preview looks wrong, go back to edit before printing or emailing.</div>
+            </div>
+            <p>This preview step is the closest thing to the finished handoff or pocket output. Review it before sending.</p>
+         </article>
+      </section>
+
+      <div class="section-title">
+         <span>📋</span>
+         <h2>What Each Major Section Is For</h2>
+         <div class="section-line"></div>
+      </div>
+
+      <section class="tip-grid">
+         <article class="tip-card">
+            <h3>Front-end clinical inputs</h3>
+            <ul>
+               <li><strong>Patient Demographics</strong> gives the printed card its basic identity fields.</li>
+               <li><strong>Past Medical History</strong>, <strong>Home Meds</strong>, and <strong>Labs</strong> shape risk context.</li>
+               <li><strong>Preoperative History</strong> captures issues that affect the day-of-anesthesia plan.</li>
+            </ul>
+         </article>
+
+         <article class="tip-card">
+            <h3>Airway and execution</h3>
+            <ul>
+               <li><strong>Airway Exam</strong> feeds the airway summary and difficulty flags.</li>
+               <li><strong>Extras</strong> covers supporting details that do not fit cleanly elsewhere.</li>
+               <li><strong>Anesthetic Plan</strong> is where the practical intraoperative plan comes together.</li>
+            </ul>
+         </article>
+
+         <article class="tip-card">
+            <h3>Finishers</h3>
+            <ul>
+               <li><strong>APFEL &amp; PONV</strong> sharpens prophylaxis planning.</li>
+               <li><strong>Fluid &amp; Blood Plan</strong> prepares rate, EBV, ABL, and ventilatory targets.</li>
+               <li>The preview condenses everything into the final print-ready summary.</li>
+            </ul>
+         </article>
+      </section>
+
+      <div class="section-title">
+         <span>⚡</span>
+         <h2>Practical Tips</h2>
+         <div class="section-line"></div>
+      </div>
+
+      <section class="tip-grid">
+         <article class="tip-card">
+            <h3>When you are in a hurry</h3>
+            <ul>
+               <li>Enter the essentials first: demographics, procedure, ASA, airway, key PMH, major meds, allergies.</li>
+               <li>Save early if there is any chance you will leave and come back.</li>
+               <li>Use the preview before printing instead of assuming the card assembled correctly.</li>
+            </ul>
+         </article>
+
+         <article class="tip-card">
+            <h3>When you need to revisit a case</h3>
+            <ul>
+               <li>Log in before loading if your saved plans depend on user ID.</li>
+               <li>Load first, then edit, then save again to avoid duplicate work.</li>
+               <li>Delete plans deliberately. That control is not a routine reset button.</li>
+            </ul>
+         </article>
+
+         <article class="tip-card">
+            <h3>When output looks wrong</h3>
+            <ul>
+               <li>Return from preview to edit mode and check the upstream section.</li>
+               <li>Look for missing demographics, PMH, airway, or plan fields.</li>
+               <li>If changing patients, use <code>Clear current care plan</code> before re-entry.</li>
+            </ul>
+         </article>
+      </section>
+   </main>
+
+   <footer>
+      <p>This manual now centers the Care Plan Generator workflow. The visual walkthrough above is a lightweight preview of what annotated screenshots could become if you want a fuller illustrated manual later.</p>
+   </footer>
+</body>
+
+</html>

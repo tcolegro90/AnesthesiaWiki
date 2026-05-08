@@ -161,6 +161,13 @@ function pageBoot(extraInit, onExternalUpdate) {
     var params = new URLSearchParams(window.location.search || '');
     if (params.has('reset')) {
       localStorage.removeItem('carePlanSplitState');
+      // Explicitly uncheck all checkboxes / clear all inputs so DOM is blank
+      // regardless of any snapshot or timing edge-cases.
+      try {
+        document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function(el) { el.checked = false; });
+        document.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), textarea').forEach(function(el) { el.value = ''; });
+        document.querySelectorAll('select').forEach(function(el) { el.selectedIndex = 0; });
+      } catch (eDom) {}
       // Remove reset flag from URL so future reloads don't keep clearing state.
       if (window.history && typeof window.history.replaceState === 'function') {
         window.history.replaceState(null, '', window.location.pathname);

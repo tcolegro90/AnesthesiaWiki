@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 320px; min-height: 180px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f0; color: #2c3e50; }
+
+    .header { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; padding: 12px 14px; }
+    .header h1 { font-size: 1em; font-weight: 700; }
+    .header p  { font-size: 0.72em; opacity: 0.8; margin-top: 2px; }
+
+    .page-pill { margin: 10px 12px 4px; padding: 6px 10px; border-radius: 8px; font-size: 0.78em; font-weight: 600; }
+    .pill-case    { background: #d4edda; color: #155724; }
+    .pill-timelog { background: #cce5ff; color: #004085; }
+    .pill-other   { background: #fff3cd; color: #856404; }
+
+    .section-label { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #95a5a6; padding: 6px 12px 2px; }
+
+    .item { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; background: white; border-bottom: 1px solid #f0f0f0; gap: 8px; }
+    .item:last-child { border-bottom: none; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-title { font-size: 0.84em; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-sub   { font-size: 0.73em; color: #7f8c8d; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .btn-fill { padding: 5px 11px; background: #0d6e6e; color: white; border: none; border-radius: 7px; font-size: 0.78em; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .btn-fill:hover { background: #0a5c5c; }
+    .btn-fill:disabled { opacity: 0.4; cursor: default; }
+
+    .actions { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #e8ecf0; }
+    .btn-open { flex: 1; padding: 9px; background: white; border: 1.5px solid #dde3ec; border-radius: 8px; font-size: 0.82em; font-weight: 700; cursor: pointer; color: #2c3e50; text-align: center; }
+    .btn-open:hover { background: #f4f6f8; }
+
+    .empty { padding: 20px 14px; text-align: center; color: #95a5a6; font-size: 0.83em; line-height: 1.5; }
+    .list-box { background: white; border-radius: 10px; margin: 6px 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+
+    .fill-result { margin: 4px 10px 8px; padding: 7px 10px; border-radius: 7px; font-size: 0.78em; font-weight: 600; display: none; }
+    .fill-result.ok  { background: #d4edda; color: #155724; }
+    .fill-result.err { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Typhon Case Helper</h1>
+    <p id="header-sub">Loading...</p>
+  </div>
+
+  <div id="page-pill" class="page-pill pill-other" style="display:none"></div>
+  <div id="fill-result" class="fill-result"></div>
+
+  <div id="main-content"></div>
+
+  <div class="actions">
+    <button class="btn-open" id="btn-open-app">📋 Open Full App</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

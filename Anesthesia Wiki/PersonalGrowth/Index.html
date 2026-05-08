@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinical Growth Journal</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f4f8;
+      color: #1e2d3a;
+      min-height: 100vh;
+    }
+    .page-header {
+      background: linear-gradient(135deg, #1a4f82, #2e7bcf);
+      color: #fff;
+      padding: 20px 24px 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .page-header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.2px; }
+    .page-header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 3px; }
+    .back-link {
+      display: inline-block;
+      color: rgba(255,255,255,0.75);
+      font-size: 12px;
+      text-decoration: none;
+      margin-bottom: 8px;
+    }
+    .back-link:hover { color: #fff; }
+    .main { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    /* Login card */
+    .login-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      border: 1px solid #dde6f0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .login-card label { font-weight: 700; font-size: 13px; color: #2b3f59; white-space: nowrap; }
+    .login-card input {
+      border: 1px solid #b0c4dd;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 14px;
+      width: 180px;
+    }
+    .login-card button {
+      padding: 7px 16px;
+      background: #1a4f82;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .login-card button:hover { background: #154070; }
+    .login-status {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    .login-status.ok { background: #d4edda; color: #155724; font-weight: 600; }
+    .login-status.warn { background: #fff3cd; color: #856404; }
+
+    /* Card */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      border: 1px solid #dde6f0;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .card-title { font-size: 16px; font-weight: 700; color: #1a3d66; }
+    .card-date { font-size: 12px; color: #7a90aa; font-weight: 600; }
+
+    /* Goal items */
+    .goal-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+    .goal-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .goal-row .goal-num {
+      width: 22px;
+      height: 22px;
+      background: #dde8ff;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1a4f82;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+    .goal-row textarea {
+      flex: 1;
+      border: 1px solid #b0c4dd;
+      border-radius: 6px;
+      padding: 7px 9px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 38px;
+    }
+    .goal-row textarea:focus { outline: none; border-color: #4a8fd4; }
+    .goal-row .rm-btn {
+      border: none;
+      background: none;
+      color: #bbb;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .goal-row .rm-btn:hover { color: #c0392b; }
+
+    /* Reflection area */
+    .reflection-wrap { margin-top: 10px; }
+    .reflection-wrap label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5a7ea0;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .reflection-wrap textarea {
+      width: 100%;
+      border: 1px solid #b0c4dd;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 70px;
+      background: #f7fbff;
+    }
+
+    /* Prior session styles */
+    .prior-goal-item {
+      border-left: 3px solid #4a8fd4;
+      padding: 6px 10px;
+      background: #f4f8ff;
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .prior-reflection-box {
+      background: #fff9e6;
+      border: 1px solid #f0d060;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #5a4400;
+      margin-top: 6px;
+      white-space: pre-wrap;
+    }
+
+    /* Buttons */
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .btn {
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background: #1a4f82; color: #fff; }
+    .btn-primary:hover { background: #154070; }
+    .btn-secondary {
+      background: #f0f5ff;
+      color: #1a4f82;
+      border: 1px solid #b0c8ee;
+    }
+    .btn-secondary:hover { background: #dde8ff; }
+    .btn-add {
+      padding: 4px 12px;
+      font-size: 12px;
+      border: 1px dashed #4a6fa5;
+      border-radius: 4px;
+      background: #f0f5ff;
+      color: #4a6fa5;
+      cursor: pointer;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .btn-add:hover { background: #dde8ff; }
+
+    .status-msg {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 5px;
+      margin-top: 8px;
+      display: none;
+    }
+    .status-msg.show { display: block; }
+    .status-msg.ok { background: #d4edda; color: #155724; }
+    .status-msg.err { background: #f8d7da; color: #721c24; }
+    .status-msg.info { background: #d1ecf1; color: #0c5460; }
+
+    .empty-note {
+      font-size: 13px;
+      color: #8da4bc;
+      font-style: italic;
+      padding: 8px 0;
+    }
+
+    .section-divider {
+      border: none;
+      border-top: 1px solid #e8eef5;
+      margin: 16px 0;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid #ccc;
+      border-top-color: #1a4f82;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <a class="back-link" href="../AnesthesiaWiki.html">← Home</a>
+  <h1>Clinical Growth Journal</h1>
+  <div class="subtitle">Track your daily learning goals and reflect on your progress</div>
+</div>
+
+<div class="main">
+
+  <!-- Login -->
+  <div class="login-card">
+    <label for="pg-user-input">User ID:</label>
+    <input id="pg-user-input" type="text" placeholder="e.g. jsmith" autocomplete="username" spellcheck="false" />
+    <button onclick="handleLogin()">Login</button>
+    <span id="pg-login-status" class="login-status warn">Not logged in — data will be local only</span>
+  </div>
+
+  <!-- Last Session -->
+  <div class="card" id="prior-card">
+    <div class="card-header">
+      <span class="card-title">📋 Last Session</span>
+      <span class="card-date" id="prior-date-label">—</span>
+    </div>
+    <div id="prior-content">
+      <div class="empty-note">Log in and save a session to see your previous goals here.</div>
+    </div>
+    <div id="prior-reflection-wrap" class="reflection-wrap" style="display:none;">
+      <hr class="section-divider">
+      <label>How did it go? (Overall reflection on last session)</label>
+      <textarea id="prior-reflection-input" placeholder="Write a brief reflection on how last session went..."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="saveReflection()">Save Reflection</button>
+        <span id="reflection-status" class="status-msg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's Goals -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🎯 Today's Focus</span>
+      <span class="card-date" id="today-date-label"></span>
+    </div>
+    <div id="today-goal-list" class="goal-list"></div>
+    <button class="btn-add" onclick="addGoalRow()">+ Add goal</button>
+    <hr class="section-divider">
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveToday()">Save Today's Goals</button>
+      <span id="save-status" class="status-msg"></span>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
+<script>
+  // ── Firebase setup (same project as care plan generator) ──────────────────
+  var FIREBASE_CONFIG = {
+    apiKey: 'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+    authDomain: 'anesthesia-wiki-saved-files.firebaseapp.com',
+    projectId: 'anesthesia-wiki-saved-files',
+    storageBucket: 'anesthesia-wiki-saved-files.firebasestorage.app',
+    messagingSenderId: '493278937716',
+    appId: '1:493278937716:web:6d4055acbb6f5745810721'
+  };
+  var COLLECTION = 'clinicalGrowthSessions';
+  var USER_ID_KEY = 'carePlanCloudUserId'; // same key as care plan generator
+
+  var db = null;
+  var currentUserId = '';
+
+  function initFirebase() {
+    if (window.location.protocol === 'file:') return;
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.firestore();
+    } catch (e) { console.warn('Firebase init failed:', e); }
+  }
+
+  function sanitize(s) {
+    return String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function docId(userId, date) {
+    return sanitize(userId) + '__' + date;
+  }
+
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    var parts = iso.split('-');
+    if (parts.length < 3) return iso;
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10) + ', ' + parts[0];
+  }
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  function handleLogin() {
+    var input = document.getElementById('pg-user-input');
+    var typed = sanitize(input.value);
+    if (!typed) { showLoginStatus('Enter your user ID (e.g. jsmith)', false); return; }
+    try { localStorage.setItem(USER_ID_KEY, typed); } catch (e) {}
+    currentUserId = typed;
+    input.value = typed;
+    showLoginStatus('Logged in as ' + typed, true);
+    loadAll();
+  }
+
+  function showLoginStatus(msg, ok) {
+    var el = document.getElementById('pg-login-status');
+    el.textContent = msg;
+    el.className = 'login-status ' + (ok ? 'ok' : 'warn');
+  }
+
+  function tryAutoLogin() {
+    var saved = '';
+    try { saved = sanitize(localStorage.getItem(USER_ID_KEY) || ''); } catch (e) {}
+    if (saved) {
+      currentUserId = saved;
+      document.getElementById('pg-user-input').value = saved;
+      showLoginStatus('Logged in as ' + saved, true);
+    }
+  }
+
+  // ── Data helpers ──────────────────────────────────────────────────────────
+  async function loadSession(userId, date) {
+    if (!db || !userId) return null;
+    try {
+      var snap = await db.collection(COLLECTION).doc(docId(userId, date)).get();
+      return snap.exists ? snap.data() : null;
+    } catch (e) { return null; }
+  }
+
+  async function saveSession(userId, date, goals, reflection) {
+    if (!db || !userId) {
+      // Save locally as fallback
+      try {
+        var local = JSON.parse(localStorage.getItem('clinicalGrowthLocal') || '{}');
+        local[date] = { date: date, goals: goals, reflection: reflection || '' };
+        localStorage.setItem('clinicalGrowthLocal', JSON.stringify(local));
+      } catch (e) {}
+      return false; // indicates local only
+    }
+    await db.collection(COLLECTION).doc(docId(userId, date)).set({
+      userId: sanitize(userId),
+      date: date,
+      goals: goals,
+      reflection: reflection || '',
+      lastUpdated: new Date().toISOString()
+    }, { merge: true });
+    return true;
+  }
+
+  async function loadMostRecentPrior(userId, beforeDate) {
+    if (!db || !userId) {
+      // Try local fallback
+      try {
+        var local = JSON.parse(localStorage.getItem('clinicalGrowthLocal') || '{}');
+        var dates = Object.keys(local).filter(function(d) { return d < beforeDate; }).sort();
+        if (dates.length) return local[dates[dates.length - 1]];
+      } catch (e) {}
+      return null;
+    }
+    try {
+      var snap = await db.collection(COLLECTION)
+        .where('userId', '==', sanitize(userId))
+        .where('date', '<', beforeDate)
+        .orderBy('date', 'desc')
+        .limit(1)
+        .get();
+      if (snap.empty) return null;
+      return snap.docs[0].data();
+    } catch (e) {
+      // Fallback: may fail if index not created yet; try without orderBy
+      try {
+        var snap2 = await db.collection(COLLECTION)
+          .where('userId', '==', sanitize(userId))
+          .get();
+        var docs = [];
+        snap2.forEach(function(d) { docs.push(d.data()); });
+        docs = docs.filter(function(d) { return d.date && d.date < beforeDate; });
+        docs.sort(function(a, b) { return b.date.localeCompare(a.date); });
+        return docs.length ? docs[0] : null;
+      } catch (e2) { return null; }
+    }
+  }
+
+  // ── UI: Today ─────────────────────────────────────────────────────────────
+  var goalRowCount = 0;
+  var todayDate = todayStr();
+
+  function addGoalRow(value) {
+    goalRowCount++;
+    var n = goalRowCount;
+    var list = document.getElementById('today-goal-list');
+    var row = document.createElement('div');
+    row.className = 'goal-row';
+    row.id = 'goal-row-' + n;
+    row.innerHTML =
+      '<div class="goal-num">' + n + '</div>' +
+      '<textarea placeholder="What do you want to work on today?" rows="1">' + (value ? escHtml(value) : '') + '</textarea>' +
+      '<button type="button" class="rm-btn" onclick="removeGoalRow(' + n + ')">×</button>';
+    list.appendChild(row);
+    // Auto-resize textarea
+    var ta = row.querySelector('textarea');
+    ta.addEventListener('input', autoResize);
+    autoResize.call(ta);
+  }
+
+  function removeGoalRow(n) {
+    var row = document.getElementById('goal-row-' + n);
+    if (row) row.remove();
+    renumberGoals();
+  }
+
+  function renumberGoals() {
+    var rows = document.querySelectorAll('#today-goal-list .goal-row');
+    rows.forEach(function(row, i) {
+      var num = row.querySelector('.goal-num');
+      if (num) num.textContent = i + 1;
+    });
+  }
+
+  function getTodayGoals() {
+    var rows = document.querySelectorAll('#today-goal-list .goal-row');
+    var goals = [];
+    rows.forEach(function(row) {
+      var ta = row.querySelector('textarea');
+      if (ta) {
+        var v = (ta.value || '').trim();
+        if (v) goals.push(v);
+      }
+    });
+    return goals;
+  }
+
+  async function saveToday() {
+    var goals = getTodayGoals();
+    var statusEl = document.getElementById('save-status');
+    if (!goals.length) {
+      showStatus(statusEl, 'Add at least one goal before saving.', 'err');
+      return;
+    }
+    showStatus(statusEl, 'Saving…', 'info');
+    try {
+      var cloud = await saveSession(currentUserId, todayDate, goals, '');
+      showStatus(statusEl, cloud ? 'Saved to cloud ✓' : 'Saved locally (log in for cloud sync)', cloud ? 'ok' : 'info');
+    } catch (e) {
+      showStatus(statusEl, 'Error: ' + (e.message || e), 'err');
+    }
+  }
+
+  // ── UI: Prior session ─────────────────────────────────────────────────────
+  var priorSessionDate = '';
+
+  function renderPrior(session) {
+    var content = document.getElementById('prior-content');
+    var dateLabel = document.getElementById('prior-date-label');
+    var reflectionWrap = document.getElementById('prior-reflection-wrap');
+
+    if (!session || !session.goals || !session.goals.length) {
+      content.innerHTML = '<div class="empty-note">No previous session found.</div>';
+      dateLabel.textContent = '—';
+      reflectionWrap.style.display = 'none';
+      return;
+    }
+
+    priorSessionDate = session.date;
+    dateLabel.textContent = formatDate(session.date);
+
+    var html = '<div class="goal-list">';
+    session.goals.forEach(function(g, i) {
+      html += '<div class="prior-goal-item"><strong>' + (i + 1) + '.</strong> ' + escHtml(g) + '</div>';
+    });
+    html += '</div>';
+
+    if (session.reflection) {
+      html += '<div class="reflection-wrap" style="margin-top:10px;">';
+      html += '<label>Reflection</label>';
+      html += '<div class="prior-reflection-box">' + escHtml(session.reflection) + '</div>';
+      html += '</div>';
+      reflectionWrap.style.display = 'none';
+    } else {
+      reflectionWrap.style.display = 'block';
+      document.getElementById('prior-reflection-input').value = '';
+    }
+
+    content.innerHTML = html;
+  }
+
+  async function saveReflection() {
+    if (!priorSessionDate) return;
+    var text = (document.getElementById('prior-reflection-input').value || '').trim();
+    var statusEl = document.getElementById('reflection-status');
+    if (!text) { showStatus(statusEl, 'Write a reflection first.', 'err'); return; }
+    showStatus(statusEl, 'Saving…', 'info');
+    try {
+      // Load existing goals for that session then re-save with reflection
+      var existing = await loadSession(currentUserId, priorSessionDate);
+      var goals = (existing && existing.goals) ? existing.goals : [];
+      var cloud = await saveSession(currentUserId, priorSessionDate, goals, text);
+      showStatus(statusEl, cloud ? 'Reflection saved ✓' : 'Saved locally', cloud ? 'ok' : 'info');
+      // Re-render to show saved reflection as read-only
+      if (existing) {
+        existing.reflection = text;
+        renderPrior(existing);
+      }
+    } catch (e) {
+      showStatus(statusEl, 'Error: ' + (e.message || e), 'err');
+    }
+  }
+
+  // ── Load all ──────────────────────────────────────────────────────────────
+  async function loadAll() {
+    if (!currentUserId) return;
+
+    // Load today's session
+    var todaySess = await loadSession(currentUserId, todayDate);
+    document.getElementById('today-goal-list').innerHTML = '';
+    goalRowCount = 0;
+    if (todaySess && todaySess.goals && todaySess.goals.length) {
+      todaySess.goals.forEach(function(g) { addGoalRow(g); });
+    } else {
+      addGoalRow('');
+    }
+
+    // Load prior session
+    var prior = await loadMostRecentPrior(currentUserId, todayDate);
+    renderPrior(prior);
+  }
+
+  // ── Utilities ─────────────────────────────────────────────────────────────
+  function showStatus(el, msg, tone) {
+    el.textContent = msg;
+    el.className = 'status-msg show ' + tone;
+    if (tone === 'ok') {
+      setTimeout(function() {
+        el.className = 'status-msg';
+      }, 3000);
+    }
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function autoResize() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  document.getElementById('today-date-label').textContent = formatDate(todayDate);
+  document.getElementById('pg-user-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
+  });
+
+  // Allow Enter to save reflection
+  document.getElementById('prior-reflection-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveReflection();
+  });
+
+  initFirebase();
+  tryAutoLogin();
+
+  if (currentUserId) {
+    loadAll();
+  } else {
+    // Show empty today with one row for non-logged-in users
+    addGoalRow('');
+  }
+</script>
+
+</body>
+</html>

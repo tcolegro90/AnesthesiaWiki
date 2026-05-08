@@ -76,11 +76,12 @@ function planDoseSpec(group, drug) {
       'Vecuronium':      { min: 0.08, max: 0.12, unit: 'mg', perKg: true }
     },
     anxiolytic: {
-      'Midazolam':   { min: 0.02, max: 0.04, unit: 'mg', perKg: true  },
-      'Lorazepam':   { min: 0.02, max: 0.04, unit: 'mg', perKg: true  },
-      'Diazepam':    { min: 0.1,  max: 0.2,  unit: 'mg', perKg: true  },
-      'Hydroxyzine': { min: 25,   max: 100,  unit: 'mg', perKg: false },
-      'Alprazolam':  { min: 0.25, max: 0.5,  unit: 'mg', perKg: false }
+      'Midazolam':        { min: 0.02, max: 0.04, unit: 'mg',      perKg: true  },
+      'Lorazepam':        { min: 0.02, max: 0.04, unit: 'mg',      perKg: true  },
+      'Diazepam':         { min: 0.1,  max: 0.2,  unit: 'mg',      perKg: true  },
+      'Hydroxyzine':      { min: 25,   max: 100,  unit: 'mg',      perKg: false },
+      'Alprazolam':       { min: 0.25, max: 0.5,  unit: 'mg',      perKg: false },
+      'Dexmedetomidine':  { min: 0.5,  max: 1,    unit: 'mcg',     perKg: true  }
     }
   };
   return (specs[group] || {})[drug] || null;
@@ -185,6 +186,18 @@ function updatePainRowRange(type, selEl, doseEl, rangeEl) {
   if (doseEl.value) validateDoseInput(doseEl);
 }
 
+function updatePainRowOptions(type) {
+  var container = document.getElementById(type + '-rows');
+  if (!container) return;
+  var sels = Array.from(container.querySelectorAll('select'));
+  var vals = sels.map(function(s) { return s.value; }).filter(function(v) { return v !== ''; });
+  sels.forEach(function(s) {
+    Array.from(s.options).forEach(function(o) {
+      if (o.value !== '') o.disabled = vals.includes(o.value) && o.value !== s.value;
+    });
+  });
+}
+
 function addPainRow(type, drug, dose, skipSave) {
   var container = document.getElementById(type + '-rows');
   var idx = PAIN_COUNTS[type]++;
@@ -214,6 +227,7 @@ function addPainRow(type, drug, dose, skipSave) {
 
   sel.addEventListener('change', function() {
     updatePainRowRange(type, sel, doseEl, rangeEl);
+    updatePainRowOptions(type);
     savePainRows();
   });
   doseEl.addEventListener('input', function() {
@@ -225,7 +239,7 @@ function addPainRow(type, drug, dose, skipSave) {
   rm.type = 'button';
   rm.className = 'remove-btn';
   rm.textContent = '×';
-  rm.onclick = function() { row.remove(); savePainRows(); };
+  rm.onclick = function() { row.remove(); updatePainRowOptions(type); savePainRows(); };
 
   row.appendChild(sel);
   row.appendChild(doseEl);
@@ -267,6 +281,7 @@ function restorePainRows() {
       var dose = typeof item === 'string' ? '' : (item.dose || '');
       addPainRow(type, drug, dose, true);
     });
+    updatePainRowOptions(type);
   });
 }
 

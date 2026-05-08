@@ -120,6 +120,19 @@
       flex-direction: column;
       align-items: center;
     }
+    .conditional-lab-row {
+      margin-top: 10px;
+    }
+    .pending-choice-row {
+      background: #fff5bf;
+      border: 2px solid #c8a100;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .pending-choice-row label {
+      color: #6a5600;
+      font-weight: 700;
+    }
     .gas-btn {
       padding: 6px 16px;
       border: 1px solid #bbb;
@@ -201,8 +214,8 @@
           <div style="margin-top:8px;">
             <div class="section-lbl">Calcium</div>
             <div class="hrow" style="margin-top:0;">
-              <div class="hcell"><span class="lab-lbl">iCa</span><input id="pat-ica" class="lab-input" placeholder="—"></div>
               <div class="hcell"><span class="lab-lbl">Ca</span><input id="pat-ca" class="lab-input" placeholder="—"></div>
+              <div class="hcell"><span class="lab-lbl">iCa</span><input id="pat-ica" class="lab-input" placeholder="—"></div>
             </div>
           </div>
         </div>
@@ -214,6 +227,32 @@
             <div class="hcell"><span class="lab-lbl">HGB</span><input id="pat-hgb" class="lab-input" placeholder="—"></div>
             <div class="hcell"><span class="lab-lbl">HCT</span><input id="pat-hct" class="lab-input" placeholder="—"></div>
             <div class="hcell"><span class="lab-lbl">PLT</span><input id="pat-plt" class="lab-input" placeholder="—"></div>
+          </div>
+          <div id="pat-pregnant-row" class="conditional-lab-row" style="display:none;">
+            <div class="section-lbl">Pregnant</div>
+            <div class="hrow" style="margin-top:0;">
+              <div class="hcell" style="align-items:flex-start;">
+                <div>
+                  <label><input type="radio" name="pat-pregnant" id="pat-pregnant-yes" value="Yes"> Yes</label>
+                  <label style="margin-left:12px;"><input type="radio" name="pat-pregnant" id="pat-pregnant-no" value="No"> No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="pat-ts-date-row" class="conditional-lab-row">
+            <div class="section-lbl">T+S Date &amp; Time</div>
+            <div class="hrow" style="margin-top:0;">
+              <div class="hcell" style="align-items:flex-start;">
+                <input id="pat-ts-date" class="lab-input" style="width:120px;" placeholder="MM/DD/YYYY">
+              </div>
+              <div class="hcell" style="align-items:flex-start;">
+                <input id="pat-ts-time" class="lab-input" style="width:80px;" placeholder="HHMM">
+              </div>
+              <div id="pat-ts-good-until-wrap" class="hcell" style="align-items:flex-start;display:none;">
+                <span class="lab-lbl">Good Until</span>
+                <input id="pat-ts-good-until" class="lab-input" style="width:180px;" readonly>
+              </div>
+            </div>
           </div>
 
           <div style="margin-top:10px;">
@@ -322,13 +361,92 @@
       saveState();
     }
 
+    function syncPregnancyUi() {
+      var row = document.getElementById('pat-pregnant-row');
+      var yes = document.getElementById('pat-pregnant-yes');
+      var no = document.getElementById('pat-pregnant-no');
+      if (!row || !yes || !no) return;
+
+      var s = getGlobalState();
+      var gender = String(s['pat-gender'] || '').trim();
+      var age = parseFloat(s['pat-age']);
+      var show = gender === 'F' && !isNaN(age) && age >= 12 && age <= 55;
+
+      row.style.display = show ? 'block' : 'none';
+      if (!show) {
+        yes.checked = false;
+        no.checked = false;
+      }
+
+      var needsAnswer = show && !yes.checked && !no.checked;
+      row.classList.toggle('pending-choice-row', needsAnswer);
+    }
+
+    function parseDateTimeMs(dateStr, timeStr) {
+      var dm = String(dateStr || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (!dm) return null;
+      var h = 0, m = 0;
+      if (timeStr) {
+        var tt = String(timeStr).trim();
+        if (/^\d{3,4}$/.test(tt)) {
+          tt = tt.length === 3 ? ('0' + tt) : tt;
+          tt = tt.slice(0, 2) + ':' + tt.slice(2);
+        }
+        var tm = tt.match(/^(\d{1,2}):(\d{2})$/);
+        if (tm) { h = parseInt(tm[1], 10); m = parseInt(tm[2], 10); }
+      }
+      var dt = new Date(parseInt(dm[3], 10), parseInt(dm[1], 10) - 1, parseInt(dm[2], 10), h, m, 0);
+      return isNaN(dt.getTime()) ? null : dt.getTime();
+    }
+
+    function formatDateTimeMs(ms) {
+      var dt = new Date(ms);
+      if (isNaN(dt.getTime())) return '';
+      return (dt.getMonth() + 1) + '/' + dt.getDate() + '/' + dt.getFullYear() + ' ' +
+        String(dt.getHours()).padStart(2, '0') + String(dt.getMinutes()).padStart(2, '0');
+    }
+
+    function syncTSGoodUntil() {
+      var dateEl = document.getElementById('pat-ts-date');
+      var timeEl = document.getElementById('pat-ts-time');
+      var goodUntilWrap = document.getElementById('pat-ts-good-until-wrap');
+      var goodUntilEl = document.getElementById('pat-ts-good-until');
+      if (!dateEl || !timeEl || !goodUntilWrap || !goodUntilEl) return;
+      var tsDate = dateEl.value.trim();
+      var tsTime = timeEl.value.trim();
+      var hasAnyInput = !!tsDate || !!tsTime;
+      goodUntilWrap.style.display = hasAnyInput ? 'flex' : 'none';
+      if (!hasAnyInput) {
+        goodUntilEl.value = '';
+        return;
+      }
+      var tsMs = parseDateTimeMs(tsDate, tsTime);
+      goodUntilEl.value = tsMs === null ? '' : formatDateTimeMs(tsMs + (72 * 60 * 60 * 1000));
+    }
+
     pageBoot(function() {
       document.querySelectorAll('.lab-input').forEach(function(el) {
         el.addEventListener('input', checkLabs);
       });
+      document.querySelectorAll('input[name="pat-pregnant"]').forEach(function(el) {
+        el.addEventListener('change', function() {
+          syncPregnancyUi();
+          saveState();
+        });
+      });
+      document.getElementById('pat-ts-date').addEventListener('input', syncTSGoodUntil);
+      document.getElementById('pat-ts-time').addEventListener('input', syncTSGoodUntil);
       var s = getGlobalState();
       setGas(s['pat-gas-type'] || 'none');
       checkLabs();
+      syncPregnancyUi();
+      syncTSGoodUntil();
+    }, function() {
+      var s = getGlobalState();
+      setGas(s['pat-gas-type'] || 'none');
+      checkLabs();
+      syncPregnancyUi();
+      syncTSGoodUntil();
     });
   </script>
 
