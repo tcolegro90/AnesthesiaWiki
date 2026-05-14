@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anesthetic Plan</title>
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    .add-row-btn {
+      margin-top: 6px;
+      padding: 3px 12px;
+      font-size: 12px;
+      border: 1px dashed #4a6fa5;
+      border-radius: 4px;
+      background: #f0f5ff;
+      color: #4a6fa5;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .add-row-btn:hover { background: #dde8ff; }
+    .repeat-row { display: grid; grid-template-columns: 220px 84px 1fr auto; align-items: center; gap: 6px; }
+    .repeat-row .remove-btn {
+      border: 1px solid #e4b7b7; background: #fff1f1;
+      color: #8f2424; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; line-height: 1.4;
+      padding: 4px 10px; border-radius: 6px; flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .repeat-row .remove-btn:hover { background: #ffe5e5; }
+    /* Reusable drug-input row (select + dose + hint) */
+    .med-drug-row {
+      display: grid;
+      grid-template-columns: 220px 84px 1fr;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    @media (max-width: 600px) {
+      /* Stack dose hint below select+input */
+      .med-drug-row {
+        grid-template-columns: 1fr 84px;
+      }
+      .med-drug-row .muted {
+        grid-column: 1 / -1;
+        margin-top: 1px;
+        font-size: 0.82rem;
+        line-height: 1.4;
+      }
+      /* Dynamic pain rows */
+      .repeat-row {
+        grid-template-columns: 1fr 84px auto !important;
+      }
+      .repeat-row .muted {
+        grid-column: 1 / 3 !important;
+        font-size: 0.82rem;
+        line-height: 1.4;
+      }
+    }
+    .auto-note {
+      display: none;
+      margin-left: 8px;
+      padding: 2px 6px;
+      border: 1px solid #e5b2b2;
+      border-radius: 4px;
+      background: #fff0f0;
+      color: #b32424;
+      font-weight: 700;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    #wip-banner {
+      display: none;
+      padding: 14px 18px;
+      background: #fffbe6;
+      border: 2px solid #f0c040;
+      border-radius: 10px;
+      color: #7a5500;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    #wip-banner span { font-size: 1.25em; margin-right: 8px; }
+    #neuro-monitor-banner {
+      display: none;
+      padding: 12px 16px;
+      background: rgba(220, 53, 69, 0.08);
+      border: 2px solid rgba(220, 53, 69, 0.45);
+      border-radius: 8px;
+      color: rgba(180, 20, 30, 0.85);
+      font-size: 0.97rem;
+      font-weight: 700;
+      letter-spacing: 0.15px;
+    }
+    #neuro-monitor-banner span { font-size: 1.2em; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>8. Anesthetic Plan</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Patient</a><a href="2-Surgery.html">2 Surgery</a><a href="3-Labs-Chemistries.html">3 Labs</a><a href="4-PMH.html">4 PMH</a><a href="5-Prescribed-Medications.html">5 Home Meds</a><a href="6-Preop-History.html">6 Preop Hx</a><a href="7-Airway-Exam.html">7 Airway</a><a href="7b-Extras.html">7b Extras</a><a href="8-Anesthetic-Plan.html">8 Anesthetic Plan</a><a href="8b-APFEL-PONV.html">8b APFEL/PONV</a><a href="9-Fluid-Blood-Plan.html">9 Fluid/Blood</a><a href="10-Vent-Settings.html">10 Vent</a>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+  <style>.card label { font-weight: 700; }</style>
+
+      <div id="neuro-monitor-banner"><span>&#9888;</span>This surgery is booked for neuro monitoring &mdash; use caution with anesthetic type and paralytic.</div>
+
+      <div class="row" style="padding-left:0;">
+        <div><label>Anesthesia Type</label><br><select id="anes-type" class="long" onchange="toggleGeneralOptions(); onAnyPlanInput();"><option value="">Select...</option><option>General</option><option>MAC</option><option>Sedation</option><option>Spinal</option><option>Epidural</option></select></div>
+        <div id="tiva-wrap" style="display:none;"><label><input type="checkbox" id="tiva-box" onchange="toggleTivaReason(); onAnyPlanInput();"> TIVA</label></div>
+        <div id="tiva-reason-wrap" style="display:none;"><label>TIVA reason</label><br><select id="tiva-reason" class="med" onchange="toggleTivaOther(); onAnyPlanInput();"><option value="">Reason...</option><option>MH history</option><option>PONV</option><option>Other</option></select> <input id="tiva-other" class="med" style="display:none;" placeholder="Specify"></div>
+        <div id="mh-banner" style="display:none;"><span style="color:#dc3545;font-size:1.3em;font-weight:900;letter-spacing:1px;">&#9888; MALIGNANT HYPERTHERMIA</span></div>
+      </div>
+
+      <div id="wip-banner"><span>&#9888;</span>This section is still a work in progress.</div>
+
+      <div id="general-options" style="display:none;">
+        <div class="grid">
+          <div>
+            <label>Airway Method</label><br>
+            <select id="ind-airway-method" class="med"><option>DL</option><option>VL</option><option>FI</option><option>LMA</option></select>
+            <span id="airway-auto-note" class="auto-note">Auto-selected: Potential difficult airway</span>
+          </div>
+          <div>
+            <label>Extubation Plan</label><br>
+            <select id="ind-extubation-plan" class="med">
+              <option value="Awake" selected>Awake</option>
+              <option value="Deep">Deep</option>
+            </select>
+          </div>
+          <div id="row-ind-rsi">
+            <label>RSI</label><br>
+            <label><input type="radio" id="ind-rsi-yes" name="ind-rsi" value="Yes" onchange="triggerCrossConditions()"> Yes</label>
+            <label><input type="radio" id="ind-rsi-no" name="ind-rsi" value="No" onchange="triggerCrossConditions()"> No</label>
+            <span id="rsi-auto-note" class="auto-note">Auto-selected: Patient not fasted</span>
+          </div>
+          <div>
+            <label>Anxiolytic?</label><br>
+            <div style="margin-top:14px;">
+              <label><input type="radio" name="ind-anxiolytic-yn" id="ind-anxiolytic-yes" value="Yes"> Yes</label>
+              <label><input type="radio" name="ind-anxiolytic-yn" id="ind-anxiolytic-no" value="No"> No</label>
+            </div>
+            <div id="anxiolytic-wrap" style="display:none;margin-top:6px;">
+            <div class="med-drug-row" style="margin-top:0;">
+                <select id="ind-anxiolytic-select" class="med" style="width:100%;">
+                  <option value="">Select...</option>
+                  <option>Midazolam</option>
+                  <option>Lorazepam</option>
+                  <option>Diazepam</option>
+                  <option>Hydroxyzine</option>
+                  <option>Alprazolam</option>
+                  <option>Dexmedetomidine</option>
+                </select>
+                <input id="ind-anxiolytic-dose" class="small" placeholder="Dose" />
+                <span id="ind-anxiolytic-range" class="muted"></span>
+              </div>
+            </div>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label>Blunt Adrenergic Response <span class="muted" style="font-weight:400;">(before induction)</span></label><br>
+            <div class="med-drug-row">
+              <select id="ind-blunt-select" class="med" style="width:100%;">
+                <option value="">Select...</option>
+                <option>Fentanyl</option>
+                <option>Esmolol</option>
+                <option>Remifentanil</option>
+                <option>Dexmedetomidine</option>
+              </select>
+              <input id="ind-blunt-dose" class="small" placeholder="Dose" />
+              <span id="ind-blunt-range" class="muted"></span>
+            </div>
+          </div>
+          <div>
+            <label>Induction Agent</label><br>
+            <div class="med-drug-row">
+              <select id="ind-agent-select" class="med" style="width:100%;"><option value="">Select...</option><option>Propofol</option><option>Etomidate</option><option>Ketamine</option><option>Midazolam</option></select>
+              <input id="ind-agent-dose" class="small" placeholder="Dose" />
+              <span id="ind-agent-range" class="muted"></span>
+            </div>
+            <!-- Vesicant pain (propofol only) -->
+            <div id="row-vesicant" style="display:none;margin-top:6px;">
+              <label>Vesicant Pain</label><br>
+              <div class="med-drug-row">
+                <select id="vesicant-prop" class="med" style="width:100%;">
+                  <option value="0">None</option>
+                  <option value="lidocaine">Lidocaine</option>
+                </select>
+                <input id="vesicant-dose" class="small" placeholder="Dose" />
+                <span class="muted">50–100 mg</span>
+              </div>
+            </div>
+          </div>
+          <div id="row-ind-paralytic">
+            <label>Paralytic</label><br>
+            <div class="med-drug-row">
+              <select id="ind-paralytic" class="med" style="width:100%;"><option value="">Select...</option><option>Succinylcholine</option><option>Rocuronium</option><option>Cisatracurium</option><option>Vecuronium</option></select>
+              <input id="ind-paralytic-dose" class="small" placeholder="Dose" />
+              <span id="ind-paralytic-range" class="muted"></span>
+            </div>
+            <div id="sux-warning" class="muted" style="display:none;color:#b32424;font-weight:700;">Contraindication alert</div>
+          </div>
+          <!-- Inhalation Agent(s) with MAC + % bidirectional -->
+          <div style="grid-column:1/-1;" id="inh-section">
+
+            <!-- Row 1 -->
+            <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;" id="inh-row-1">
+              <div>
+                <label>Inhalation Agent</label><br>
+                <select id="ind-inhalation" class="med" style="width:165px;" onchange="onAnyPlanInput(); onInhAgent1Change();">
+                  <option value="">Select...</option>
+                  <option>Sevoflurane</option>
+                  <option>Isoflurane</option>
+                  <option>Desflurane</option>
+                  <option>Nitrous Oxide</option>
+                </select>
+                <div id="inh-age-note" style="display:none;margin-top:4px;font-size:0.82rem;color:#2a7a4a;font-style:italic;"></div>
+              </div>
+              <div id="mac-wrap" style="display:none;">
+                <label style="font-size:0.8rem;color:#6b7a8d;">MAC</label><br>
+                <select id="ind-mac-plan" style="width:70px;" onchange="onMacPlanChange(1); onAnyPlanInput();">
+                  <option value="">—</option><option>0.1</option><option>0.2</option><option>0.3</option><option>0.4</option><option>0.5</option><option>0.6</option><option>0.7</option><option>0.8</option><option>0.9</option><option>1.0</option><option>1.1</option><option>1.2</option><option>1.3</option><option>1.4</option><option>1.5</option>
+                </select>
+              </div>
+              <div id="inh-pct-wrap-1" style="display:none;">
+                <label style="font-size:0.8rem;color:#6b7a8d;">%</label><br>
+                <input id="inh-pct-1" class="small" style="width:64px;" placeholder="%" oninput="onPctInput(1);" />
+              </div>
+            </div>
+
+            <!-- Row 2 (hidden until '+ Add second gas') -->
+            <div id="inh-row-2" style="display:none;margin-top:8px;align-items:flex-end;gap:8px;flex-wrap:wrap;">
+              <div>
+                <label style="font-size:0.85rem;color:#6b7a8d;">+ Gas</label><br>
+                <select id="ind-inhalation-2" class="med" style="width:165px;" onchange="onInhAgent2Change();">
+                  <option value="">Select...</option>
+                </select>
+              </div>
+              <div id="mac-wrap-2" style="display:none;">
+                <label style="font-size:0.8rem;color:#6b7a8d;">MAC</label><br>
+                <select id="ind-mac-plan-2" style="width:70px;" onchange="onMacPlanChange(2);">
+                  <option value="">—</option><option>0.1</option><option>0.2</option><option>0.3</option><option>0.4</option><option>0.5</option><option>0.6</option><option>0.7</option><option>0.8</option><option>0.9</option><option>1.0</option><option>1.1</option><option>1.2</option><option>1.3</option><option>1.4</option><option>1.5</option>
+                </select>
+              </div>
+              <div id="inh-pct-wrap-2" style="display:none;">
+                <label style="font-size:0.8rem;color:#6b7a8d;">%</label><br>
+                <input id="inh-pct-2" class="small" style="width:64px;" placeholder="%" oninput="onPctInput(2);" />
+              </div>
+              <button type="button" class="remove-btn" style="margin-bottom:2px;" onclick="removeSecondGas();">Remove</button>
+            </div>
+
+            <!-- Add second gas button -->
+            <button type="button" id="add-second-gas-btn" class="add-row-btn" style="margin-top:8px;" onclick="showSecondGas();">+ Add second gas</button>
+
+          </div><!-- /#inh-section -->
+        </div>
+      </div>
+
+      <!-- MAC-specific options -->
+      <div id="mac-options" style="display:none;">
+        <div class="grid">
+          <div>
+            <label>Oxygen Delivery</label><br>
+            <select id="mac-oxygen-delivery" class="med" onchange="saveState()">
+              <option value="">Select...</option>
+              <option>Face Mask</option>
+              <option>Nasal Cannula</option>
+              <option>Pom Mask</option>
+              <option>High Flow Nasal Cannula</option>
+            </select>
+          </div>
+          <div>
+            <label>Airway Adjunct</label><br>
+            <select id="mac-airway-adjunct" class="med" onchange="saveState()">
+              <option value="">None</option>
+              <option>Oral Pharyngeal Airway</option>
+              <option>Nasal Pharyngeal Airway</option>
+            </select>
+          </div>
+          <div>
+            <label>Anxiolytic</label><br>
+            <div style="margin-top:14px;">
+              <label><input type="radio" name="mac-anxiolytic-yn" id="mac-anxiolytic-yes" value="Yes"> Yes</label>
+              <label><input type="radio" name="mac-anxiolytic-yn" id="mac-anxiolytic-no" value="No"> No</label>
+            </div>
+            <div id="mac-anxiolytic-wrap" style="display:none;margin-top:6px;">
+              <div class="med-drug-row" style="margin-top:0;">
+                <select id="mac-anxiolytic-select" class="med" style="width:100%;">
+                  <option value="">Select...</option>
+                  <option>Midazolam</option>
+                  <option>Lorazepam</option>
+                  <option>Diazepam</option>
+                  <option>Hydroxyzine</option>
+                  <option>Alprazolam</option>
+                  <option>Dexmedetomidine</option>
+                </select>
+                <input id="mac-anxiolytic-dose" class="small" placeholder="Dose" />
+                <span id="mac-anxiolytic-range" class="muted"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shared pain management sections (General + MAC) -->
+      <div id="plan-pain-sections" style="display:none;">
+        <div class="grid" style="margin-top:12px;">
+          <div style="grid-column:1/-1;">
+            <label>Pain Management</label>
+            <div id="intraop-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
+            <button type="button" class="add-row-btn" onclick="addPainRow('intraop')">+ Add</button>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label>Post-op Pain Management</label>
+            <div id="postop-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
+            <button type="button" class="add-row-btn" onclick="addPainRow('postop')">+ Add</button>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label>Non-Opioid Pain Adjuncts</label>
+            <div id="nonopioid-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
+            <button type="button" class="add-row-btn" onclick="addPainRow('nonopioid')">+ Add</button>
+          </div>
+          <div id="sedation-bolus-section" style="grid-column:1/-1;display:none;">
+            <label>Sedation (Bolus)</label>
+            <div id="sedation_bolus-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
+            <button type="button" class="add-row-btn" onclick="addPainRow('sedation_bolus')">+ Add</button>
+          </div>
+          <div id="sedation-drips-section" style="grid-column:1/-1;display:none;">
+            <label>Sedation (Drips)</label>
+            <div id="sedation_drips-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
+            <button type="button" class="add-row-btn" onclick="addPainRow('sedation_drips')">+ Add</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <script src="med-catalog.js"></script>
+  <script src="shared.js"></script>
+  <script src="plan.js"></script>
+
+  <!-- ─── Inhalation gas MAC ↔ % bidirectional logic ──────────────── -->
+  <script>
+  (function () {
+
+    var INH_MAC_PCT = {
+      'Sevoflurane':   2.0,
+      'Desflurane':    6.6,
+      'Isoflurane':    1.2,
+      'Nitrous Oxide': 104.0
+    };
+
+    function getAgeFactor() {
+      var s = getGlobalState();
+      var age = parseFloat(s['pat-age']) || 0;
+      if (age <= 40) return 1.0;
+      var decades = (age - 40) / 10.0;
+      return Math.max(0.05, 1.0 - 0.06 * decades);
+    }
+
+    window.updateAgeNote = function () {
+      var note = document.getElementById('inh-age-note');
+      if (!note) return;
+      var s = getGlobalState();
+      var age = parseFloat(s['pat-age']) || 0;
+      var agent1 = (document.getElementById('ind-inhalation') || {}).value || '';
+      var agent2 = (document.getElementById('ind-inhalation-2') || {}).value || '';
+      if ((!agent1 && !agent2) || age <= 40 || !age) { note.style.display = 'none'; return; }
+      var decades = (age - 40) / 10.0;
+      var reduction = Math.round(decades * 6 * 10) / 10;
+      var factor = Math.max(0.05, 1.0 - 0.06 * decades);
+      note.textContent = 'Adjusted for Age ' + age + ' (−' + reduction + '% MAC)';
+      note.style.display = 'block';
+    };
+
+    window.calcAndSetPct = function (row) {
+      var agentId = row === 1 ? 'ind-inhalation'   : 'ind-inhalation-2';
+      var macId   = row === 1 ? 'ind-mac-plan'     : 'ind-mac-plan-2';
+      var pctId   = 'inh-pct-' + row;
+      var wrapId  = 'inh-pct-wrap-' + row;
+      var agent   = (document.getElementById(agentId) || {}).value || '';
+      var mac     = parseFloat((document.getElementById(macId) || {}).value) || 0;
+      var pctEl   = document.getElementById(pctId);
+      var wrapEl  = document.getElementById(wrapId);
+      var basePct = INH_MAC_PCT[agent];
+      if (!basePct || !wrapEl || !pctEl) return;
+      wrapEl.style.display = '';
+      if (mac > 0) {
+        var computedPct = Math.round(mac * basePct * getAgeFactor() * 10) / 10;
+        if (agent === 'Nitrous Oxide') computedPct = Math.min(computedPct, 70);
+        pctEl.value = computedPct;
+      }
+      updateAgeNote();
+    };
+
+    window.syncPctWrapFromMacWrap = function () {
+      var macWrap = document.getElementById('mac-wrap');
+      var pctWrap = document.getElementById('inh-pct-wrap-1');
+      if (!macWrap || !pctWrap) return;
+      var show = macWrap.style.display !== 'none';
+      pctWrap.style.display = show ? '' : 'none';
+      if (show) calcAndSetPct(1);
+    };
+
+    window.onMacPlanChange = function (row) { calcAndSetPct(row); };
+
+    // Populate MAC dropdown options based on agent (N2O capped at 0.6 = 62.4%)
+    function updateMacOptions(macSelId, agent) {
+      var macSel = document.getElementById(macSelId);
+      if (!macSel) return;
+      var maxMac = (agent === 'Nitrous Oxide') ? 0.6 : 1.5;
+      var step = 0.1;
+      var prev = parseFloat(macSel.value) || 0;
+      macSel.innerHTML = '<option value="">—</option>';
+      for (var v = step; v <= maxMac + 0.001; v = Math.round((v + step) * 10) / 10) {
+        var opt = document.createElement('option');
+        opt.value = v.toFixed(1);
+        opt.textContent = v.toFixed(1);
+        macSel.appendChild(opt);
+      }
+      // Restore previous value if still in range
+      if (prev > 0 && prev <= maxMac) macSel.value = prev.toFixed(1);
+    }
+
+    window.onPctInput = function (row) {
+      var agentId = row === 1 ? 'ind-inhalation' : 'ind-inhalation-2';
+      var macId   = row === 1 ? 'ind-mac-plan'   : 'ind-mac-plan-2';
+      var pctId   = 'inh-pct-' + row;
+      var agent   = (document.getElementById(agentId) || {}).value || '';
+      var pctEl   = document.getElementById(pctId);
+      var macSel  = document.getElementById(macId);
+      if (!agent || !pctEl || !macSel) return;
+      var basePct = INH_MAC_PCT[agent];
+      var pct = parseFloat(pctEl.value);
+      if (!basePct || isNaN(pct)) return;
+      var isNitrous = (agent === 'Nitrous Oxide');
+      if (isNitrous && pct > 70) { pct = 70; pctEl.value = 70; }
+      var ageFactor = isNitrous ? 1.0 : getAgeFactor();
+      var rawMac = pct / (basePct * ageFactor);
+      var maxMac = isNitrous ? 0.6 : 1.5;
+      // Round to nearest 0.1, then cap
+      var snapped = Math.round(rawMac * 10) / 10;
+      snapped = Math.min(snapped, maxMac);
+      snapped = Math.max(snapped, 0.1);
+      var snapStr = snapped.toFixed(1);
+      if (macSel.querySelector('option[value="' + snapStr + '"]')) {
+        macSel.value = snapStr;
+        // Do NOT overwrite pctEl — user is typing, leave it alone
+      }
+      saveState();
+    };
+
+    window.onInhAgent1Change = function () {
+      updateSecondRowOptions();
+      var agent = (document.getElementById('ind-inhalation') || {}).value || '';
+      var macWrap1 = document.getElementById('mac-wrap');
+      var pctWrap = document.getElementById('inh-pct-wrap-1');
+      var isNitrous = (agent === 'Nitrous Oxide');
+      updateMacOptions('ind-mac-plan', agent);
+      if (macWrap1) macWrap1.style.display = agent ? '' : 'none';
+      if (pctWrap) pctWrap.style.display = agent ? '' : 'none';
+      if (!agent && document.getElementById('inh-pct-1')) document.getElementById('inh-pct-1').value = '';
+      var mac1El = document.getElementById('ind-mac-plan');
+      if (isNitrous && mac1El && !mac1El.value) { mac1El.value = '0.5'; calcAndSetPct(1); }
+      else if (agent && !isNitrous && mac1El && !mac1El.value) { mac1El.value = '1.0'; calcAndSetPct(1); }
+      updateAgeNote();
+    };
+
+    window.onInhAgent2Change = function () {
+      var agent  = (document.getElementById('ind-inhalation-2') || {}).value || '';
+      var mw2    = document.getElementById('mac-wrap-2');
+      var pw2    = document.getElementById('inh-pct-wrap-2');
+      var mac2   = document.getElementById('ind-mac-plan-2');
+      var isNitrous2 = (agent === 'Nitrous Oxide');
+      updateMacOptions('ind-mac-plan-2', agent);
+      if (mw2) mw2.style.display = agent ? 'inline-block' : 'none';
+      if (pw2) pw2.style.display = agent ? '' : 'none';
+      if (agent && mac2) {
+        if (!mac2.value) mac2.value = isNitrous2 ? '0.5' : '1.0';
+      }
+      if (!agent && document.getElementById('inh-pct-2')) document.getElementById('inh-pct-2').value = '';
+      calcAndSetPct(2);
+      updateAgeNote();
+      // Persist row 2 agent
+      var s = getGlobalState(); s['inh-agent-2'] = agent; s['inh-row-2-visible'] = '1'; setGlobalState(s);
+    };
+
+    window.updateSecondRowOptions = function () {
+      var agent1 = (document.getElementById('ind-inhalation') || {}).value || '';
+      var sel2   = document.getElementById('ind-inhalation-2');
+      if (!sel2) return;
+      var prevVal = sel2.value;
+      sel2.innerHTML = '<option value="">Select...</option>';
+      var isNitrous1 = (agent1 === 'Nitrous Oxide');
+      if (isNitrous1) {
+        ['Sevoflurane','Isoflurane','Desflurane'].forEach(function (a) {
+          var o = document.createElement('option'); o.value = a; o.textContent = a; sel2.appendChild(o);
+        });
+      } else {
+        var o = document.createElement('option'); o.value = 'Nitrous Oxide'; o.textContent = 'Nitrous Oxide'; sel2.appendChild(o);
+      }
+      if (prevVal && sel2.querySelector('option[value="' + prevVal + '"]')) sel2.value = prevVal;
+    };
+
+    window.showSecondGas = function () {
+      var row2 = document.getElementById('inh-row-2');
+      var btn  = document.getElementById('add-second-gas-btn');
+      if (row2) row2.style.display = 'flex';
+      if (btn)  btn.style.display  = 'none';
+      updateSecondRowOptions();
+    };
+
+    window.removeSecondGas = function () {
+      var row2 = document.getElementById('inh-row-2');
+      var btn  = document.getElementById('add-second-gas-btn');
+      if (row2) row2.style.display = 'none';
+      if (btn)  btn.style.display  = '';
+      var sel2 = document.getElementById('ind-inhalation-2');
+      var mac2 = document.getElementById('ind-mac-plan-2');
+      var pct2 = document.getElementById('inh-pct-2');
+      var mw2  = document.getElementById('mac-wrap-2');
+      var pw2  = document.getElementById('inh-pct-wrap-2');
+      if (sel2) sel2.value = ''; if (mac2) mac2.value = ''; if (pct2) pct2.value = '';
+      if (mw2) mw2.style.display = 'none'; if (pw2) pw2.style.display = 'none';
+      var s = getGlobalState();
+      delete s['inh-agent-2']; delete s['inh-mac-2']; delete s['inh-row-2-visible'];
+      setGlobalState(s);
+      updateAgeNote();
+    };
+
+    // Patch updateMacVisibility so % wrap tracks mac-wrap visibility
+    var _origUMV = window.updateMacVisibility;
+    window.updateMacVisibility = function () {
+      if (typeof _origUMV === 'function') _origUMV();
+      syncPctWrapFromMacWrap();
+    };
+
+    // Patch onExternalUpdate to refresh inhalation UI on state changes
+    var _origOEU_inh = window.onExternalUpdate;
+    window.onExternalUpdate = function () {
+      if (typeof _origOEU_inh === 'function') _origOEU_inh();
+      calcAndSetPct(1);
+      calcAndSetPct(2);
+      updateAgeNote();
+    };
+
+    // Restore state + wire listeners after pageBoot completes
+    setTimeout(function () {
+      // Row 1: wire mac-plan change → % update
+      var mac1 = document.getElementById('ind-mac-plan');
+      if (mac1) mac1.addEventListener('change', function () { calcAndSetPct(1); });
+
+      // Row 2: wire listeners for state persistence
+      var sel2 = document.getElementById('ind-inhalation-2');
+      var mac2 = document.getElementById('ind-mac-plan-2');
+      if (sel2) sel2.addEventListener('change', function () {
+        var s = getGlobalState(); s['inh-agent-2'] = sel2.value; setGlobalState(s);
+      });
+      if (mac2) mac2.addEventListener('change', function () {
+        var s = getGlobalState(); s['inh-mac-2'] = mac2.value; setGlobalState(s);
+        calcAndSetPct(2);
+      });
+
+      // Restore row 2 if it was visible in saved state
+      var s = getGlobalState();
+      if (s['inh-row-2-visible']) {
+        showSecondGas();
+        if (sel2 && s['inh-agent-2']) { sel2.value = s['inh-agent-2']; onInhAgent2Change(); }
+        if (mac2 && s['inh-mac-2'])   { mac2.value = s['inh-mac-2'];   calcAndSetPct(2); }
+      }
+
+      syncPctWrapFromMacWrap();
+      updateAgeNote();
+    }, 550);
+
+  })();
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

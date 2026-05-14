@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Demographics</title>
+  <link rel="stylesheet" href="shared.css" />
+<style>
+    .top-demographics-row {
+      margin-bottom: 12px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 12px;
+      gap: 14px;
+      align-items: flex-end;
+    }
+    .surgery-row {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 12px;
+      gap: 14px;
+      align-items: flex-end;
+    }
+    .surgery-subrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: flex-start;
+      width: 100%;
+    }
+    .surgery-top-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 14px;
+      align-items: flex-end;
+      width: 100%;
+    }
+    .conditional-inline {
+      display: none;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .add-row-btn {
+      padding: 3px 12px;
+      font-size: 12px;
+      border: 1px dashed #4a6fa5;
+      border-radius: 4px;
+      background: #f0f5ff;
+      color: #4a6fa5;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .add-row-btn:hover { background: #dde8ff; }
+    .surgery-input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .surgery-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .surgery-input-group input {
+      flex: 1;
+    }
+    .surgery-label-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .jaffe-search-item {
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #3a2a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .jaffe-search-item:hover, .jaffe-search-item.highlighted {
+      background: #fdf0e0;
+    }
+    .jaffe-search-item .jspage {
+      font-size: 10px;
+      color: #9a7a5a;
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .jaffe-badge {
+      display: none;
+      padding: 2px 6px;
+      background: #f0e6d2;
+      border: 1px solid #d4a574;
+      border-radius: 3px;
+      font-size: 11px;
+      color: #5a4a3a;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .jaffe-badge:hover {
+      background: #e8dac4;
+    }
+    .jaffe-badge a {
+      color: #5a4a3a;
+      text-decoration: none;
+    }
+    .surgery-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .surgery-suggestions.show {
+      display: block;
+    }
+    .surgery-suggestion-section {
+      padding: 6px 12px 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      background: #f8f8f8;
+      text-transform: uppercase;
+      border-bottom: 1px solid #ddd;
+    }
+    .surgery-suggestion-page {
+      float: right;
+      font-size: 11px;
+      color: #999;
+      margin-left: 8px;
+    }
+    .surgery-suggestion-item {
+      padding: 0;
+      cursor: default;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+      transition: background 0.15s;
+      display: flex;
+      align-items: stretch;
+    }
+    .surgery-suggestion-item:hover {
+      background: #e3f2fd;
+    }
+    .surgery-suggestion-item.highlighted {
+      background: #bbdefb;
+    }
+    .ssi-name {
+      flex: 1 1 auto;
+      padding: 8px 8px 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .ssi-name:hover { background: #cce8fd; }
+    .ssi-jaffe-btn {
+      flex: 0 0 auto;
+      padding: 0 10px;
+      border-left: 1px solid #e0e8f0;
+      font-size: 11px;
+      color: #5a7ea0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      background: none;
+      border-top: none;
+      border-right: none;
+      border-bottom: none;
+      font-family: inherit;
+    }
+    .ssi-jaffe-btn { font-weight: 500; }
+    .ssi-jaffe-btn:hover { background: #f0e6d2; color: #5a4a3a; }
+    .complications-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .complications-grid label {
+      min-width: 220px;
+    }
+    .guidance-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #2f4f6f;
+      line-height: 1.35;
+    }
+    .guidance-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .antibiotic-plan-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .antibiotic-plan-main {
+      flex: 1 1 200px;
+      min-width: 0;
+    }
+    .antibiotic-plan-small {
+      flex: 1 1 110px;
+      min-width: 100px;
+      max-width: 150px;
+    }
+    @media (max-width: 600px) {
+      .antibiotic-plan-row { gap: 8px; }
+      .antibiotic-plan-main { flex-basis: 100%; max-width: 100%; }
+      .antibiotic-plan-small { flex: 1 1 120px; max-width: none; }
+    }
+    .suggestion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .suggestion-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid #d7e3f0;
+      border-radius: 6px;
+      padding: 6px 8px;
+      background: #f8fbff;
+      font-size: 12px;
+    }
+    .suggestion-item .suggestion-text {
+      color: #254766;
+      line-height: 1.35;
+    }
+    .suggestion-ref {
+      margin-top: 2px;
+      font-size: 11px;
+      color: #456789;
+    }
+    .confidence-badge {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      vertical-align: middle;
+    }
+    .confidence-badge.high {
+      color: #0f5d35;
+      background: #e8f6ee;
+      border-color: #b9e4cb;
+    }
+    .confidence-badge.medium {
+      color: #7a4e00;
+      background: #fff7e7;
+      border-color: #f2dda9;
+    }
+    .confidence-badge.low {
+      color: #5f6782;
+      background: #f2f5fb;
+      border-color: #d6dfee;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>1. Patient Demographics</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Patient</a><a href="2-Surgery.html">2 Surgery</a><a href="3-Labs-Chemistries.html">3 Labs</a><a href="4-PMH.html">4 PMH</a><a href="5-Prescribed-Medications.html">5 Home Meds</a><a href="6-Preop-History.html">6 Preop Hx</a><a href="7-Airway-Exam.html">7 Airway</a><a href="7b-Extras.html">7b Extras</a><a href="8-Anesthetic-Plan.html">8 Anesthetic Plan</a><a href="8b-APFEL-PONV.html">8b APFEL/PONV</a><a href="9-Fluid-Blood-Plan.html">9 Fluid/Blood</a><a href="10-Vent-Settings.html">10 Vent</a>
+    </div>
+
+      <div class="row top-demographics-row">
+        <div><label>Initials</label><br><input id="pat-initials" type="text" class="tiny-text" /></div>
+        <div><label>Age</label><br><input id="pat-age" type="number" inputmode="numeric" class="small" /></div>
+        <div><label>Gender</label><br><select id="pat-gender" class="xs"><option value="">-</option><option>M</option><option>F</option></select></div>
+        <div>
+          <label>Allergies</label><br>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input id="pat-allergies" class="med" style="width:320px;max-width:100%;" placeholder="NKDA or list allergies" />
+            <button type="button" id="pat-allergies-nkda" class="add-row-btn" style="padding:5px 10px;">NKDA</button>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <div><label>Height (ft)</label><br><select id="pat-feet" class="small"><option value="">-</option><option>4</option><option>5</option><option>6</option></select></div>
+        <div><label>Height (in)</label><br><select id="pat-inches" class="small"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option></select></div>
+        <div><label>Height (cm)</label><br><input id="pat-cm" type="number" inputmode="decimal" class="small" /></div>
+        <div><label>Weight (kg)</label><br><input id="pat-weight-kg" type="number" inputmode="decimal" class="small" /></div>
+        <div><label>Weight (lbs)</label><br><input id="pat-weight-lbs" type="number" inputmode="decimal" class="small" /></div>
+        <div><label>BMI</label><br><input id="pat-bmi" type="number" step="0.1" inputmode="decimal" class="small" /></div>
+      </div>
+
+      <hr>
+
+      <div class="row" style="margin-top:10px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+        <div><label>Fasted</label><div style="margin-top:4px;"><label><input type="radio" name="pat-fasted" id="pat-fasted-yes" value="Yes" checked onchange="highlightAbnormal()"> Yes</label> <label><input type="radio" name="pat-fasted" id="pat-fasted-no" value="No" onchange="highlightAbnormal()"> No</label></div></div>
+        <div><label>Smoker</label><br><label><input type="radio" name="pat-smoker" id="pat-smoker-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-smoker" id="pat-smoker-no" value="No" checked> No</label></div>
+        <div><label>Pacer</label><br><label><input type="radio" name="pat-pacer" id="pacer-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-pacer" id="pacer-no" value="No" checked> No</label></div>
+        <div id="aicd-wrap" style="display:none;"><label>AICD</label><br><label><input type="radio" name="pat-aicd" id="aicd-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-aicd" id="aicd-no" value="No"> No</label></div>
+        <div id="pacer-settings-wrap" style="display:none;"><label>Pacer Settings</label><br><input id="pat-pacer-settings" class="med" placeholder="e.g. VVI 60" /></div>
+      </div>
+
+      <div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+        <div>
+          <label>Interpreter</label><br>
+          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-no" value="No" checked> No</label>
+        </div>
+        <div id="pat-interpreter-language-wrap" style="display:none;">
+          <label>Language</label><br>
+          <input id="pat-interpreter-language" class="med" style="width:220px;max-width:100%;" placeholder="Enter language" />
+        </div>
+        <div>
+          <label>Hearing Loss</label><br>
+          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-no" value="No" checked> No</label>
+        </div>
+        <div id="pat-hearing-aids-wrap" style="display:none;">
+          <label>Hearing Aids</label><br>
+          <label><input type="radio" name="pat-hearing-aids" id="pat-hearing-aids-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-hearing-aids" id="pat-hearing-aids-no" value="No"> No</label>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+        <div>
+          <label>Prior Anesthetic in Chart?</label><br>
+          <label><input type="radio" name="pat-prior-anesthetic" id="pat-prior-anesthetic-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-prior-anesthetic" id="pat-prior-anesthetic-no" value="No" checked> No</label>
+        </div>
+        <div id="pat-prior-anesthetic-notes-wrap" style="display:none;flex-basis:100%;width:100%;">
+          <label>Notes</label><br>
+          <textarea id="pat-prior-anesthetic-notes" rows="2" style="width:100%;min-height:54px;resize:vertical;overflow:hidden;line-height:1.35;padding:7px 9px;border:1px solid #c9d7e8;border-radius:4px;font-size:1.05em;" placeholder="200 prop, 50 fent, required vaso, easy airway"></textarea>
+        </div>
+      </div>
+
+      <div id="pat-stats-result" class="result" style="display:none;"></div>
+    </div>
+  </div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
+  <script>
+    (function() {
+      var cfg = {
+        apiKey: 'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+        authDomain: 'anesthesia-wiki-saved-files.firebaseapp.com',
+        projectId: 'anesthesia-wiki-saved-files',
+        storageBucket: 'anesthesia-wiki-saved-files.firebasestorage.app'
+      };
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+    })();
+  </script>
+  <script src="shared.js"></script>
+
+  <script>
+    function recalculateFromHeight() {
+      const feet = parseInt(document.getElementById('pat-feet').value) || 0;
+      const inches = parseInt(document.getElementById('pat-inches').value) || 0;
+      if (feet > 0 || inches > 0) document.getElementById('pat-cm').value = (((feet * 12) + inches) * 2.54).toFixed(1);
+      recalcWeightChain();
+    }
+
+    function recalculateFromCm() {
+      const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
+      if (cm > 0) {
+        const tot = cm / 2.54;
+        document.getElementById('pat-feet').value = Math.floor(tot / 12) || '';
+        document.getElementById('pat-inches').value = Math.round(tot % 12);
+      }
+      recalcWeightChain();
+    }
+
+    function recalculateFromWeightKg() {
+      const kg = parseFloat(document.getElementById('pat-weight-kg').value) || 0;
+      document.getElementById('pat-weight-lbs').value = kg > 0 ? (kg * 2.20462).toFixed(1) : '';
+      recalcWeightChain();
+    }
+
+    function recalculateFromWeightLbs() {
+      const lbs = parseFloat(document.getElementById('pat-weight-lbs').value) || 0;
+      document.getElementById('pat-weight-kg').value = lbs > 0 ? (lbs / 2.20462).toFixed(1) : '';
+      recalcWeightChain();
+    }
+
+    function recalculateFromBMI() {
+      const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
+      const hm = cm / 100;
+      const bmi = parseFloat(document.getElementById('pat-bmi').value) || 0;
+      if (hm > 0 && bmi > 0) {
+        const kg = bmi * (hm * hm);
+        document.getElementById('pat-weight-kg').value = kg.toFixed(1);
+        document.getElementById('pat-weight-lbs').value = (kg * 2.20462).toFixed(1);
+      }
+      recalcWeightChain(true);
+    }
+
+    function recalcWeightChain(skipBMI) {
+      const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
+      const hm = cm / 100;
+      const kg = parseFloat(document.getElementById('pat-weight-kg').value) || 0;
+      if (hm > 0 && kg > 0 && !skipBMI) {
+        document.getElementById('pat-bmi').value = (kg / (hm * hm)).toFixed(1);
+      }
+      updateIBWandTV();
+      saveState();
+    }
+
+    function updateIBWandTV() {
+      const gen = document.getElementById('pat-gender').value;
+      const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
+      const res = document.getElementById('pat-stats-result');
+      if (!gen || !cm) { res.style.display = 'none'; return; }
+
+      let ibw = gen === 'M' ? 50 + 2.3 * ((cm / 2.54) - 60) : 45.5 + 2.3 * ((cm / 2.54) - 60);
+      if ((cm / 2.54) < 60) ibw = gen === 'M' ? 50 : 45.5;
+
+      res.style.display = 'none';
+      const tvMin = Math.round(ibw * 6);
+      const tvMax = Math.round(ibw * 8);
+
+      const s = getGlobalState();
+      s['pat-ibw'] = ibw.toFixed(1);
+      s['pat-tv-min'] = tvMin;
+      s['pat-tv-max'] = tvMax;
+      setGlobalState(s);
+    }
+
+    function syncPacerUi() {
+      const yes = document.getElementById('pacer-yes').checked;
+      document.getElementById('aicd-wrap').style.display = yes ? 'block' : 'none';
+      document.getElementById('pacer-settings-wrap').style.display = yes ? 'block' : 'none';
+    }
+
+    function syncInterpreterUi() {
+      const yes = document.getElementById('pat-interpreter-yes').checked;
+      document.getElementById('pat-interpreter-language-wrap').style.display = yes ? 'block' : 'none';
+      if (!yes) {
+        document.getElementById('pat-interpreter-language').value = '';
+      }
+      saveState();
+    }
+
+    function syncHearingUi() {
+      const yes = document.getElementById('pat-hearing-loss-yes').checked;
+      document.getElementById('pat-hearing-aids-wrap').style.display = yes ? 'block' : 'none';
+      if (!yes) {
+        document.getElementById('pat-hearing-aids-yes').checked = false;
+        document.getElementById('pat-hearing-aids-no').checked = false;
+      }
+      saveState();
+    }
+
+    function syncPriorAnestheticUi() {
+      const yes = document.getElementById('pat-prior-anesthetic-yes').checked;
+      var notesEl = document.getElementById('pat-prior-anesthetic-notes');
+      document.getElementById('pat-prior-anesthetic-notes-wrap').style.display = yes ? 'block' : 'none';
+      if (!yes) {
+        notesEl.value = '';
+        notesEl.style.height = '34px';
+      } else {
+        autoResizePriorAnestheticNotes();
+      }
+      saveState();
+    }
+
+    function autoResizePriorAnestheticNotes() {
+      var el = document.getElementById('pat-prior-anesthetic-notes');
+      if (!el) return;
+      el.style.height = '34px';
+      el.style.height = Math.max(34, el.scrollHeight) + 'px';
+    }
+
+    function syncSmokerToPmh(isSmoker) {
+      var s = getGlobalState();
+      var rows = [];
+      try { rows = JSON.parse(s['pmh-list'] || '[]') || []; } catch (e) {}
+      rows = rows.filter(function(r) { return r && r.trim() !== 'Smoker'; });
+      if (isSmoker) rows.unshift('Smoker');
+      s['pmh-list'] = JSON.stringify(rows);
+      setGlobalState(s);
+    }
+
+    function highlightAbnormal() {
+      var fastedNo = !document.getElementById('pat-fasted-yes').checked;
+      var wrapper = document.getElementById('pat-fasted-yes').closest('div');
+      if (fastedNo && wrapper) {
+        wrapper.style.color = '#c41c3b';
+        wrapper.style.fontWeight = 'bold';
+      } else if (wrapper) {
+        wrapper.style.color = '';
+        wrapper.style.fontWeight = '';
+      }
+      saveState();
+    }
+
+    function setAllergiesNkda() {
+      var allergiesEl = document.getElementById('pat-allergies');
+      allergiesEl.value = 'NKDA';
+      allergiesEl.dispatchEvent(new Event('input', { bubbles: true }));
+      saveState();
+    }
+
+    function boot() {
+      ['pat-feet', 'pat-inches'].forEach(function(id) {
+        document.getElementById(id).addEventListener('change', recalculateFromHeight);
+      });
+      document.getElementById('pat-allergies-nkda').addEventListener('click', setAllergiesNkda);
+      document.getElementById('pat-cm').addEventListener('input', recalculateFromCm);
+      document.getElementById('pat-weight-kg').addEventListener('input', recalculateFromWeightKg);
+      document.getElementById('pat-weight-lbs').addEventListener('input', recalculateFromWeightLbs);
+      document.getElementById('pat-bmi').addEventListener('input', recalculateFromBMI);
+      document.getElementById('pat-gender').addEventListener('change', function() {
+        updateIBWandTV();
+      });
+      document.querySelectorAll('input[name="pat-interpreter"]').forEach(function(el) {
+        el.addEventListener('change', syncInterpreterUi);
+      });
+      document.querySelectorAll('input[name="pat-hearing-loss"]').forEach(function(el) {
+        el.addEventListener('change', syncHearingUi);
+      });
+      document.querySelectorAll('input[name="pat-hearing-aids"]').forEach(function(el) {
+        el.addEventListener('change', saveState);
+      });
+      document.querySelectorAll('input[name="pat-prior-anesthetic"]').forEach(function(el) {
+        el.addEventListener('change', syncPriorAnestheticUi);
+      });
+      ['pacer-yes', 'pacer-no', 'aicd-yes', 'aicd-no'].forEach(function(id) {
+        document.getElementById(id).addEventListener('change', syncPacerUi);
+      });
+      document.querySelectorAll('input[name="pat-smoker"]').forEach(function(el) {
+        el.addEventListener('change', function() { syncSmokerToPmh(this.value === 'Yes'); saveState(); });
+      });
+      syncPacerUi();
+      syncInterpreterUi();
+      syncHearingUi();
+      syncPriorAnestheticUi();
+      updateIBWandTV();
+      setTimeout(function() { updateIBWandTV(); }, 0);
+    }
+
+    pageBoot(boot, function() { updateIBWandTV(); syncInterpreterUi(); syncHearingUi(); syncPriorAnestheticUi(); syncPacerUi(); highlightAbnormal(); });
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+
+
+</body>
+</html>

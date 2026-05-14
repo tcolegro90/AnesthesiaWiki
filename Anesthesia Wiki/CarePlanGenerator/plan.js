@@ -23,6 +23,16 @@ function toggleGeneralOptions() {
   const t = document.getElementById('anes-type').value;
   document.getElementById('general-options').style.display = t === 'General' ? 'block' : 'none';
   document.getElementById('tiva-wrap').style.display = t === 'General' ? 'block' : 'none';
+  var macOpts = document.getElementById('mac-options');
+  if (macOpts) macOpts.style.display = t === 'MAC' ? 'block' : 'none';
+  var painSecs = document.getElementById('plan-pain-sections');
+  if (painSecs) painSecs.style.display = (t === 'General' || t === 'MAC') ? 'block' : 'none';
+  var sedBolusSec = document.getElementById('sedation-bolus-section');
+  if (sedBolusSec) sedBolusSec.style.display = t === 'MAC' ? 'block' : 'none';
+  var sedDripsSec = document.getElementById('sedation-drips-section');
+  if (sedDripsSec) sedDripsSec.style.display = t === 'MAC' ? 'block' : 'none';
+  var wipBanner = document.getElementById('wip-banner');
+  if (wipBanner) wipBanner.style.display = ['MAC','Spinal','Epidural','Sedation'].indexOf(t) !== -1 ? 'block' : 'none';
   saveState();
 }
 
@@ -76,7 +86,7 @@ function planDoseSpec(group, drug) {
       'Vecuronium':      { min: 0.08, max: 0.12, unit: 'mg', perKg: true }
     },
     anxiolytic: {
-      'Midazolam':        { min: 0.02, max: 0.04, unit: 'mg',      perKg: true  },
+      'Midazolam':        { min: 0.02, max: 0.04, unit: 'mg',      perKg: true,  flatMin: 0.5 },
       'Lorazepam':        { min: 0.02, max: 0.04, unit: 'mg',      perKg: true  },
       'Diazepam':         { min: 0.1,  max: 0.2,  unit: 'mg',      perKg: true  },
       'Hydroxyzine':      { min: 25,   max: 100,  unit: 'mg',      perKg: false },
@@ -102,11 +112,11 @@ function updatePlanDoseRange(group, selectId, doseId, rangeId) {
     const hi = parseFloat((spec.max * weight).toFixed(1));
     dose.dataset.min = String(lo);
     dose.dataset.max = String(hi);
-    range.textContent = spec.min + '–' + spec.max + ' ' + spec.unit + '/kg → ' + lo + '–' + hi + ' ' + spec.unit + ' (' + weight + ' kg)';
+    range.textContent = spec.min + '–' + spec.max + ' ' + spec.unit + '/kg → ' + lo + '–' + hi + ' ' + spec.unit;
   } else {
     dose.dataset.min = String(spec.min);
     dose.dataset.max = String(spec.max);
-    range.textContent = 'Rec: ' + spec.min + '–' + spec.max + ' ' + spec.unit;
+    range.textContent = spec.min + '–' + spec.max + ' ' + spec.unit;
   }
   validateDoseInput(dose);
 }
@@ -127,9 +137,11 @@ function validateDoseInput(inputEl) {
 var PAIN_OPTIONS = {
   intraop:  ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Ketamine (sub-dissociative)','Neuraxial (epidural/spinal)','Regional nerve block','Multimodal — see adjuncts'],
   postop:   ['Fentanyl PCA','Hydromorphone PCA','Morphine PCA','Oxycodone (oral)','Tramadol','Neuraxial opioids','Regional / nerve block','Non-opioid multimodal'],
-  nonopioid:['Acetaminophen IV','Ketorolac','Celecoxib','Ketamine (low-dose)','Dexmedetomidine','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Regional / Nerve Block','Dexamethasone']
+  nonopioid:['Acetaminophen IV','Ketorolac','Celecoxib','Ketamine (low-dose)','Dexmedetomidine','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Regional / Nerve Block','Dexamethasone'],
+  sedation_bolus: ['Propofol','Ketamine','Dexmedetomidine'],
+  sedation_drips: ['Propofol Drip','Ketamine Drip','Dexmedetomidine Drip']
 };
-var PAIN_COUNTS = { intraop: 0, postop: 0, nonopioid: 0 };
+var PAIN_COUNTS = { intraop: 0, postop: 0, nonopioid: 0, sedation_bolus: 0, sedation_drips: 0 };
 
 function painRowDoseSpec(type, drug) {
   var s = getGlobalState();
@@ -138,7 +150,7 @@ function painRowDoseSpec(type, drug) {
     intraop: {
       'Fentanyl':                    { min: 12.5,  max: 200,  unit: 'mcg',         perKg: false },
       'Morphine':                    { min: 0.05,  max: 0.1,  unit: 'mg',          perKg: true  },
-      'Hydromorphone':               { min: 0.015, max: 0.02, unit: 'mg',          perKg: true  },
+      'Hydromorphone':               { min: 0.015, max: 0.02, unit: 'mg',          perKg: true,  flatMin: 0.5 },
       'Remifentanil infusion':       { min: 0.05,  max: 0.5,  unit: 'mcg/kg/min',  perKg: false },
       'Sufentanil':                  { min: 0.1,   max: 0.5,  unit: 'mcg',         perKg: true  },
       'Alfentanil':                  { min: 20,    max: 50,   unit: 'mcg',         perKg: true  },
@@ -163,17 +175,30 @@ function painRowDoseSpec(type, drug) {
       'Pregabalin':          { min: 75,   max: 300,  unit: 'mg',        perKg: false },
       'Gabapentin':          { min: 300,  max: 1200, unit: 'mg/dose',   perKg: false },
       'Dexamethasone':       { min: 4,    max: 10,   unit: 'mg',        perKg: false }
+    },
+    sedation_bolus: {
+      'Propofol':        { min: 25,  max: 75,  unit: 'mcg/kg/min', perKg: false },
+      'Ketamine':        { min: 0.1, max: 0.5, unit: 'mg/kg/hr',   perKg: false },
+      'Dexmedetomidine': { min: 0.2, max: 1.5, unit: 'mcg/kg/hr',  perKg: false }
+    },
+    sedation_drips: {
+      'Propofol Drip':        { min: 25,  max: 75,  unit: 'mcg/kg/min', perKg: false },
+      'Ketamine Drip':        { min: 0.1, max: 0.5, unit: 'mg/kg/hr',   perKg: false },
+      'Dexmedetomidine Drip': { min: 0.2, max: 1.5, unit: 'mcg/kg/hr',  perKg: false }
     }
   };
   var spec = (specs[type] || {})[drug];
   if (!spec) return null;
-  if (spec.min == null) return { display: 'Rec: ' + spec.unit, lo: null, hi: null };
+  if (spec.min == null) return { display: spec.unit, lo: null, hi: null };
   if (spec.perKg && wt > 0) {
-    var lo = parseFloat((spec.min * wt).toFixed(1));
+    var lo = spec.flatMin != null ? spec.flatMin : parseFloat((spec.min * wt).toFixed(1));
     var hi = parseFloat((spec.max * wt).toFixed(1));
-    return { display: spec.min + '–' + spec.max + ' ' + spec.unit + '/kg → ' + lo + '–' + hi + ' ' + spec.unit + ' (' + wt + ' kg)', lo: lo, hi: hi };
+    var display = spec.flatMin != null
+      ? spec.flatMin + '\u2013' + hi + ' ' + spec.unit + ' (' + wt + ' kg)'
+      : spec.min + '\u2013' + spec.max + ' ' + spec.unit + '/kg \u2192 ' + lo + '\u2013' + hi + ' ' + spec.unit + ' (' + wt + ' kg)';
+    return { display: display, lo: lo, hi: hi };
   }
-  return { display: 'Rec: ' + spec.min + '–' + spec.max + ' ' + spec.unit, lo: spec.min, hi: spec.max };
+  return { display: spec.min + '–' + spec.max + ' ' + spec.unit, lo: spec.min, hi: spec.max };
 }
 
 function updatePainRowRange(type, selEl, doseEl, rangeEl) {
@@ -184,6 +209,19 @@ function updatePainRowRange(type, selEl, doseEl, rangeEl) {
   doseEl.style.color = '';
   doseEl.style.fontWeight = '';
   if (doseEl.value) validateDoseInput(doseEl);
+}
+
+function refreshAllPainRowRanges() {
+  ['intraop', 'postop', 'nonopioid', 'sedation_bolus', 'sedation_drips'].forEach(function(type) {
+    var container = document.getElementById(type + '-rows');
+    if (!container) return;
+    container.querySelectorAll('.repeat-row').forEach(function(row) {
+      var sel = row.querySelector('select');
+      var doseEl = row.querySelector('input.small');
+      var rangeEl = row.querySelector('.muted');
+      if (sel && doseEl && rangeEl) updatePainRowRange(type, sel, doseEl, rangeEl);
+    });
+  });
 }
 
 function updatePainRowOptions(type) {
@@ -198,15 +236,16 @@ function updatePainRowOptions(type) {
   });
 }
 
-function addPainRow(type, drug, dose, skipSave) {
+function addPainRow(type, drug, dose, skipSave, sub) {
   var container = document.getElementById(type + '-rows');
   var idx = PAIN_COUNTS[type]++;
   var opts = PAIN_OPTIONS[type];
   var id = 'plan-' + type + '-' + idx;
+  var hasDoseField = type !== 'postop';
 
   var row = document.createElement('div');
   row.className = 'repeat-row';
-  row.style.flexWrap = 'wrap';
+  // grid layout is handled by .repeat-row CSS in 8-Anesthetic-Plan.html
 
   var sel = document.createElement('select');
   sel.id = id;
@@ -216,49 +255,121 @@ function addPainRow(type, drug, dose, skipSave) {
       return '<option' + (drug === o ? ' selected' : '') + '>' + o + '</option>';
     }).join('');
 
-  var doseEl = document.createElement('input');
-  doseEl.className = 'small';
-  doseEl.placeholder = 'Dose';
-  if (dose) doseEl.value = dose;
+  var doseEl = null;
+  var rangeEl = null;
+  if (hasDoseField) {
+    doseEl = document.createElement('input');
+    doseEl.className = 'small';
+    doseEl.placeholder = 'Dose';
+    if (dose) doseEl.value = dose;
 
-  var rangeEl = document.createElement('span');
-  rangeEl.className = 'muted';
-  rangeEl.style.fontSize = '12px';
+    rangeEl = document.createElement('span');
+    rangeEl.className = 'muted';
+    rangeEl.style.fontSize = '12px';
+  }
+
+  var subEl = null;
+  if (!hasDoseField) {
+    subEl = document.createElement('div');
+    subEl.style.display = 'none';
+    subEl.style.gridColumn = '2 / 4';
+  }
 
   sel.addEventListener('change', function() {
-    updatePainRowRange(type, sel, doseEl, rangeEl);
+    if (hasDoseField) updatePainRowRange(type, sel, doseEl, rangeEl);
+    if (!hasDoseField) updatePostopSub(row, sel, subEl);
     updatePainRowOptions(type);
     savePainRows();
   });
-  doseEl.addEventListener('input', function() {
-    validateDoseInput(doseEl);
-    savePainRows();
-  });
+  if (hasDoseField) {
+    doseEl.addEventListener('input', function() {
+      validateDoseInput(doseEl);
+      savePainRows();
+    });
+    doseEl.addEventListener('keydown', function(e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      addPainRow(type, '', '', false);
+      var rows = container.querySelectorAll('.repeat-row');
+      var newest = rows[rows.length - 1];
+      var focusEl = newest ? newest.querySelector('select') : null;
+      if (focusEl) focusEl.focus();
+    });
+  }
 
   var rm = document.createElement('button');
   rm.type = 'button';
   rm.className = 'remove-btn';
-  rm.textContent = '×';
+  rm.textContent = 'Delete';
   rm.onclick = function() { row.remove(); updatePainRowOptions(type); savePainRows(); };
+  if (!hasDoseField) rm.style.gridColumn = '4';
 
   row.appendChild(sel);
-  row.appendChild(doseEl);
-  row.appendChild(rangeEl);
+  if (hasDoseField) {
+    row.appendChild(doseEl);
+    row.appendChild(rangeEl);
+  }
+  if (!hasDoseField && subEl) row.appendChild(subEl);
   row.appendChild(rm);
   container.appendChild(row);
 
-  if (drug) updatePainRowRange(type, sel, doseEl, rangeEl);
+  if (drug && hasDoseField) updatePainRowRange(type, sel, doseEl, rangeEl);
+  if (!hasDoseField && sub && subEl) {
+    updatePostopSub(row, sel, subEl);
+    var subSelect = subEl.querySelector('select');
+    if (subSelect) { subSelect.value = sub; row.dataset.sub = sub; }
+    // Restore dose input for neuraxial rows (saved as the row's dose field)
+    var subDoseInput = subEl.querySelector('input');
+    if (subDoseInput && dose) subDoseInput.value = dose;
+  }
   // Persist newly created rows immediately so cross-frame sync won't drop them.
   if (!skipSave) savePainRows();
 }
 
+function updatePostopSub(row, sel, subEl) {
+  var v = sel.value;
+  subEl.innerHTML = '';
+  subEl.style.display = 'none';
+  row.dataset.sub = '';
+  if (v === 'Neuraxial opioids') {
+    var s = document.createElement('select');
+    s.className = 'small';
+    s.style.width = '140px';
+    ['', 'Fentanyl', 'Sufentanil', 'Duramorph', 'Precedex'].forEach(function(opt) {
+      var o = document.createElement('option');
+      o.value = opt; o.textContent = opt || 'Drug...';
+      s.appendChild(o);
+    });
+    s.addEventListener('change', function() { row.dataset.sub = s.value; savePainRows(); });
+    var doseInp = document.createElement('input');
+    doseInp.className = 'small';
+    doseInp.style.width = '90px';
+    doseInp.placeholder = 'Dose';
+    doseInp.addEventListener('input', function() { savePainRows(); });
+    subEl.appendChild(s);
+    subEl.appendChild(doseInp);
+    subEl.style.display = 'flex';
+    subEl.style.alignItems = 'center';
+    subEl.style.gap = '6px';
+  } else if (v === 'Regional / nerve block') {
+    var inp = document.createElement('input');
+    inp.className = 'small';
+    inp.style.width = '252px';
+    inp.placeholder = 'Block type...';
+    inp.addEventListener('input', function() { row.dataset.sub = inp.value; savePainRows(); });
+    subEl.appendChild(inp);
+    subEl.style.display = 'flex';
+    subEl.style.alignItems = 'center';
+  }
+}
+
 function savePainRows() {
   var s = getGlobalState();
-  ['intraop','postop','nonopioid'].forEach(function(type) {
+  ['intraop','postop','nonopioid','sedation_bolus','sedation_drips'].forEach(function(type) {
     var container = document.getElementById(type + '-rows');
     if (!container) return;
     var data = Array.from(container.querySelectorAll('.repeat-row')).map(function(r) {
-      return { drug: (r.querySelector('select') || {}).value || '', dose: (r.querySelector('input') || {}).value || '' };
+      return { drug: (r.querySelector('select') || {}).value || '', dose: (r.querySelector('input') || {}).value || '', sub: r.dataset.sub || '' };
     });
     s['plan-' + type + '-list'] = JSON.stringify(data);
   });
@@ -267,7 +378,7 @@ function savePainRows() {
 
 function restorePainRows() {
   var s = getGlobalState();
-  ['intraop','postop','nonopioid'].forEach(function(type) {
+  ['intraop','postop','nonopioid','sedation_bolus','sedation_drips'].forEach(function(type) {
     var container = document.getElementById(type + '-rows');
     if (!container) return;
     container.innerHTML = '';
@@ -279,7 +390,8 @@ function restorePainRows() {
     data.forEach(function(item) {
       var drug = typeof item === 'string' ? item : (item.drug || '');
       var dose = typeof item === 'string' ? '' : (item.dose || '');
-      addPainRow(type, drug, dose, true);
+      var sub = typeof item === 'object' ? (item.sub || '') : '';
+      addPainRow(type, drug, dose, true, sub);
     });
     updatePainRowOptions(type);
   });
@@ -299,13 +411,13 @@ function maybeRestorePainRows() {
   if (active) {
     var inDynamicPainInput =
       (active.tagName === 'SELECT' || active.tagName === 'INPUT') &&
-      !!active.closest('#intraop-rows, #postop-rows, #nonopioid-rows');
+      !!active.closest('#intraop-rows, #postop-rows, #nonopioid-rows, #sedation_bolus-rows, #sedation_drips-rows');
     if (inDynamicPainInput) return;
   }
 
   var s = getGlobalState();
   var same = true;
-  ['intraop','postop','nonopioid'].forEach(function(type) {
+  ['intraop','postop','nonopioid','sedation_bolus','sedation_drips'].forEach(function(type) {
     var container = document.getElementById(type + '-rows');
     if (!container) return;
 
@@ -332,8 +444,7 @@ function maybeRestorePainRows() {
 }
 
 function toggleAnxiolytic() {
-  var yn = document.querySelector('input[name="ind-anxiolytic-yn"]:checked');
-  var isYes = yn && yn.value === 'Yes';
+  var isYes = document.getElementById('ind-anxiolytic-yes').checked;
   document.getElementById('anxiolytic-wrap').style.display = isYes ? 'block' : 'none';
   if (isYes) updateAnxiolyticRange();
   saveState();
@@ -347,13 +458,46 @@ function updateAnxiolyticRange() {
   if (!spec) { doseEl.style.color = ''; doseEl.style.fontWeight = ''; return; }
   var wt = parseFloat(getGlobalState()['pat-weight-kg']) || 0;
   if (spec.perKg && wt > 0) {
-    var lo = parseFloat((spec.min * wt).toFixed(2));
+    var lo = spec.flatMin != null ? spec.flatMin : parseFloat((spec.min * wt).toFixed(2));
     var hi = parseFloat((spec.max * wt).toFixed(2));
     doseEl.dataset.min = String(lo); doseEl.dataset.max = String(hi);
-    rangeEl.textContent = spec.min + '\u2013' + spec.max + ' mg/kg \u2192 ' + lo + '\u2013' + hi + ' mg (' + wt + ' kg)';
+    rangeEl.textContent = spec.flatMin != null
+      ? spec.flatMin + '\u2013' + hi + ' mg (' + wt + ' kg)'
+      : spec.min + '\u2013' + spec.max + ' mg/kg \u2192 ' + lo + '\u2013' + hi + ' mg (' + wt + ' kg)';
   } else {
     doseEl.dataset.min = String(spec.min); doseEl.dataset.max = String(spec.max);
-    rangeEl.textContent = 'Rec: ' + spec.min + '\u2013' + spec.max + ' ' + spec.unit;
+    rangeEl.textContent = spec.min + '\u2013' + spec.max + ' ' + spec.unit;
+  }
+  validateDoseInput(doseEl);
+}
+
+function toggleMacAnxiolytic() {
+  var isYes = document.getElementById('mac-anxiolytic-yes').checked;
+  var wrap = document.getElementById('mac-anxiolytic-wrap');
+  if (wrap) wrap.style.display = isYes ? 'block' : 'none';
+  if (isYes) updateMacAnxiolyticRange();
+  saveState();
+}
+
+function updateMacAnxiolyticRange() {
+  var selEl = document.getElementById('mac-anxiolytic-select');
+  var doseEl = document.getElementById('mac-anxiolytic-dose');
+  var rangeEl = document.getElementById('mac-anxiolytic-range');
+  if (!selEl || !doseEl || !rangeEl) return;
+  var spec = planDoseSpec('anxiolytic', selEl.value);
+  doseEl.dataset.min = ''; doseEl.dataset.max = ''; rangeEl.textContent = '';
+  if (!spec) { doseEl.style.color = ''; doseEl.style.fontWeight = ''; return; }
+  var wt = parseFloat(getGlobalState()['pat-weight-kg']) || 0;
+  if (spec.perKg && wt > 0) {
+    var lo = spec.flatMin != null ? spec.flatMin : parseFloat((spec.min * wt).toFixed(2));
+    var hi = parseFloat((spec.max * wt).toFixed(2));
+    doseEl.dataset.min = String(lo); doseEl.dataset.max = String(hi);
+    rangeEl.textContent = spec.flatMin != null
+      ? spec.flatMin + '\u2013' + hi + ' mg (' + wt + ' kg)'
+      : spec.min + '\u2013' + spec.max + ' mg/kg \u2192 ' + lo + '\u2013' + hi + ' mg (' + wt + ' kg)';
+  } else {
+    doseEl.dataset.min = String(spec.min); doseEl.dataset.max = String(spec.max);
+    rangeEl.textContent = spec.min + '\u2013' + spec.max + ' ' + spec.unit;
   }
   validateDoseInput(doseEl);
 }
@@ -362,6 +506,23 @@ function toggleVesicant() {
   const agent = document.getElementById('ind-agent-select').value;
   const show = agent === 'Propofol' || agent === 'Etomidate';
   document.getElementById('row-vesicant').style.display = show ? 'block' : 'none';
+  if (show) {
+    var sel = document.getElementById('vesicant-prop');
+    var doseEl = document.getElementById('vesicant-dose');
+    // Default lidocaine for Propofol/Etomidate, None for others
+    var defaultLidocaine = (agent === 'Propofol' || agent === 'Etomidate');
+    if (!sel.dataset.userSet) {
+      sel.value = defaultLidocaine ? 'lidocaine' : '0';
+      if (defaultLidocaine && doseEl && !doseEl.value) doseEl.value = '50';
+      if (!defaultLidocaine && doseEl) doseEl.value = '';
+    }
+  } else {
+    var sel = document.getElementById('vesicant-prop');
+    var doseEl = document.getElementById('vesicant-dose');
+    delete sel.dataset.userSet;
+    sel.value = '0';
+    if (doseEl) doseEl.value = '';
+  }
 }
 
 function stateRadioValue(state, name) {
@@ -382,8 +543,8 @@ function triggerCrossConditions() {
 
 function highlightAbnormalRSI() {
   const s = getGlobalState();
-  const fastedNo = !!s['pat-fasted-no'];
-  const rsiNo = document.getElementById('ind-rsi-no').checked;
+  const fastedNo = !s['pat-fasted-yes'];
+  const rsiNo = !document.getElementById('ind-rsi-yes').checked;
   const rsiRow = document.getElementById('row-ind-rsi');
   if (rsiRow && fastedNo && rsiNo) {
     rsiRow.style.color = '#c41c3b';
@@ -396,16 +557,17 @@ function highlightAbnormalRSI() {
 
 function applyCrossConditions() {
   const s = getGlobalState();
-  const fastedNo = !!s['pat-fasted-no'];
-  const mhYes = !!s['hx-mh::Yes'];
-  const pseudoYes = !!s['hx-pseudo::Yes'];
+  const fastedNo = !s['pat-fasted-yes'];
+  const mhYes = !!s['hx-mh-yes'];
+  const pseudoYes = !!s['hx-pseudo-yes'];
   const kVal = parseFloat(s['pat-k']);
-  const highK = !isNaN(kVal) && kVal > 5.0;
+  const highK = !isNaN(kVal) && kVal >= 5.5;
+  const cautionK = !isNaN(kVal) && kVal > 5.0 && kVal < 5.5;
   toggleVesicant();
 
   let changed = false;
   const rsiYesEl = document.getElementById('ind-rsi-yes');
-  const rsiNo = document.getElementById('ind-rsi-no').checked;
+  const rsiNo = !rsiYesEl.checked;
   const rsiRow = document.getElementById('row-ind-rsi');
   rsiRow.classList.toggle('alert', fastedNo && rsiNo);
   const rsiAutoNote = document.getElementById('rsi-auto-note');
@@ -422,8 +584,8 @@ function applyCrossConditions() {
   var mand = stateRadioValue(s, 'airway-mandibular');
   var atl = stateRadioValue(s, 'exam-atlanto');
   var airwayAbnormal =
-    (!isNaN(mp) && mp > 2) || (!isNaN(tmd) && tmd < 4) ||
-    (!isNaN(gap) && gap < 4) || (mand === '2' || mand === '3') ||
+    (!isNaN(mp) && mp > 2) || (!isNaN(tmd) && tmd < 3) ||
+    (!isNaN(gap) && gap < 3) || (mand === '2' || mand === '3') ||
     (atl === 'Limited Mobility');
   var airwaySel = document.getElementById('ind-airway-method');
   var airwayNote = document.getElementById('airway-auto-note');
@@ -441,15 +603,18 @@ function applyCrossConditions() {
   nmbRow.classList.toggle('alert', suxContra);
   if (suxContra) {
     suxWarning.style.display = 'block';
-    if (highK && !mhYes && !pseudoYes) {
-      suxWarning.textContent = 'CAUTION: K+ ' + kVal.toFixed(1);
-    } else {
-      let reasons = [];
-      if (mhYes) reasons.push('MH history');
-      if (pseudoYes) reasons.push('Pseudocholinesterase deficiency');
-      if (highK) reasons.push('K+ ' + kVal.toFixed(1));
-      suxWarning.textContent = 'CONTRAINDICATED: ' + reasons.join(', ');
-    }
+    suxWarning.style.color = '#b32424';
+    suxWarning.style.fontWeight = '700';
+    let reasons = [];
+    if (mhYes) reasons.push('MH history');
+    if (pseudoYes) reasons.push('Pseudocholinesterase deficiency');
+    if (highK) reasons.push('K+ ' + kVal.toFixed(1));
+    suxWarning.textContent = 'CONTRAINDICATED: ' + reasons.join(', ');
+  } else if (paralytic === 'Succinylcholine' && cautionK) {
+    suxWarning.style.display = 'block';
+    suxWarning.style.color = '#c47a00';
+    suxWarning.style.fontWeight = 'normal';
+    suxWarning.textContent = 'Use caution: K+ ' + kVal.toFixed(1);
   } else {
     suxWarning.style.display = 'none';
   }
@@ -490,25 +655,16 @@ function applyCrossConditions() {
 function updateMacVisibility() {
   var inh = document.getElementById('ind-inhalation');
   var macWrap = document.getElementById('mac-wrap');
-  if (macWrap) macWrap.style.display = (inh && inh.value) ? 'inline-block' : 'none';
-  enforceMacLimitByInhalation();
+  var agent = inh ? inh.value : '';
+  var show = !!agent;
+  if (macWrap) macWrap.style.display = show ? 'inline-block' : 'none';
+  if (show && typeof updateMacOptions === 'function') updateMacOptions('ind-mac-plan', agent);
+  var macSel = document.getElementById('ind-mac-plan');
+  if (show && macSel && !macSel.value) macSel.value = (agent === 'Nitrous Oxide') ? '0.5' : '1.0';
 }
 
 function enforceMacLimitByInhalation() {
-  var inh = document.getElementById('ind-inhalation');
-  var macSel = document.getElementById('ind-mac-plan');
-  if (!inh || !macSel) return;
-  var nitrousOnly = inh.value === 'Nitrous Oxide';
-  Array.from(macSel.options).forEach(function(opt) {
-    if (!opt.value) return;
-    var val = parseFloat(opt.value);
-    if (isNaN(val)) return;
-    opt.disabled = nitrousOnly && val > 0.9;
-  });
-  if (nitrousOnly) {
-    var cur = parseFloat(macSel.value);
-    if (!isNaN(cur) && cur > 0.9) macSel.value = '';
-  }
+  // No-op: MAC options are now set per-agent by updateMacOptions() in 8-Anesthetic-Plan.html
 }
 
 function onAnyPlanInput() {
@@ -519,12 +675,20 @@ function onAnyPlanInput() {
   saveState();
 }
 
+function updateNeuroMonitorBanner() {
+  var s = getGlobalState();
+  var isYes = (s['pat-neuro-monitoring::Yes'] === true) ||
+              (s['pat-neuro-monitoring-yes'] === true);
+  var banner = document.getElementById('neuro-monitor-banner');
+  if (banner) banner.style.display = isYes ? 'block' : 'none';
+}
+
 function boot() {
   populateMedicationCatalogSelects();
   document.getElementById('anes-type').addEventListener('change', toggleGeneralOptions);
   document.getElementById('tiva-box').addEventListener('change', toggleTivaReason);
   document.getElementById('tiva-reason').addEventListener('change', toggleTivaOther);
-  document.querySelectorAll('input[name="ind-rsi"]').forEach(r => r.addEventListener('change', onAnyPlanInput));
+  document.querySelectorAll('input[name="ind-rsi"]').forEach(function(el) { el.addEventListener('change', onAnyPlanInput); });
   document.getElementById('ind-blunt-select').addEventListener('change', function() { updatePlanDoseRange('blunt','ind-blunt-select','ind-blunt-dose','ind-blunt-range'); onAnyPlanInput(); });
   document.getElementById('ind-blunt-dose').addEventListener('input', function() { validateDoseInput(this); saveState(); });
   document.getElementById('ind-agent-select').addEventListener('change', function() { updatePlanDoseRange('induction','ind-agent-select','ind-agent-dose','ind-agent-range'); toggleVesicant(); onAnyPlanInput(); });
@@ -532,12 +696,32 @@ function boot() {
   document.getElementById('ind-paralytic').addEventListener('change', function() { updatePlanDoseRange('paralytic','ind-paralytic','ind-paralytic-dose','ind-paralytic-range'); onAnyPlanInput(); });
   document.getElementById('ind-paralytic-dose').addEventListener('input', function() { validateDoseInput(this); saveState(); });
   document.getElementById('ind-inhalation').addEventListener('change', onAnyPlanInput);
-  document.querySelectorAll('input[name="vesicant-prop"]').forEach(r => r.addEventListener('change', saveState));
+  document.getElementById('vesicant-prop').addEventListener('change', function() {
+    var doseEl = document.getElementById('vesicant-dose');
+    this.dataset.userSet = '1';
+    if (this.value === 'lidocaine' && doseEl && !doseEl.value) doseEl.value = '50';
+    if (this.value === '0') { if (doseEl) doseEl.value = ''; }
+    saveState();
+  });
   restorePainRows();
-  document.querySelectorAll('input[name="ind-anxiolytic-yn"]').forEach(r => r.addEventListener('change', toggleAnxiolytic));
-  document.getElementById('ind-anxiolytic-select').addEventListener('change', function() { updateAnxiolyticRange(); saveState(); });
+  document.querySelectorAll('input[name="ind-anxiolytic-yn"]').forEach(function(el) { el.addEventListener('change', toggleAnxiolytic); });
+  document.getElementById('ind-anxiolytic-select').addEventListener('change', function() {
+    var doseEl = document.getElementById('ind-anxiolytic-dose');
+    if (this.value === 'Midazolam' && !doseEl.value) doseEl.value = '2';
+    updateAnxiolyticRange();
+    saveState();
+  });
   document.getElementById('ind-anxiolytic-select').addEventListener('input', updateAnxiolyticRange);
   document.getElementById('ind-anxiolytic-dose').addEventListener('input', function() { validateDoseInput(this); saveState(); });
+  document.querySelectorAll('input[name="mac-anxiolytic-yn"]').forEach(function(el) { el.addEventListener('change', toggleMacAnxiolytic); });
+  document.getElementById('mac-anxiolytic-select').addEventListener('change', function() {
+    var doseEl = document.getElementById('mac-anxiolytic-dose');
+    if (this.value === 'Midazolam' && doseEl && !doseEl.value) doseEl.value = '2';
+    updateMacAnxiolyticRange();
+    saveState();
+  });
+  document.getElementById('mac-anxiolytic-select').addEventListener('input', updateMacAnxiolyticRange);
+  document.getElementById('mac-anxiolytic-dose').addEventListener('input', function() { validateDoseInput(this); saveState(); });
   updatePlanDoseRange('blunt',     'ind-blunt-select',  'ind-blunt-dose',     'ind-blunt-range');
   updatePlanDoseRange('induction', 'ind-agent-select',  'ind-agent-dose',     'ind-agent-range');
   updatePlanDoseRange('paralytic', 'ind-paralytic',     'ind-paralytic-dose', 'ind-paralytic-range');
@@ -546,6 +730,8 @@ function boot() {
   toggleTivaOther();
   toggleAnxiolytic();
   updateAnxiolyticRange();
+  toggleMacAnxiolytic();
+  updateMacAnxiolyticRange();
   applyCrossConditions();
   enforceTivaInhalationRule();
   updateMacVisibility();
@@ -564,8 +750,25 @@ pageBoot(boot, function() {
   maybeRestorePainRows();
   toggleAnxiolytic();
   updateAnxiolyticRange();
+  toggleMacAnxiolytic();
+  updateMacAnxiolyticRange();
   updateMacVisibility();
+  updateNeuroMonitorBanner();
 });
+
+// Called by shared.js whenever a fresh state snapshot arrives from the parent.
+// Refreshes weight-based dose ranges so they reflect current patient weight.
+function onExternalUpdate() {
+  try {
+    updatePlanDoseRange('blunt',     'ind-blunt-select',  'ind-blunt-dose',     'ind-blunt-range');
+    updatePlanDoseRange('induction', 'ind-agent-select',  'ind-agent-dose',     'ind-agent-range');
+    updatePlanDoseRange('paralytic', 'ind-paralytic',     'ind-paralytic-dose', 'ind-paralytic-range');
+    updateAnxiolyticRange();
+    updateMacAnxiolyticRange();
+    refreshAllPainRowRanges();
+    updateNeuroMonitorBanner();
+  } catch (e) {}
+}
 
 // Fallback UI sync in case event wiring is delayed by iframe hydration timing.
 setTimeout(function() {
@@ -573,6 +776,7 @@ setTimeout(function() {
     toggleGeneralOptions();
     toggleTivaReason();
     toggleTivaOther();
+    toggleMacAnxiolytic();
     updateMacVisibility();
   } catch (e) {}
 }, 700);

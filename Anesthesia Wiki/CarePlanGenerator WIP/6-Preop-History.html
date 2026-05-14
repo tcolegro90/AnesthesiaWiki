@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preoperative History</title>
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>6. Preoperative History</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Patient</a><a href="2-Surgery.html">2 Surgery</a><a href="3-Labs-Chemistries.html">3 Labs</a><a href="4-PMH.html">4 PMH</a><a href="5-Prescribed-Medications.html">5 Home Meds</a><a href="6-Preop-History.html">6 Preop Hx</a><a href="7-Airway-Exam.html">7 Airway</a><a href="7b-Extras.html">7b Extras</a><a href="8-Anesthetic-Plan.html">8 Anesthetic Plan</a><a href="8b-APFEL-PONV.html">8b APFEL/PONV</a><a href="9-Fluid-Blood-Plan.html">9 Fluid/Blood</a><a href="10-Vent-Settings.html">10 Vent</a>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:8px;">
+      <div class="risk-row" id="row-mets"><strong>METs &lt;4:</strong> <span><label><input type="radio" name="hx-mets" id="hx-mets-yes" value="Yes"> Yes</label> <label><input type="radio" name="hx-mets" id="hx-mets-no" value="No"> No</label></span></div>
+      <div class="risk-row" id="row-ponv"><strong>PONV / Motion Sickness:</strong> <span><label><input type="radio" name="hx-ponv" id="hx-ponv-yes" value="Yes"> Yes</label> <label><input type="radio" name="hx-ponv" id="hx-ponv-no" value="No"> No</label></span></div>
+      <div class="risk-row" id="row-famhx"><strong>Family / Personal Hx Anes Complications:</strong> <span><label><input type="radio" name="hx-famhx" id="hx-famhx-yes" value="Yes"> Yes</label> <label><input type="radio" name="hx-famhx" id="hx-famhx-no" value="No"> No</label></span></div>
+      <div class="risk-row" id="row-awareness" style="display:none;"><strong>Intra-op Awareness Hx:</strong> <span><label><input type="radio" name="hx-awareness" id="hx-awareness-yes" value="Yes"> Yes</label> <label><input type="radio" name="hx-awareness" id="hx-awareness-no" value="No"> No</label></span></div>
+      <div class="risk-row" id="row-mh"><strong>Malignant Hyperthermia Hx:</strong> <span><label><input type="radio" name="hx-mh" id="hx-mh-yes" value="Yes"> Yes</label> <label><input type="radio" name="hx-mh" id="hx-mh-no" value="No"> No</label></span></div>
+      <div class="risk-row" id="row-pseudo"><strong>Pseudocholinesterase Def:</strong> <span><label><input type="radio" name="hx-pseudo" id="hx-pseudo-yes" value="Yes"> Yes</label> <label><input type="radio" name="hx-pseudo" id="hx-pseudo-no" value="No"> No</label></span></div>
+    </div>
+  </div>
+  <script src="shared.js"></script>
+  <script>
+    function paintRiskRow(id, rowId) {
+      const yes = document.getElementById(id + '-yes');
+      const row = document.getElementById(rowId);
+      row.classList.remove('alert');
+      if (yes && yes.checked) row.classList.add('alert');
+    }
+
+    function syncAnesComplicationDetailRows() {
+      var famYes = !!(document.getElementById('hx-famhx-yes') && document.getElementById('hx-famhx-yes').checked);
+      var mhRow = document.getElementById('row-mh');
+      var pseudoRow = document.getElementById('row-pseudo');
+      var awarenessRow = document.getElementById('row-awareness');
+
+      if (mhRow) mhRow.style.display = famYes ? 'flex' : 'none';
+      if (pseudoRow) pseudoRow.style.display = famYes ? 'flex' : 'none';
+      if (awarenessRow) awarenessRow.style.display = famYes ? 'flex' : 'none';
+
+      if (!famYes) {
+        ['hx-mh', 'hx-pseudo', 'hx-awareness'].forEach(function(name) {
+          document.querySelectorAll('input[name="' + name + '"]').forEach(function(el) { el.checked = false; });
+        });
+        saveState();
+      }
+    }
+
+    function boot() {
+      ['hx-mets','hx-ponv','hx-famhx','hx-mh','hx-pseudo','hx-awareness'].forEach(name => {
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function(el) {
+          el.addEventListener('change', function() {
+            syncAnesComplicationDetailRows();
+            paintRiskRow('hx-mets', 'row-mets');
+            paintRiskRow('hx-ponv', 'row-ponv');
+            paintRiskRow('hx-famhx', 'row-famhx');
+            paintRiskRow('hx-mh', 'row-mh');
+            paintRiskRow('hx-pseudo', 'row-pseudo');
+            paintRiskRow('hx-awareness', 'row-awareness');
+            saveState();
+          });
+        });
+      });
+      syncAnesComplicationDetailRows();
+      paintRiskRow('hx-mets', 'row-mets');
+      paintRiskRow('hx-ponv', 'row-ponv');
+      paintRiskRow('hx-famhx', 'row-famhx');
+      paintRiskRow('hx-mh', 'row-mh');
+      paintRiskRow('hx-pseudo', 'row-pseudo');
+      paintRiskRow('hx-awareness', 'row-awareness');
+    }
+    pageBoot(boot);
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

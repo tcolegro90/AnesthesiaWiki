@@ -142,6 +142,25 @@
       font-size: 0.8rem;
     }
 
+    .focus-panel {
+      margin-top: 14px;
+      padding: 12px 13px;
+      border: 1px solid #9ec0e3;
+      border-left: 5px solid #1a4f82;
+      border-radius: 10px;
+      background: #eef6ff;
+      display: none;
+    }
+    .focus-panel strong {
+      color: #143b63;
+    }
+    .focus-panel .focus-text {
+      margin-top: 4px;
+      color: #1e3f5f;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
     @media (max-width: 700px) {
       body { padding-top: 16px; }
       .hero { padding: 14px; }
@@ -158,9 +177,6 @@
     </section>
 
     <section class="section">
-      <h2>Clinical Implication</h2>
-      <p class="implications">Adult ABX prophylaxis for SMH — covers recommended regimens by surgery type, procedure type, dosing, and intraoperative redosing intervals.</p>
-
       <h2>Document</h2>
       <div class="pdf-wrapper" id="pdfWrapper">
         <object
@@ -173,11 +189,6 @@
             <a class="action-btn" href="SMH-Surgical-Antibiotics-Prophylaxis-2026.pdf" target="_blank" rel="noopener noreferrer">Open PDF</a>
           </div>
         </object>
-      </div>
-
-      <div class="actions">
-        <a class="action-btn" href="SMH-Surgical-Antibiotics-Prophylaxis-2026.pdf" download="SMH-Surgical-Antibiotics-Prophylaxis-2026.pdf">⬇ Download PDF</a>
-        <a class="action-btn" href="https://urmc-smh.policystat.com/policy/19501893/" target="_blank" rel="noopener noreferrer">🔗 Open PolicyStat</a>
       </div>
 
       <p class="meta">Source: URMC Strong Memorial Hospital Antimicrobial Stewardship. Effective 2/11/2026 · Next Review 2/10/2029.</p>
@@ -194,6 +205,37 @@
       window.location.replace(currentUrl.toString());
     })();
 
+    (function applyFocusContextFromQuery() {
+      var url = new URL(window.location.href);
+      var focusDrug = url.searchParams.get('focusDrug') || '';
+      var focusDose = url.searchParams.get('focusDose') || '';
+      var focusRedose = url.searchParams.get('focusRedose') || '';
+      var focusSurgery = url.searchParams.get('focusSurgery') || '';
+      var focusReason = url.searchParams.get('focusReason') || '';
+      var focusMatched = url.searchParams.get('focusMatched') || '';
+      var focusReference = url.searchParams.get('focusReference') || '';
+      var focusSearch = url.searchParams.get('focusSearch') || '';
+      if (!focusDrug && !focusSearch) return;
+
+      var panel = document.getElementById('focusPanel');
+      var text = document.getElementById('focusText');
+      var searchLink = document.getElementById('focusPdfSearch');
+      if (!panel || !text || !searchLink) return;
+
+      var details = focusDrug ? ('Suggested regimen: ' + focusDrug) : 'Suggestion context received from Care Plan.';
+      if (focusDose) details += ' | Dose: ' + focusDose;
+      if (focusRedose) details += ' | Redose: ' + focusRedose;
+      if (focusSurgery) details += ' | Surgery context: ' + focusSurgery;
+      if (focusReason) details += ' | Rule match: ' + focusReason;
+      if (focusMatched) details += ' | Matched terms: ' + focusMatched;
+      if (focusReference) details += ' | Ref cue: ' + focusReference;
+      text.textContent = details + '. Verify final choice with local protocol and clinical judgment.';
+
+      var searchTerm = focusSearch || focusDrug;
+      searchLink.href = 'SMH-Surgical-Antibiotics-Prophylaxis-2026.pdf#search=' + encodeURIComponent(searchTerm);
+      panel.style.display = 'block';
+    })();
+
     // Show fallback message if PDF iframe fails to load
     window.addEventListener('pageshow', function (event) {
       var navigationEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
@@ -202,5 +244,42 @@
       }
     });
   </script>
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active { transform: translateY(0); }
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split('/').filter(Boolean).length;
+  var base = '';
+  for (var i = 1; i < depth; i++) { base += '../'; }
+  var a = document.createElement('a');
+  a.className = 'global-home-btn';
+  a.href = base + 'AnesthesiaWiki.html';
+  a.textContent = 'Home';
+  a.setAttribute('aria-label', 'Go to Home');
+  document.body.appendChild(a);
+})();
+</script>
 </body>
 </html>

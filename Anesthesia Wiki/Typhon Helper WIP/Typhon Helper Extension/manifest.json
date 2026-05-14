@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Typhon Case Helper",
+  "version": "1.0",
+  "description": "Fast, friendly case log and time log entry for Typhon NAST — St. John Fisher CRNA",
+  "permissions": ["storage", "activeTab", "scripting", "tabs", "webNavigation"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "host_permissions": [
+    "*://typhon.net/*",
+    "*://*.typhon.net/*",
+    "*://typhongroup.net/*",
+    "*://*.typhongroup.net/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Typhon Case Helper"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://typhon.net/*",
+        "*://*.typhon.net/*",
+        "*://typhongroup.net/*",
+        "*://*.typhongroup.net/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

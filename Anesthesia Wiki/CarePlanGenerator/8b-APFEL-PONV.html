@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APFEL &amp; PONV</title>
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    .add-row-btn {
+      margin-top: 6px;
+      padding: 3px 12px;
+      font-size: 12px;
+      border: 1px dashed #4a6fa5;
+      border-radius: 4px;
+      background: #f0f5ff;
+      color: #4a6fa5;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .add-row-btn:hover { background: #dde8ff; }
+    .repeat-row {
+      display: grid;
+      grid-template-columns: 220px 84px 1fr auto;
+      align-items: center;
+      gap: 6px;
+    }
+    .repeat-row .row-hint {
+      grid-column: 3 / 4;
+      grid-row: 1;
+      font-size: 0.82rem;
+      color: #4f6073;
+      line-height: 1.4;
+    }
+    .repeat-row .remove-btn {
+      border: 1px solid #e4b7b7; background: #fff1f1;
+      color: #8f2424; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; line-height: 1.4;
+      padding: 4px 10px; border-radius: 6px;
+      grid-row: 1; grid-column: 4; white-space: nowrap;
+    }
+    .repeat-row .remove-btn:hover { background: #ffe5e5; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>8b. APFEL &amp; PONV</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Patient</a><a href="2-Surgery.html">2 Surgery</a><a href="3-Labs-Chemistries.html">3 Labs</a><a href="4-PMH.html">4 PMH</a><a href="5-Prescribed-Medications.html">5 Home Meds</a><a href="6-Preop-History.html">6 Preop Hx</a><a href="7-Airway-Exam.html">7 Airway</a><a href="7b-Extras.html">7b Extras</a><a href="8-Anesthetic-Plan.html">8 Anesthetic Plan</a><a href="8b-APFEL-PONV.html">8b APFEL/PONV</a><a href="9-Fluid-Blood-Plan.html">9 Fluid/Blood</a><a href="10-Vent-Settings.html">10 Vent</a>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+
+      <div id="apfel-result" class="result" style="background-color:#d4edda;border-color:#c3e6cb;color:#155724;">
+        <strong>APFEL Score:</strong> 0/4 (Risk: &lt;10%)
+        <br><strong>Recommendation:</strong> 0-1 antiemetic
+        <br><strong>Selected:</strong> 0 (target: 0)
+      </div>
+
+      <div style="background: #eaf3ff; padding: 15px; border: 1px solid #cce0ff; border-radius: 6px;">
+        <h4 style="margin: 0 0 12px 0;">PONV Antiemetic Selections</h4>
+        <p class="muted" style="margin: 0 0 8px 0;">Select prophylaxis medications (TIVA counts as 1 when checked on the Anesthetic Plan page).</p>
+        <div id="tiva-ponv-row" style="display:none;padding:4px 8px;background:#d4edda;border:1px solid #c3e6cb;border-radius:4px;font-weight:600;color:#155724;font-size:0.95em;">&#10003; TIVA</div>
+        <div id="antiemetic-rows" style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px;"></div>
+        <button type="button" class="add-row-btn" onclick="addAntiemeticRow()">+ Add</button>
+      </div>
+
+    </div>
+  </div>
+  <script src="med-catalog.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    function validateDoseInput(inputEl) {
+      const v = parseFloat(inputEl.value);
+      const min = parseFloat(inputEl.dataset.min);
+      const max = parseFloat(inputEl.dataset.max);
+      if (!isNaN(v) && !isNaN(min) && !isNaN(max) && (v < min || v > max)) {
+        inputEl.style.color = '#b32424';
+        inputEl.style.fontWeight = '700';
+      } else {
+        inputEl.style.color = '';
+        inputEl.style.fontWeight = '';
+      }
+    }
+
+    function antiDoseSpec(drug) {
+      var map = {
+        'Ondansetron':       { min: 4,    max: 4,    unit: 'mg',      weightBased: false },
+        'Dexamethasone':     { min: 4,    max: 10,   unit: 'mg',      weightBased: false },
+        'Scopolamine':       { min: 1,    max: 1.5,  unit: 'mg',      weightBased: false },
+        'Aprepitant':        { min: 40,   max: 80,   unit: 'mg',      weightBased: false },
+        'Propofol':          { min: 10,   max: 30,   unit: 'mg',      weightBased: false },
+        'Droperidol':        { min: 0.01, max: 0.02, unit: 'mg/kg',   weightBased: true  }
+      };
+      return map[drug] || null;
+    }
+
+    function updateAntiemeticDoseRangeDynamic(sel, dose, range) {
+      var s = getGlobalState();
+      var weight = parseFloat(s['pat-weight-kg']) || 0;
+      var spec = antiDoseSpec(sel.value);
+      dose.dataset.min = '';
+      dose.dataset.max = '';
+      range.textContent = '';
+      range.style.display = 'none';
+      if (!spec) { dose.style.color = ''; dose.style.fontWeight = ''; return; }
+      if (spec.weightBased && weight > 0) {
+        var min = parseFloat((spec.min * weight).toFixed(2));
+        var max = parseFloat((spec.max * weight).toFixed(2));
+        dose.dataset.min = String(min);
+        dose.dataset.max = String(max);
+        range.textContent = min + '-' + max + ' mg';
+      } else {
+        dose.dataset.min = String(spec.min);
+        dose.dataset.max = String(spec.max);
+        if (spec.min === spec.max) {
+          range.textContent = spec.min + ' ' + spec.unit;
+        } else {
+          range.textContent = spec.min + '-' + spec.max + ' ' + spec.unit;
+        }
+      }
+      if (range.textContent) range.style.display = '';
+      validateDoseInput(dose);
+    }
+
+    var ANTIEMETIC_OPTS = ((window.MED_CATALOG && window.MED_CATALOG.categories && window.MED_CATALOG.categories.antiemetics) || []).map(function(name) {
+      return { label: name, value: name };
+    });
+    var antiemeticCount = 0;
+
+    function getAntiemeticDefaultDose(drug) {
+      if (drug === 'Dexamethasone' || drug === 'Ondansetron' || drug === 'Zofran') return '4';
+      return '';
+    }
+
+    function addAntiemeticRow(drug, dose, skipSave) {
+      var container = document.getElementById('antiemetic-rows');
+      var row = document.createElement('div');
+      row.className = 'repeat-row';
+
+      var sel = document.createElement('select');
+      sel.innerHTML = '<option value="">Select...</option>' +
+        ANTIEMETIC_OPTS.map(function(o) {
+          return '<option value="' + o.value + '"' + (drug === o.value ? ' selected' : '') + '>' + o.label + '</option>';
+        }).join('');
+
+      var doseEl = document.createElement('input');
+      doseEl.className = 'small';
+      doseEl.placeholder = 'Dose';
+      if (dose) doseEl.value = dose;
+
+      var rangeEl = document.createElement('span');
+      rangeEl.className = 'muted row-hint';
+      rangeEl.style.display = 'none';
+
+      sel.addEventListener('change', function() {
+        var defaultDose = getAntiemeticDefaultDose(sel.value);
+        if (defaultDose) doseEl.value = defaultDose;
+        updateAntiemeticDoseRangeDynamic(sel, doseEl, rangeEl);
+        updateAntiemeticOptions();
+        calculateApfel();
+        saveAntiemeticRows();
+      });
+      doseEl.addEventListener('input', function() {
+        validateDoseInput(doseEl);
+        saveAntiemeticRows();
+      });
+      doseEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addAntiemeticRow();
+          // Focus the new row's select
+          var rows = container.querySelectorAll('.repeat-row');
+          var lastRow = rows[rows.length - 1];
+          if (lastRow) { var s = lastRow.querySelector('select'); if (s) s.focus(); }
+        }
+      });
+
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'remove-btn';
+      rm.textContent = 'Delete';
+      rm.onclick = function() { row.remove(); updateAntiemeticOptions(); calculateApfel(); saveAntiemeticRows(); };
+
+      row.appendChild(sel);
+      row.appendChild(doseEl);
+      row.appendChild(rm);
+      row.appendChild(rangeEl); // hint spans cols 1-2 on row 2
+      container.appendChild(row);
+      antiemeticCount++;
+      if (drug && !doseEl.value) {
+        var initialDefaultDose = getAntiemeticDefaultDose(drug);
+        if (initialDefaultDose) doseEl.value = initialDefaultDose;
+      }
+      if (drug) updateAntiemeticDoseRangeDynamic(sel, doseEl, rangeEl);
+      if (!skipSave) saveAntiemeticRows();
+    }
+
+    function saveAntiemeticRows() {
+      var s = getGlobalState();
+      var container = document.getElementById('antiemetic-rows');
+      var data = container ? Array.from(container.querySelectorAll('.repeat-row')).map(function(r) {
+        return { drug: (r.querySelector('select') || {}).value || '', dose: (r.querySelector('input') || {}).value || '' };
+      }) : [];
+      s['plan-antiemetic-list'] = JSON.stringify(data);
+      setGlobalState(s);
+    }
+
+    function restoreAntiemeticRows() {
+      var container = document.getElementById('antiemetic-rows');
+      if (!container) return;
+      container.innerHTML = '';
+      antiemeticCount = 0;
+      var s = getGlobalState();
+      var data = [];
+      try { data = JSON.parse(s['plan-antiemetic-list']) || []; } catch(e) {}
+      if (data.length === 0) data = [
+        { drug: 'Ondansetron', dose: '4' },
+        { drug: 'Dexamethasone', dose: '4' }
+      ];
+      data.forEach(function(item) { addAntiemeticRow(item.drug || '', item.dose || '', true); });
+      updateAntiemeticOptions();
+    }
+
+    function getAntiemeticRowsFromState() {
+      var s = getGlobalState();
+      var data = [];
+      try { data = JSON.parse(s['plan-antiemetic-list']) || []; } catch(e) {}
+      if (!Array.isArray(data)) data = [];
+      if (data.length === 0) data = [
+        { drug: 'Ondansetron', dose: '4' },
+        { drug: 'Dexamethasone', dose: '4' }
+      ];
+      return data.map(function(item) {
+        if (!item) return { drug: '', dose: '' };
+        if (typeof item === 'string') return { drug: item, dose: '' };
+        return { drug: item.drug || '', dose: item.dose || '' };
+      });
+    }
+
+    function getAntiemeticRowsFromDom() {
+      var container = document.getElementById('antiemetic-rows');
+      if (!container) return [];
+      return Array.from(container.querySelectorAll('.repeat-row')).map(function(r) {
+        return { drug: (r.querySelector('select') || {}).value || '', dose: (r.querySelector('input') || {}).value || '' };
+      });
+    }
+
+    function antiemeticRowsSignature(rows) {
+      return JSON.stringify((rows || []).map(function(r) {
+        return { drug: (r && r.drug) || '', dose: (r && r.dose) || '' };
+      }));
+    }
+
+    function maybeRestoreAntiemeticRows() {
+      var active = document.activeElement;
+      var container = document.getElementById('antiemetic-rows');
+      if (container && active && container.contains(active)) {
+        // Do not rebuild while user is interacting with antiemetic controls.
+        return;
+      }
+
+      var stateRows = getAntiemeticRowsFromState();
+      var domRows = getAntiemeticRowsFromDom();
+      if (antiemeticRowsSignature(stateRows) === antiemeticRowsSignature(domRows)) return;
+
+      restoreAntiemeticRows();
+    }
+
+    function updateAntiemeticOptions() {
+      var container = document.getElementById('antiemetic-rows');
+      if (!container) return;
+      var sels = Array.from(container.querySelectorAll('select'));
+      var vals = sels.map(function(s) { return s.value; }).filter(function(v) { return v !== ''; });
+      sels.forEach(function(s) {
+        Array.from(s.options).forEach(function(o) {
+          if (o.value !== '') o.disabled = vals.includes(o.value) && o.value !== s.value;
+        });
+      });
+    }
+
+    function getSelectedAntiemeticCount() {
+      // TIVA checkbox lives on 7-Anesthetic-Plan.html — read from saved state
+      var tiva = !!getGlobalState()['tiva-box'];
+      var count = tiva ? 1 : 0;
+      var container = document.getElementById('antiemetic-rows');
+      if (container) container.querySelectorAll('select').forEach(function(el) { if (el.value) count++; });
+      return count;
+    }
+
+    function calculateApfel() {
+      var score = 0;
+      var s = getGlobalState();
+
+      // 1) Female sex
+      var isFemale = s['pat-gender'] === 'F';
+      if (isFemale) score++;
+
+      // 2) Non-smoker
+      var smokerYes = !!s['pat-smoker-yes'];
+      var smokerNo  = !!s['pat-smoker-no'];
+      var isNonSmoker = smokerNo && !smokerYes;
+      if (isNonSmoker) score++;
+
+      // 3) PONV / motion sickness history
+      var hasPonv = !!s['hx-ponv::Yes'];
+      if (hasPonv) score++;
+
+      // 4) Post-op opioids — inferred from saved plan-postop-list (set by 7-Anesthetic-Plan.html)
+      var NON_OPIOID_POSTOP = new Set(['Regional / nerve block', 'Non-opioid multimodal', '']);
+      var postopData = [];
+      try { postopData = JSON.parse(s['plan-postop-list']) || []; } catch(e) {}
+      var hasOpioidPlan = postopData.some(function(item) {
+        var drug = typeof item === 'string' ? item : (item.drug || '');
+        return drug && !NON_OPIOID_POSTOP.has(drug);
+      });
+      if (hasOpioidPlan) score++;
+
+      var risk = score === 0 ? '<10%' : score === 1 ? '10%' : score === 2 ? '20%' : score === 3 ? '60%' : '80%';
+      var recommendation = score === 0 ? '0-1 antiemetic' : score < 3 ? '2 antiemetics' : '3-4 antiemetics';
+      var target = score === 0 ? 0 : score < 3 ? 2 : 3;
+      var selectedCount = getSelectedAntiemeticCount();
+      var meetsTarget = selectedCount >= target;
+
+      var apfel = document.getElementById('apfel-result');
+      apfel.innerHTML =
+        '<strong>APFEL Score:</strong> ' + score + '/4 (Risk: ' + risk + ')' +
+        '<br><strong>Recommendation:</strong> ' + recommendation +
+        '<br><strong>Selected:</strong> ' + selectedCount + ' (target: ' + target + ')';
+
+      if (meetsTarget) {
+        apfel.style.backgroundColor = '#d4edda';
+        apfel.style.borderColor = '#c3e6cb';
+        apfel.style.color = '#155724';
+      } else {
+        apfel.style.backgroundColor = '#f8d7da';
+        apfel.style.borderColor = '#f5c6cb';
+        apfel.style.color = '#721c24';
+      }
+
+      updateAntiemeticOptions();
+    }
+
+    function syncTivaPonvRow() {
+      var tiva = !!getGlobalState()['tiva-box'];
+      var row = document.getElementById('tiva-ponv-row');
+      if (row) row.style.display = tiva ? 'block' : 'none';
+    }
+
+    function boot() {
+      restoreAntiemeticRows();
+      syncTivaPonvRow();
+      calculateApfel();
+    }
+
+    pageBoot(boot, function() {
+      maybeRestoreAntiemeticRows();
+      syncTivaPonvRow();
+      calculateApfel();
+    });
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

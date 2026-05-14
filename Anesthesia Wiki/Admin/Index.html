@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Admin — Anesthesia Wiki</title>
+  <style>
+    :root {
+      --primary: #1f2a37;
+      --blue: #114a8d;
+      --green: #1a7c50;
+      --red: #b32424;
+      --purple: #6c3483;
+      --bg: #f3f7fb;
+      --line: #dbe5f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--primary);
+      padding-bottom: 60px;
+    }
+    header {
+      background: var(--primary);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    header h1 { margin: 0; font-size: 1.2rem; color: #fff; }
+    #header-auth { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+    #header-auth-name { color: rgba(255,255,255,0.9); font-weight: 600; }
+    #header-auth-btn {
+      border: 1.5px solid rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.78rem;
+      border-radius: 999px;
+      padding: 5px 14px;
+      cursor: pointer;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 18px 20px 0;
+      text-decoration: none;
+      color: var(--blue);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .back-link:hover { text-decoration: underline; }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+    #access-denied {
+      display: none;
+      max-width: 480px;
+      margin: 60px auto;
+      text-align: center;
+      padding: 32px;
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+    }
+    #access-denied h2 { color: var(--red); margin-top: 0; }
+    #access-denied p { color: #5a6e82; font-size: 0.9rem; }
+    #loading-msg {
+      text-align: center;
+      color: #7a8fa6;
+      margin-top: 60px;
+      font-size: 0.9rem;
+    }
+    #admin-panel { display: none; }
+
+    /* ── Add user card ── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      color: var(--primary);
+    }
+    .add-form {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .add-form input[type="email"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+    .add-form select {
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: #fff;
+    }
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: #0d3a72; }
+
+    /* ── User table ── */
+    .user-table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    thead tr {
+      background: #f0f5fb;
+      border-bottom: 2px solid var(--line);
+    }
+    th {
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 700;
+      color: #4a5e72;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #edf2f8;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fbff; }
+    .role-select {
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: #fff;
+      cursor: pointer;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .role-admin      { background: #b8860b; color: #fff; }
+    .role-omniscient  { background: #6c3483; color: #fff; }
+    .role-student     { background: #1a7c50; color: #fff; }
+    .role-non-student { background: #dde4ec; color: #4a5e72; }
+    .btn-delete {
+      background: none;
+      border: none;
+      color: #b32424;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0 4px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .btn-delete:hover { background: #ffe8e8; }
+    .save-indicator {
+      font-size: 0.75rem;
+      color: var(--green);
+      font-weight: 600;
+      margin-left: 6px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .save-indicator.show { opacity: 1; }
+    #status-banner {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: none;
+    }
+    #status-banner.success { background: #e8f8f0; color: #1a7c50; border: 1px solid #a3d9b8; display: block; }
+    #status-banner.error   { background: #fff5f5; color: #b32424; border: 1px solid #f5c6c6; display: block; }
+    .empty-state {
+      text-align: center;
+      padding: 28px;
+      color: #7a8fa6;
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🔑 User Access Admin</h1>
+    <div id="header-auth">
+      <span id="header-auth-name"></span>
+      <button id="header-auth-btn" type="button">Log in</button>
+    </div>
+  </header>
+
+  <a class="back-link" href="../AnesthesiaWiki.html">← Back to Home</a>
+
+  <div id="loading-msg">Checking access…</div>
+
+  <div id="access-denied">
+    <h2>Access Restricted</h2>
+    <p>This page is only accessible to Admin users.</p>
+    <a href="../AnesthesiaWiki.html" style="color:var(--blue);font-weight:700;">← Back to Home</a>
+  </div>
+
+  <div id="admin-panel">
+    <div class="container">
+
+      <div id="status-banner"></div>
+
+      <!-- Add user -->
+      <div class="card">
+        <h2>➕ Grant Access</h2>
+        <div class="add-form">
+          <input type="email" id="new-email" placeholder="user@example.com" autocomplete="off">
+          <select id="new-role">
+            <option value="student">Student</option>
+            <option value="non-student">Non-Student</option>
+            <option value="omniscient">Omniscient</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="btn-primary" onclick="addUser()">Add User</button>
+        </div>
+      </div>
+
+      <!-- Access Requests -->
+      <div class="card" id="card-requests">
+        <h2>📬 Access Requests</h2>
+        <div id="requests-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Requested</th>
+                <th style="width:140px;"></th>
+              </tr>
+            </thead>
+            <tbody id="requests-table-body">
+              <tr><td colspan="4" class="empty-state">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Past requests history -->
+        <div style="margin-top:18px;">
+          <button id="btn-show-history" class="btn-secondary" style="font-size:0.82em;padding:5px 14px;" onclick="toggleHistory()">Show Past Requests</button>
+          <div id="history-wrap" style="display:none;margin-top:12px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Name</th>
+                  <th>Requested</th>
+                  <th style="width:90px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <tr><td colspan="4" class="empty-state">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- User list -->
+      <div class="card">
+        <h2>👥 Current Users</h2>
+        <div class="user-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th style="width:40px;"></th>
+              </tr>
+            </thead>
+            <tbody id="user-table-body">
+              <tr><td colspan="3" class="empty-state">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    (function () {
+      var cfg = {
+        apiKey: 'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+        authDomain: 'anesthesia-wiki-saved-files.firebaseapp.com',
+        projectId: 'anesthesia-wiki-saved-files',
+        storageBucket: 'anesthesia-wiki-saved-files.firebasestorage.app',
+        messagingSenderId: '493278937716',
+        appId: '1:493278937716:web:6d4055acbb6f5745810721'
+      };
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+    })();
+
+    var db = firebase.firestore();
+    var _users = []; // [{email, role}]
+
+    /* ── Auth ── */
+    firebase.auth().onAuthStateChanged(function (user) {
+      var nameEl = document.getElementById('header-auth-name');
+      var btn = document.getElementById('header-auth-btn');
+      if (user) {
+        if (nameEl) nameEl.textContent = user.displayName || user.email;
+        if (btn) { btn.textContent = 'Sign Out'; btn.onclick = function () { firebase.auth().signOut(); }; }
+        checkAccessAndLoad(user);
+      } else {
+        if (nameEl) nameEl.textContent = '';
+        if (btn) { btn.textContent = 'Log in'; btn.onclick = function () { firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); }; }
+        document.getElementById('loading-msg').style.display = 'none';
+        document.getElementById('access-denied').style.display = 'block';
+      }
+    });
+
+    function checkAccessAndLoad(user) {
+      db.collection('userRoles').doc(user.email).get()
+        .then(function (doc) {
+          var role = doc.exists ? doc.data().role : 'non-student';
+          document.getElementById('loading-msg').style.display = 'none';
+          if (role === 'admin') {
+            document.getElementById('admin-panel').style.display = 'block';
+            loadUsers();
+            loadRequests();
+          } else {
+            document.getElementById('access-denied').style.display = 'block';
+          }
+        })
+        .catch(function () {
+          document.getElementById('loading-msg').style.display = 'none';
+          document.getElementById('access-denied').style.display = 'block';
+        });
+    }
+
+    /* ── Load all users ── */
+    function loadUsers() {
+      db.collection('userRoles').get()
+        .then(function (snap) {
+          _users = [];
+          snap.forEach(function (doc) {
+            _users.push({ email: doc.id, role: doc.data().role || 'non-student' });
+          });
+          _users.sort(function (a, b) {
+            var order = { omniscient: 0, student: 1, 'non-student': 2 };
+            return (order[a.role] || 2) - (order[b.role] || 2) || a.email.localeCompare(b.email);
+          });
+          renderTable();
+        })
+        .catch(function (e) { showStatus('Failed to load users: ' + e.message, 'error'); });
+    }
+
+    /* ── Load pending access requests ── */
+    function loadRequests() {
+      db.collection('accessRequests').get()
+        .then(function (snap) {
+          var tbody = document.getElementById('requests-table-body');
+          var rows = [];
+          snap.forEach(function (doc) {
+            var d = doc.data();
+            if ((d.status || 'pending') === 'pending') {
+              rows.push({ email: doc.id, displayName: d.displayName || '', requestedAt: d.requestedAt || '' });
+            }
+          });
+          if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No pending requests.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = rows.map(function (r) {
+            var date = r.requestedAt ? new Date(r.requestedAt).toLocaleDateString() : '—';
+            return '<tr id="req-row-' + esc(r.email) + '">' +
+              '<td style="word-break:break-all;">' + esc(r.email) + '</td>' +
+              '<td>' + esc(r.displayName) + '</td>' +
+              '<td>' + esc(date) + '</td>' +
+              '<td style="display:flex;gap:6px;">' +
+                '<button class="btn-primary" style="padding:5px 12px;font-size:0.82em;" onclick="approveRequest(\'' + esc(r.email) + '\')">Approve</button>' +
+                '<button class="btn-delete" style="padding:5px 10px;font-size:0.82em;border-radius:6px;" onclick="denyRequest(\'' + esc(r.email) + '\')">Deny</button>' +
+              '</td>' +
+            '</tr>';
+          }).join('');
+          if (window.location.hash === '#requests') {
+            document.getElementById('card-requests').scrollIntoView({ behavior: 'smooth' });
+          }
+        })
+        .catch(function (e) {
+          var tbody = document.getElementById('requests-table-body');
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Error: ' + esc(e.message) + '</td></tr>';
+        });
+    }
+
+    function approveRequest(email) {
+      db.collection('userRoles').doc(email).set({ role: 'student' })
+        .then(function () { return db.collection('accessRequests').doc(email).update({ status: 'approved' }); })
+        .then(function () {
+          var row = document.getElementById('req-row-' + email);
+          if (row) row.remove();
+          var tbody = document.getElementById('requests-table-body');
+          if (!tbody.querySelector('tr')) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No pending requests.</td></tr>';
+          }
+          showStatus('Approved ' + email + ' as student.', 'success');
+          loadUsers();
+        })
+        .catch(function (e) { showStatus('Error approving: ' + e.message, 'error'); });
+    }
+
+    function denyRequest(email) {
+      if (!confirm('Deny access request from ' + email + '?')) return;
+      db.collection('accessRequests').doc(email).update({ status: 'denied' })
+        .then(function () {
+          var row = document.getElementById('req-row-' + email);
+          if (row) row.remove();
+          var tbody = document.getElementById('requests-table-body');
+          if (!tbody.querySelector('tr')) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No pending requests.</td></tr>';
+          }
+          showStatus('Denied request from ' + email + '.', 'success');
+        })
+        .catch(function (e) { showStatus('Error denying: ' + e.message, 'error'); });
+    }
+
+    /* ── Past requests history ── */
+    var _historyLoaded = false;
+    function toggleHistory() {
+      var wrap = document.getElementById('history-wrap');
+      var btn  = document.getElementById('btn-show-history');
+      if (wrap.style.display === 'none') {
+        wrap.style.display = '';
+        btn.textContent = 'Hide Past Requests';
+        if (!_historyLoaded) loadHistory();
+      } else {
+        wrap.style.display = 'none';
+        btn.textContent = 'Show Past Requests';
+      }
+    }
+
+    function loadHistory() {
+      var tbody = document.getElementById('history-table-body');
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Loading…</td></tr>';
+      db.collection('accessRequests').get()
+        .then(function (snap) {
+          var rows = [];
+          snap.forEach(function (doc) {
+            var d = doc.data();
+            var s = d.status || 'pending';
+            if (s === 'approved' || s === 'denied') {
+              rows.push({ email: doc.id, displayName: d.displayName || '', requestedAt: d.requestedAt || '', status: s });
+            }
+          });
+          _historyLoaded = true;
+          if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No past requests.</td></tr>';
+            return;
+          }
+          rows.sort(function (a, b) { return (b.requestedAt || '').localeCompare(a.requestedAt || ''); });
+          tbody.innerHTML = rows.map(function (r) {
+            var date  = r.requestedAt ? new Date(r.requestedAt).toLocaleDateString() : '—';
+            var color = r.status === 'approved' ? '#27ae60' : '#e74c3c';
+            return '<tr>' +
+              '<td style="word-break:break-all;">' + esc(r.email) + '</td>' +
+              '<td>' + esc(r.displayName) + '</td>' +
+              '<td>' + esc(date) + '</td>' +
+              '<td style="font-weight:700;color:' + color + ';">' + esc(r.status) + '</td>' +
+            '</tr>';
+          }).join('');
+        })
+        .catch(function (e) {
+          document.getElementById('history-table-body').innerHTML =
+            '<tr><td colspan="4" class="empty-state">Error: ' + esc(e.message) + '</td></tr>';
+        });
+    }
+
+    /* ── Render ── */
+    function renderTable() {
+      var tbody = document.getElementById('user-table-body');
+      if (!_users.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No users found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = _users.map(function (u, i) {
+        var isMe = u.email === 'tcolegro90@gmail.com';
+        var opts = ['admin', 'omniscient', 'student', 'non-student'].map(function (r) {
+          return '<option value="' + r + '"' + (u.role === r ? ' selected' : '') + '>' +
+            (r === 'non-student' ? 'Non-Student' : r.charAt(0).toUpperCase() + r.slice(1)) + '</option>';
+        }).join('');
+        return '<tr>' +
+          '<td style="word-break:break-all;">' + esc(u.email) + (isMe ? ' <span style="font-size:0.72rem;color:#b8860b;font-weight:700;">★ you</span>' : '') + '<span class="save-indicator" id="saved-' + i + '">✓ Saved</span></td>' +
+          (isMe
+            ? '<td><span class="role-badge role-' + u.role + '">' + (u.role === 'non-student' ? 'Non-Student' : u.role.charAt(0).toUpperCase() + u.role.slice(1)) + '</span> <span style="font-size:0.72rem;color:#7a8fa6;">(locked)</span></td><td></td>'
+            : '<td><select class="role-select" onchange="changeRole(' + i + ', this.value, ' + i + ')">' + opts + '</select></td><td><button class="btn-delete" onclick="deleteUser(' + i + ')" title="Remove access">&times;</button></td>'
+          ) +
+          '</tr>';
+      }).join('');
+    }
+
+    /* ── Change role ── */
+    function changeRole(i, newRole, indicatorIdx) {
+      var u = _users[i];
+      if (!u) return;
+      db.collection('userRoles').doc(u.email).set({ role: newRole }, { merge: true })
+        .then(function () {
+          _users[i].role = newRole;
+          var ind = document.getElementById('saved-' + indicatorIdx);
+          if (ind) { ind.classList.add('show'); setTimeout(function () { ind.classList.remove('show'); }, 2000); }
+        })
+        .catch(function (e) { showStatus('Error saving: ' + e.message, 'error'); });
+    }
+
+    /* ── Delete user ── */
+    function deleteUser(i) {
+      var u = _users[i];
+      if (!u) return;
+      if (!confirm('Remove access for ' + u.email + '?')) return;
+      db.collection('userRoles').doc(u.email).delete()
+        .then(function () {
+          _users.splice(i, 1);
+          renderTable();
+          showStatus('Removed ' + u.email, 'success');
+        })
+        .catch(function (e) { showStatus('Error: ' + e.message, 'error'); });
+    }
+
+    /* ── Add user ── */
+    function addUser() {
+      var emailInput = document.getElementById('new-email');
+      var roleInput = document.getElementById('new-role');
+      var email = (emailInput.value || '').trim().toLowerCase();
+      var role = roleInput.value;
+      if (!email || !email.includes('@')) { showStatus('Please enter a valid email address.', 'error'); return; }
+      if (_users.some(function (u) { return u.email === email; })) {
+        showStatus(email + ' already has access — update their role in the table below.', 'error');
+        return;
+      }
+      db.collection('userRoles').doc(email).set({ role: role })
+        .then(function () {
+          _users.push({ email: email, role: role });
+          _users.sort(function (a, b) {
+            var order = { admin: 0, omniscient: 1, student: 2, 'non-student': 3 };
+            return (order[a.role] !== undefined ? order[a.role] : 3) - (order[b.role] !== undefined ? order[b.role] : 3) || a.email.localeCompare(b.email);
+          });
+          renderTable();
+          emailInput.value = '';
+          roleInput.value = 'student';
+          showStatus('Access granted for ' + email + ' (' + role + ')', 'success');
+        })
+        .catch(function (e) { showStatus('Error: ' + e.message, 'error'); });
+    }
+
+    /* Allow Enter key in email field */
+    document.getElementById('new-email').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') addUser();
+    });
+
+    /* ── Helpers ── */
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function showStatus(msg, type) {
+      var el = document.getElementById('status-banner');
+      el.textContent = msg;
+      el.className = type;
+      clearTimeout(el._t);
+      el._t = setTimeout(function () { el.className = ''; el.style.display = 'none'; }, 4000);
+    }
+  </script>
+</body>
+</html>

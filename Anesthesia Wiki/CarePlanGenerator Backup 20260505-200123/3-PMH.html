@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PMH</title>
+  <link rel="stylesheet" href="shared.css?v=3" />
+  <style>
+    .pmh-checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px 12px;
+    }
+    .pmh-checkbox-grid label {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .pmh-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .pmh-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+    }
+    .pmh-row input {
+      flex: 1;
+    }
+    .row-remove-btn {
+      border: 1px solid #e7b7b7;
+      background: #fff4f4;
+      color: #8f2424;
+      font-size: 12px;
+      cursor: pointer;
+      line-height: 1.1;
+      padding: 5px 8px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .row-remove-btn:hover { background: #ffe6e6; border-color: #d68f8f; }
+    @media (max-width: 600px) {
+      .pmh-row input { max-width: none !important; }
+    }
+    .add-row-btn {
+      margin-top: 8px;
+      padding: 3px 12px;
+      font-size: 12px;
+      border: 1px dashed #4a6fa5;
+      border-radius: 4px;
+      background: #f0f5ff;
+      color: #4a6fa5;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .add-row-btn:hover { background: #dde8ff; }
+    .surgical-history-panel {
+      margin: 0;
+    }
+    .surgical-history-title {
+      font-weight: 700;
+      color: #1f3f66;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 900px) {
+      .pmh-checkbox-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .pmh-checkbox-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 10px;
+      }
+      .pmh-row {
+        min-width: 0;
+      }
+      .pmh-row input {
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>3. Past Medical History</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Home Meds</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+    </div>
+    <div class="card">
+      <div class="pmh-checkbox-grid">
+        <label><input type="checkbox" id="pmh-htn"> HTN</label>
+        <label><input type="checkbox" id="pmh-hld"> HLD</label>
+        <label><input type="checkbox" id="pmh-gerd"> GERD</label>
+        <label><input type="checkbox" id="pmh-dm"> DM</label>
+        <label><input type="checkbox" id="pmh-afib"> A-fib</label>
+        <label><input type="checkbox" id="pmh-cad"> CAD</label>
+        <label><input type="checkbox" id="pmh-chf"> CHF</label>
+        <label><input type="checkbox" id="pmh-ckd"> CKD</label>
+        <label><input type="checkbox" id="pmh-copd"> COPD</label>
+        <label><input type="checkbox" id="pmh-asthma"> Asthma</label>
+        <label><input type="checkbox" id="pmh-osa"> OSA</label>
+        <label><input type="checkbox" id="pmh-obesity"> Obesity</label>
+        <label><input type="checkbox" id="pmh-hypothyroid"> Hypothyroid</label>
+        <label><input type="checkbox" id="pmh-stroketia"> Stroke/TIA</label>
+        <label><input type="checkbox" id="pmh-seizure"> Seizures</label>
+        <label><input type="checkbox" id="pmh-anemia"> Anemia</label>
+        <label><input type="checkbox" id="pmh-liver"> Liver Disease</label>
+        <label><input type="checkbox" id="pmh-chronicpain"> Chronic Pain</label>
+        <label><input type="checkbox" id="pmh-depression"> Depression</label>
+        <label><input type="checkbox" id="pmh-anxiety"> Anxiety</label>
+        <label><input type="checkbox" id="pmh-cancer"> Cancer</label>
+      </div>
+      <hr>
+      <datalist id="pmh-dx-suggestions"></datalist>
+      <div id="pmh-list" class="pmh-list"></div>
+      <button type="button" class="add-row-btn" onclick="addPmhRow()">+ Add more</button>
+    </div>
+
+    <div class="card">
+      <div class="surgical-history-panel">
+        <label class="surgical-history-title">Past Surgical History</label>
+        <div id="psh-list" class="pmh-list"></div>
+        <button type="button" class="add-row-btn" onclick="addPshRow()">+ Add more</button>
+      </div>
+    </div>
+  </div>
+  <script src="shared.js?v=23"></script>
+  <script>
+    var pmhRowCount = 0;
+
+    // ── PMH diagnosis autocomplete ──────────────────────────────────────────
+    var PMH_DIAGNOSES = [
+      // Cardiovascular
+      'HTN','Hypertension','HLD','Hyperlipidemia','Hypercholesterolemia','Dyslipidemia',
+      'CAD','Coronary Artery Disease','Angina','MI','Myocardial Infarction','CABG','PCI',
+      'CHF','Heart Failure','Congestive Heart Failure','HFrEF','HFpEF','A-fib','Atrial Fibrillation',
+      'Atrial Flutter','PAD','Peripheral Arterial Disease','PVD','Aortic Stenosis',
+      'Aortic Regurgitation','Mitral Regurgitation','Mitral Stenosis','Cardiomyopathy',
+      'Pacemaker','ICD','WPW','DVT','PE','Pulmonary Embolism','Pulmonary Hypertension',
+      'Hypertrophic Cardiomyopathy','Dilated Cardiomyopathy','Endocarditis',
+      // Pulmonary
+      'COPD','Emphysema','Chronic Bronchitis','Asthma','OSA','Obstructive Sleep Apnea',
+      'Sleep Apnea','Pulmonary Fibrosis','IPF','Sarcoidosis','Pleural Effusion',
+      'Reactive Airway Disease','Bronchiectasis','Cystic Fibrosis',
+      // Endocrine / Metabolic
+      'DM','Diabetes','Type 2 Diabetes','Type 1 Diabetes','T2DM','T1DM','Pre-diabetes',
+      'Hypothyroidism','Hyperthyroidism','Thyroid Disease','Graves Disease','Hashimoto Thyroiditis',
+      'Obesity','Metabolic Syndrome','Adrenal Insufficiency','Cushing Syndrome','Hyperparathyroidism',
+      'Hyperaldosteronism','Pheochromocytoma','Acromegaly',
+      // Neurological
+      'Stroke','TIA','CVA','Transient Ischemic Attack','Seizure Disorder','Epilepsy',
+      "Parkinson's Disease",'Parkinsonism',"Alzheimer's Disease",'Dementia','Cognitive Impairment',
+      'Multiple Sclerosis','Myasthenia Gravis','ALS','Neuropathy','Peripheral Neuropathy',
+      'Migraine','Headache Disorder','Cervical Myelopathy','Lumbar Stenosis','Radiculopathy',
+      // Renal
+      'CKD','Chronic Kidney Disease','ESRD','End Stage Renal Disease','Renal Failure',
+      'Nephrolithiasis','Kidney Stones','Nephrotic Syndrome','Glomerulonephritis','Dialysis',
+      // GI / Hepatic
+      'GERD','Reflux','Peptic Ulcer Disease','PUD','Crohn Disease','Ulcerative Colitis',
+      'IBD','Inflammatory Bowel Disease','IBS','Irritable Bowel Syndrome','Diverticulosis',
+      'Diverticulitis','Cirrhosis','Hepatitis','Hepatitis B','Hepatitis C','Liver Disease',
+      'NAFLD','NASH','Pancreatitis','Gallstones','Cholelithiasis','Cholecystitis',
+      'Celiac Disease','Gastroparesis',
+      // Hematological
+      'Anemia','Iron Deficiency Anemia','B12 Deficiency','Sickle Cell Disease','Sickle Cell Trait','Thalassemia',
+      'Thrombocytopenia','Coagulopathy','Hemophilia','Von Willebrand Disease',
+      'Polycythemia Vera','DVT History','Anticoagulation','Factor V Leiden',
+      // Rheumatological / Musculoskeletal
+      'Rheumatoid Arthritis','RA','Osteoarthritis','Lupus','SLE','Systemic Lupus Erythematosus',
+      'Psoriatic Arthritis','Ankylosing Spondylitis','Gout','Fibromyalgia',
+      'Polymyalgia Rheumatica','Sjogren Syndrome','Scleroderma','Vasculitis','Myositis',
+      // Psychiatric
+      'Depression','Major Depressive Disorder','MDD','Anxiety','GAD','Generalized Anxiety Disorder',
+      'PTSD','Bipolar Disorder','Schizophrenia','ADHD','Substance Use Disorder',
+      'Alcohol Use Disorder','OCD','Panic Disorder','Borderline Personality Disorder',
+      // Oncology
+      'Cancer','Breast Cancer','Lung Cancer','Colon Cancer','Colorectal Cancer',
+      'Prostate Cancer','Bladder Cancer','Kidney Cancer','Thyroid Cancer','Lymphoma',
+      'Leukemia','Multiple Myeloma','Melanoma','Ovarian Cancer','Endometrial Cancer',
+      'Head and Neck Cancer','Esophageal Cancer','Gastric Cancer','Hepatocellular Carcinoma',
+      // Other / Infectious
+      'Chronic Pain','Osteoporosis','Osteopenia','HIV','AIDS','Transplant','Kidney Transplant',
+      'Liver Transplant','Heart Transplant','Bone Marrow Transplant','Dialysis',
+      'Eczema','Psoriasis','Glaucoma','Macular Degeneration','Cataracts',
+      'Obesity Hypoventilation Syndrome','OHS','Malnutrition','Chronic Steroid Use',
+      'Immunosuppression','Hereditary Angioedema','Latex Allergy'
+    ];
+
+    var PMH_CHECKBOX_ALIASES = {
+      'pmh-htn':         ['htn','hypertension','high blood pressure'],
+      'pmh-hld':         ['hld','hyperlipidemia','hypercholesterolemia','high cholesterol','dyslipidemia'],
+      'pmh-gerd':        ['gerd','reflux','acid reflux','gastroesophageal reflux','peptic ulcer','pud'],
+      'pmh-dm':          ['dm','diabetes','diabetes mellitus','type 2 diabetes','type 1 diabetes','t2dm','t1dm','dm2','dm1'],
+      'pmh-afib':        ['afib','a-fib','atrial fibrillation','af','atrial flutter'],
+      'pmh-cad':         ['cad','coronary artery disease','coronary disease','angina','mi','myocardial infarction'],
+      'pmh-chf':         ['chf','heart failure','congestive heart failure','hf','hfref','hfpef'],
+      'pmh-ckd':         ['ckd','chronic kidney disease','kidney disease','renal disease','renal failure','esrd','end stage renal disease'],
+      'pmh-copd':        ['copd','chronic obstructive pulmonary disease','emphysema','chronic bronchitis'],
+      'pmh-asthma':      ['asthma','reactive airway disease','rad'],
+      'pmh-osa':         ['osa','obstructive sleep apnea','sleep apnea','apnea'],
+      'pmh-obesity':     ['obesity','obese','morbid obesity'],
+      'pmh-hypothyroid': ['hypothyroid','hypothyroidism','thyroid','low thyroid','hashimoto'],
+      'pmh-stroketia':   ['stroke','tia','stroke/tia','transient ischemic attack','cva'],
+      'pmh-seizure':     ['seizure','seizures','epilepsy','convulsions','seizure disorder'],
+      'pmh-anemia':      ['anemia','anemic','iron deficiency anemia','sickle cell disease','sickle cell trait','sickle trait'],
+      'pmh-liver':       ['liver','liver disease','cirrhosis','hepatitis','hepatitis b','hepatitis c','hep b','hep c','nafld','nash'],
+      'pmh-chronicpain': ['chronic pain','pain'],
+      'pmh-depression':  ['depression','mdd','major depressive disorder'],
+      'pmh-anxiety':     ['anxiety','gad','generalized anxiety','generalized anxiety disorder','panic disorder'],
+      'pmh-cancer':      ['cancer','malignancy','tumor','carcinoma','lymphoma','leukemia','melanoma','multiple myeloma']
+    };
+
+    var pmhSuggestionsReady = false;
+    function ensurePmhSuggestions() {
+      if (pmhSuggestionsReady) return;
+      var list = document.getElementById('pmh-dx-suggestions');
+      if (!list) return;
+      var frag = document.createDocumentFragment();
+      PMH_DIAGNOSES.forEach(function(dx) {
+        var opt = document.createElement('option');
+        opt.value = dx;
+        frag.appendChild(opt);
+      });
+      list.appendChild(frag);
+      pmhSuggestionsReady = true;
+    }
+
+    function resolvePmhCheckbox(typed) {
+      var q = typed.toLowerCase().replace(/[^a-z0-9\/\- ]/g, '').trim();
+      if (!q) return null;
+      var ids = Object.keys(PMH_CHECKBOX_ALIASES);
+      for (var i = 0; i < ids.length; i++) {
+        var id = ids[i];
+        var aliases = PMH_CHECKBOX_ALIASES[id];
+        for (var j = 0; j < aliases.length; j++) {
+          if (q === aliases[j]) return id;
+        }
+      }
+      return null;
+    }
+
+    function getTopPmhSuggestion(typed) {
+      if (!typed) return typed;
+      var q = typed.toLowerCase();
+      var diagnoses = PMH_DIAGNOSES;
+      // Prefix match first
+      for (var i = 0; i < diagnoses.length; i++) {
+        if (diagnoses[i].toLowerCase().indexOf(q) === 0) return diagnoses[i];
+      }
+      // Contains match fallback
+      for (var i = 0; i < diagnoses.length; i++) {
+        if (diagnoses[i].toLowerCase().indexOf(q) !== -1) return diagnoses[i];
+      }
+      return typed;
+    }
+
+    function normalizePmhText(text) {
+      return String(text || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function shouldPreserveAsTextEntry(typed, resolved, matchId) {
+      var t = normalizePmhText(typed);
+      var r = normalizePmhText(resolved);
+      // Get the canonical base name for this checkbox (first alias = broadest term)
+      var aliases = (matchId && PMH_CHECKBOX_ALIASES[matchId]) || [];
+      var baseName = aliases[0] || '';
+      // If the typed/resolved IS already the base checkbox term, the checkbox alone covers it
+      if (baseName && (t === baseName || r === baseName)) return '';
+      // If the resolved text is a named diagnosis in PMH_DIAGNOSES, preserve its specific name
+      for (var i = 0; i < PMH_DIAGNOSES.length; i++) {
+        if (PMH_DIAGNOSES[i].toLowerCase() === r) return PMH_DIAGNOSES[i];
+      }
+      return '';
+    }
+
+    function hasPmhTextEntry(value) {
+      var target = normalizePmhText(value);
+      if (!target) return false;
+      return Array.from(document.querySelectorAll('#pmh-list .pmh-row input')).some(function(el) {
+        return normalizePmhText(el.value) === target;
+      });
+    }
+
+    function addPmhFromInput(input) {
+      if (!input) return;
+      var typed = (input.value || '').trim();
+      if (!typed) return;
+
+      // Use the top suggestion from the datalist if one exists
+      var resolved = getTopPmhSuggestion(typed);
+
+      var matchId = resolvePmhCheckbox(resolved) || resolvePmhCheckbox(typed);
+      if (matchId) {
+        var cb = document.getElementById(matchId);
+        if (cb && !cb.checked) {
+          cb.checked = true;
+          cb.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        var preserveText = shouldPreserveAsTextEntry(typed, resolved, matchId);
+        if (preserveText) {
+          input.value = preserveText;
+        } else {
+          input.value = '';
+        }
+      } else {
+        input.value = resolved;
+      }
+
+      savePmhRows();
+
+      // If Enter only triggered a checkbox and left no PMH text in this row,
+      // keep focus here and do not create/advance rows.
+      if (!String(input.value || '').trim()) {
+        input.focus();
+        return;
+      }
+
+      var row = input.closest('.pmh-row');
+      var rows = Array.from(document.querySelectorAll('#pmh-list .pmh-row'));
+      var idx = rows.indexOf(row);
+      if (idx >= 0 && idx < rows.length - 1) {
+        rows[idx + 1].querySelector('input').focus();
+      } else {
+        addPmhRow('');
+        var all = document.querySelectorAll('#pmh-list .pmh-row');
+        var lastInput = all[all.length - 1] && all[all.length - 1].querySelector('input');
+        if (lastInput) lastInput.focus();
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    function addPmhRow(value) {
+      if (pmhRowCount >= 30) return;
+      pmhRowCount++;
+
+      var row = document.createElement('div');
+      row.className = 'pmh-row';
+
+      var input = document.createElement('input');
+      input.className = 'long';
+      input.placeholder = 'PMH item';
+      input.setAttribute('autocomplete', 'off');
+      if (value) {
+        input.value = value;
+        input.setAttribute('list', 'pmh-dx-suggestions');
+      }
+      input.addEventListener('input', function() {
+        ensurePmhSuggestions();
+        if (input.value.trim()) {
+          input.setAttribute('list', 'pmh-dx-suggestions');
+        } else {
+          input.removeAttribute('list');
+        }
+      });
+      input.addEventListener('input', savePmhRows);
+      input.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        addPmhFromInput(input);
+      });
+
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'row-remove-btn';
+      rm.textContent = 'Delete';
+      rm.onclick = function() {
+        row.remove();
+        if (document.querySelectorAll('#pmh-list .pmh-row').length === 0) addPmhRow('');
+        savePmhRows();
+      };
+
+      row.appendChild(input);
+      row.appendChild(rm);
+      document.getElementById('pmh-list').appendChild(row);
+      savePmhRows();
+    }
+
+    function savePmhRows() {
+      var s = getGlobalState();
+      var rows = Array.from(document.querySelectorAll('#pmh-list .pmh-row input')).map(function(el) {
+        return el.value || '';
+      });
+      s['pmh-list'] = JSON.stringify(rows);
+      setGlobalState(s);
+    }
+
+    function restorePmhRows() {
+      var list = document.getElementById('pmh-list');
+      list.innerHTML = '';
+      pmhRowCount = 0;
+
+      var s = getGlobalState();
+      var rows = [];
+      try { rows = JSON.parse(s['pmh-list']) || []; } catch (e) {}
+      if (!rows.length) rows = [''];
+
+      rows.forEach(function(item) {
+        addPmhRow(item || '');
+      });
+    }
+
+    function saveSurgicalHistory() {
+      var s = getGlobalState();
+      var rows = Array.from(document.querySelectorAll('#psh-list .pmh-row input')).map(function(el) {
+        return el.value || '';
+      });
+      s['pmh-surgical-history'] = JSON.stringify(rows);
+      setGlobalState(s);
+    }
+
+    var pshRowCount = 0;
+
+    function addPshRow(value) {
+      if (pshRowCount >= 30) return;
+      pshRowCount++;
+
+      var row = document.createElement('div');
+      row.className = 'pmh-row';
+
+      var input = document.createElement('input');
+      input.className = 'long';
+      input.placeholder = 'Surgery / procedure';
+      if (value) input.value = value;
+      input.addEventListener('input', saveSurgicalHistory);
+      input.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var rows = Array.from(document.querySelectorAll('#psh-list .pmh-row'));
+        var idx = rows.indexOf(row);
+        if (idx < rows.length - 1) {
+          var next = rows[idx + 1].querySelector('input');
+          if (next) next.focus();
+        } else {
+          addPshRow('');
+          var allRows = document.querySelectorAll('#psh-list .pmh-row');
+          var lastInput = allRows[allRows.length - 1].querySelector('input');
+          if (lastInput) lastInput.focus();
+        }
+      });
+
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'row-remove-btn';
+      rm.textContent = 'Delete';
+      rm.onclick = function() {
+        row.remove();
+        if (document.querySelectorAll('#psh-list .pmh-row').length === 0) addPshRow('');
+        saveSurgicalHistory();
+      };
+
+      row.appendChild(input);
+      row.appendChild(rm);
+      document.getElementById('psh-list').appendChild(row);
+      saveSurgicalHistory();
+    }
+
+    function restoreSurgicalHistory() {
+      var list = document.getElementById('psh-list');
+      list.innerHTML = '';
+      pshRowCount = 0;
+
+      var s = getGlobalState();
+      var raw = s['pmh-surgical-history'] || '';
+      var rows = [];
+      try { rows = JSON.parse(raw); } catch (e) {
+        // Legacy: plain text — split by newline
+        if (raw.trim()) rows = raw.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+      }
+      if (!Array.isArray(rows) || !rows.length) rows = [''];
+      rows.forEach(function(item) { addPshRow(item || ''); });
+    }
+
+    pageBoot(function() {
+      restorePmhRows();
+      restoreSurgicalHistory();
+    }, function() {
+      restorePmhRows();
+      restoreSurgicalHistory();
+    });
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

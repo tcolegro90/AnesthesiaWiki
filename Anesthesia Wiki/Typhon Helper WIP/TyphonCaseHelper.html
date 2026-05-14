@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typhon Case Helper</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { max-width: 100%; overflow-x: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f0; color: #2c3e50; min-height: 100vh; }
+
+    /* STICKY WRAP — keeps tabs as a sticky unit */
+    .sticky-header-wrap { position: sticky; top: 0; z-index: 100; }
+
+    /* WELCOME GATE */
+    #welcome-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9500;
+      background:
+        radial-gradient(900px 520px at 85% -15%, rgba(255,255,255,0.14), transparent 60%),
+        radial-gradient(700px 400px at -10% 110%, rgba(255,255,255,0.1), transparent 58%),
+        linear-gradient(150deg, #0d6e6e, #0a5555 45%, #1e8f5b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+    }
+    .welcome-box {
+      width: min(560px, 100%);
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.72);
+      border-radius: 20px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+      padding: 24px 22px;
+      text-align: center;
+    }
+    .welcome-title { font-size: clamp(1.4rem, 4vw, 1.95rem); font-weight: 800; color: #184954; line-height: 1.18; }
+    .welcome-sub { margin-top: 10px; font-size: 0.95rem; color: #2b5a62; line-height: 1.45; }
+    .welcome-choice-list { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+    .welcome-choice-btn { border: none; border-radius: 12px; padding: 12px 20px; width: 100%; background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: #fff; font-size: 0.98rem; font-weight: 800; letter-spacing: 0.2px; cursor: pointer; box-shadow: 0 8px 22px rgba(13,110,110,0.33); }
+    .welcome-choice-btn:active { transform: scale(0.99); }
+    .welcome-choice-btn.secondary { background: white; color: #0d6e6e; border: 2px solid #0d6e6e; box-shadow: none; }
+
+    #welcome-screen { display: none; }
+    body.show-start-screen #welcome-screen { display: flex; }
+    body.show-start-screen .sticky-header-wrap { display: none; }
+
+    /* ACCOUNT TAB ICON */
+    .tab-account { flex: 0 0 auto; padding: 11px 14px; font-size: 1.25em; cursor: pointer; color: #7f8c8d; border-bottom: 3px solid transparent; text-align: center; line-height: 1; vertical-align: middle; }
+    .tab-account:hover { background: #f8faf9; }
+    .tab-account.auth-signed-in { color: #0d6e6e; }
+
+    /* ACCOUNT BOTTOM DRAWER */
+    #acct-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9000; }
+    #acct-overlay.open { display: block; }
+    #acct-drawer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: white;
+      border-radius: 20px 20px 0 0;
+      padding: 0 18px 36px;
+      z-index: 9001;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+    }
+    #acct-overlay.open #acct-drawer { transform: translateY(0); }
+    .acct-handle { width: 40px; height: 4px; background: #dde3ec; border-radius: 4px; margin: 14px auto 18px; }
+    .acct-name { font-size: 0.95em; font-weight: 700; color: #184954; margin-bottom: 6px; }
+    .acct-email { font-size: 0.8em; color: #667; margin-bottom: 18px; }
+    #acct-action-btn { width: 100%; padding: 13px; border-radius: 12px; font-size: 0.92em; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; border: none; }
+
+    /* DRAFT BANNER */
+    #draft-banner { display: none; background: linear-gradient(135deg, #e8f0fe, #dce8ff); border: 1.5px solid #b0c4f5; border-radius: 11px; padding: 13px 15px; margin-bottom: 14px; }
+    #draft-banner.visible { display: block; }
+    .draft-banner-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .draft-banner-text { font-size: 0.88em; font-weight: 600; color: #2c3e8a; }
+    .draft-banner-text span { display: block; font-size: 0.82em; font-weight: 400; color: #4a5580; margin-top: 2px; }
+    .draft-banner-btns { display: flex; gap: 7px; flex-shrink: 0; }
+
+    /* STICKY WRAP — keeps header and tabs as one flush sticky unit */
+    .sticky-header-wrap { position: sticky; top: 0; z-index: 100; }
+    /* TABS */
+    .tabs { display: flex; background: white; border-bottom: 2px solid #e0e0e0; }
+    .tab { flex: 1; padding: 11px 6px; text-align: center; cursor: pointer; font-size: 0.85em; font-weight: 600; color: #7f8c8d; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; }
+    .tab.active { color: #0d6e6e; border-bottom-color: #0d6e6e; }
+    .tab:hover:not(.active) { background: #f8faf9; }
+
+    /* CONTENT */
+    .tab-pane { display: none; padding: 14px 14px 90px; max-width: 700px; margin: 0 auto; }
+    .tab-pane.active { display: block; }
+
+    /* CARDS */
+    .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,0.09); }
+    .card-title { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; color: #95a5a6; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+
+    /* FIELDS */
+    .field { margin-bottom: 13px; }
+    .field:last-child { margin-bottom: 0; }
+    .field > label { display: block; font-size: 0.83em; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+    .field input[type="text"],
+    .field input[type="number"],
+    .field input[type="date"],
+    .field select,
+    .field textarea {
+      width: 100%; padding: 9px 11px; border: 1.5px solid #dde3ec; border-radius: 8px;
+      font-size: 0.93em; outline: none; transition: border-color 0.2s; font-family: inherit; background: white;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #0d6e6e; }
+    .field textarea { min-height: 76px; resize: vertical; }
+    #c-notes { min-height: clamp(150px, 34vh, 320px); }
+
+    /* TOGGLE BUTTONS (single-select) */
+    .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    #grp-sex { margin-bottom: 4px; }
+    .btn-tog { padding: 10px 16px; border: 1.5px solid #dde3ec; border-radius: 10px; cursor: pointer;
+      font-size: 0.86em; font-weight: 600; background: white; color: #4a5568; transition: all 0.15s; user-select: none; }
+    .btn-tog.on { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
+    .btn-tog:hover:not(.on) { border-color: #0d6e6e; color: #0d6e6e; }
+    .btn-tog.wide { flex: 1 1 150px; text-align: center; padding: 11px 12px; font-size: 0.9em; }
+    /* Two-option rows: always fill full width side by side */
+    #grp-sex, #grp-admit, #grp-preceptor, #e-arrived { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #grp-sex .btn-tog, #grp-admit .btn-tog, #grp-preceptor .btn-tog, #e-arrived .btn-tog { text-align: center; padding: 11px 8px; }
+    /* Single-button full-width rows */
+    #grp-urgency, #grp-neonate { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    #grp-urgency .btn-tog, #grp-neonate .btn-tog { text-align: center; padding: 11px 8px; width: 100%; }
+    /* Position: 4 buttons → single row */
+    #grp-pos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    #grp-pos .btn-tog { text-align: center; padding: 11px 4px; }
+    /* Eval yes/no and similar full-width grids */
+    #e-q8, #e-q9, #e-q10, #e-q11, #e-q12, #e-q13, #e-q14, #e-q16 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #e-q8 .btn-tog, #e-q9 .btn-tog, #e-q10 .btn-tog, #e-q11 .btn-tog,
+    #e-q12 .btn-tog, #e-q13 .btn-tog, #e-q14 .btn-tog, #e-q16 .btn-tog { text-align: center; padding: 11px 8px; }
+    #grp-anat .anat-dropdown { grid-column: 1 / -1; }
+    .anat-dropdown {
+      display: none;
+      margin: 2px 0 4px;
+      padding: 10px;
+      border: 1.5px solid #cdd9e6;
+      border-radius: 10px;
+      background: #f6fbff;
+    }
+    .anat-dropdown.open { display: block; }
+    .anat-dropdown-title {
+      font-size: 0.8em;
+      font-weight: 700;
+      color: #35506b;
+      margin-bottom: 8px;
+    }
+    #grp-assess { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    #grp-assess .btn-tog { width: 100%; text-align: left; }
+    #c-as::placeholder, #c-af::placeholder { color: rgba(0,0,0,0.18); }
+
+    /* ASA BUTTONS — 6-column grid guarantees single row on all phone sizes */
+    .asa-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    .asa-btn { text-align: center; padding: 11px 2px; border: 1.5px solid #dde3ec; border-radius: 10px;
+      cursor: pointer; font-size: 0.86em; font-weight: 700; background: white; color: #4a5568; transition: all 0.15s; user-select: none; }
+    .asa-btn.on { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
+
+    /* SECTION TOGGLES (expandable) */
+    .sec-tog { border: 1.5px solid #dde3ec; border-radius: 10px; margin-bottom: 9px; overflow: hidden; }
+    .sec-header { display: flex; align-items: center; gap: 10px; padding: 11px 13px; cursor: pointer; background: #f8faf9; }
+    .sec-header input[type="checkbox"] { width: 18px; height: 18px; accent-color: #0d6e6e; flex-shrink: 0; cursor: pointer; }
+    .sec-header .sec-label { font-weight: 700; font-size: 0.88em; color: #2c3e50; flex: 1; }
+    .sec-arrow { font-size: 0.75em; color: #95a5a6; transition: transform 0.2s; }
+    .sec-body { padding: 12px 13px; border-top: 1px solid #eef0f3; display: none; }
+    .sec-body.open { display: block; }
+    .sec-tog.expanded .sec-arrow { transform: rotate(90deg); }
+    .sec-header.selected {
+      background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .sec-header.selected .sec-label,
+    .sec-header.selected .sec-arrow { color: white; }
+
+    /* Hide native checkbox squares in requested sections, keep row click behavior */
+    #card-anes-type .chk-item input[type="checkbox"],
+    #card-procedures .chk-item input[type="checkbox"],
+    #card-procedures-2 .chk-item input[type="checkbox"],
+    #card-procedures .count-row label input[type="checkbox"],
+    #card-medications .chk-item input[type="checkbox"],
+    #card-anes-type .sec-header input[type="checkbox"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .proc-heading {
+      font-size: 0.78em;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #34505f;
+      margin: 2px 0 8px;
+      padding: 6px 8px;
+      border: 1px solid #dce4ea;
+      border-radius: 7px;
+      background: #f7fbfd;
+    }
+
+    /* CHECKBOXES */
+    .chk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    #sec-general .chk-grid { grid-auto-flow: column; grid-template-rows: repeat(6, auto); }
+    .chk-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; }
+    .chk-item:hover { background: #f4f6f8; }
+    .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
+    .chk-item input[type="checkbox"] { width: 17px; height: 17px; accent-color: #0d6e6e; flex-shrink: 0; cursor: pointer; }
+    .chk-item span { font-size: 0.83em; color: #4a5568; line-height: 1.3; }
+    .chk-item.selected span { color: white; }
+
+    /* Step 5 & 6 — match page 7 style (0.86em, semi-bold) */
+    #card-procedures-2 .chk-item span { font-size: 0.86em; font-weight: 600; }
+    #card-procedures-2 .proc-heading { border: none; background: none; padding-left: 2px; }
+    #card-procedures-2 .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 11px 13px; border-radius: 10px; }
+    #card-procedures-2 .chk-item span { font-size: 0.86em; font-weight: 600; }
+    #card-procedures-2 .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
+    #card-procedures-2 .chk-item.selected span { color: white; }
+    #card-procedures .proc-heading { border: none; background: none; padding-left: 2px; }
+    #card-procedures .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 11px 13px; border-radius: 10px; }
+    #card-procedures .chk-item span { font-size: 0.86em; font-weight: 600; }
+    #card-procedures .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
+    #card-procedures .chk-item.selected span { color: white; }
+    #card-procedure-counts .count-label { font-size: 0.86em; font-weight: 600; }
+
+    /* Step 9 — page 7 style */
+    #card-medications .chk-item span { font-size: 0.86em; font-weight: 600; }
+    #card-medications .chk-grid { grid-template-columns: 1fr; gap: 8px; }
+    #card-medications .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 11px 13px; border-radius: 10px; }
+    #card-medications .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
+    #card-medications .chk-item.selected span { color: white; }
+
+    /* COUNT ROWS */
+    .count-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 7px; border: 1.5px solid transparent; transition: all 0.15s; }
+    .count-row:hover { background: #f4f6f8; }
+    .count-row.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
+    .count-label { flex: 1; font-size: 0.83em; color: #4a5568; }
+    .count-row.selected .count-label { color: white; }
+    .count-stepper { display: flex; align-items: center; gap: 4px; }
+    .count-step-btn { background: #edf2f7; border: 1px solid #dde3ec; border-radius: 5px; width: 28px; height: 28px; font-size: 0.8em; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #4a5568; line-height: 1; padding: 0; }
+    .count-step-btn:hover { background: #e2e8f0; }
+    .count-row.selected .count-step-btn { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); color: white; }
+    .count-input { width: 58px; padding: 5px 8px; border: 1.5px solid #dde3ec; border-radius: 6px; font-size: 0.85em; text-align: center; }
+    .compact-input-8 { flex: 0 0 8ch !important; width: 8ch !important; text-align: center; }
+    .compact-age { width: 6ch !important; min-width: 6ch !important; max-width: 6ch !important; text-align: center; }
+
+    /* TIME GRID */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 22px; border-radius: 10px; font-weight: 700; font-size: 0.93em; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; box-shadow: 0 4px 12px rgba(13,110,110,0.28); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(13,110,110,0.38); }
+    .btn-secondary { background: white; color: #4a5568; border: 1.5px solid #dde3ec; }
+    .btn-secondary:hover { background: #f4f6f8; }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-full { width: 100%; }
+    .btn-sm { padding: 6px 13px; font-size: 0.8em; border-radius: 7px; }
+
+    /* FOLDERS (Saved tab) */
+    .submitted-folder, .date-folder { margin-bottom: 10px; }
+    .submitted-folder-header, .date-folder-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f0fdf8; border: 1.5px solid #b2ddd4; border-radius: 10px; cursor: pointer; user-select: none; }
+    .submitted-folder.open > .submitted-folder-header, .date-folder.open > .date-folder-header { border-radius: 10px 10px 0 0; border-bottom-color: transparent; }
+    .submitted-folder-title, .date-folder-title { font-size: 0.88em; font-weight: 700; color: #2c6e5a; }
+    .submitted-folder-meta, .date-folder-count { font-size: 0.8em; font-weight: 500; color: #7f8c8d; }
+    .folder-chevron { font-size: 0.7em; color: #7f8c8d; transition: transform 0.2s; display: inline-block; }
+    .submitted-folder.open > .submitted-folder-header .folder-chevron,
+    .date-folder.open > .date-folder-header .folder-chevron { transform: rotate(90deg); }
+    .submitted-folder-body, .date-folder-body { display: none; padding: 10px 0 0; }
+    .submitted-folder.open > .submitted-folder-body, .date-folder.open > .date-folder-body { display: block; }
+    .date-folder { margin-left: 0; }
+    .submitted-folder-body > .date-folder { margin-bottom: 8px; margin-left: 12px; border-left: 3px solid #b2ddd4; padding-left: 8px; }
+    .submitted-folder-body > .date-folder .date-folder-header { background: #f8fafb; border-color: #dde3ec; }
+    .submitted-folder-body > .date-folder.open > .date-folder-header { border-radius: 8px 8px 0 0; }
+    .submitted-folder-body > .date-folder .date-folder-body { padding-top: 8px; }
+    .date-folder-body > .date-folder { margin-left: 12px; border-left: 3px solid #dde3ec; padding-left: 8px; margin-bottom: 8px; }
+    .date-folder-body > .date-folder .date-folder-header { background: white; border-color: #e8edf2; font-size: 0.95em; }
+    .date-folder-body > .date-folder.open > .date-folder-header { border-radius: 8px 8px 0 0; }
+
+    /* SAVED LIST */
+    .saved-item { border: 1.5px solid #e0e6ed; border-radius: 10px; padding: 13px 14px; margin-bottom: 11px; background: white; }
+    .saved-item.done { opacity: 0.48; }
+    .saved-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+    .saved-item-title { font-weight: 700; font-size: 0.9em; }
+    .saved-item-sub { font-size: 0.78em; color: #7f8c8d; margin-top: 2px; line-height: 1.4; }
+    .badge { font-size: 0.72em; padding: 3px 9px; border-radius: 20px; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+    .badge-pending { background: #fff3cd; color: #856404; }
+    .badge-done { background: #d4edda; color: #155724; }
+    .item-actions { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
+
+    /* EMPTY STATE */
+    .empty { text-align: center; padding: 44px 20px; color: #95a5a6; }
+    .empty .icon { font-size: 2.4em; }
+    .empty p { font-size: 0.88em; margin-top: 8px; line-height: 1.5; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #2c3e50; color: white; padding: 9px 20px; border-radius: 20px; font-size: 0.84em; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+    .toast.show { opacity: 1; }
+
+    .req { color: #e74c3c; margin-left: 2px; }
+    .spacer { height: calc(80px + env(safe-area-inset-bottom, 0px)); }
+
+    /* DAY PILLS */
+    .day-pills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .day-pill { padding: 11px 4px; border: 2px solid #dde3ec; border-radius: 10px; cursor: pointer;
+      text-align: center; background: white; transition: all 0.15s; user-select: none; }
+    .day-pill .dp-dow { font-size: 0.8em; font-weight: 700; color: #7f8c8d; }
+    .day-pill .dp-label { font-size: 0.75em; color: #95a5a6; margin-top: 1px; }
+    .day-pill.on { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
+    .day-pill.on .dp-dow { color: white; }
+    .day-pill.on .dp-label { color: rgba(255,255,255,0.75); }
+    .day-pill:hover:not(.on) { border-color: #0d6e6e; }
+    .day-pill.today .dp-dow { color: #0d6e6e; }
+    .day-pill.today.on .dp-dow { color: white; }
+
+    /* TIMESTAMP ROW */
+    .ts-row { display: flex; align-items: center; gap: 8px; }
+    .ts-row input { flex: 1; padding: 11px 12px; border: 1.5px solid #dde3ec; border-radius: 8px;
+      font-size: 1.05em; font-weight: 700; letter-spacing: 1px; outline: none;
+      transition: border-color 0.2s; background: white; }
+    .ts-row input:focus { border-color: #0d6e6e; }
+    .ts-row input.stamped { border-color: #1e8f5b; background: #f0faf5; }
+    .btn-stamp { padding: 11px 14px; background: #0d6e6e; color: white; border: none;
+      border-radius: 8px; font-size: 0.82em; font-weight: 700; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0; transition: background 0.15s; }
+    .btn-stamp:hover { background: #0a5c5c; }
+    .btn-stamp:active { transform: scale(0.96); }
+    .ts-label { font-size: 0.8em; font-weight: 700; color: #4a5568; margin-bottom: 5px; }
+
+    /* TOP TIMES CARD */
+    .times-card { background: linear-gradient(135deg, #f0fdf8, #e8f5f2); border: 1.5px solid #b2ddd4; }
+
+    /* MOBILE STEP NAV (case form) */
+    .mobile-stepper {
+      display: none;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border: 1.5px solid #dde3ec;
+      border-radius: 12px;
+      padding: 8px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    }
+    .step-meta {
+      text-align: center;
+      min-width: 0;
+    }
+    .step-count {
+      font-size: 0.78em;
+      font-weight: 700;
+      color: #7f8c8d;
+      letter-spacing: 0.3px;
+    }
+    .step-title {
+      font-size: 0.84em;
+      font-weight: 700;
+      color: #2c3e50;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .step-nav {
+      min-height: 44px;
+      min-width: 74px;
+      border-radius: 10px;
+      border: 1.5px solid #d6dde6;
+      background: #f8faf9;
+      font-size: 0.84em;
+      font-weight: 700;
+      color: #2c3e50;
+      padding: 0 10px;
+      cursor: pointer;
+    }
+    .step-nav:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 480px) {
+      .chk-grid { grid-template-columns: 1fr; }
+      .asa-btn { width: 42px; }
+      .two-col { grid-template-columns: 1fr; }
+      .day-pills { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+      .day-pill { padding: 10px 2px; }
+      #sec-general .chk-grid { grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(6, auto); }
+      #grp-anat .btn-tog { flex: 1 1 calc(50% - 7px); }
+      .h1-full { display: none; }
+      .h1-short { display: inline; }
+    }
+
+    @media (max-width: 820px) {
+      .tab-pane { overflow-x: clip; }
+      .mobile-stepper {
+        display: grid;
+        position: sticky;
+        top: 48px;
+        z-index: 95;
+      }
+      #pane-case.mobile-paged .card { display: none; }
+      #pane-case.mobile-paged .card.active-step { display: block; min-height: auto; }
+      #pane-eval.mobile-paged .card { display: none; }
+      #pane-eval.mobile-paged .card.active-step { display: block; min-height: calc(100vh - 160px); }
+      #pane-eval.mobile-paged .eval-question-step { display: none; }
+      #pane-eval.mobile-paged .eval-question-step.active-question { display: block; }
+      #pane-eval.mobile-paged.last-step .card.active-step { min-height: auto; }
+
+      /* 44px minimum touch targets for finger-friendly input */
+      .btn,
+      .btn-tog,
+      .asa-btn,
+      .btn-stamp,
+      .tab,
+      .chk-item,
+      .sec-header,
+      .count-row,
+      .day-pill { min-height: 44px; }
+
+      .field input[type="text"],
+      .field input[type="number"],
+      .field input[type="date"],
+      .field select,
+      .field textarea,
+      .count-input,
+      .ts-row input {
+        min-height: 44px;
+        font-size: 16px;
+      }
+
+      .btn-group { gap: 9px; }
+      .btn-tog { padding: 10px 14px; }
+      .asa-btn { width: 52px; }
+      #grp-anat .btn-tog { flex: 1 1 calc(50% - 9px); }
+
+      /* Page 2 compact layout so all clinical inputs fit better on one screen. */
+      #card-clinical { padding: 12px; }
+      #card-clinical .field { margin-bottom: 8px; }
+      #card-clinical .btn-group { gap: 6px; }
+      #card-clinical .btn-tog { padding: 8px 10px; font-size: 0.82em; }
+      #card-clinical .two-col { gap: 8px; }
+
+      #c-notes { min-height: clamp(180px, 40vh, 360px); }
+    }
+
+    /* BTN-DRAFT */
+    .btn-draft { background: linear-gradient(135deg, #5a6e8f, #7b8fa8); color: white; box-shadow: 0 4px 12px rgba(90,110,143,0.25); }
+    .btn-draft:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(90,110,143,0.35); }
+
+    /* EVAL PANE */
+    .eval-action-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 0 0 14px; }
+    .eval-wip-banner { border: 1.5px solid #f4c07a; background: linear-gradient(135deg, #fff8ea, #fff2d6); color: #7a4b00; border-radius: 11px; padding: 11px 12px; margin: 0 0 12px; font-size: 0.84em; line-height: 1.45; font-weight: 700; }
+    .eval-wip-banner span { display: block; font-weight: 600; font-size: 0.93em; margin-bottom: 2px; }
+    .badge-preceptor-done { background: #d4edda; color: #155724; font-size: 0.8em; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+    .badge-preceptor-pending { background: #fff8e1; color: #7a5c00; font-size: 0.8em; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+
+    /* PHONE PROMPT */
+    #phone-prompt-overlay { display: none; position: fixed; inset: 0; z-index: 10100; background: rgba(0,0,0,0.55); align-items: center; justify-content: center; padding: 20px; }
+    #phone-prompt-overlay.open { display: flex; }
+    #phone-prompt-modal { background: white; border-radius: 18px; padding: 26px 22px 20px; width: min(360px, 100%); box-shadow: 0 16px 48px rgba(0,0,0,0.30); text-align: left; }
+    #phone-prompt-modal h3 { font-size: 1.1em; font-weight: 800; color: #184954; margin: 0 0 4px; }
+    #phone-prompt-modal p { font-size: 0.85em; color: #5a7a84; margin: 0 0 16px; line-height: 1.45; }
+    #phone-prompt-input { width: 100%; padding: 13px 15px; border: 1.5px solid #dde3ec; border-radius: 12px; font-size: 1.1em; outline: none; color: #2c3e50; background: #f8fafb; font-family: inherit; transition: border-color 0.2s, background 0.2s; box-sizing: border-box; }
+    #phone-prompt-input:focus { border-color: #0d6e6e; background: white; }
+    .phone-prompt-btns { display: flex; gap: 10px; margin-top: 16px; }
+    #phone-prompt-cancel { flex: 1; padding: 12px; border-radius: 12px; font-size: 0.9em; font-weight: 600; cursor: pointer; border: 1.5px solid #dde3ec; background: white; color: #5a7a84; font-family: inherit; }
+    #phone-prompt-cancel:hover { background: #f4f6f8; }
+    #phone-prompt-confirm { flex: 2; padding: 12px; border-radius: 12px; font-size: 0.95em; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; box-shadow: 0 4px 14px rgba(13,110,110,0.28); font-family: inherit; }
+    #phone-prompt-confirm:hover { box-shadow: 0 6px 18px rgba(13,110,110,0.38); transform: translateY(-1px); }
+
+  </style>
+</head>
+<body>
+
+<div id="welcome-screen" aria-modal="true" role="dialog" aria-label="Welcome to Typhon Case Helper">
+  <div class="welcome-box">
+    <div class="welcome-title">Typhon Case Helper</div>
+    <div class="welcome-sub">Choose where to start.</div>
+    <div class="welcome-choice-list">
+      <button id="welcome-continue" class="welcome-choice-btn secondary" type="button" style="display:none">▶ Continue</button>
+      <button id="welcome-new-case" class="welcome-choice-btn" type="button">📋 Case Entry</button>
+      <button id="welcome-time-log" class="welcome-choice-btn" type="button">⏱ Time Log</button>
+      <button id="welcome-eval" class="welcome-choice-btn" type="button">📊 Daily Eval</button>
+      <button id="welcome-drafts" class="welcome-choice-btn secondary" type="button">📝 Drafts</button>
+      <button id="welcome-browse" class="welcome-choice-btn" type="button" style="background:none;color:#0d6e6e;border:2px solid #0d6e6e;box-shadow:none;font-weight:700;">Just Browse</button>
+    </div>
+  </div>
+</div>
+
+<div class="sticky-header-wrap">
+<div class="tabs">
+  <div class="tab active" data-tab="case">📋 Case Log</div>
+  <div class="tab" data-tab="time">⏰ Time Log</div>
+  <div class="tab" data-tab="eval">📊 Daily Eval</div>
+  <div class="tab" data-tab="saved">📁 Saved <span id="badge-count" style="background:#e74c3c;color:white;border-radius:10px;padding:1px 6px;font-size:0.8em;display:none"></span></div>
+  <div class="tab-account" id="tab-acct" title="Account">⚙︎</div>
+</div>
+
+<!-- ACCOUNT DRAWER -->
+<div id="acct-overlay">
+  <div id="acct-drawer">
+    <div class="acct-handle"></div>
+    <div class="acct-name" id="acct-drawer-name">Not signed in</div>
+    <div class="acct-email" id="acct-drawer-email"></div>
+    <button id="acct-action-btn">Log in for full access</button>
+  </div>
+</div>
+</div><!-- end .sticky-header-wrap -->
+
+<!-- ===================== NEW CASE ===================== -->
+<div class="tab-pane active" id="pane-case">
+
+  <!-- DRAFT RESUME BANNER -->
+  <div id="draft-banner">
+    <div class="draft-banner-row">
+      <div class="draft-banner-text">
+        📝 You have an unfinished draft
+        <span>Resume it or start fresh below</span>
+      </div>
+      <div class="draft-banner-btns">
+        <button class="btn btn-secondary btn-sm" id="draft-banner-resume">Resume</button>
+        <button class="btn btn-secondary btn-sm" id="draft-banner-dismiss">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="case-mobile-stepper" class="mobile-stepper" aria-live="polite">
+    <button type="button" id="case-step-prev" class="step-nav">Back</button>
+    <div class="step-meta">
+      <div id="case-step-count" class="step-count">Step 1 of 1</div>
+      <div id="case-step-title" class="step-title">Case Form</div>
+    </div>
+    <button type="button" id="case-step-next" class="step-nav">Next</button>
+  </div>
+
+  <!-- DATE PICKER -->
+  <div class="card" data-step-title="Date & Times">
+    <div class="card-title">Date of Encounter<span class="req">*</span></div>
+    <div class="day-pills" id="day-pills"><!-- built by JS --></div>
+    <div style="margin-top:12px;">
+      <label style="font-size:0.8em;font-weight:600;color:#4a5568;">Returning Patient?</label>
+      <select id="c-return" style="width:100%;padding:9px 11px;border:1.5px solid #dde3ec;border-radius:8px;font-size:0.93em;margin-top:5px;">
+        <option value="no">No (first visit today)</option>
+        <option value="2nd">2nd visit today</option>
+        <option value="3rd">3rd visit today</option>
+      </select>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label style="font-size:0.8em;font-weight:600;color:#4a5568;">Clinical Site</label>
+      <select id="c-site" style="width:100%;padding:9px 11px;border:1.5px solid #dde3ec;border-radius:8px;font-size:0.93em;margin-top:5px;">
+        <option>Rochester General Hospital</option>
+        <option>Strong Memorial Hospital</option>
+        <option>Unity Hospital</option>
+        <option>Highland Hospital</option>
+        <option>Clifton Springs Hospital Clinic</option>
+        <option>Crouse Hospital</option>
+        <option>FF Thompson Hospital</option>
+        <option>Linden Surgery Center</option>
+        <option>Newark Wayne Community Hospital</option>
+        <option>Noyes Health Services</option>
+        <option>Rochester Surgery Center</option>
+        <option>Saunders Surgical Center</option>
+        <option>St Josephs Hospital</option>
+        <option>Surgery Center at Sawgrass</option>
+        <option>United Memorial Medical Center</option>
+        <option>Westfall Surgery Center</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="times-card" style="margin-top:12px;padding:12px;border-radius:10px;">
+      <div class="card-title">⏱ Anesthesia Times (Military)<span class="req">*</span></div>
+      <div style="margin-bottom:12px;">
+        <div class="ts-label">Anesthesia Start (AS)</div>
+        <div class="ts-row">
+            <input type="text" id="c-as" class="compact-input-8" placeholder="0730" maxlength="5" inputmode="numeric">
+          <button class="btn-stamp" data-target="c-as">⏱ Now</button>
+        </div>
+      </div>
+      <div>
+        <div class="ts-label">Anesthesia Finish (AF)</div>
+        <div class="ts-row">
+            <input type="text" id="c-af" class="compact-input-8" placeholder="1015" maxlength="5" inputmode="numeric">
+          <button class="btn-stamp" data-target="c-af">⏱ Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-clinical" data-step-title="Clinical Information">
+
+    <div class="field">
+      <div class="btn-group" id="grp-sex">
+        <div class="btn-tog" data-v="Male" onclick="pick(this,'grp-sex')">Male</div>
+        <div class="btn-tog" data-v="Female" onclick="pick(this,'grp-sex')">Female</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="btn-group" id="grp-admit">
+        <div class="btn-tog" data-v="Outpatient" onclick="pick(this,'grp-admit')">Ambulatory / Outpatient</div>
+        <div class="btn-tog" data-v="Inpatient" onclick="pick(this,'grp-admit')">Inpatient</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="field">
+        <input type="number" id="c-age" class="compact-age" min="0" max="120" placeholder="Age">
+      </div>
+      <div class="field">
+        <div class="btn-group" id="grp-preceptor">
+          <div class="btn-tog on" data-v="CRNA">CRNA</div>
+          <div class="btn-tog" data-v="MDA">MDA</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Physical Status / ASA<span class="req">*</span></label>
+      <div class="asa-row" id="grp-asa">
+        <div class="asa-btn" data-v="1" onclick="pickASA(this)">1</div>
+        <div class="asa-btn" data-v="2" onclick="pickASA(this)">2</div>
+        <div class="asa-btn" data-v="3" onclick="pickASA(this)">3</div>
+        <div class="asa-btn" data-v="4" onclick="pickASA(this)">4</div>
+        <div class="asa-btn" data-v="5" onclick="pickASA(this)">5</div>
+        <div class="asa-btn" data-v="6" onclick="pickASA(this)">6</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="btn-group" id="grp-urgency">
+        <div class="btn-tog wide" data-v="Emergency">Trauma / Emergency</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="btn-group" id="grp-neonate">
+        <div class="btn-tog wide" data-v="yes">&lt; 4 weeks (Neonate)</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card" data-step-title="Patient Assessment">
+    <div class="btn-group" id="grp-assess">
+      <div class="btn-tog wide" data-v="initial">Initial Preanesthetic Assessment</div>
+      <div class="btn-tog wide" data-v="post">Postanesthetic Assessment</div>
+      <div class="btn-tog wide" data-v="actual">H&amp;P - Actual</div>
+    </div>
+
+    <div class="field" style="margin-top:12px;">
+      <label>Position</label>
+      <div class="btn-group" id="grp-pos">
+        <div class="btn-tog" data-v="Prone" onclick="multi(this,'grp-pos')">Prone</div>
+        <div class="btn-tog" data-v="Lithotomy" onclick="multi(this,'grp-pos')">Lithotomy</div>
+        <div class="btn-tog" data-v="Lateral" onclick="multi(this,'grp-pos')">Lateral</div>
+        <div class="btn-tog" data-v="Sitting" onclick="multi(this,'grp-pos')">Sitting</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-procedures" data-step-title="Procedures">
+    <input type="checkbox" id="c-cvl-actual" style="display:none" aria-hidden="true">
+    <div class="proc-heading">Arterial Line</div>
+    <div class="chk-grid">
+      <label class="chk-item"><input type="checkbox" id="c-art-actual"><span>Arterial Puncture / A-Line Insertion</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-art-bp"><span>Intra-arterial BP Monitoring</span></label>
+    </div>
+    <div class="proc-heading" style="margin-top:10px;">CVC</div>
+    <div class="chk-grid">
+      <label class="chk-item"><input type="checkbox" id="c-cvl-picc"><span>Central Line Insertion PICC</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-cvl-nonpicc"><span>Central Line Insertion Non-PICC</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-cvl-monitor"><span>CVC Monitoring</span></label>
+    </div>
+    <div class="proc-heading" style="margin-top:10px;">PA Cath</div>
+    <div class="chk-grid">
+      <label class="chk-item"><input type="checkbox" id="c-pa-placement"><span>PA Catheter Placement</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-pa-monitor"><span>PA Catheter Monitoring</span></label>
+    </div>
+  </div>
+
+  <div class="card" id="card-procedures-2" data-step-title="Procedures II">
+    <div class="proc-heading">Airway and Other Techniques</div>
+    <div class="chk-grid">
+      <label class="chk-item"><input type="checkbox" id="c-endo-tt-placement"><span>Endoscopic Tracheal Tube Placement</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-endo-airway-assess"><span>Endoscopic - Airway Assessment</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-tech-other"><span>Other Techniques</span></label>
+    </div>
+    <div class="proc-heading" style="margin-top:10px;">Monitoring and Support</div>
+    <div class="chk-grid">
+      <label class="chk-item"><input type="checkbox" id="c-hemo"><span>Advanced Minimally- and Non-invasive Hemodynamic Monitoring</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-mech-vent"><span>Mechanical Ventilation</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-cxr"><span>Assessment of Chest X-Ray</span></label>
+    </div>
+    <div class="proc-heading" style="margin-top:10px;">Pain</div>
+    <div>
+      <label class="chk-item"><input type="checkbox" id="c-pain"><span>Pain Management Encounter</span></label>
+    </div>
+  </div>
+
+  <div class="card" id="card-procedure-counts" data-step-title="Procedure Counts">
+    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="count-row">
+        <span class="count-label">IV Starts</span>
+        <div class="count-stepper">
+          <button type="button" class="count-step-btn" data-count-adjust="-1" data-target="c-iv-n">▼</button>
+          <input type="number" class="count-input" id="c-iv-n" min="0" max="99" value="">
+          <button type="button" class="count-step-btn" data-count-adjust="1" data-target="c-iv-n">▲</button>
+        </div>
+      </div>
+      <div class="count-row">
+        <span class="count-label">POCUS – Actual</span>
+        <div class="count-stepper">
+          <button type="button" class="count-step-btn" data-count-adjust="-1" data-target="c-pocus-a-n">▼</button>
+          <input type="number" class="count-input" id="c-pocus-a-n" min="0" max="99" value="">
+          <button type="button" class="count-step-btn" data-count-adjust="1" data-target="c-pocus-a-n">▲</button>
+        </div>
+      </div>
+      <div class="count-row">
+        <span class="count-label">US Regional – Actual</span>
+        <div class="count-stepper">
+          <button type="button" class="count-step-btn" data-count-adjust="-1" data-target="c-usr-a-n">▼</button>
+          <input type="number" class="count-input" id="c-usr-a-n" min="0" max="99" value="">
+          <button type="button" class="count-step-btn" data-count-adjust="1" data-target="c-usr-a-n">▲</button>
+        </div>
+      </div>
+      <div class="count-row">
+        <span class="count-label">US Vascular – Actual</span>
+        <div class="count-stepper">
+          <button type="button" class="count-step-btn" data-count-adjust="-1" data-target="c-usv-a-n">▼</button>
+          <input type="number" class="count-input" id="c-usv-a-n" min="0" max="99" value="">
+          <button type="button" class="count-step-btn" data-count-adjust="1" data-target="c-usv-a-n">▲</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-anatomical" data-step-title="Anatomical Category">
+    <div class="btn-group" id="grp-anat">
+      <div class="btn-tog" data-v="Intra-abdominal" onclick="multi(this,'grp-anat')">Intra-abdominal</div>
+      <div class="btn-tog" data-v="Extrathoracic" onclick="multi(this,'grp-anat')">Extrathoracic</div>
+      <div class="btn-tog" data-v="Extremities" onclick="multi(this,'grp-anat')">Extremities</div>
+      <div class="btn-tog" data-v="Perineal" onclick="multi(this,'grp-anat')">Perineal</div>
+      <div class="btn-tog" data-v="Head - Extracranial" onclick="multi(this,'grp-anat')">Head (Extracranial)</div>
+      <div class="btn-tog" data-v="Head - Intracranial" onclick="multi(this,'grp-anat')">Head (Intracranial)</div>
+      <div class="btn-tog" data-v="Head - Oropharyngeal" onclick="multi(this,'grp-anat')">Oropharyngeal</div>
+      <div class="btn-tog" data-v="Intrathoracic - Heart" onclick="multi(this,'grp-anat')">Heart</div>
+      <div class="btn-tog" data-v="Intrathoracic - Lung" onclick="multi(this,'grp-anat')">Lung</div>
+      <div class="btn-tog" data-v="Intrathoracic - Other" onclick="multi(this,'grp-anat')">Intrathoracic Other</div>
+      <div class="btn-tog" data-v="Neck" onclick="multi(this,'grp-anat')">Neck</div>
+      <div class="btn-tog" data-v="Neuroskeletal" onclick="multi(this,'grp-anat')">Neuroskeletal</div>
+      <div class="btn-tog" data-v="Vascular" onclick="multi(this,'grp-anat')">Vascular</div>
+      <div class="btn-tog" data-v="Other" onclick="multi(this,'grp-anat')">Other</div>
+      <div class="btn-tog" data-v="Cesarean delivery" onclick="multi(this,'grp-anat')">C-Section</div>
+      <div class="btn-tog" data-v="Analgesia for labor" onclick="multi(this,'grp-anat')">Labor Analgesia</div>
+      <div class="anat-dropdown" id="anat-dd-head-intra">
+        <div class="anat-dropdown-title">Head - Intracranial details</div>
+        <div class="chk-grid">
+          <label class="chk-item"><input type="checkbox" id="c-anat-head-intra-open"><span>Open</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-anat-head-intra-closed"><span>Closed</span></label>
+        </div>
+      </div>
+      <div class="anat-dropdown" id="anat-dd-heart">
+        <div class="anat-dropdown-title">Intrathoracic - Heart details</div>
+        <div class="chk-grid">
+          <label class="chk-item"><input type="checkbox" id="c-anat-heart-open-bypass"><span>Open Heart - WITH Bypass</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-anat-heart-open-no-bypass"><span>Open Heart - WITHOUT Bypass</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-anat-heart-closed"><span>Closed Heart</span></label>
+        </div>
+      </div>
+      <div class="anat-dropdown" id="anat-dd-other">
+        <div class="anat-dropdown-title">Other details</div>
+        <div class="chk-grid">
+          <label class="chk-item"><input type="checkbox" id="c-anat-other-ect"><span>ECT</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-anat-other-ebus"><span>EBUS</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-anat-other-colonoscopy"><span>Colonoscopy</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-anat-other-egd"><span>EGD</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-anes-type" data-step-title="Anesthesia Type">
+
+    <!-- GENERAL -->
+    <div class="sec-tog" id="sec-general">
+      <div class="sec-header">
+        <input type="checkbox" id="c-general" onclick="event.stopPropagation(); autoOpen('sec-general', this)">
+        <span class="sec-label">General Anesthesia</span>
+        <span class="sec-arrow">▶</span>
+      </div>
+      <div class="sec-body">
+        <div class="chk-grid">
+          <label class="chk-item"><input type="checkbox" id="c-gen-minimal"><span>Minimal / No Assistance</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-iv"><span>IV Induction</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-inhal"><span>Inhalation Induction</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-mask-ind"><span>Mask Vent – Induction</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-mask-maint"><span>Mask Vent – Maintenance</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-mask-resus"><span>Mask Vent – Resuscitation</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-lma"><span>LMA (Laryngeal Mask)</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-sga"><span>Other Supraglottic</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-ett-oral"><span>ETT – Oral</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-ett-nasal"><span>ETT – Nasal</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-tiva"><span>TIVA</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-gen-emerge"><span>Emergence</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGIONAL -->
+    <div class="sec-tog" id="sec-regional">
+      <div class="sec-header">
+        <input type="checkbox" id="c-regional" onclick="event.stopPropagation(); autoOpen('sec-regional', this)">
+        <span class="sec-label">Regional Techniques</span>
+        <span class="sec-arrow">▶</span>
+      </div>
+      <div class="sec-body">
+        <div class="chk-grid">
+          <label class="chk-item"><input type="checkbox" id="c-reg-spinal"><span>Spinal</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-reg-epidural"><span>Epidural</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-reg-peripheral"><span>Peripheral Nerve Block</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-reg-other"><span>Other Regional</span></label>
+          <label class="chk-item"><input type="checkbox" id="c-reg-mgmt"><span>Management</span></label>
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label>Peripheral Sub-options</label>
+          <div class="chk-grid">
+            <label class="chk-item"><input type="checkbox" id="c-reg-peripheral-upper"><span>Upper</span></label>
+            <label class="chk-item"><input type="checkbox" id="c-reg-peripheral-lower"><span>Lower</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAC -->
+    <div class="sec-tog">
+      <div class="sec-header">
+        <input type="checkbox" id="c-mac" onclick="event.stopPropagation()">
+        <span class="sec-label">Monitored Anesthesia Care (MAC)</span>
+      </div>
+    </div>
+
+    <!-- SEDATION -->
+    <div class="sec-tog">
+      <div class="sec-header">
+        <input type="checkbox" id="c-sedation" onclick="event.stopPropagation()">
+        <span class="sec-label">Moderate / Deep Sedation</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-medications" data-step-title="Medications">
+    <div class="chk-grid">
+      <label class="chk-item"><input type="checkbox" id="c-med-none"><span>No Medications</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-med-inhal"><span>Inhalation Agents</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-med-iv-ind"><span>IV Induction Agents</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-med-nmb"><span>Muscle Relaxants</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-med-opioid"><span>IV Opioids</span></label>
+      <label class="chk-item"><input type="checkbox" id="c-med-other"><span>IV Agent – Other</span></label>
+    </div>
+    <div style="margin-top:18px;text-align:center;">
+      <button type="button" id="btn-med-select-all" onclick="medToggleAll()" style="background:none;border:none;color:#0d6e6e;font-size:0.84em;font-weight:700;cursor:pointer;text-decoration:underline;padding:4px 8px;">Select All</button>
+    </div>
+  </div>
+
+  <div class="card notes-card" data-step-title="Clinical Notes">
+    <div class="field">
+      <textarea id="c-notes" placeholder="Case notes — no patient identifiers (HIPAA)"></textarea>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+      <button class="btn btn-primary btn-full" id="btn-save-case">💾 Save Case</button>
+      <button class="btn btn-secondary btn-full" id="btn-draft-case">📄 Save Draft</button>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+</div>
+
+<!-- ===================== TIME LOG ===================== -->
+<div class="tab-pane" id="pane-time">
+
+  <div class="card">
+    <div class="card-title">Date<span class="req">*</span></div>
+    <div class="day-pills" id="t-day-pills"><!-- built by JS --></div>
+  </div>
+
+  <div class="card times-card">
+    <div class="card-title">⏱ Shift Times (Military)</div>
+    <div style="margin-bottom:12px;">
+      <div class="ts-label">1st Clock IN<span class="req">*</span></div>
+      <div class="ts-row">
+        <input type="text" id="t-in1" placeholder="0600" maxlength="5" inputmode="numeric">
+        <button class="btn-stamp" data-target="t-in1">⏱ Now</button>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <div class="ts-label">1st Clock OUT<span class="req">*</span></div>
+      <div class="ts-row">
+        <input type="text" id="t-out1" placeholder="1430" maxlength="5" inputmode="numeric">
+        <button class="btn-stamp" data-target="t-out1">⏱ Now</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <div class="card-title">Time Log Notes</div>
+    <div class="field">
+      <textarea id="t-notes" placeholder="Optional notes..."></textarea>
+    </div>
+  </div>
+
+
+
+  <button class="btn btn-primary btn-full" id="btn-save-time">💾 Save Time Log</button>
+  <div class="spacer"></div>
+</div>
+
+<!-- ===================== DAILY EVAL ===================== -->
+<div class="tab-pane" id="pane-eval">
+
+  <div id="eval-mobile-stepper" class="mobile-stepper" aria-live="polite">
+    <button type="button" id="eval-step-prev" class="step-nav">Back</button>
+    <div class="step-meta">
+      <div id="eval-step-count" class="step-count">Step 1 of 1</div>
+      <div id="eval-step-title" class="step-title">Daily Eval</div>
+    </div>
+    <button type="button" id="eval-step-next" class="step-nav">Next</button>
+  </div>
+
+  <div class="eval-wip-banner">
+    <span>Work In Progress</span>
+    The Daily Eval workflow is still in active development. Features may change.
+  </div>
+
+  <div class="card" style="padding:10px 12px;">
+    <div class="day-pills" id="e-day-pills"><!-- built by JS --></div>
+  </div>
+
+  <!-- Preceptor + Facility -->
+  <div class="card" data-step-title="Q3 - Preceptor &amp; Facility">
+    <div class="card-title">Preceptor &amp; Facility</div>
+    <div class="field">
+      <label>Clinical Preceptor Name<span class="req">*</span></label>
+      <input type="text" id="e-preceptor" placeholder="Enter preceptor's full name">
+    </div>
+    <input type="hidden" id="e-preceptor-phone">
+    <input type="hidden" id="e-student-phone">
+    <input type="hidden" id="e-preceptor-share-token">
+    <div class="field" style="margin-top:12px;">
+      <label>Facility<span class="req">*</span></label>
+      <div class="chk-grid" id="e-facility-grid">
+        <label class="chk-item"><input type="checkbox" value="Rochester General Hospital"><span>Rochester General Hospital</span></label>
+        <label class="chk-item"><input type="checkbox" value="Unity Hospital"><span>Unity Hospital</span></label>
+        <label class="chk-item"><input type="checkbox" value="Strong Memorial Hospital"><span>Strong Memorial Hospital</span></label>
+        <label class="chk-item"><input type="checkbox" value="RSC"><span>RSC</span></label>
+        <label class="chk-item"><input type="checkbox" value="LSC"><span>LSC</span></label>
+        <label class="chk-item"><input type="checkbox" value="Highland Hospital"><span>Highland Hospital</span></label>
+        <label class="chk-item"><input type="checkbox" value="Thompson Hospital"><span>Thompson Hospital</span></label>
+        <label class="chk-item"><input type="checkbox" value="Clifton Springs Hospital"><span>Clifton Springs Hospital</span></label>
+        <label class="chk-item"><input type="checkbox" value="Newark Wayne Hospital"><span>Newark Wayne Hospital</span></label>
+        <label class="chk-item"><input type="checkbox" value="UMMC"><span>UMMC</span></label>
+        <label class="chk-item"><input type="checkbox" value="Upstate Community"><span>Upstate Community</span></label>
+        <label class="chk-item"><input type="checkbox" value="Sawgrass Surgery Center"><span>Sawgrass Surgery Center</span></label>
+        <label class="chk-item"><input type="checkbox" value="Noyes Hospital (Dansville)"><span>Noyes Hospital (Dansville)</span></label>
+        <label class="chk-item"><input type="checkbox" value="Noyes Health Surgery Center (Geneseo)"><span>Noyes Health Surgery Center (Geneseo)</span></label>
+        <label class="chk-item"><input type="checkbox" value="Other"><span>Other</span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q4: Arrival -->
+  <div class="card">
+    <div class="card-title">Arrival &amp; Preparation</div>
+    <div class="field eval-question-step" data-step-title="Q4 - Arrival &amp; Preparation">
+      <div style="font-size:0.87em;color:#2c3e50;line-height:1.5;margin-bottom:8px;">I arrived on time prepared for clinical and completed the anesthesia machine check, preoperative assessment, and prepared the OR to facility standards including first case drugs and emergency medications.<span class="req">*</span></div>
+      <div class="btn-group" id="e-arrived">
+        <div class="btn-tog" data-v="yes">Yes</div>
+        <div class="btn-tog" data-v="no">No</div>
+      </div>
+      <textarea id="e-arrived-comments" placeholder="Additional comments..."></textarea>
+    </div>
+  </div>
+
+  <!-- Q5–Q7: Case Summary -->
+  <div class="card">
+    <div class="card-title">Case Summary</div>
+    <div class="field eval-question-step" data-step-title="Q5 - Age Ranges">
+      <label>Age Ranges of Patients<span class="req">*</span></label>
+      <div class="chk-grid" id="e-age-grid">
+        <label class="chk-item"><input type="checkbox" value="Neonate (0-1 month)"><span>Neonate (0–1 month)</span></label>
+        <label class="chk-item"><input type="checkbox" value="Infant (1 month - 24 months)"><span>Infant (1–24 months)</span></label>
+        <label class="chk-item"><input type="checkbox" value="Child (2-12 years)"><span>Child (2–12 years)</span></label>
+        <label class="chk-item"><input type="checkbox" value="Adult (12-64 years)"><span>Adult (12–64 years)</span></label>
+        <label class="chk-item"><input type="checkbox" value="Geriatric (65+)"><span>Geriatric (65+)</span></label>
+      </div>
+    </div>
+    <div class="field eval-question-step" data-step-title="Q6 - ASA Classes" style="margin-top:12px;">
+      <label>ASA Classes<span class="req">*</span></label>
+      <div class="chk-grid" id="e-asa-grid">
+        <label class="chk-item"><input type="checkbox" value="ASA 1"><span>ASA 1</span></label>
+        <label class="chk-item"><input type="checkbox" value="ASA 2"><span>ASA 2</span></label>
+        <label class="chk-item"><input type="checkbox" value="ASA 3"><span>ASA 3</span></label>
+        <label class="chk-item"><input type="checkbox" value="ASA 4"><span>ASA 4</span></label>
+        <label class="chk-item"><input type="checkbox" value="ASA 5"><span>ASA 5</span></label>
+        <label class="chk-item"><input type="checkbox" value="Emergent or Trauma"><span>Emergent or Trauma</span></label>
+      </div>
+    </div>
+    <div class="field eval-question-step" data-step-title="Q7 - Surgical Cases" style="margin-top:12px;">
+      <label>Surgical Cases</label>
+      <div class="chk-grid" id="e-surg-grid">
+        <label class="chk-item"><input type="checkbox" value="Abdominal"><span>Abdominal</span></label>
+        <label class="chk-item"><input type="checkbox" value="Intracranial"><span>Intracranial</span></label>
+        <label class="chk-item"><input type="checkbox" value="Oropharyngeal"><span>Oropharyngeal</span></label>
+        <label class="chk-item"><input type="checkbox" value="Intrathoracic - Heart"><span>Intrathoracic – Heart</span></label>
+        <label class="chk-item"><input type="checkbox" value="Intrathoracic - Lung"><span>Intrathoracic – Lung</span></label>
+        <label class="chk-item"><input type="checkbox" value="Neck"><span>Neck</span></label>
+        <label class="chk-item"><input type="checkbox" value="Neuroskeletal"><span>Neuroskeletal</span></label>
+        <label class="chk-item"><input type="checkbox" value="Vascular"><span>Vascular</span></label>
+        <label class="chk-item"><input type="checkbox" value="Obstetric"><span>Obstetric</span></label>
+        <label class="chk-item"><input type="checkbox" value="EBUS / TEE / EGD / Colonoscopy / ECT"><span>EBUS, TEE, EGD, Colonoscopy, ECT</span></label>
+        <label class="chk-item"><input type="checkbox" value="Other"><span>Other</span></label>
+      </div>
+      <textarea id="e-surg-comments" placeholder="Additional comments..." style="margin-top:8px;"></textarea>
+    </div>
+  </div>
+
+  <!-- Q8–Q11: Self-Evaluation Ratings -->
+  <div class="card">
+    <div class="card-title">Self-Evaluation Ratings</div>
+    <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:14px;line-height:1.4;">These are self-evaluations. The preceptor will agree or disagree and provide additional feedback.</div>
+
+    <div class="field eval-question-step" data-step-title="Q8 - Preop Assessment &amp; Care Plan">
+      <label>Q8 — Preoperative Assessment &amp; Care Plan<span class="req">*</span></label>
+      <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:6px;">Rate your preoperative assessment, anesthesia care plan, and ability to maintain dignity and privacy of the patient.</div>
+      <div class="btn-group" id="e-q8">
+        <div class="btn-tog wide" data-v="Beginner">Beginner</div>
+        <div class="btn-tog wide" data-v="Developing">Developing</div>
+        <div class="btn-tog wide" data-v="Proficient">Proficient</div>
+        <div class="btn-tog wide" data-v="Advanced">Advanced</div>
+        <div class="btn-tog wide" data-v="Expert">Expert</div>
+        <div class="btn-tog wide" data-v="Not Observed">Not Observed</div>
+      </div>
+      <textarea id="e-q8-comments" placeholder="Additional comments..." style="margin-top:8px;"></textarea>
+    </div>
+
+    <div class="field eval-question-step" data-step-title="Q9 - Perioperative Care" style="margin-top:16px;">
+      <label>Q9 — Perioperative Anesthesia Care<span class="req">*</span></label>
+      <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:6px;">Rate perioperative anesthesia care and ability to recognize, evaluate, and manage physiological responses during the case.</div>
+      <div class="btn-group" id="e-q9">
+        <div class="btn-tog wide" data-v="Beginner">Beginner</div>
+        <div class="btn-tog wide" data-v="Developing">Developing</div>
+        <div class="btn-tog wide" data-v="Proficient">Proficient</div>
+        <div class="btn-tog wide" data-v="Advanced">Advanced</div>
+        <div class="btn-tog wide" data-v="Expert">Expert</div>
+        <div class="btn-tog wide" data-v="Not Observed">Not Observed</div>
+      </div>
+      <textarea id="e-q9-comments" placeholder="Additional comments..." style="margin-top:8px;"></textarea>
+    </div>
+
+    <div class="field eval-question-step" data-step-title="Q10 - Clinical Skills" style="margin-top:16px;">
+      <label>Q10 — Clinical Skills<span class="req">*</span></label>
+      <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:6px;">Rate performance of clinical skills (intubation, spinal, epidural, sedation). List skills performed in comments.</div>
+      <div class="btn-group" id="e-q10">
+        <div class="btn-tog wide" data-v="Beginner">Beginner</div>
+        <div class="btn-tog wide" data-v="Developing">Developing</div>
+        <div class="btn-tog wide" data-v="Proficient">Proficient</div>
+        <div class="btn-tog wide" data-v="Advanced">Advanced</div>
+        <div class="btn-tog wide" data-v="Expert">Expert</div>
+        <div class="btn-tog wide" data-v="Not Observed">Not Observed</div>
+      </div>
+      <textarea id="e-q10-comments" placeholder="Skills performed (e.g. intubation, spinal, epidural)..." style="margin-top:8px;"></textarea>
+    </div>
+
+    <div class="field eval-question-step" data-step-title="Q11 - Critical Thinking &amp; Communication" style="margin-top:16px;">
+      <label>Q11 — Critical Thinking &amp; Communication<span class="req">*</span></label>
+      <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:6px;">Rate critical thinking and communication skills with family and surgical team.</div>
+      <div class="btn-group" id="e-q11">
+        <div class="btn-tog wide" data-v="Beginner">Beginner</div>
+        <div class="btn-tog wide" data-v="Developing">Developing</div>
+        <div class="btn-tog wide" data-v="Proficient">Proficient</div>
+        <div class="btn-tog wide" data-v="Advanced">Advanced</div>
+        <div class="btn-tog wide" data-v="Expert">Expert</div>
+        <div class="btn-tog wide" data-v="Not Observed">Not Observed</div>
+      </div>
+      <textarea id="e-q11-comments" placeholder="Additional comments..." style="margin-top:8px;"></textarea>
+    </div>
+  </div>
+
+  <!-- Q12–Q14: End-of-Day Checklist -->
+  <div class="card">
+    <div class="card-title">End-of-Day Checklist</div>
+
+    <div class="field eval-question-step" data-step-title="Q12 - Vigilance">
+      <label>Q12 — Vigilance<span class="req">*</span></label>
+      <div style="font-size:0.87em;color:#2c3e50;line-height:1.45;margin-bottom:6px;">I remained vigilant during the case, assessed for iatrogenic complications and limited my use of electronic devices to clinical care only.</div>
+      <div class="btn-group" id="e-q12">
+        <div class="btn-tog" data-v="yes">Yes</div>
+        <div class="btn-tog" data-v="no">No</div>
+      </div>
+      <textarea id="e-q12-comments" placeholder="Additional comments..." style="margin-top:8px;"></textarea>
+    </div>
+
+    <div class="field eval-question-step" data-step-title="Q13 - Documentation" style="margin-top:14px;">
+      <label>Q13 — Documentation</label>
+      <div style="font-size:0.87em;color:#2c3e50;line-height:1.45;margin-bottom:6px;">I completed all documentation in an accurate and timely manner.</div>
+      <div class="btn-group" id="e-q13">
+        <div class="btn-tog wide" data-v="yes">Yes</div>
+        <div class="btn-tog wide" data-v="no">No</div>
+        <div class="btn-tog wide" data-v="preceptor">Preceptor did documentation so I could focus on patient care</div>
+      </div>
+    </div>
+
+    <div class="field eval-question-step" data-step-title="Q14 - Post-Operative Care" style="margin-top:14px;">
+      <label>Q14 — Post-Operative Care<span class="req">*</span></label>
+      <div style="font-size:0.87em;color:#2c3e50;line-height:1.45;margin-bottom:6px;">I completed post operative care for the patient and completed any orders appropriately.</div>
+      <div class="btn-group" id="e-q14">
+        <div class="btn-tog wide" data-v="yes">Yes</div>
+        <div class="btn-tog wide" data-v="no">No</div>
+        <div class="btn-tog wide" data-v="noOrders">I did post operative care but not orders</div>
+      </div>
+      <textarea id="e-q14-comments" placeholder="Additional comments..." style="margin-top:8px;"></textarea>
+    </div>
+  </div>
+
+  <!-- Q15–Q17: Reflection &amp; Preceptor Feedback -->
+  <div class="card">
+    <div class="card-title">Reflection &amp; Preceptor Feedback</div>
+
+    <div class="field eval-question-step" data-step-title="Q15 - Day Summary">
+      <label>Q15 — Day Summary</label>
+      <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:5px;">Provide a brief summary of the day, areas you excelled in and areas of improvement you identified.</div>
+      <textarea id="e-summary" placeholder="Enter your reflection here..."></textarea>
+    </div>
+
+    <div class="field eval-question-step" data-step-title="Q16 - Strengths/Weakness Discussion" style="margin-top:14px;">
+      <label>Q16 — Strength/Weakness Discussion<span class="req">*</span></label>
+      <div style="font-size:0.87em;color:#2c3e50;line-height:1.45;margin-bottom:6px;">I discussed my strengths and weaknesses with my preceptor at the end of the day.</div>
+      <div class="btn-group" id="e-q16">
+        <div class="btn-tog" data-v="yes">Yes</div>
+        <div class="btn-tog" data-v="no">No</div>
+        <div class="btn-tog" data-v="other">Other:</div>
+      </div>
+      <input type="text" id="e-q16-other" placeholder="Explain..." style="margin-top:6px;width:100%;padding:9px 11px;border:1.5px solid #dde3ec;border-radius:8px;font-size:0.93em;font-family:inherit;outline:none;display:none;box-sizing:border-box;">
+      <textarea id="e-q16-comments" placeholder="Additional comments..." style="margin-top:8px;"></textarea>
+    </div>
+
+    <div class="field eval-question-step" data-step-title="Q17 - Preceptor Comments" style="margin-top:14px;">
+      <label>Q17 — Preceptor Comments</label>
+      <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:5px;">Please summarize or have your preceptor write in comments on areas of strength and areas of improvement.</div>
+      <textarea id="e-preceptor-comments" placeholder="Preceptor feedback..." style="min-height:90px;"></textarea>
+    </div>
+  </div>
+
+  <!-- Preceptor Signature -->
+  <div class="card">
+    <div class="card-title">Preceptor Signature</div>
+    <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:8px;line-height:1.4;">Have your preceptor sign below using their finger or stylus.</div>
+    <canvas id="sig-canvas" width="600" height="160" style="width:100%;border:2px solid #dde3ec;border-radius:8px;background:white;touch-action:none;cursor:crosshair;display:block;"></canvas>
+    <div class="field" style="margin-top:8px;">
+      <label>Preceptor's Typed Name</label>
+      <input type="text" id="e-sig-name" placeholder="Please type name">
+    </div>
+    <button type="button" id="e-sig-clear" class="btn btn-secondary btn-full" style="margin-top:8px;">Clear Signature</button>
+  </div>
+
+  <div class="eval-action-btns">
+    <div id="preceptor-review-banner" style="display:none;background:#e8f6f3;border:1px solid #b9dfd4;border-radius:9px;padding:9px 10px;font-size:0.83em;font-weight:600;color:#1c5d4d;"></div>
+    <button class="btn btn-secondary btn-full" id="btn-text-eval">📱 Text Preceptor</button>
+    <button class="btn btn-primary btn-full" id="btn-submit-preceptor-review" style="display:none;">✅ Send Back To Student</button>
+    <button class="btn btn-primary btn-full" id="btn-save-eval">💾 Save Evaluation</button>
+    <button class="btn btn-draft btn-full" id="btn-draft-eval">📝 Save as Draft</button>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ===================== SAVED ===================== -->
+<div class="tab-pane" id="pane-saved">
+  <div style="padding: 14px 14px 0; max-width: 700px; margin: 0 auto;">
+    <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:10px;" onclick="markAllSubmitted()">✓ Mark All as Submitted</button>
+  </div>
+  <div id="saved-list"></div>
+  <div class="spacer"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Phone prompt modal -->
+<div id="phone-prompt-overlay" role="dialog" aria-modal="true" aria-label="Enter phone number">
+  <div id="phone-prompt-modal">
+    <h3 id="phone-prompt-title">Phone Number</h3>
+    <p id="phone-prompt-subtitle"></p>
+    <input type="tel" id="phone-prompt-input" inputmode="numeric" placeholder="585-555-0100" maxlength="12" autocomplete="tel">
+    <div class="phone-prompt-btns">
+      <button id="phone-prompt-cancel">Cancel</button>
+      <button id="phone-prompt-confirm">OK</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/firebase-app-compat.js"></script>
+<script src="vendor/firebase-firestore-compat.js"></script>
+<script src="vendor/firebase-auth-compat.js"></script>
+<script src="typhon-firebase.js"></script>
+<script src="app.store.js"></script>
+<script src="app.utils.js"></script>
+<script src="app.ui.js"></script>
+<script src="app.forms.js"></script>
+<script src="app.sig.js"></script>
+<script src="app.draft.js"></script>
+<script src="app.save.js"></script>
+<script src="app.render.js"></script>
+<script src="app.share.js"></script>
+<script src="app.data.js"></script>
+<script src="app.init.js"></script>
+<script>
+/* ── Google-only Firebase Auth (Typhon Helper) ── */
+(function (global) {
+  'use strict';
+  var FIREBASE_CONFIG = {
+    apiKey:            'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+    authDomain:        'anesthesia-wiki-saved-files.firebaseapp.com',
+    projectId:         'anesthesia-wiki-saved-files',
+    storageBucket:     'anesthesia-wiki-saved-files.firebasestorage.app',
+    messagingSenderId: '493278937716',
+    appId:             '1:493278937716:web:6d4055acbb6f5745810721'
+  };
+  var _auth=null,_user=null,_authReady=false,_popupInProgress=false,_pendingCallbacks=[],_changeListeners=[];
+  function getOrCreateApp(){if(!global.firebase)return null;if(global.firebase.apps&&global.firebase.apps.length)return global.firebase.apps[0];try{return global.firebase.initializeApp(FIREBASE_CONFIG);}catch(e){return null;}}
+  function tryInitAuth(){if(_auth)return true;var app=getOrCreateApp();if(!app||!global.firebase.auth)return false;_auth=global.firebase.auth(app);_auth.onAuthStateChanged(handleAuthChange);return true;}
+  function ensureInit(){if(!tryInitAuth()){var a=0,p=setInterval(function(){a++;if(tryInitAuth()||a>80)clearInterval(p);},100);}}
+  function handleAuthChange(user){_user=user;_authReady=true;_popupInProgress=false;if(user){var cbs=_pendingCallbacks.slice();_pendingCallbacks=[];cbs.forEach(function(cb){try{cb(user);}catch(e){}});}else{if(_pendingCallbacks.length>0)doGoogleSignIn();}_changeListeners.forEach(function(cb){try{cb(user);}catch(e){}});}
+  function doGoogleSignIn(){if(_popupInProgress)return;if(!_auth){ensureInit();return;}_popupInProgress=true;var provider=new global.firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});_auth.signInWithPopup(provider).catch(function(e){_popupInProgress=false;if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request'){alert(e.message||'Google sign-in failed. Ensure pop-ups are allowed.');}});}
+  global.AnesthesiaAuth={
+    requireAuth:function(onAuthed){ensureInit();if(_authReady&&_user){try{onAuthed(_user);}catch(e){}return;}_pendingCallbacks.push(onAuthed);if(_authReady&&!_user)doGoogleSignIn();},
+    getUser:function(){return _user;},
+    signOut:function(){return _auth?_auth.signOut():Promise.resolve();},
+    onAuthChange:function(callback){_changeListeners.push(callback);if(_authReady){try{callback(_user);}catch(e){}}},
+    showLogin:function(){ensureInit();doGoogleSignIn();}
+  };
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ensureInit);}else{ensureInit();}
+})(window);
+
+(function () {
+  function dispatchAuthChanged() {
+    window.dispatchEvent(new Event('typhon-auth-changed'));
+  }
+
+  function updateAuthUI(user) {
+    // Update account drawer
+    var drawerName  = document.getElementById('acct-drawer-name');
+    var drawerEmail = document.getElementById('acct-drawer-email');
+    var acctBtn     = document.getElementById('acct-action-btn');
+    var tabAcct     = document.getElementById('tab-acct');
+    if (user) {
+      if (drawerName)  drawerName.textContent  = user.displayName || user.email.split('@')[0];
+      if (drawerEmail) drawerEmail.textContent = user.email || '';
+      if (acctBtn)     acctBtn.textContent     = 'Sign Out';
+      if (tabAcct)     tabAcct.classList.add('auth-signed-in');
+    } else {
+      if (drawerName)  drawerName.textContent  = 'Not signed in';
+      if (drawerEmail) drawerEmail.textContent = '';
+      if (acctBtn)     acctBtn.textContent     = 'Log in for full access';
+      if (tabAcct)     tabAcct.classList.remove('auth-signed-in');
+    }
+  }
+
+  function openAcctDrawer()  { document.getElementById('acct-overlay').classList.add('open'); }
+  function closeAcctDrawer() { document.getElementById('acct-overlay').classList.remove('open'); }
+  window.openAcctDrawer  = openAcctDrawer;
+  window.closeAcctDrawer = closeAcctDrawer;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var tabAcct = document.getElementById('tab-acct');
+    if (tabAcct) tabAcct.addEventListener('click', openAcctDrawer);
+
+    var acctOverlay = document.getElementById('acct-overlay');
+    if (acctOverlay) acctOverlay.addEventListener('click', function (e) {
+      if (e.target === acctOverlay) closeAcctDrawer();
+    });
+
+    var acctBtn = document.getElementById('acct-action-btn');
+    if (acctBtn) {
+      acctBtn.addEventListener('click', function () {
+        closeAcctDrawer();
+        var user = window.AnesthesiaAuth && window.AnesthesiaAuth.getUser ? window.AnesthesiaAuth.getUser() : null;
+        if (user) { window.AnesthesiaAuth.signOut(); }
+        else { window.AnesthesiaAuth && window.AnesthesiaAuth.showLogin(); }
+      });
+    }
+
+    if (!window.AnesthesiaAuth || typeof window.AnesthesiaAuth.onAuthChange !== 'function') {
+      updateAuthUI(null);
+      dispatchAuthChanged();
+      return;
+    }
+
+    window.AnesthesiaAuth.onAuthChange(function (user) {
+      updateAuthUI(user);
+      dispatchAuthChanged();
+    });
+
+    if (typeof window.AnesthesiaAuth.requireAuth === 'function') {
+      window.AnesthesiaAuth.requireAuth(function () {});
+    }
+  });
+})();
+</script>
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active { transform: translateY(0); }
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split('/').filter(Boolean).length;
+  var base = '';
+  for (var i = 1; i < depth; i++) { base += '../'; }
+  var a = document.createElement('a');
+  a.className = 'global-home-btn';
+  a.href = base + 'AnesthesiaWiki.html';
+  a.textContent = 'Home';
+  a.setAttribute('aria-label', 'Go to Home');
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

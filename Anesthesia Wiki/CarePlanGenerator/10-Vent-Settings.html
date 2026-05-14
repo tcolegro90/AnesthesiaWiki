@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vent Settings</title>
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>10. Vent Settings</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Patient</a><a href="2-Surgery.html">2 Surgery</a><a href="3-Labs-Chemistries.html">3 Labs</a><a href="4-PMH.html">4 PMH</a><a href="5-Prescribed-Medications.html">5 Home Meds</a><a href="6-Preop-History.html">6 Preop Hx</a><a href="7-Airway-Exam.html">7 Airway</a><a href="7b-Extras.html">7b Extras</a><a href="8-Anesthetic-Plan.html">8 Anesthetic Plan</a><a href="8b-APFEL-PONV.html">8b APFEL/PONV</a><a href="9-Fluid-Blood-Plan.html">9 Fluid/Blood</a><a href="10-Vent-Settings.html">10 Vent</a>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:14px;">
+      <!-- Row 1: Vent Mode, Tidal Volume, IBW -->
+      <div class="row" style="align-items:flex-end;gap:14px;flex-wrap:wrap;">
+        <div>
+          <label>Vent Mode</label><br>
+          <select id="vent-mode" class="med" onchange="saveState();" style="width:260px;">
+            <option value="">Select...</option>
+            <option>Volume Control (VC-CMV)</option>
+            <option>Pressure Control (PC-CMV)</option>
+            <option>SIMV</option>
+            <option>Pressure Support (PSV)</option>
+            <option>PRVC</option>
+          </select>
+        </div>
+        <div>
+          <label>Tidal Volume</label><br>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input id="vent-tv" type="number" inputmode="decimal" class="small" placeholder="mL" oninput="onVentTvInput();" />
+            <span id="vent-tv-range" class="muted" style="font-size:0.82rem;white-space:nowrap;"></span>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:5px;">
+            <button type="button" onclick="setTvByIbw(6)" style="font-size:0.78rem;padding:2px 7px;">6 mL/kg</button>
+            <button type="button" onclick="setTvByIbw(7)" style="font-size:0.78rem;padding:2px 7px;">7 mL/kg</button>
+            <button type="button" onclick="setTvByIbw(8)" style="font-size:0.78rem;padding:2px 7px;">8 mL/kg</button>
+          </div>
+        </div>
+        <div>
+          <label>IBW (kg)</label><br>
+          <input id="vent-ibw" type="number" class="small" readonly style="background:#f4f6fa;">
+        </div>
+      </div>
+      <!-- Row 2: PEEP, I:E Ratio -->
+      <div class="row" style="align-items:flex-end;gap:14px;flex-wrap:wrap;">
+        <div>
+          <label>PEEP (cmH&#x2082;O)</label><br>
+          <select id="vent-peep" class="small" onchange="saveState();">
+            <option value="">Select...</option>
+            <option>0</option>
+            <option>2</option>
+            <option selected>5</option>
+            <option>7</option>
+            <option>8</option>
+            <option>10</option>
+            <option>12</option>
+            <option>14</option>
+            <option>16</option>
+            <option>18</option>
+            <option>20</option>
+          </select>
+        </div>
+        <div>
+          <label>I:E Ratio</label><br>
+          <select id="vent-ie" class="small" onchange="saveState();">
+            <option value="">Select...</option>
+            <option>1:1</option>
+            <option>1:1.5</option>
+            <option selected>1:2</option>
+            <option>1:2.5</option>
+            <option>1:3</option>
+            <option>1:4</option>
+            <option>2:1 (inverse)</option>
+          </select>
+        </div>
+      </div>
+      <!-- Row 3: FiO₂ -->
+      <div class="row" style="align-items:flex-end;gap:14px;flex-wrap:wrap;">
+        <div>
+          <label>FiO&#x2082; (%)</label><br>
+          <select id="vent-fio2" class="small" onchange="saveState();">
+            <option value="">Select...</option>
+            <option>21</option>
+            <option>30</option>
+            <option>40</option>
+            <option>50</option>
+            <option>60</option>
+            <option>70</option>
+            <option>80</option>
+            <option>90</option>
+            <option>100</option>
+          </select>
+        </div>
+      </div>
+      <div id="vent-tv-note" style="display:none;margin-top:2px;font-size:0.82rem;color:#b32424;font-weight:700;"></div>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    function setTvByIbw(mlPerKg) {
+      var ibw = parseFloat(getGlobalState()['pat-ibw']) || parseFloat((document.getElementById('vent-ibw') || {}).value) || 0;
+      if (!ibw) { alert('IBW not available. Enter patient height and gender first.'); return; }
+      var tv = Math.round(ibw * mlPerKg);
+      var tvEl = document.getElementById('vent-tv');
+      if (tvEl) { tvEl.value = tv; onVentTvInput(); saveState(); }
+    }
+
+    function syncVentFromState() {
+      var s = getGlobalState();
+      var ibw = parseFloat(s['pat-ibw']) || 0;
+      var ibwEl = document.getElementById('vent-ibw');
+      if (ibwEl) ibwEl.value = ibw > 0 ? ibw.toFixed(1) : '';
+
+      var rangeEl = document.getElementById('vent-tv-range');
+      if (rangeEl) rangeEl.textContent = ibw > 0 ? '(6–8 mL/kg IBW: ' + Math.round(ibw * 6) + '–' + Math.round(ibw * 8) + ' mL)' : '';
+
+      onVentTvInput();
+
+      var mode = document.getElementById('vent-mode');
+      var ie   = document.getElementById('vent-ie');
+      var peep = document.getElementById('vent-peep');
+      var tv   = document.getElementById('vent-tv');
+      var fio2 = document.getElementById('vent-fio2');
+      if (mode && s['vent-mode']) mode.value = s['vent-mode'];
+      if (ie   && s['vent-ie'])   ie.value   = s['vent-ie'];
+      if (peep && s['vent-peep']) peep.value = s['vent-peep'];
+      if (tv   && s['vent-tv'])   tv.value   = s['vent-tv'];
+      if (fio2 && s['vent-fio2']) fio2.value = s['vent-fio2'];
+
+      if (ie   && !ie.value)   ie.value   = '1:2';
+      if (peep && !peep.value) peep.value = '5';
+    }
+
+    function onVentTvInput() {
+      var s = getGlobalState();
+      var ibw = parseFloat(s['pat-ibw']) || 0;
+      var tvEl   = document.getElementById('vent-tv');
+      var noteEl = document.getElementById('vent-tv-note');
+      if (!tvEl || !noteEl) return;
+      var tv = parseFloat(tvEl.value);
+      if (ibw > 0 && !isNaN(tv) && tv > 0) {
+        var mlKg = tv / ibw;
+        tvEl.style.color      = (mlKg < 6 || mlKg > 8) ? '#b32424' : '';
+        tvEl.style.fontWeight = (mlKg < 6 || mlKg > 8) ? '700'     : '';
+        if (mlKg > 8) {
+          noteEl.textContent = '⚠ ' + mlKg.toFixed(1) + ' mL/kg IBW — above lung-protective ceiling of 8 mL/kg';
+          noteEl.style.display = 'block';
+        } else if (mlKg < 6) {
+          noteEl.textContent = '⚠ ' + mlKg.toFixed(1) + ' mL/kg IBW — below typical 6 mL/kg minimum';
+          noteEl.style.display = 'block';
+        } else {
+          noteEl.style.display = 'none';
+        }
+      } else {
+        tvEl.style.color = ''; tvEl.style.fontWeight = '';
+        noteEl.style.display = 'none';
+      }
+      var sv = getGlobalState(); sv['vent-tv'] = tvEl.value; setGlobalState(sv);
+    }
+
+    pageBoot(function() {
+      syncVentFromState();
+      document.getElementById('vent-mode').addEventListener('change', saveState);
+      document.getElementById('vent-ie').addEventListener('change', saveState);
+      document.getElementById('vent-peep').addEventListener('change', saveState);
+      document.getElementById('vent-fio2').addEventListener('change', saveState);
+    }, function() {
+      syncVentFromState();
+    });
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(0,0,0,0.32); }
+.global-home-btn:active { transform: translateY(0); }
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

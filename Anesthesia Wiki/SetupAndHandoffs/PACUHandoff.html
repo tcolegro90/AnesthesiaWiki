@@ -13,6 +13,13 @@
         input[type="checkbox"] { margin-right: 12px; margin-top: 5px; transform: scale(1.2); }
         label { cursor: pointer; }
         .note { font-size: 0.85em; color: #7f8c8d; display: block; margin-top: 2px; }
+        .note-list { font-size: 0.85em; color: #7f8c8d; margin-top: 4px; padding-left: 4px; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .note-list li::before { content: ''; }
+        details.collapsible-section > summary { background: #3498db; color: white; padding: 8px 15px; border-radius: 5px; font-size: 1.1em; font-weight: bold; cursor: pointer; list-style: none; margin-top: 25px; display: flex; justify-content: space-between; align-items: center; }
+        details.collapsible-section > summary::-webkit-details-marker { display: none; }
+        details.collapsible-section > summary .chevron { transition: transform 0.2s; display: inline-block; }
+        details.collapsible-section[open] > summary .chevron { transform: rotate(90deg); }
+        details.collapsible-section > .section-body { margin-top: 0; }
         footer { margin-top: 30px; text-align: center; font-style: italic; color: #95a5a6; }
         @media (max-width: 700px) {
             .top-nav {
@@ -37,7 +44,11 @@
         <h2>Anesthesiology Hand-off</h2>
         <div class="item"><input type="checkbox" id="a1"><label for="a1"><strong>1. Detail Procedure</strong></label></div>
         <div class="item"><input type="checkbox" id="a2"><label for="a2"><strong>2. Pertinent Past Medical History</strong>
-            <span class="note">a. Functional mobility status &nbsp;&nbsp; b. Allergies &nbsp;&nbsp; c. Pre-op neuro status</span>
+            <ul class="note-list">
+              <li>a. Functional mobility status</li>
+              <li>b. Allergies</li>
+              <li>c. Pre-op neuro status</li>
+            </ul>
         </label></div>
         <div class="item"><input type="checkbox" id="a3"><label for="a3"><strong>3. Blocks / Spinal</strong></label></div>
         <div class="item"><input type="checkbox" id="a4"><label for="a4"><strong>4. Medications Given by Anesthesia</strong></label></div>
@@ -48,14 +59,18 @@
         <div class="item"><input type="checkbox" id="a9"><label for="a9"><strong>9. PACU Orders Completed</strong></label></div>
         <div class="item"><input type="checkbox" id="a10"><label for="a10"><strong>10. Questions from Nursing Staff</strong></label></div>
 
-        <h2>Surgical Provider Hand-off</h2>
+    </div>
+    <details class="collapsible-section">
+      <summary><span>Surgical Provider Hand-off</span><span class="chevron">▶</span></summary>
+      <div class="section section-body" style="border-radius:0 0 8px 8px;margin-top:0;">
         <div class="item"><input type="checkbox" id="s1"><label for="s1"><strong>1. Drains / Dressings</strong></label></div>
         <div class="item"><input type="checkbox" id="s2"><label for="s2"><strong>2. Special Instructions</strong></label></div>
         <div class="item"><input type="checkbox" id="s3"><label for="s3"><strong>3. Disposition</strong>
             <span class="note">Admit (ICU vs. Floor) / Discharge</span>
         </label></div>
         <div class="item"><input type="checkbox" id="s4"><label for="s4"><strong>4. New or Restarting Medications</strong></label></div>
-    </div>
+      </div>
+    </details>
 
 
 <style>

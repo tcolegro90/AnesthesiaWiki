@@ -8,6 +8,11 @@
       <meta http-equiv="Pragma" content="no-cache">
       <meta http-equiv="Expires" content="0">
       <title>Anesthesia Clinical Tool</title>
+      <link rel="manifest" href="manifest.json">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-status-bar-style" content="default">
+      <meta name="apple-mobile-web-app-title" content="Anesthesia">
+      <meta name="theme-color" content="#1a4f82">
       <style>
          :root {
             --primary: #1f2a37;
@@ -41,6 +46,7 @@
             padding: 18px 20px 14px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            position: relative;
          }
 
          header h1 {
@@ -48,6 +54,8 @@
             font-size: 1.5rem;
             color: #fff;
             letter-spacing: 0.04em;
+            padding-right: 160px;
+            padding-left: 160px;
          }
 
          header p {
@@ -56,13 +64,74 @@
             color: #93adc8;
          }
 
+         #header-auth {
+            position: absolute;
+            top: 50%;
+            right: 18px;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+         }
+
+         #header-auth-name {
+            color: rgba(255,255,255,0.9);
+            white-space: nowrap;
+         }
+
+         #header-role-badge {
+            display: none;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+         }
+
+         #header-role-preview {
+            display: none;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            white-space: nowrap;
+            outline: none;
+         }
+         #header-role-preview option {
+            background: #2c3e50;
+            color: #fff;
+            font-weight: 600;
+         }
+
+         #header-auth-btn {
+            border: 1.5px solid rgba(255,255,255,0.55);
+            background: rgba(255,255,255,0.12);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.78rem;
+            border-radius: 999px;
+            padding: 5px 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+            transition: background 0.15s;
+         }
+
+         #header-auth-btn:hover {
+            background: rgba(255,255,255,0.22);
+         }
+
          .container {
             max-width: 960px;
             margin: 24px auto;
             padding: 0 16px;
          }
-
-         /* Section headers */
          .section-header {
             display: flex;
             align-items: center;
@@ -123,6 +192,7 @@
             text-align: center;
             transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+            position: relative;
          }
 
          .tile:hover {
@@ -138,6 +208,18 @@
             font-size: 0.74rem;
             font-weight: 400;
             color: #6b7f96;
+         }
+         .tile-req-badge {
+            position: absolute;
+            top: 8px; right: 8px;
+            background: #e74c3c;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            border-radius: 12px;
+            padding: 2px 7px;
+            line-height: 1.4;
+            display: none;
          }
 
          /* Accent top borders */
@@ -301,65 +383,7 @@
             border-color: var(--blue);
          }
 
-         /* Search bar */
-         .search-wrap {
-            max-width: 960px;
-            margin: 20px auto 0;
-            padding: 0 16px;
-         }
 
-         .search-bar {
-            width: 100%;
-            padding: 11px 16px 11px 42px;
-            font-size: 0.95rem;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23778ca3' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 14px center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-            color: var(--primary);
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.15s, box-shadow 0.15s;
-         }
-
-         .search-bar:focus {
-            border-color: var(--light-blue);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
-         }
-
-         .search-no-results {
-            text-align: center;
-            padding: 28px;
-            color: #8a9ab0;
-            font-size: 0.92rem;
-            display: none;
-         }
-
-         .med-search-results {
-            display: none;
-            margin: 0 0 14px;
-            gap: 8px;
-            flex-wrap: wrap;
-         }
-
-         .med-search-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-            color: #114a8d;
-            background: #eef6ff;
-            border: 1px solid #cfe2f8;
-            border-radius: 999px;
-            padding: 6px 10px;
-            font-size: 0.8rem;
-            font-weight: 600;
-         }
-
-         .med-search-pill:hover {
-            background: #e4f0ff;
-            border-color: #b8d3f2;
-         }
 
          .tile[data-hidden="true"],
          .crisis-tile[data-hidden="true"] {
@@ -393,6 +417,12 @@
             display: none;
          }
 
+         @media (max-width: 500px) {
+            header h1 { padding-right: 0; padding-left: 0; font-size: 1.15rem; }
+            header { padding-bottom: 46px; }
+            #header-auth { top: auto; bottom: 10px; right: 50%; transform: translateX(50%); }
+         }
+
       </style>
    </head>
 
@@ -400,29 +430,35 @@
 
       <header>
          <h1>Anesthesia Clinical Tool</h1>
+         <div id="header-auth">
+            <span id="header-auth-name"></span><span id="header-role-badge"></span><select id="header-role-preview" onchange="window._previewRole(this.value)" title="Preview as role">
+              <option value="admin">Admin</option>
+              <option value="omniscient">Omniscient</option>
+              <option value="student">Student</option>
+              <option value="non-student">Non-Student</option>
+            </select>
+            <button type="button" id="header-auth-btn">Log in for full access</button>
+         </div>
       </header>
 
-      <div class="search-wrap">
-         <input type="search" class="search-bar" id="index-search" placeholder="Search tools, algorithms, medications…"
-            oninput="filterIndex(this.value)">
-      </div>
-
       <div class="container" id="index-container">
-         <p class="search-no-results" id="no-results">No matches found.</p>
-         <div class="med-search-results" id="med-search-results"></div>
 
-         <!-- Clinical Workflow -->
+         <!-- Student Resources -->
          <div class="section-header open" onclick="toggleSection('workflow')">
             <div class="icon" style="background:#e8f4ff;">📋</div>
-            <h2>Clinical Workflow</h2>
+            <h2>Student Resources</h2>
             <div class="section-line"></div>
             <span class="section-toggle">▼</span>
          </div>
          <div id="sec-workflow" class="section-body">
             <div class="tile-grid">
-               <a href="CarePlanGenerator/Combined-Care-Plan.html" class="tile t-orange">
+               <a href="CarePlanGenerator/Combined-Care-Plan.html" class="tile t-orange" data-auth-gated="true">
                   <span class="tile-icon">📝</span>
                   Care Plan Generator
+               </a>
+               <a href="http://www.ccanesthesiareview.com/qod/qod.asp" class="tile t-purple" target="_blank">
+                  <span class="tile-icon">📓</span>
+                  Boards QOTD
                </a>
                <a href="SetupAndHandoffs/PreOpInterview.html" class="tile t-blue">
                   <span class="tile-icon">📋</span>
@@ -436,6 +472,39 @@
                   <span class="tile-icon">🤝</span>
                   Jenny's PACU Handoff
                </a>
+               <a href="MedicationColors/Index.html" class="tile t-orange">
+                  <span class="tile-icon">🎨</span>
+                  Medication Sticker Colors
+               </a>
+               <a href="ClinicalSites/Index.html?v=20260411c" class="tile t-blue" id="tile-clinical-sites" data-auth-gated="true">
+                  <span class="tile-icon">🏥</span>
+                  Clinical Sites
+               </a>
+               <a href="Typhon%20Helper/TyphonCaseHelper.html" class="tile t-teal" data-auth-gated="true">
+                  <span class="tile-icon">⚡</span>
+                  Typhon Case Helper
+               </a>
+            </div>
+         </div>
+
+         <!-- Student Access Request Bar (shown for logged-in non-students) -->
+         <div id="student-request-bar" style="display:none;background:#eef6ff;border:1.5px solid #b3d4f5;border-radius:10px;padding:10px 16px;margin-bottom:16px;align-items:center;justify-content:center;">
+            <button id="btn-request-student-access" type="button" style="background:none;border:none;color:#114a8d;font-weight:700;font-size:.9rem;cursor:pointer;padding:0;font-family:inherit;">Click for student access</button>
+         </div>
+
+         <!-- Practice References -->
+         <div class="section-header open" onclick="toggleSection('reference')">
+            <div class="icon" style="background:#f8f4ff;">📚</div>
+            <h2>Practice References</h2>
+            <div class="section-line"></div>
+            <span class="section-toggle">▼</span>
+         </div>
+         <div id="sec-reference" class="section-body">
+            <div class="tile-grid">
+               <a href="Calculators/Index.html" class="tile t-green" id="tile-calculators">
+                  <span class="tile-icon">🧮</span>
+                  Calculators &amp; Charts
+               </a>
                <a href="CrisisAlgorithms/Index.html" class="tile t-red">
                   <span class="tile-icon">🚨</span>
                   Emergency Algorithms
@@ -443,38 +512,26 @@
             </div>
          </div>
 
-         <!-- Reference -->
-         <div class="section-header open" onclick="toggleSection('reference')">
-            <div class="icon" style="background:#f8f4ff;">📚</div>
-            <h2>Reference</h2>
+         <!-- Admin (Omniscient only) -->
+         <div id="sec-admin-header" class="section-header" onclick="toggleSection('admin')" style="display:none;">
+            <div class="icon" style="background:#f5f0ff;">🔑</div>
+            <h2>Admin</h2>
             <div class="section-line"></div>
             <span class="section-toggle">▼</span>
          </div>
-         <div id="sec-reference" class="section-body">
+         <div id="sec-admin" class="section-body collapsed">
             <div class="tile-grid">
-               <a href="ClinicalSites/Index.html?v=20260411c" class="tile t-blue">
-                  <span class="tile-icon">🏥</span>
-                  Clinical Sites
-               </a>
-               <a href="Calculators/Index.html" class="tile t-green" id="tile-calculators">
-                  <span class="tile-icon">🧮</span>
-                  Calculators &amp; Charts
-               </a>
-               <a href="MedicationColors/Index.html" class="tile t-orange">
-                  <span class="tile-icon">🎨</span>
-                  Medication Colors
-                  <span class="tile-sub">OR Sticker Reference</span>
-               </a>
-               <a href="http://www.ccanesthesiareview.com/qod/qod.asp" class="tile t-purple" target="_blank">
-                  <span class="tile-icon">📓</span>
-                  Boards QOTD
-                  <span class="tile-sub">CCAER Question of the Day</span>
+               <a href="Admin/Index.html" id="tile-user-access" class="tile t-purple">
+                  <span class="tile-icon">&#x1F465;</span>
+                  User Access
+                  <span id="access-requests-sub" class="tile-sub" style="display:none;color:#e74c3c;font-weight:700;"></span>
+                  <span id="access-requests-badge" class="tile-req-badge"></span>
                </a>
             </div>
          </div>
 
          <!-- Work in Progress -->
-         <div class="section-header" onclick="toggleSection('wip')">
+         <div id="sec-wip-header" class="section-header" onclick="toggleSection('wip')">
             <div class="icon" style="background:#fff1f1;">🚧</div>
             <h2>Work in Progress</h2>
             <div class="section-line"></div>
@@ -483,10 +540,10 @@
          <div id="sec-wip" class="section-body collapsed">
             <p class="wip-note">Use caution: these pages are works in progress and may be incomplete or change frequently.</p>
             <div class="tile-grid">
-               <a href="Help/QuickStartManual.html" class="tile wip">
-                  <span class="tile-icon">📘</span>
-                  Quick Start Manual
-                  <span class="tile-sub">Care Plan manual needs refinement</span>
+               <a href="PersonalGrowth/Index.html" class="tile wip">
+                  <span class="tile-icon">🌱</span>
+                  Clinical Growth Journal
+                  <span class="tile-sub">Daily goals &amp; session reflections</span>
                </a>
                <a href="Meds/Index.html" class="tile wip" id="tile-medications">
                   <span class="tile-icon">💊</span>
@@ -503,19 +560,9 @@
                   Comorbidities
                   <span class="tile-sub">Work in progress - use caution</span>
                </a>
-               <a href="TopDrawerMeds/Index.html" class="tile wip">
-                  <span class="tile-icon">🗂️</span>
-                  Top Drawer Meds
-                  <span class="tile-sub">Work in progress - use caution</span>
-               </a>
-               <a href="PersonalGrowth/Index.html" class="tile wip">
-                  <span class="tile-icon">🌱</span>
-                  Clinical Growth Journal
-                  <span class="tile-sub">Daily goals &amp; session reflections</span>
-               </a>
                <a href="Studies/Index.html?v=20260413b" class="tile wip">
                   <span class="tile-icon">📚</span>
-                  Studies
+                  Research Library
                   <span class="tile-sub">Work in progress - use caution</span>
                </a>
                <a href="Antibiotics/Index.html?v=20260415a" class="tile wip">
@@ -523,24 +570,57 @@
                   Antibiotics
                   <span class="tile-sub">Work in progress - use caution</span>
                </a>
-               <a href="SetupAndHandoffs/PACUHandoff.html" class="tile wip">
-                  <span class="tile-icon">🤝</span>
-                  PACU Handoff
-                  <span class="tile-sub">Work in progress</span>
+               <a href="TopDrawerMeds/Index.html" class="tile wip">
+                  <span class="tile-icon">🗂️</span>
+                  Top Drawer Meds
+                  <span class="tile-sub">Work in progress - use caution</span>
                </a>
-               <a href="Typhon/TyphonCaseHelper.html" class="tile wip">
-                  <span class="tile-icon">🔒</span>
-                  Typhon Case Helper
-                  <span class="tile-sub">Passcode protected phone testing page</span>
+               <a href="CarePlanGenerator%20WIP/Combined-Care-Plan.html" class="tile wip">
+                  <span class="tile-icon">📋</span>
+                  Care Plan Generator (WIP)
+                  <span class="tile-sub">Print layout editor &amp; named templates</span>
                </a>
-            </div>
+
+
          </div>
          
       </div>
 
       <script src="CarePlanGenerator/med-catalog.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
+   <script>
+   /* ── shared-auth (inlined, Google-only) ── */
+   (function (global) {
+     'use strict';
+     var FIREBASE_CONFIG = {
+       apiKey:            'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+       authDomain:        'anesthesia-wiki-saved-files.firebaseapp.com',
+       projectId:         'anesthesia-wiki-saved-files',
+       storageBucket:     'anesthesia-wiki-saved-files.firebasestorage.app',
+       messagingSenderId: '493278937716',
+       appId:             '1:493278937716:web:6d4055acbb6f5745810721'
+     };
+     var _auth=null,_user=null,_authReady=false,_pendingCallbacks=[],_changeListeners=[];
+     function getOrCreateApp(){if(!global.firebase)return null;if(global.firebase.apps&&global.firebase.apps.length)return global.firebase.apps[0];try{return global.firebase.initializeApp(FIREBASE_CONFIG);}catch(e){return null;}}
+     function tryInitAuth(){if(_auth)return true;var app=getOrCreateApp();if(!app||!global.firebase.auth)return false;_auth=global.firebase.auth(app);_auth.onAuthStateChanged(handleAuthChange);return true;}
+     function ensureInit(){if(!tryInitAuth()){var a=0,p=setInterval(function(){a++;if(tryInitAuth()||a>80)clearInterval(p);},100);}}
+     function handleAuthChange(user){_user=user;_authReady=true;if(user){var cbs=_pendingCallbacks.slice();_pendingCallbacks=[];cbs.forEach(function(cb){try{cb(user);}catch(e){}});}else{if(_pendingCallbacks.length>0)doGoogleSignIn();}_changeListeners.forEach(function(cb){try{cb(user);}catch(e){}});}
+     function doGoogleSignIn(){if(!_auth){ensureInit();return;}var provider=new global.firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});_auth.signInWithPopup(provider).catch(function(e){if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request'){alert(e.message||'Google sign-in failed. Ensure pop-ups are allowed for this site.');}});}
+     global.AnesthesiaAuth={
+       requireAuth:function(onAuthed){ensureInit();if(_authReady&&_user){try{onAuthed(_user);}catch(e){}return;}_pendingCallbacks.push(onAuthed);if(_authReady&&!_user)doGoogleSignIn();},
+       getUser:function(){return _user;},
+       signOut:function(){return _auth?_auth.signOut():Promise.resolve();},
+       onAuthChange:function(callback){_changeListeners.push(callback);if(_authReady){try{callback(_user);}catch(e){}}},
+       showLogin:function(){ensureInit();doGoogleSignIn();}
+     };
+     if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ensureInit);}else{ensureInit();}
+   })(window);
+   /* ── end shared-auth ── */
+   </script>
       <script>
-         var APP_VERSION = '20260413b';
+         var APP_VERSION = '20260424c';
 
          (function ensureVersionedPage() {
             if (window.location.protocol === 'file:') return;
@@ -612,7 +692,6 @@
          ];
 
          var TOOL_PAGE_LINKS = [
-            { name: 'Quick Start Manual', href: 'Help/QuickStartManual.html' },
             { name: 'IBW & Ventilation Chart', href: 'Calculators/IBWChart.html' },
             { name: 'BMI Calculator', href: 'Calculators/BMICalculator.html' },
             { name: 'Fluid / ABL Calculator', href: 'Calculators/FluidCalculator.html' },
@@ -700,6 +779,251 @@
 
          appendVersionToInternalLinks();
 
+         function setAuthStatusBar(user) {
+            var nameEl = document.getElementById('header-auth-name');
+            var btn = document.getElementById('header-auth-btn');
+            if (!nameEl || !btn) return;
+            if (user) {
+               var name = user.displayName || (user.email ? user.email.split('@')[0] : 'Signed in');
+               nameEl.textContent = name;
+               btn.textContent = 'Sign Out';
+            } else {
+               nameEl.textContent = '';
+               btn.textContent = 'Log in for full access';
+            }
+         }
+
+         function showSharedLogin() {
+            if (window.AnesthesiaAuth && typeof window.AnesthesiaAuth.showLogin === 'function') {
+               window.AnesthesiaAuth.showLogin();
+            }
+         }
+
+         function installDataToolAuthGate() {
+            document.querySelectorAll('a[data-auth-gated="true"]').forEach(function (link) {
+               link.addEventListener('click', function (event) {
+                  var targetHref = link.getAttribute('href');
+                  if (!window.AnesthesiaAuth) return;
+                  event.preventDefault();
+                  if (typeof window.AnesthesiaAuth.requireAuth === 'function') {
+                     window.AnesthesiaAuth.requireAuth(function () {
+                        window.location.href = targetHref;
+                     });
+                  } else {
+                     window.location.href = targetHref;
+                  }
+               });
+            });
+         }
+
+         var headerAuthBtn  = document.getElementById('header-auth-btn');
+         var headerAuthName = document.getElementById('header-auth-name');
+
+         if (headerAuthBtn) {
+            headerAuthBtn.addEventListener('click', function () {
+               if (window.AnesthesiaAuth) {
+                  var user = window.AnesthesiaAuth.getUser ? window.AnesthesiaAuth.getUser() : null;
+                  if (user) {
+                     window.AnesthesiaAuth.signOut();
+                  } else {
+                     window.AnesthesiaAuth.showLogin();
+                  }
+               }
+            });
+         }
+
+         // Attach auth listeners once available
+         var authHookAttached = false;
+         var authHookAttempts = 0;
+         var authHookTimer = setInterval(function () {
+            authHookAttempts += 1;
+            if (!authHookAttached && window.AnesthesiaAuth) {
+               var auth = window.AnesthesiaAuth;
+               setAuthStatusBar(auth.getUser ? auth.getUser() : null);
+               if (typeof auth.onAuthChange === 'function') {
+                  auth.onAuthChange(setAuthStatusBar);
+               }
+               authHookAttached = true;
+               clearInterval(authHookTimer);
+               return;
+            }
+            if (authHookAttempts > 120) clearInterval(authHookTimer);
+         }, 100);
+         installDataToolAuthGate();
+
+         /* ── Role-based access ── */
+         (function () {
+           // Roles in ascending privilege order
+           var ROLE_LEVEL = { 'non-student': 1, 'student': 2, 'omniscient': 3, 'admin': 4 };
+
+           function applyRole(role) {
+             var level = ROLE_LEVEL[role] || 1;
+
+             // WIP section: visible for omniscient and admin
+             var wipHeader = document.getElementById('sec-wip-header');
+             var wipBody   = document.getElementById('sec-wip');
+             if (wipHeader) wipHeader.style.display = level >= 3 ? '' : 'none';
+             if (wipBody)   wipBody.style.display   = level >= 3 ? '' : 'none';
+             if (level >= 3 && wipBody && wipBody.classList.contains('collapsed')) {
+               wipBody.classList.remove('collapsed');
+               if (wipHeader) wipHeader.classList.add('open');
+             }
+
+             // Clinical Sites: always visible, but intercept click for non-students
+             var csEl = document.getElementById('tile-clinical-sites');
+             if (csEl) csEl.dataset.userRole = role;
+
+             // Admin section: only admin (level 4), auto-open when shown
+             var adminHeader = document.getElementById('sec-admin-header');
+             var adminBody   = document.getElementById('sec-admin');
+             if (adminHeader) adminHeader.style.display = level >= 4 ? '' : 'none';
+             if (adminBody)   adminBody.style.display   = level >= 4 ? '' : 'none';
+             if (level >= 4 && adminBody && adminBody.classList.contains('collapsed')) {
+               adminBody.classList.remove('collapsed');
+               if (adminHeader) adminHeader.classList.add('open');
+             }
+
+             // Role badge / preview dropdown in header
+             var badge      = document.getElementById('header-role-badge');
+             var previewSel = document.getElementById('header-role-preview');
+             var trueLevel  = ROLE_LEVEL[window._trueRole] || 1;
+             if (trueLevel >= 4) {
+               // Admin: show dropdown, hide plain badge
+               if (badge) badge.style.display = 'none';
+               if (previewSel) { previewSel.style.display = 'inline'; previewSel.value = role; }
+             } else {
+               if (previewSel) previewSel.style.display = 'none';
+               if (badge) {
+                 badge.textContent = role === 'non-student' ? 'Non-Student' : role.charAt(0).toUpperCase() + role.slice(1);
+                 badge.style.display = 'inline';
+               }
+             }
+             // Student access request bar: show for logged-in non-students
+             var requestBar = document.getElementById('student-request-bar');
+             if (requestBar) {
+               var currentUser = window.AnesthesiaAuth ? window.AnesthesiaAuth.getUser() : null;
+               requestBar.style.display = (level === 1 && currentUser) ? 'flex' : 'none';
+             }
+
+
+           }
+
+           // Role-preview handler (admin only)
+           window._previewRole = function (role) {
+             if ((ROLE_LEVEL[window._trueRole] || 1) < 4) return;
+             applyRole(role);
+           };
+
+           function fetchRoleAndApply(user) {
+             if (!user) { window._trueRole = 'non-student'; applyRole('non-student'); return; }
+             try {
+               var db = firebase.firestore();
+               db.collection('userRoles').doc(user.email).get()
+                 .then(function (doc) {
+                   var role = (doc.exists && doc.data().role) ? doc.data().role : 'non-student';
+                   if (!ROLE_LEVEL[role]) role = 'non-student';
+                   // Auto-register new users so they appear in the admin panel
+                   if (!doc.exists) {
+                     db.collection('userRoles').doc(user.email).set({
+                       role: 'non-student',
+                       displayName: user.displayName || '',
+                       registeredAt: new Date().toISOString()
+                     }).catch(function () {});
+                   }
+                   window._trueRole = role;
+                   applyRole(role);
+                   // Sync preview dropdown to actual role on fresh login
+                   var sel = document.getElementById('header-role-preview');
+                   if (sel) sel.value = role;
+                   // Admin: load pending access request count
+                   if (role === 'admin') {
+                     db.collection('accessRequests').get()
+                       .then(function (snap) {
+                         var n = 0;
+                         snap.forEach(function (doc) {
+                           var s = doc.data().status;
+                           if (!s || s === 'pending') n++;
+                         });
+                         var sub   = document.getElementById('access-requests-sub');
+                         var badge = document.getElementById('access-requests-badge');
+                         if (n > 0) {
+                           if (sub)   { sub.textContent = n + ' pending request' + (n !== 1 ? 's' : ''); sub.style.display = ''; }
+                           if (badge) { badge.textContent = n; badge.style.display = ''; }
+                         }
+                       }).catch(function () {});
+                   }
+                 })
+                 .catch(function () { window._trueRole = 'non-student'; applyRole('non-student'); });
+             } catch (e) { window._trueRole = 'non-student'; applyRole('non-student'); }
+           }
+
+
+
+           // Apply restrictive defaults immediately (before auth resolves)
+           applyRole('non-student');
+
+           // Student access request button handler
+           var btnReqAccess = document.getElementById('btn-request-student-access');
+           if (btnReqAccess) {
+             btnReqAccess.addEventListener('click', function () {
+               var user = window.AnesthesiaAuth ? window.AnesthesiaAuth.getUser() : null;
+               if (!user) return;
+               var email       = user.email || '';
+               var displayName = user.displayName || email;
+               // Write to Firestore
+               try {
+                 var db = firebase.firestore();
+                 db.collection('accessRequests').doc(email).set({
+                   email: email,
+                   displayName: displayName,
+                   requestedAt: new Date().toISOString(),
+                   status: 'pending'
+                 }).catch(function () {});
+               } catch (e) {}
+               // Open pre-filled mailto
+               var subj = encodeURIComponent('Student Access Request');
+               var body = encodeURIComponent('Hi,\n\nI would like to request student access to the Anesthesia Wiki.\n\nName: ' + displayName + '\nEmail: ' + email + '\n\nThank you!');
+               window.location.href = 'mailto:tcolegro90@gmail.com?subject=' + subj + '&body=' + body;
+               // Show confirmation state
+               btnReqAccess.textContent = '\u2713 Request sent \u2014 check your email app';
+               btnReqAccess.disabled = true;
+               btnReqAccess.style.color = '#1a7c50';
+             });
+           }
+
+           // Intercept Clinical Sites click for non-students
+           var csEl = document.getElementById('tile-clinical-sites');
+           if (csEl) {
+             csEl.addEventListener('click', function (e) {
+               var role = csEl.dataset.userRole || 'non-student';
+               if (role === 'non-student') {
+                 e.preventDefault();
+                 e.stopImmediatePropagation();
+                 var user = window.AnesthesiaAuth ? window.AnesthesiaAuth.getUser() : null;
+                 var userEmail = user ? user.email : '';
+                 var userName = user ? (user.displayName || userEmail) : '';
+                 var subj = encodeURIComponent('Clinical Sites Access Request');
+                 var body = encodeURIComponent('Hi,\n\nI would like to request access to the Clinical Sites section of the Anesthesia Wiki.\n\nName: ' + userName + '\nEmail: ' + userEmail + '\n\nThank you!');
+                 document.getElementById('cs-request-mailto').href = 'mailto:tcolegro90@gmail.com?subject=' + subj + '&body=' + body;
+                 document.getElementById('cs-request-modal').style.display = 'flex';
+               }
+             }, true);
+           }
+
+           // Then update once auth state is known
+           var roleHookAttached = false;
+           var roleTimer = setInterval(function () {
+             if (window.AnesthesiaAuth && typeof window.AnesthesiaAuth.onAuthChange === 'function') {
+               clearInterval(roleTimer);
+               roleHookAttached = true;
+               window.AnesthesiaAuth.onAuthChange(fetchRoleAndApply);
+             }
+           }, 100);
+         })();
+         /* ── end Role-based access ── */
+
+
+
          function filterIndex(q) {
             q = q.toLowerCase().trim();
             var medResultsEl = document.getElementById('med-search-results');
@@ -746,7 +1070,34 @@
             document.getElementById('no-results').style.display = (q && !anyVisible) ? 'block' : 'none';
          }
       </script>
+      <script>
+         // PWA tile navigation — keep taps inside the standalone shell (no URL bar)
+         // Only intercepts internal .tile links; external (target=_blank) are untouched.
+         document.addEventListener('click', function(e) {
+            var tile = e.target.closest('a.tile');
+            if (!tile) return;
+            if (tile.target === '_blank') return; // external links open normally
+            var href = tile.getAttribute('href');
+            if (!href || href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//')) return;
+            e.preventDefault();
+            window.location.href = href;
+         });
+      </script>
 
    </body>
+
+<!-- Clinical Sites Request Access Modal -->
+<div id="cs-request-modal" style="display:none;position:fixed;inset:0;background:rgba(15,25,40,.55);z-index:99999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.3);width:min(440px,100%);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;overflow:hidden;">
+    <div style="background:#114a8d;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-weight:700;font-size:1rem;color:#fff;">🏥 Clinical Sites — Access Required</span>
+      <button onclick="document.getElementById('cs-request-modal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.7);font-size:1.3rem;cursor:pointer;line-height:1;padding:0 2px;">&times;</button>
+    </div>
+    <div style="padding:20px 22px;">
+      <p style="margin:0 0 14px;color:#1f2a37;font-size:.93rem;line-height:1.5;">The <strong>Clinical Sites</strong> section is available to currently enrolled students. Request access below.</p>
+      <a id="cs-request-mailto" href="#" style="display:block;text-align:center;background:#114a8d;color:#fff;font-weight:700;font-size:.9rem;padding:11px 18px;border-radius:8px;text-decoration:none;">📧 Send Access Request</a>
+    </div>
+  </div>
+</div>
 
 </html>

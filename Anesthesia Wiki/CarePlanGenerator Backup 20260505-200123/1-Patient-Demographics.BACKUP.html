@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Demographics</title>
+  <link rel="stylesheet" href="shared.css?v=3" />
+  <style>
+    .top-demographics-row {
+      margin-top: 10px;
+      border-top: 1px solid #ccc;
+      padding-top: 12px;
+      gap: 14px;
+      align-items: flex-end;
+    }
+    .surgery-row {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 12px;
+      gap: 14px;
+      align-items: flex-end;
+    }
+    .surgery-subrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: flex-end;
+      width: 100%;
+    }
+    .surgery-top-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 14px;
+      align-items: flex-end;
+      width: 100%;
+    }
+    .conditional-inline {
+      display: none;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .add-row-btn {
+      padding: 3px 12px;
+      font-size: 12px;
+      border: 1px dashed #4a6fa5;
+      border-radius: 4px;
+      background: #f0f5ff;
+      color: #4a6fa5;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .add-row-btn:hover { background: #dde8ff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="row surgery-row">
+        <div class="surgery-top-row">
+          <div style="flex:1 1 auto;min-width:120px;"><label>Surgery Type</label><br><input id="pat-surgery" style="width:100%;" /></div>
+          <div style="flex:0 0 auto;"><label>Positioning</label><br>
+            <select id="pat-position" style="width:200px;">
+              <option value="">Select...</option>
+              <option>Supine</option>
+              <option>Prone</option>
+              <option>Lateral Decubitus</option>
+              <option>Lithotomy</option>
+              <option>Trendelenburg</option>
+              <option>Steep Trendelenburg</option>
+              <option>Reverse Trendelenburg</option>
+              <option>Sitting / Beach Chair</option>
+              <option>Jackknife</option>
+              <option>Fowler / Semi-Fowler</option>
+              <option>Knee-Chest</option>
+              <option value="Other">Other</option>
+            </select>
+            <input id="pat-position-other" class="med" style="display:none;margin-top:6px;" placeholder="Enter positioning" />
+          </div>
+          <div>
+            <label>Insufflation</label><br>
+            <label><input type="radio" name="pat-insufflation" id="pat-insufflation-yes" value="Yes"> Yes</label>
+            <label><input type="radio" name="pat-insufflation" id="pat-insufflation-no" value="No"> No</label>
+          </div>
+        </div>
+        <div class="surgery-subrow" style="margin-top:10px;">
+          <div>
+            <label>Anticipated EBL</label><br>
+            <select id="pat-anticipated-ebl" class="med" style="width:150px;max-width:100%;">
+              <option value="">Select...</option>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+            </select>
+          </div>
+          <div id="pat-obtain-ts-wrap" class="conditional-inline">
+            <div>
+              <label>Obtain T+S</label><br>
+              <label><input type="radio" name="pat-obtain-ts" id="pat-obtain-ts-yes" value="Yes"> Yes</label>
+              <label><input type="radio" name="pat-obtain-ts" id="pat-obtain-ts-no" value="No"> No</label>
+            </div>
+          </div>
+          <div id="pat-blood-room-wrap" class="conditional-inline">
+            <div>
+              <label>Blood in Room</label><br>
+              <label><input type="radio" name="pat-blood-room" id="pat-blood-room-yes" value="Yes"> Yes</label>
+              <label><input type="radio" name="pat-blood-room" id="pat-blood-room-no" value="No"> No</label>
+            </div>
+          </div>
+        </div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:0;"></div>
+        <button type="button" class="add-row-btn" onclick="addExtraSurgRow()">+ Add surgery / position</button>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div><label>Surgery Start</label><br><input id="pat-sched-surg-time" class="short-text" placeholder="HH:MM" /></div>
+        <div><label>Surgery End</label><br><input id="pat-surg-end-time" class="short-text" placeholder="HH:MM" /></div>
+        <div><label>Surgical Length (minutes)</label><br><input id="pat-surg-length" type="number" step="1" min="0" inputmode="numeric" class="short-text" /></div>
+        <div>
+          <label>ASA Class <button type="button" id="asa-help-btn" aria-label="ASA classification help" onclick="document.getElementById('asa-modal').style.display='flex'" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid #5a7ea0;background:#e8f0fb;color:#1a4f82;font-size:10px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:4px;padding:0;line-height:1;">?</button></label><br>
+          <select id="pat-asa-class" class="small">
+            <option value="">-</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+          </select>
+        </div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div>
+          <label>Disposition</label><br>
+          <select id="pat-disposition" class="med" style="width:240px;max-width:100%;">
+            <option value="">Select...</option>
+            <option>PACU</option>
+            <option>ICU</option>
+            <option>CVICU</option>
+            <option>NICU</option>
+            <option>PICU</option>
+            <option>Step-Down / PCU</option>
+            <option>Floor / Med-Surg</option>
+            <option>Same Day Surgery (Home)</option>
+            <option>Extended Recovery</option>
+            <option>OR to OR</option>
+          </select>
+        </div>
+        <div>
+          <label>Surgical Date</label><br>
+          <select id="pat-surg-date-mode" class="med">
+            <option value="Tomorrow">Tomorrow</option>
+            <option value="Other">Other</option>
+          </select>
+          <input id="pat-surg-date-other" type="text" inputmode="numeric" maxlength="10" class="med" style="display:none;margin-top:6px;" placeholder="MM/DD/YYYY" />
+          <input id="pat-surg-date" type="hidden" />
+        </div>
+        <div>
+          <label>Nerve Stim Location</label><br>
+          <select id="pat-nerve-stim-location" class="med">
+            <option>None</option>
+            <option>Facial nerve</option>
+            <option>Ulner</option>
+          </select>
+        </div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div>
+          <label>Anticipated Antibiotic</label><br>
+          <select id="pat-anticipated-antibiotic" class="med" style="width:240px;max-width:100%;">
+            <option value="">Select...</option>
+            <option>Cefazolin</option>
+            <option>Cefoxitin</option>
+            <option>Cefuroxime</option>
+            <option>Ampicillin-Sulbactam</option>
+            <option>Clindamycin</option>
+            <option>Vancomycin</option>
+            <option>Gentamicin</option>
+            <option>Metronidazole</option>
+            <option>Ciprofloxacin</option>
+            <option>Piperacillin-Tazobactam</option>
+          </select>
+        </div>
+        <div>
+          <label>Dose / Unit</label><br>
+          <input id="pat-anticipated-antibiotic-dose" class="short-text" placeholder="e.g. 2 g" />
+        </div>
+        <div>
+          <label>Redose (hours)</label><br>
+          <input id="pat-anticipated-antibiotic-redose-hours" type="number" step="0.5" min="0" inputmode="decimal" class="short-text" placeholder="e.g. 4" />
+        </div>
+      </div>
+
+      <div class="row top-demographics-row">
+        <div><label>Initials</label><br><input id="pat-initials" type="text" class="tiny-text" /></div>
+        <div><label>Gender</label><br><select id="pat-gender" class="xs"><option value="">-</option><option>M</option><option>F</option></select></div>
+        <div><label>Age</label><br><input id="pat-age" type="number" inputmode="numeric" class="small" /></div>
+        <div><label>Allergies</label><br><input id="pat-allergies" class="med" style="width:320px;max-width:100%;" placeholder="NKDA or list allergies" /></div>
+      </div>
+
+      <div class="row" style="margin-top:6px;">
+        <div><label>Height (ft)</label><br><select id="pat-feet" class="small"><option value="">-</option><option>4</option><option>5</option><option>6</option></select></div>
+        <div><label>Height (in)</label><br><select id="pat-inches" class="small"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option></select></div>
+        <div><label>Height (cm)</label><br><input id="pat-cm" type="number" inputmode="decimal" class="small" /></div>
+        <div><label>Weight (kg)</label><br><input id="pat-weight-kg" type="number" inputmode="decimal" class="small" /></div>
+        <div><label>Weight (lbs)</label><br><input id="pat-weight-lbs" type="number" inputmode="decimal" class="small" /></div>
+        <div><label>BMI</label><br><input id="pat-bmi" type="number" step="0.1" inputmode="decimal" class="small" /></div>
+      </div>
+
+      <hr>
+
+      <div class="row" style="margin-top:10px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+        <div><label>Fasted</label><br><label><input type="radio" name="pat-fasted" id="pat-fasted-yes" value="Yes" onchange="highlightAbnormal()"> Yes</label> <label><input type="radio" name="pat-fasted" id="pat-fasted-no" value="No" onchange="highlightAbnormal()"> No</label></div>
+        <div><label>Smoker</label><br><label><input type="radio" name="pat-smoker" id="pat-smoker-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-smoker" id="pat-smoker-no" value="No"> No</label></div>
+        <div><label>Pacer</label><br><label><input type="radio" name="pat-pacer" value="Yes" id="pacer-yes"> Yes</label> <label><input type="radio" name="pat-pacer" value="No" id="pacer-no"> No</label></div>
+        <div id="aicd-wrap" style="display:none;"><label>AICD</label><br><label><input type="radio" name="pat-aicd" value="Yes" id="aicd-yes"> Yes</label> <label><input type="radio" name="pat-aicd" value="No" id="aicd-no"> No</label></div>
+        <div id="pacer-settings-wrap" style="display:none;"><label>Pacer Settings</label><br><input id="pat-pacer-settings" class="med" placeholder="e.g. VVI 60" /></div>
+      </div>
+
+      <div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+        <div>
+          <label>Interpreter</label><br>
+          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-no" value="No"> No</label>
+        </div>
+        <div id="pat-interpreter-language-wrap" style="display:none;">
+          <label>Language</label><br>
+          <input id="pat-interpreter-language" class="med" style="width:220px;max-width:100%;" placeholder="Enter language" />
+        </div>
+        <div>
+          <label>Hearing Loss</label><br>
+          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-no" value="No"> No</label>
+        </div>
+        <div id="pat-hearing-aids-wrap" style="display:none;">
+          <label>Hearing Aids</label><br>
+          <label><input type="radio" name="pat-hearing-aids" id="pat-hearing-aids-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-hearing-aids" id="pat-hearing-aids-no" value="No"> No</label>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+        <div>
+          <label>Prior Anesthetic in Chart?</label><br>
+          <label><input type="radio" name="pat-prior-anesthetic" id="pat-prior-anesthetic-yes" value="Yes"> Yes</label>
+          <label><input type="radio" name="pat-prior-anesthetic" id="pat-prior-anesthetic-no" value="No"> No</label>
+        </div>
+        <div id="pat-prior-anesthetic-notes-wrap" style="display:none;">
+          <label>Notes</label><br>
+          <textarea id="pat-prior-anesthetic-notes" class="med" rows="1" style="width:420px;max-width:100%;min-height:34px;resize:vertical;overflow:hidden;line-height:1.35;" placeholder="200 prop, 50 fent, required vaso, easy airway"></textarea>
+        </div>
+      </div>
+
+      <div id="pat-stats-result" class="result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script src="shared.js?v=23"></script>
+  <script>
+    function recalculateFromHeight() {
+      const feet = parseInt(document.getElementById('pat-feet').value) || 0;
+      const inches = parseInt(document.getElementById('pat-inches').value) || 0;
+      if (feet > 0 || inches > 0) document.getElementById('pat-cm').value = (((feet * 12) + inches) * 2.54).toFixed(1);
+      recalcWeightChain();
+    }
+
+    function recalculateFromCm() {
+      const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
+      if (cm > 0) {
+        const tot = cm / 2.54;
+        document.getElementById('pat-feet').value = Math.floor(tot / 12) || '';
+        document.getElementById('pat-inches').value = Math.round(tot % 12);
+      }
+      recalcWeightChain();
+    }
+
+    function recalculateFromWeightKg() {
+      const kg = parseFloat(document.getElementById('pat-weight-kg').value) || 0;
+      document.getElementById('pat-weight-lbs').value = kg > 0 ? (kg * 2.20462).toFixed(1) : '';
+      recalcWeightChain();
+    }
+
+    function recalculateFromWeightLbs() {
+      const lbs = parseFloat(document.getElementById('pat-weight-lbs').value) || 0;
+      document.getElementById('pat-weight-kg').value = lbs > 0 ? (lbs / 2.20462).toFixed(1) : '';
+      recalcWeightChain();
+    }
+
+    function recalculateFromBMI() {
+      const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
+      const hm = cm / 100;
+      const bmi = parseFloat(document.getElementById('pat-bmi').value) || 0;
+      if (hm > 0 && bmi > 0) {
+        const kg = bmi * (hm * hm);
+        document.getElementById('pat-weight-kg').value = kg.toFixed(1);
+        document.getElementById('pat-weight-lbs').value = (kg * 2.20462).toFixed(1);
+      }
+      recalcWeightChain(true);
+    }
+
+    function recalcWeightChain(skipBMI) {
+      const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
+      const hm = cm / 100;
+      const kg = parseFloat(document.getElementById('pat-weight-kg').value) || 0;
+      if (hm > 0 && kg > 0 && !skipBMI) {
+        document.getElementById('pat-bmi').value = (kg / (hm * hm)).toFixed(1);
+      }
+      updateIBWandTV();
+      saveState();
+    }
+
+    function updateIBWandTV() {
+      const gen = document.getElementById('pat-gender').value;
+      const cm = parseFloat(document.getElementById('pat-cm').value) || 0;
+      const res = document.getElementById('pat-stats-result');
+      if (!gen || !cm) { res.style.display = 'none'; return; }
+
+      let ibw = gen === 'M' ? 50 + 2.3 * ((cm / 2.54) - 60) : 45.5 + 2.3 * ((cm / 2.54) - 60);
+      if ((cm / 2.54) < 60) ibw = gen === 'M' ? 50 : 45.5;
+
+      res.style.display = 'none';
+      const tvMin = Math.round(ibw * 6);
+      const tvMax = Math.round(ibw * 8);
+
+      const s = getGlobalState();
+      s['pat-ibw'] = ibw.toFixed(1);
+      s['pat-tv-min'] = tvMin;
+      s['pat-tv-max'] = tvMax;
+      setGlobalState(s);
+    }
+
+    function syncPacerUi() {
+      const yes = document.getElementById('pacer-yes').checked;
+      document.getElementById('aicd-wrap').style.display = yes ? 'block' : 'none';
+      document.getElementById('pacer-settings-wrap').style.display = yes ? 'block' : 'none';
+    }
+
+    function syncPositionOther() {
+      const isOther = document.getElementById('pat-position').value === 'Other';
+      document.getElementById('pat-position-other').style.display = isOther ? 'inline-block' : 'none';
+      if (!isOther) document.getElementById('pat-position-other').value = '';
+      saveState();
+    }
+
+    function syncAnticipatedBloodPrep(shouldSave) {
+      var anticipated = document.getElementById('pat-anticipated-ebl').value;
+      var showTS = anticipated === 'Medium' || anticipated === 'High';
+      var showBloodRoom = anticipated === 'High';
+      var tsWrap = document.getElementById('pat-obtain-ts-wrap');
+      var bloodWrap = document.getElementById('pat-blood-room-wrap');
+
+      if (tsWrap) tsWrap.style.display = showTS ? 'flex' : 'none';
+      if (bloodWrap) bloodWrap.style.display = showBloodRoom ? 'flex' : 'none';
+
+      if (!showTS) {
+        document.getElementById('pat-obtain-ts-yes').checked = false;
+        document.getElementById('pat-obtain-ts-no').checked = false;
+      }
+      if (!showBloodRoom) {
+        document.getElementById('pat-blood-room-yes').checked = false;
+        document.getElementById('pat-blood-room-no').checked = false;
+      }
+
+      if (shouldSave !== false) saveState();
+    }
+
+    function syncInterpreterUi() {
+      const yes = document.getElementById('pat-interpreter-yes').checked;
+      document.getElementById('pat-interpreter-language-wrap').style.display = yes ? 'block' : 'none';
+      if (!yes) {
+        document.getElementById('pat-interpreter-language').value = '';
+      }
+      saveState();
+    }
+
+    function syncHearingUi() {
+      const yes = document.getElementById('pat-hearing-loss-yes').checked;
+      document.getElementById('pat-hearing-aids-wrap').style.display = yes ? 'block' : 'none';
+      if (yes) {
+        if (!document.getElementById('pat-hearing-aids-yes').checked && !document.getElementById('pat-hearing-aids-no').checked) {
+          document.getElementById('pat-hearing-aids-no').checked = true;
+        }
+      } else {
+        document.getElementById('pat-hearing-aids-yes').checked = false;
+        document.getElementById('pat-hearing-aids-no').checked = false;
+      }
+      saveState();
+    }
+
+    function syncPriorAnestheticUi() {
+      const yes = document.getElementById('pat-prior-anesthetic-yes').checked;
+      var notesEl = document.getElementById('pat-prior-anesthetic-notes');
+      document.getElementById('pat-prior-anesthetic-notes-wrap').style.display = yes ? 'block' : 'none';
+      if (!yes) {
+        notesEl.value = '';
+        notesEl.style.height = '34px';
+      } else {
+        autoResizePriorAnestheticNotes();
+      }
+      saveState();
+    }
+
+    function autoResizePriorAnestheticNotes() {
+      var el = document.getElementById('pat-prior-anesthetic-notes');
+      if (!el) return;
+      el.style.height = '34px';
+      el.style.height = Math.max(34, el.scrollHeight) + 'px';
+    }
+
+    var surgeryTimeSyncInProgress = false;
+
+    function parseClockText(v) {
+      if (!v) return null;
+      var t = String(v).trim().toUpperCase();
+      // Accept military-style HHMM (e.g., 1930) in addition to HH:MM.
+      if (/^\d{3,4}$/.test(t)) {
+        t = t.length === 3 ? ('0' + t) : t;
+        t = t.slice(0, 2) + ':' + t.slice(2);
+      }
+      var m = t.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/);
+      if (!m) return null;
+      var hh = parseInt(m[1], 10);
+      var mm = parseInt(m[2], 10);
+      var mer = m[3] || '';
+      if (isNaN(hh) || isNaN(mm) || mm < 0 || mm > 59) return null;
+      if (mer) {
+        if (hh < 1 || hh > 12) return null;
+        if (mer === 'AM') hh = hh % 12;
+        if (mer === 'PM') hh = (hh % 12) + 12;
+      } else if (hh > 23) {
+        return null;
+      }
+      return (hh * 60) + mm;
+    }
+
+    function formatClockText(totalMinutes) {
+      var m = totalMinutes % 1440;
+      if (m < 0) m += 1440;
+      var hh = Math.floor(m / 60);
+      var mm = m % 60;
+      return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+    }
+
+    function syncSurgeryTimeFields(sourceId) {
+      if (surgeryTimeSyncInProgress) return;
+      surgeryTimeSyncInProgress = true;
+
+      var startEl = document.getElementById('pat-sched-surg-time');
+      var endEl = document.getElementById('pat-surg-end-time');
+      var lenEl = document.getElementById('pat-surg-length');
+
+      var start = parseClockText(startEl.value);
+      var end = parseClockText(endEl.value);
+      var lenText = (lenEl.value || '').trim();
+      var len = lenText === '' ? null : parseFloat(lenText);
+      if (len !== null && (!isFinite(len) || len < 0)) len = null;
+
+      var hasStart = start !== null;
+      var hasEnd = end !== null;
+      var hasLen = len !== null;
+
+      if (sourceId === 'pat-surg-length') {
+        if (hasStart && hasLen) {
+          endEl.value = formatClockText(start + len);
+        } else if (hasEnd && hasLen) {
+          startEl.value = formatClockText(end - len);
+        }
+      } else if (sourceId === 'pat-sched-surg-time') {
+        if (hasStart && hasEnd) {
+          var diffFromStart = end - start;
+          if (diffFromStart < 0) diffFromStart += 1440;
+          lenEl.value = String(Math.round(diffFromStart));
+        } else if (hasStart && hasLen) {
+          endEl.value = formatClockText(start + len);
+        }
+      } else if (sourceId === 'pat-surg-end-time') {
+        if (hasStart && hasEnd) {
+          var diffFromEnd = end - start;
+          if (diffFromEnd < 0) diffFromEnd += 1440;
+          lenEl.value = String(Math.round(diffFromEnd));
+        } else if (hasEnd && hasLen) {
+          startEl.value = formatClockText(end - len);
+        }
+      } else if (hasStart && hasEnd && !hasLen) {
+        var diff = end - start;
+        if (diff < 0) diff += 1440;
+        lenEl.value = String(Math.round(diff));
+      } else if (hasStart && hasLen && !hasEnd) {
+        endEl.value = formatClockText(start + len);
+      } else if (hasEnd && hasLen && !hasStart) {
+        startEl.value = formatClockText(end - len);
+      }
+
+      surgeryTimeSyncInProgress = false;
+      saveState();
+    }
+
+    function getTomorrowDateText() {
+      var d = new Date();
+      d.setDate(d.getDate() + 1);
+      return (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+    }
+
+    function formatSurgicalDateValue(raw) {
+      var text = String(raw || '').trim();
+      if (!text) return '';
+
+      var iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (iso) return iso[2] + '/' + iso[3] + '/' + iso[1];
+
+      var digits = text.replace(/\D/g, '').slice(0, 8);
+      if (!digits) return '';
+      if (digits.length <= 2) return digits + (digits.length === 2 ? '/' : '');
+      if (digits.length <= 4) return digits.slice(0, 2) + '/' + digits.slice(2) + (digits.length === 4 ? '/' : '');
+      return digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+    }
+
+    function syncSurgicalDate() {
+      var modeEl = document.getElementById('pat-surg-date-mode');
+      var otherEl = document.getElementById('pat-surg-date-other');
+      var outEl = document.getElementById('pat-surg-date');
+      var mode = modeEl.value || 'Tomorrow';
+
+      otherEl.style.display = mode === 'Other' ? 'inline-block' : 'none';
+      if (mode === 'Other') {
+        var formatted = formatSurgicalDateValue(otherEl.value || '');
+        if (otherEl.value !== formatted) otherEl.value = formatted;
+        outEl.value = formatted;
+      } else {
+        outEl.value = getTomorrowDateText();
+      }
+      saveState();
+    }
+
+    function highlightAbnormal() {
+      var fastedNo = document.getElementById('pat-fasted-no').checked;
+      var wrapper = document.querySelector('label input[id="pat-fasted-no"]').closest('div');
+      if (fastedNo && wrapper) {
+        wrapper.style.color = '#c41c3b';
+        wrapper.style.fontWeight = 'bold';
+      } else if (wrapper) {
+        wrapper.style.color = '';
+        wrapper.style.fontWeight = '';
+      }
+      saveState();
+    }
+
+    const POSITION_OPTS = [
+      'Supine', 'Prone', 'Lateral Decubitus', 'Lithotomy', 'Trendelenburg',
+      'Steep Trendelenburg', 'Reverse Trendelenburg', 'Sitting / Beach Chair',
+      'Jackknife', 'Fowler / Semi-Fowler', 'Knee-Chest', 'Other'
+    ];
+    var extraSurgCount = 0;
+
+    function positionOptions(selected) {
+      return '<option value="">Select...</option>' + POSITION_OPTS.map(function(p) {
+        return '<option' + (p === selected ? ' selected' : '') + '>' + p + '</option>';
+      }).join('');
+    }
+
+    function addExtraSurgRow(surg, pos) {
+      if (extraSurgCount >= 30) return;
+      extraSurgCount++;
+      var i = extraSurgCount;
+      var row = document.createElement('div');
+      row.className = 'row';
+      row.id = 'extra-surg-row-' + i;
+      row.style.gap = '8px';
+      row.innerHTML =
+        '<input id="extra-surg-' + i + '" class="long" placeholder="Surgery type" value="' + (surg || '') + '">' +
+        '<select id="extra-pos-' + i + '" class="med" onchange="saveExtraSurg()">' + positionOptions(pos || '') + '</select>' +
+        '<button type="button" style="background:none;border:none;color:#bbb;font-size:18px;cursor:pointer;padding:0 4px;" onclick="this.closest(\'[id^=extra-surg-row]\').remove();saveExtraSurg();">×</button>';
+      document.getElementById('extra-surg-list').appendChild(row);
+      document.getElementById('extra-surg-' + i).addEventListener('input', saveExtraSurg);
+      saveExtraSurg();
+    }
+
+    function saveExtraSurg() {
+      var rows = Array.from(document.querySelectorAll('#extra-surg-list .row'));
+      var data = rows.map(function(row) {
+        var inp = row.querySelector('input');
+        var sel = row.querySelector('select');
+        return { surg: inp ? inp.value : '', pos: sel ? sel.value : '' };
+      });
+      var s = getGlobalState();
+      s['extra-surg-list'] = JSON.stringify(data);
+      setGlobalState(s);
+    }
+
+    function restoreExtraSurg() {
+      document.getElementById('extra-surg-list').innerHTML = '';
+      extraSurgCount = 0;
+      var s = getGlobalState();
+      var data = [];
+      try { data = JSON.parse(s['extra-surg-list']) || []; } catch (e) {}
+      data.forEach(function(item) { addExtraSurgRow(item.surg || '', item.pos || ''); });
+    }
+
+    function boot() {
+      ['pat-feet', 'pat-inches'].forEach(function(id) {
+        document.getElementById(id).addEventListener('change', recalculateFromHeight);
+      });
+      document.getElementById('pat-cm').addEventListener('input', recalculateFromCm);
+      document.getElementById('pat-weight-kg').addEventListener('input', recalculateFromWeightKg);
+      document.getElementById('pat-weight-lbs').addEventListener('input', recalculateFromWeightLbs);
+      document.getElementById('pat-bmi').addEventListener('input', recalculateFromBMI);
+      document.getElementById('pat-gender').addEventListener('change', function() {
+        updateIBWandTV();
+      });
+      document.getElementById('pat-position').addEventListener('change', syncPositionOther);
+      document.getElementById('pat-anticipated-ebl').addEventListener('change', function() {
+        syncAnticipatedBloodPrep();
+      });
+      document.getElementById('pat-surg-date-mode').addEventListener('change', syncSurgicalDate);
+      document.getElementById('pat-surg-date-other').addEventListener('input', syncSurgicalDate);
+      document.querySelectorAll('input[name="pat-interpreter"]').forEach(function(el) {
+        el.addEventListener('change', syncInterpreterUi);
+      });
+      document.querySelectorAll('input[name="pat-hearing-loss"]').forEach(function(el) {
+        el.addEventListener('change', syncHearingUi);
+      });
+      document.querySelectorAll('input[name="pat-hearing-aids"]').forEach(function(el) {
+        el.addEventListener('change', saveState);
+      });
+      document.querySelectorAll('input[name="pat-prior-anesthetic"]').forEach(function(el) {
+        el.addEventListener('change', syncPriorAnestheticUi);
+      });
+      document.querySelectorAll('input[name="pat-obtain-ts"], input[name="pat-blood-room"]').forEach(function(el) {
+        el.addEventListener('change', saveState);
+      });
+      document.getElementById('pat-interpreter-language').addEventListener('input', saveState);
+      document.getElementById('pat-prior-anesthetic-notes').addEventListener('input', function() {
+        autoResizePriorAnestheticNotes();
+        saveState();
+      });
+      ['pat-sched-surg-time', 'pat-surg-end-time', 'pat-surg-length'].forEach(function(id) {
+        document.getElementById(id).addEventListener('input', function() { syncSurgeryTimeFields(id); });
+        document.getElementById(id).addEventListener('change', function() { syncSurgeryTimeFields(id); });
+      });
+      document.getElementById('pat-asa-class').addEventListener('change', saveState);
+      ['pacer-yes', 'pacer-no', 'aicd-yes', 'aicd-no'].forEach(function(id) {
+        document.getElementById(id).addEventListener('change', syncPacerUi);
+      });
+
+      if (!document.getElementById('pat-surg-date-mode').value) {
+        document.getElementById('pat-surg-date-mode').value = 'Tomorrow';
+      }
+      if (!document.getElementById('pat-interpreter-yes').checked && !document.getElementById('pat-interpreter-no').checked) {
+        document.getElementById('pat-interpreter-no').checked = true;
+      }
+      if (!document.getElementById('pat-hearing-loss-yes').checked && !document.getElementById('pat-hearing-loss-no').checked) {
+        document.getElementById('pat-hearing-loss-no').checked = true;
+      }
+      if (!document.getElementById('pat-prior-anesthetic-yes').checked && !document.getElementById('pat-prior-anesthetic-no').checked) {
+        document.getElementById('pat-prior-anesthetic-no').checked = true;
+      }
+      syncPacerUi();
+      syncPositionOther();
+      syncInterpreterUi();
+      syncHearingUi();
+      syncPriorAnestheticUi();
+      syncAnticipatedBloodPrep(false);
+      syncSurgicalDate();
+      syncSurgeryTimeFields();
+      restoreExtraSurg();
+      updateIBWandTV();
+      setTimeout(function() { updateIBWandTV(); }, 0);
+    }
+
+    pageBoot(boot, function() { restoreExtraSurg(); updateIBWandTV(); syncAnticipatedBloodPrep(false); });
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+
+<!-- ASA Classification Modal -->
+<div id="asa-modal" style="display:none;position:fixed;inset:0;background:rgba(15,25,40,.5);z-index:99999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:13px;box-shadow:0 20px 48px rgba(0,0,0,.28);width:min(520px,100%);max-height:85vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+    <div style="padding:14px 16px 10px;border-bottom:1px solid #dde6f0;display:flex;align-items:center;justify-content:space-between;background:#f4f8ff;border-radius:13px 13px 0 0;">
+      <span style="font-weight:700;font-size:1rem;color:#1a3a5c;">ASA Physical Status Classifications</span>
+      <button type="button" onclick="document.getElementById('asa-modal').style.display='none'" style="background:none;border:none;font-size:1.3rem;color:#5a7488;cursor:pointer;line-height:1;padding:0 2px;">&times;</button>
+    </div>
+    <div style="padding:14px 16px;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
+        <thead><tr style="background:#eef4ff;"><th style="text-align:left;padding:7px 10px;color:#1a3a5c;border-bottom:2px solid #c8d9ee;">Class</th><th style="text-align:left;padding:7px 10px;color:#1a3a5c;border-bottom:2px solid #c8d9ee;">Description</th></tr></thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#2a5080;white-space:nowrap;">ASA I</td><td style="padding:8px 10px;color:#1d2938;">Normal healthy patient — non-smoker, no or minimal alcohol use.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#2a5080;white-space:nowrap;">ASA II</td><td style="padding:8px 10px;color:#1d2938;">Mild systemic disease — e.g., social drinker, active smoker, pregnancy, obesity (BMI 30–40), well-controlled DM or HTN.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#c97a00;white-space:nowrap;">ASA III</td><td style="padding:8px 10px;color:#1d2938;">Severe systemic disease — e.g., BMI ≥40, poorly controlled DM or HTN, stable angina, h/o MI or CVA &gt;3 months ago, ESRD on dialysis.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#c0420a;white-space:nowrap;">ASA IV</td><td style="padding:8px 10px;color:#1d2938;">Severe systemic disease — constant threat to life. E.g., recent MI or CVA &lt;3 months, unstable angina, severe valve dysfunction, sepsis.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#b32424;white-space:nowrap;">ASA V</td><td style="padding:8px 10px;color:#1d2938;">Moribund — not expected to survive without surgery. E.g., ruptured aneurysm, massive trauma.</td></tr>
+          <tr style="background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#6b3fa0;white-space:nowrap;">ASA VI</td><td style="padding:8px 10px;color:#1d2938;">Brain-dead patient awaiting organ procurement.</td></tr>
+        </tbody>
+      </table>
+      <p style="margin:10px 0 0;font-size:0.78rem;color:#6b7d90;">Append <strong>E</strong> for emergency procedures (e.g., ASA IIE).</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

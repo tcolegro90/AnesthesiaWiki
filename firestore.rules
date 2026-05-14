@@ -6,14 +6,87 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Fallback for anonymous/unauthenticated users (optional)
-    match /typhonCases/default {
-      allow read, write: if request.auth == null;
-    }
-
     // Clinical Sites: shared document, open read/write (no patient data)
     match /clinicalSites/{docId} {
       allow read, write: if true;
+    }
+
+    // User roles: each user can read their own doc; admin users can read/write all
+    // Users can self-register (create their own doc with non-student role only)
+    match /userRoles/{email} {
+      allow read: if request.auth != null
+        && (request.auth.token.email == email
+            || get(/databases/$(database)/documents/userRoles/$(request.auth.token.email)).data.role == 'admin');
+      allow create: if request.auth != null
+        && (
+          // Self-registration: can only create own doc with non-student role
+          (request.auth.token.email == email && request.resource.data.role == 'non-student')
+          // Admin can create any user's doc
+          || get(/databases/$(database)/documents/userRoles/$(request.auth.token.email)).data.role == 'admin'
+        );
+      allow update, delete: if request.auth != null
+        && get(/databases/$(database)/documents/userRoles/$(request.auth.token.email)).data.role == 'admin';
+    }
+
+    // Clinical Growth Journal — sessions and competency tracker (user-scoped)
+    match /clinicalGrowthSessions/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /clinicalGrowthTracker/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Top Drawer Meds: public read, authenticated write
+    match /topDrawerMeds/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Care Plan Generator saved plans (uses userId field, not Firebase Auth)
+    match /carePlanSavedPlans/{docId} {
+      allow read, write: if true;
+    }
+
+    // Care Plan Generator auto-saved drafts (live typing, cross-device sync)
+    match /carePlanDrafts/{docId} {
+      allow read, write: if true;
+    }
+
+    // Student access requests: authenticated users write their own doc; admin reads all
+    match /accessRequests/{email} {
+      allow create, update: if request.auth != null
+        && request.auth.token.email == email;
+      allow read: if request.auth != null
+        && (request.auth.token.email == email
+            || get(/databases/$(database)/documents/userRoles/$(request.auth.token.email)).data.role == 'admin');
+      allow delete: if request.auth != null
+        && get(/databases/$(database)/documents/userRoles/$(request.auth.token.email)).data.role == 'admin';
+    }
+
+    // Typhon Daily Eval preceptor share links
+    // Tokenized docs used by texted review links (no patient identifiers stored)
+    match /typhonEvalShares/{token} {
+      // Anyone with the token link can read the review payload.
+      allow read: if true;
+
+      // Student-owned create: must be authenticated and bind ownerUid to self.
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid;
+
+      // Student-owned maintenance: owner can update/delete their own share doc.
+      allow update, delete: if request.auth != null
+        && (resource.data.ownerUid == request.auth.uid
+            || (resource.data.ownerUid == null && request.resource.data.ownerUid == request.auth.uid));
+
+      // Preceptor submit path: token-link page may be anonymous, but can only
+      // update completion fields and cannot modify the original eval payload.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'preceptorSubmission',
+          'completedAt',
+          'updatedAt'
+        ])
+        && request.resource.data.status == 'completed';
     }
   }
 }

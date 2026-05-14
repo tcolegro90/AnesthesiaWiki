@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fluid & Blood Plan</title>
+  <link rel="stylesheet" href="shared.css?v=3" />
+  <style>
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    .warm-fluids-btn {
+      border: 1px solid #7a9fbf;
+      background: #f1f7fd;
+      color: #1f4f73;
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .warm-fluids-btn.is-on {
+      background: #1f6d8f;
+      border-color: #1f6d8f;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>8. Fluid & Blood Plan</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Demographics</a><a href="2-Labs-Chemistries.html">2 Labs</a><a href="3-PMH.html">3 PMH</a><a href="4-Prescribed-Medications.html">4 Home Meds</a><a href="5-Preop-History.html">5 Preop Hx</a><a href="6-Airway-Exam.html">6 Airway</a><a href="6b-Extras.html">6b Extras</a><a href="7-Anesthetic-Plan.html">7 Anesthetic Plan</a><a href="7b-APFEL-PONV.html">7b APFEL/PONV</a><a href="8-Fluid-Blood-Plan.html">8 Fluid/Blood</a>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:14px;">
+      <div class="row" style="align-items:flex-end;gap:14px;">
+        <div><label>Fluid Type</label><br><select id="plan-fluid-type" class="long"><option>Normal Saline</option><option>Plasma-lyte</option><option selected>Lactated Ringers</option></select></div>
+        <div>
+          <label>&nbsp;</label><br>
+          <button id="plan-fluid-warm" type="button" class="warm-fluids-btn" aria-pressed="false">Warm Fluids</button>
+          <input type="hidden" id="plan-fluid-warm-enabled" value="No">
+        </div>
+        <div>
+          <label>&nbsp;</label><br>
+          <button id="plan-fluid-albumin-btn" type="button" class="warm-fluids-btn" aria-pressed="false">Albumin</button>
+          <input type="hidden" id="plan-fluid-albumin" value="No">
+        </div>
+      </div>
+
+      <div>
+        <h3>4-2-1 Fluid Calculator</h3>
+        <div class="row">
+          <div><label>Weight (kg)</label><br><input id="plan-fluid-weight" type="number" class="small" readonly></div>
+          <div><label>NPO Time (hrs)</label><br><input id="plan-fluid-npo" type="number" inputmode="decimal" class="small"></div>
+          <div><label>Surgical Trauma</label><br><select id="plan-fluid-trauma" class="med" style="width:200px;"><option value="2">Minimal (2 mL/kg)</option><option value="4">Moderate (4 mL/kg)</option><option value="6">Severe (6 mL/kg)</option></select></div>
+          <div><button id="btn-fluid" type="button">Calculate Fluid</button></div>
+        </div>
+        <div id="plan-fluid-result" class="result" style="display:none;"></div>
+      </div>
+
+      <div>
+        <h3>Allowable Blood Loss (ABL)</h3>
+        <div class="row">
+          <div><label>Patient Type</label><br><select id="plan-ebl-type" class="med" disabled><option value="85">Neonate</option><option value="80">Infant</option><option value="75">Adult Male</option><option value="65">Adult Female</option></select></div>
+          <div><label>Start HCT (%)</label><br><input id="plan-ebl-start" type="number" class="small" readonly></div>
+          <div><label>Target HCT (%)</label><br><input id="plan-ebl-target" type="number" inputmode="decimal" class="small" value="21"></div>
+          <div><button id="btn-ebl" type="button">Calculate ABL</button></div>
+        </div>
+        <div id="plan-ebl-result" class="result" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+  <script src="shared.js?v=23"></script>
+  <script>
+    function setAlbuminState(isOn) {
+      const btn = document.getElementById('plan-fluid-albumin-btn');
+      const hidden = document.getElementById('plan-fluid-albumin');
+      btn.classList.toggle('is-on', isOn);
+      btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+      hidden.value = isOn ? 'Yes' : 'No';
+    }
+
+    function toggleAlbumin() {
+      const current = document.getElementById('plan-fluid-albumin-btn').getAttribute('aria-pressed') === 'true';
+      setAlbuminState(!current);
+      saveState();
+    }
+
+    function setWarmFluidsState(isOn) {
+      const btn = document.getElementById('plan-fluid-warm');
+      const hidden = document.getElementById('plan-fluid-warm-enabled');
+      btn.classList.toggle('is-on', isOn);
+      btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+      hidden.value = isOn ? 'Yes' : 'No';
+    }
+
+    function toggleWarmFluids() {
+      const current = document.getElementById('plan-fluid-warm').getAttribute('aria-pressed') === 'true';
+      setWarmFluidsState(!current);
+      saveState();
+    }
+
+    function syncFromPatientData() {
+      const s = getGlobalState();
+
+      // Keep 4-2-1 and ABL weight synced to demographics weight.
+      if (s['pat-weight-kg']) {
+        document.getElementById('plan-fluid-weight').value = s['pat-weight-kg'];
+      } else {
+        document.getElementById('plan-fluid-weight').value = '';
+      }
+
+      // Pull baseline HCT from labs.
+      if (s['pat-hct']) {
+        document.getElementById('plan-ebl-start').value = s['pat-hct'];
+      } else {
+        document.getElementById('plan-ebl-start').value = '';
+      }
+
+      // Choose ABL patient type from age/gender.
+      const age = parseFloat(s['pat-age']);
+      const gender = s['pat-gender'];
+      const type = document.getElementById('plan-ebl-type');
+      if (!isNaN(age)) {
+        if (age < (28 / 365)) type.value = '85';
+        else if (age < 1) type.value = '80';
+        else if (gender === 'F') type.value = '65';
+        else if (gender === 'M') type.value = '75';
+      } else if (gender === 'F') {
+        type.value = '65';
+      } else if (gender === 'M') {
+        type.value = '75';
+      }
+
+      // Defaults requested by user.
+      if (!document.getElementById('plan-ebl-target').value) {
+        document.getElementById('plan-ebl-target').value = '21';
+      }
+      if (!document.getElementById('plan-fluid-type').value) {
+        document.getElementById('plan-fluid-type').value = 'Lactated Ringers';
+      }
+      const warm = (s['plan-fluid-warm-enabled'] || '').toLowerCase() === 'yes';
+      setWarmFluidsState(warm);
+      const alb = (s['plan-fluid-albumin'] || '').toLowerCase() === 'yes';
+      setAlbuminState(alb);
+      saveState();
+    }
+
+    function calculateFluidPlan() {
+      const weight = parseFloat(document.getElementById('plan-fluid-weight').value) || 0;
+      const npo = parseFloat(document.getElementById('plan-fluid-npo').value) || 0;
+      const trauma = parseFloat(document.getElementById('plan-fluid-trauma').value) || 0;
+      const out = document.getElementById('plan-fluid-result');
+      if (weight <= 0) {
+        out.style.display = 'block';
+        out.innerHTML = '<span style="color:#b32424;font-weight:700;">Enter weight first.</span>';
+        return;
+      }
+      const maint = weight <= 10 ? weight * 4 : weight <= 20 ? 40 + (weight - 10) * 2 : 60 + (weight - 20);
+      const deficit = maint * npo;
+      const traumaLoss = weight * trauma;
+      const hr1 = maint + (deficit / 2) + traumaLoss;
+      const hr2 = maint + (deficit / 4) + traumaLoss;
+      const hr3 = hr2;
+      const hr4 = maint + traumaLoss;
+      const maintR = Math.round(maint);
+      const deficitR = Math.round(deficit);
+      const traumaLossR = Math.round(traumaLoss);
+      const hr1R = Math.round(hr1);
+      const hr2R = Math.round(hr2);
+      const hr3R = Math.round(hr3);
+      const hr4R = Math.round(hr4);
+      out.style.display = 'block';
+      out.innerHTML = '<strong>Maintenance:</strong> ' + maintR + ' mL/hr<br><strong>NPO Deficit:</strong> ' + deficitR + ' mL<br><strong>3rd Space:</strong> ' + traumaLossR + ' mL/hr<br><strong>1st hr:</strong> ' + hr1R + ' mL | <strong>2nd hr:</strong> ' + hr2R + ' mL | <strong>3rd hr:</strong> ' + hr3R + ' mL | <strong>4th+:</strong> ' + hr4R + ' mL/hr';
+      saveState();
+    }
+    function calculateEBLPlan() {
+      const w = parseFloat(document.getElementById('plan-fluid-weight').value) || 0;
+      const factor = parseFloat(document.getElementById('plan-ebl-type').value) || 0;
+      const start = parseFloat(document.getElementById('plan-ebl-start').value) || 0;
+      const target = parseFloat(document.getElementById('plan-ebl-target').value) || 0;
+      const out = document.getElementById('plan-ebl-result');
+      if (w <= 0 || start <= 0 || target <= 0 || target >= start) {
+        out.style.display = 'block';
+        out.innerHTML = '<span style="color:#b32424;font-weight:700;">Check weight/start/target HCT values.</span>';
+        return;
+      }
+      const ebv = w * factor;
+      const abl = ebv * ((start - target) / start);
+      out.style.display = 'block';
+      out.innerHTML = '<strong>EBV:</strong> ' + Math.round(ebv) + ' mL<br><strong>ABL:</strong> ' + Math.round(abl) + ' mL';
+      saveState();
+    }
+    pageBoot(function() {
+      syncFromPatientData();
+      document.getElementById('btn-fluid').addEventListener('click', calculateFluidPlan);
+      document.getElementById('btn-ebl').addEventListener('click', calculateEBLPlan);
+      document.getElementById('plan-fluid-warm').addEventListener('click', toggleWarmFluids);
+      document.getElementById('plan-fluid-albumin-btn').addEventListener('click', toggleAlbumin);
+    }, function() {
+      syncFromPatientData();
+    });
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

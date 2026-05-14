@@ -1,8 +1,50 @@
     var mirroredState = {};
+    var isDirty = false;
     var stateRevision = 0;
-    var suspendIncomingStateUntil = 0;
+    // Suppress dirty flag during initial iframe boot-up state echo (first 4 seconds)
+    var suspendIncomingStateUntil = Date.now() + 4000;
     var previewMode = 'single';
     var multiPreviewSelectedNames = [];
+    var draftSyncTimer = null;
+    var lastDraftSyncWarningAt = 0;
+    // DIAGNOSTIC: mark that combined.js loaded successfully
+    window.__combinedJsLoaded = true;
+
+    function getDeviceId() {
+      var key = 'carePlanDeviceId';
+      try {
+        var id = localStorage.getItem(key);
+        if (id) return id;
+        id = 'dev-' + Math.random().toString(36).slice(2, 10) + '-' + Date.now().toString(36);
+        localStorage.setItem(key, id);
+        return id;
+      } catch (e) { return 'dev-unknown'; }
+    }
+
+    function scheduleDraftSync() {
+      if (draftSyncTimer) clearTimeout(draftSyncTimer);
+      draftSyncTimer = setTimeout(function() {
+        draftSyncTimer = null;
+        var cs = window.carePlanCloudStorage;
+        if (!cs || !cs.isEnabled || !cs.isEnabled()) return;
+        var userId = cs.getUserId ? cs.getUserId() : '';
+        if (!userId) return;
+        var now = new Date().toISOString();
+        mirroredState.__draftSavedAt = now;
+        try { localStorage.setItem('carePlanSplitState', JSON.stringify(mirroredState)); } catch (e) {}
+        var stateToSync = getState();
+        cs.saveDraft(stateToSync, userId, getDeviceId()).catch(function(error) {
+          var nowMs = Date.now();
+          if (nowMs - lastDraftSyncWarningAt < 20000) return;
+          lastDraftSyncWarningAt = nowMs;
+          setStorageStatus(
+            'Cloud sync issue: draft changes are currently saving only on this device. ' +
+              ((error && error.message) ? error.message : String(error || 'Unknown error')),
+            'warn'
+          );
+        });
+      }, 3000);
+    }
 
     function fitIframe(frame) {
       // Cannot access iframe contentDocument due to CORS restrictions on local files
@@ -64,8 +106,16 @@
         Object.keys(incoming).forEach(function(k) {
           mirroredState[k] = incoming[k];
         });
+        isDirty = true;
         stateRevision += 1;
         try { localStorage.setItem('carePlanSplitState', JSON.stringify(mirroredState)); } catch (e2) {}
+        updateDeskTopbarPatient();
+        scheduleDraftSync();
+        // Live-update print card while preview panel is open.
+        try {
+          var previewScreen = document.getElementById('preview-screen');
+          if (previewScreen && previewScreen.style.display === 'flex') buildPrintCard();
+        } catch (e4) {}
       } else if (e.data && (e.data.type === 'carePlanRequestState' || e.data.type === 'carePlanPoll')) {
         // Reply directly to requesting child without touching frame.contentWindow.
         try {
@@ -162,8 +212,24 @@
     }
 
     function parseTSDateTime(ds, ts) {
-      var dm = String(ds || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (!dm) return null;
+      var dmFull = String(ds || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      var dmShort = String(ds || '').trim().match(/^(\d{1,2})\/(\d{1,2})$/);
+      var month, day, year;
+      if (dmFull) {
+        month = parseInt(dmFull[1], 10);
+        day   = parseInt(dmFull[2], 10);
+        year  = parseInt(dmFull[3], 10);
+      } else if (dmShort) {
+        month = parseInt(dmShort[1], 10);
+        day   = parseInt(dmShort[2], 10);
+        var now = new Date();
+        year = now.getFullYear();
+        // If the date appears to be in the past (>60 days ago), roll to next year
+        var candidate = new Date(year, month - 1, day);
+        if (candidate.getTime() < now.getTime() - 60 * 24 * 60 * 60 * 1000) year++;
+      } else {
+        return null;
+      }
       var h = 0, m = 0;
       if (ts) {
         var tt = String(ts).trim();
@@ -174,14 +240,14 @@
         var tm = tt.match(/^(\d{1,2}):(\d{2})$/);
         if (tm) { h = parseInt(tm[1], 10); m = parseInt(tm[2], 10); }
       }
-      var d = new Date(parseInt(dm[3], 10), parseInt(dm[1], 10) - 1, parseInt(dm[2], 10), h, m, 0);
+      var d = new Date(year, month - 1, day, h, m, 0);
       return isNaN(d.getTime()) ? null : d.getTime();
     }
 
     function formatTSDateTime(ms) {
       var dt = new Date(ms);
       if (isNaN(dt.getTime())) return '';
-      return (dt.getMonth() + 1) + '/' + dt.getDate() + '/' + dt.getFullYear() + ' ' +
+      return (dt.getMonth() + 1) + '/' + dt.getDate() + ' @ ' +
         String(dt.getHours()).padStart(2, '0') + String(dt.getMinutes()).padStart(2, '0');
     }
 
@@ -201,10 +267,12 @@
       }
 
       var initials = s['pat-initials'] || '_';
+      var surgDate = (s['pat-surg-date'] || '').trim() || '_';
       var sched = s['pat-sched-surg-time'] || '_';
       var len = s['pat-surg-length'] || '_';
       var surgery = s['pat-surgery'] || '_';
       setText('pr-header-initials', initials);
+      setText('pr-header-date', surgDate);
       setText('pr-header-time', sched);
       setText('pr-header-surgery', surgery);
       setText('pr-name', initials + ' (Sched: ' + sched + ' | Len: ' + len + ')');
@@ -224,8 +292,15 @@
       setText('pr-height', h);
       setText('pr-weight', s['pat-weight-kg'] ? s['pat-weight-kg'] + ' kg' : '_');
       setText('pr-bmi', s['pat-bmi'] ? (s['pat-bmi'] + ' kg/m²') : '_');
-      setText('pr-surgery', s['pat-surgery'] || '_');
-      setText('pr-allergies', s['pat-allergies'] || 'NKDA');
+      var allergyVal = s['pat-allergies'] || 'NKDA';
+      setText('pr-allergies', allergyVal);
+      var allergyEl = document.getElementById('pr-allergies');
+      if (allergyEl) {
+        var isNkda = !s['pat-allergies'] || s['pat-allergies'].trim().toUpperCase() === 'NKDA';
+        allergyEl.style.background = isNkda ? '' : '#fff176';
+        allergyEl.style.padding = isNkda ? '' : '0 4px';
+        allergyEl.style.borderRadius = isNkda ? '' : '3px';
+      }
 
       var pregRow = document.getElementById('pr-pregnant-row');
       var pregValEl = document.getElementById('pr-pregnant');
@@ -252,6 +327,22 @@
 
       var pos = s['pat-position'] === 'Other' ? (s['pat-position-other'] || '_') : (s['pat-position'] || '_');
       setText('pr-position', pos);
+      var pressureLabels = [
+        ['pat-pressure-axillary-roll', 'Axillary roll'],
+        ['pat-pressure-occiput', 'Occiput'],
+        ['pat-pressure-eyes', 'Eyes'],
+        ['pat-pressure-ears', 'Ears'],
+        ['pat-pressure-elbows', 'Elbows / ulnar groove'],
+        ['pat-pressure-shoulders', 'Shoulders / scapulae'],
+        ['pat-pressure-sacrum', 'Sacrum / coccyx'],
+        ['pat-pressure-trochanter', 'Greater trochanter'],
+        ['pat-pressure-knees', 'Knees'],
+        ['pat-pressure-fibular-head', 'Fibular head / peroneal nerve'],
+        ['pat-pressure-heels', 'Heels'],
+        ['pat-pressure-toes', 'Toes / feet']
+      ];
+      var pressureVals = pressureLabels.filter(function(x) { return !!s[x[0]]; }).map(function(x) { return x[1]; });
+      setOptionalRow('pr-pressure-points-row', 'pr-pressure-points', pressureVals.join(', '));
       setText('pr-nerve-stim', s['pat-nerve-stim-location'] || 'None');
       var abxName = (s['pat-anticipated-antibiotic'] || '').trim();
       var abxDose = (s['pat-anticipated-antibiotic-dose'] || '').trim();
@@ -260,30 +351,35 @@
       if (abxName) abxParts.push(abxName);
       if (abxDose) abxParts.push(abxDose);
       if (abxRedoseHrs) abxParts.push('Redose ' + abxRedoseHrs + ' hr');
+
+      var abxName2 = (s['pat-anticipated-antibiotic-2'] || '').trim();
+      var abxDose2 = (s['pat-anticipated-antibiotic-dose-2'] || '').trim();
+      var abxRedoseHrs2 = (s['pat-anticipated-antibiotic-redose-hours-2'] || '').trim();
+      if (abxName2) {
+        var abxParts2 = [abxName2];
+        if (abxDose2) abxParts2.push(abxDose2);
+        if (abxRedoseHrs2) abxParts2.push('Redose ' + abxRedoseHrs2 + ' hr');
+        abxParts.push('/ ' + abxParts2.join(' | '));
+      }
+
       setOptionalRow('pr-antibiotic-plan-row', 'pr-antibiotic-plan', abxParts.join(' | '));
       setText('pr-asa-class', s['pat-asa-class'] || '_');
       setText('pr-insufflation', yn(s, 'pat-insufflation-yes', 'pat-insufflation-no'));
       var anticipatedEbl = String(s['pat-anticipated-ebl'] || '').trim();
       var needsTS = anticipatedEbl === 'Medium' || anticipatedEbl === 'High';
       var needsBloodRoom = anticipatedEbl === 'High';
-      setOptionalRow('pr-anticipated-ebl-row', 'pr-anticipated-ebl', anticipatedEbl);
+      var tsDateEntered = String(s['pat-ts-date'] || '').trim();
+      var eblVolumeMap = { 'Low': '<500 mL', 'Medium': '500–1500 mL', 'High': '>1500 mL' };
+      var eblDisplay = anticipatedEbl ? (anticipatedEbl + (eblVolumeMap[anticipatedEbl] ? ' ' + eblVolumeMap[anticipatedEbl] : '')) : '';
+      setOptionalRow('pr-anticipated-ebl-row', 'pr-anticipated-ebl', eblDisplay);
       var anticipatedRow = document.getElementById('pr-anticipated-ebl-row');
       if (anticipatedRow) {
-        if (anticipatedEbl === 'Medium' || anticipatedEbl === 'High') {
+        if (anticipatedEbl === 'High') {
           anticipatedRow.style.color = '#c41c3b';
           anticipatedRow.style.fontWeight = 'bold';
         } else {
           anticipatedRow.style.color = '';
           anticipatedRow.style.fontWeight = '';
-        }
-      }
-      var obtainTsRow = document.getElementById('pr-obtain-ts-row');
-      if (obtainTsRow) {
-        if (needsTS) {
-          setText('pr-obtain-ts', yn(s, 'pat-obtain-ts-yes', 'pat-obtain-ts-no'));
-          obtainTsRow.style.display = 'flex';
-        } else {
-          obtainTsRow.style.display = 'none';
         }
       }
       var bloodRoomRow = document.getElementById('pr-blood-room-row');
@@ -324,7 +420,7 @@
       if (priorAnestheticRow) {
         if (s['pat-prior-anesthetic-yes']) {
           var priorNotes = (s['pat-prior-anesthetic-notes'] || '').trim();
-          setText('pr-prior-anesthetic', priorNotes ? ('Yes - ' + priorNotes) : 'Yes');
+          setText('pr-prior-anesthetic', priorNotes || 'Yes');
           priorAnestheticRow.style.display = 'flex';
         } else {
           priorAnestheticRow.style.display = 'none';
@@ -349,15 +445,15 @@
       setOptionalRow('pr-past-surg-row', 'pr-past-surg', pastSurg);
       var fastedVal = yn(s, 'pat-fasted-yes', 'pat-fasted-no');
       setText('pr-fasted', fastedVal);
+      var fastedRow = document.getElementById('pr-fasted-row');
       var fastedEl = document.getElementById('pr-fasted');
-      if (fastedEl && fastedVal === 'No') {
-        fastedEl.style.color = '#c41c3b';
-        fastedEl.style.fontWeight = 'bold';
-      } else if (fastedEl) {
-        fastedEl.style.color = '';
-        fastedEl.style.fontWeight = '';
+      if (fastedVal === 'No') {
+        if (fastedRow) fastedRow.style.display = '';
+        if (fastedEl) { fastedEl.style.color = '#c41c3b'; fastedEl.style.fontWeight = 'bold'; }
+      } else {
+        if (fastedRow) fastedRow.style.display = 'none';
+        if (fastedEl) { fastedEl.style.color = ''; fastedEl.style.fontWeight = ''; }
       }
-      setText('pr-smoker', yn(s, 'pat-smoker-yes', 'pat-smoker-no'));
 
       var pacer = s['pacer-yes'];
       var pacerRow = document.getElementById('pr-pacer-row');
@@ -399,6 +495,44 @@
       setText('pr-lab-inr', inr);
       setText('pr-lab-ptt', s['pat-ptt'] || '\u2014');
 
+      // Hide fishbone diagrams if all their values are blank
+      var bmpKeys = ['pat-na','pat-k','pat-cl','pat-mg','pat-bun','pat-cr','pat-glu'];
+      var bmpBlank = bmpKeys.every(function(k){ return !(s[k] || '').trim(); });
+      var bmpWrap = document.getElementById('pr-lab-bmp-wrap');
+      if (bmpWrap) bmpWrap.style.display = bmpBlank ? 'none' : 'flex';
+
+      var cbcKeys = ['pat-wbc','pat-hgb','pat-plt','pat-hct'];
+      var coagKeys = ['pat-pt','pat-inr','pat-ptt','pat-pt-inr'];
+      var cbcBlank  = cbcKeys.every(function(k){ return !(s[k] || '').trim(); });
+      var coagBlank = coagKeys.every(function(k){ return !(s[k] || '').trim(); });
+      var cbcCoagWrap = document.getElementById('pr-lab-cbccoag-wrap');
+      if (cbcCoagWrap) cbcCoagWrap.style.display = (cbcBlank && coagBlank) ? 'none' : 'flex';
+
+      // Populate phone-friendly lab grid (mirrors fishbone values)
+      var phMap = {
+        'pr-lab-ph-na': s['pat-na'], 'pr-lab-ph-k':   s['pat-k'],
+        'pr-lab-ph-cl': s['pat-cl'], 'pr-lab-ph-mg':  s['pat-mg'],
+        'pr-lab-ph-bun':s['pat-bun'],'pr-lab-ph-cr':  s['pat-cr'],
+        'pr-lab-ph-glu':s['pat-glu'],'pr-lab-ph-hgb': s['pat-hgb'],
+        'pr-lab-ph-hct':s['pat-hct'],'pr-lab-ph-wbc': s['pat-wbc'],
+        'pr-lab-ph-plt':s['pat-plt'],'pr-lab-ph-pt':  pt,
+        'pr-lab-ph-inr':inr,         'pr-lab-ph-ptt': s['pat-ptt'],
+      };
+      Object.keys(phMap).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = (phMap[id] || '').trim() || '—';
+      });
+      // Hide phone groups that are entirely blank
+      var phBmpBlank = bmpKeys.every(function(k){ return !(s[k]||'').trim(); });
+      var phCbcBlank = cbcKeys.every(function(k){ return !(s[k]||'').trim(); });
+      var phCoagBlank= coagKeys.every(function(k){ return !(s[k]||'').trim(); });
+      var phBmp  = document.getElementById('pr-lab-ph-bmp');
+      var phCbc  = document.getElementById('pr-lab-ph-cbc');
+      var phCoag = document.getElementById('pr-lab-ph-coag');
+      if (phBmp)  phBmp.style.display  = phBmpBlank  ? 'none' : '';
+      if (phCbc)  phCbc.style.display  = phCbcBlank  ? 'none' : '';
+      if (phCoag) phCoag.style.display = phCoagBlank ? 'none' : '';
+
       setOptionalRow('pr-lab-a1c-row', 'pr-lab-a1c', s['pat-a1c']);
       setOptionalRow('pr-lab-alb-row', 'pr-lab-alb', s['pat-alb']);
       setOptionalRow('pr-lab-ast-row', 'pr-lab-ast', s['pat-ast']);
@@ -407,10 +541,35 @@
       setOptionalRow('pr-lab-ca-row', 'pr-lab-ca', s['pat-ca']);
       var tsDateVal = (s['pat-ts-date'] || '').trim();
       var tsTimeVal = (s['pat-ts-time'] || '').trim();
-      var tsDisplay = tsDateVal ? (tsTimeVal ? tsDateVal + ' @ ' + tsTimeVal : tsDateVal) : '';
+      var tsDateStripped = tsDateVal ? tsDateVal.split('/').map(function(p){return parseInt(p,10)||p;}).join('/') : '';
+      var tsDisplay = tsDateStripped ? (tsTimeVal ? tsDateStripped + ' @ ' + tsTimeVal : tsDateStripped) : '';
       var tsMsPr = parseTSDateTime(tsDateVal, tsTimeVal);
       var tsGoodUntil = tsMsPr === null ? '' : formatTSDateTime(tsMsPr + (72 * 60 * 60 * 1000));
-      setOptionalRow('pr-lab-ts-date-row', 'pr-lab-ts-date', tsDisplay ? (tsDisplay + (tsGoodUntil ? ' | Good until: ' + tsGoodUntil : '')) : '');
+      setOptionalRow('pr-lab-ts-date-row', 'pr-lab-ts-date', tsDisplay);
+      var tsGoodUntilEl = document.getElementById('pr-lab-ts-good-until');
+      var tsGoodUntilRow = document.getElementById('pr-lab-ts-good-until-row');
+      if (tsGoodUntilEl) tsGoodUntilEl.textContent = tsGoodUntil || '_';
+      var tsExpiryMs = tsMsPr !== null ? (tsMsPr + 72 * 60 * 60 * 1000) : null;
+      var surgMs = parseTSDateTime(s['pat-surg-date'], s['pat-sched-surg-time']);
+      var refMs = surgMs !== null ? surgMs : Date.now();
+      if (tsGoodUntilRow) {
+        tsGoodUntilRow.style.display = tsGoodUntil ? 'flex' : 'none';
+        var tsColor = '';
+        var tsWeight = '';
+        if (tsExpiryMs !== null) {
+          if (tsExpiryMs < refMs + 6 * 60 * 60 * 1000) {
+            // Expires within 6 hrs of surgery (or already past): red
+            tsColor = '#c41c3b'; tsWeight = 'bold';
+          } else if (tsExpiryMs < refMs + 24 * 60 * 60 * 1000) {
+            // Expires within 24 hrs of surgery: yellow background
+            tsColor = '#7a5c00'; tsWeight = 'bold';
+            tsGoodUntilRow.style.background = '#fff9c4';
+          }
+        }
+        if (tsColor !== '#7a5c00') tsGoodUntilRow.style.background = '';
+        tsGoodUntilRow.style.color = tsColor;
+        tsGoodUntilRow.style.fontWeight = tsWeight;
+      }
 
       var gasType = (s['pat-gas-type'] || 'none');
       var gasRow = document.getElementById('pr-gas-row');
@@ -435,6 +594,27 @@
         }
       }
 
+      // Obtain T+S: show only if user wants T+S and none on file, or existing T+S expiring within 6hrs of surgery
+      var obtainTsRow = document.getElementById('pr-obtain-ts-row');
+      if (obtainTsRow) {
+        var wantsTS = !!s['pat-obtain-ts-yes'];
+        var hasTSOnFile = !!tsDateVal;
+        var tsExpiringUrgent = tsExpiryMs !== null && tsExpiryMs < refMs + 6 * 60 * 60 * 1000;
+        var showObtainTS = (wantsTS && !hasTSOnFile) || tsExpiringUrgent;
+        if (showObtainTS) {
+          setText('pr-obtain-ts', 'YES');
+          obtainTsRow.style.display = 'flex';
+          obtainTsRow.style.color = tsExpiringUrgent ? '#c41c3b' : '';
+          obtainTsRow.style.fontWeight = tsExpiringUrgent ? 'bold' : '';
+          obtainTsRow.style.background = tsExpiringUrgent ? '#fce4ec' : '';
+        } else {
+          obtainTsRow.style.display = 'none';
+          obtainTsRow.style.color = '';
+          obtainTsRow.style.fontWeight = '';
+          obtainTsRow.style.background = '';
+        }
+      }
+
       // Highlight abnormal labs in print preview.
       var labRanges = {
         'pr-lab-na': [parseFloat(s['pat-na']), 135, 145],
@@ -442,7 +622,7 @@
         'pr-lab-cl': [parseFloat(s['pat-cl']), 98, 106],
         'pr-lab-bun': [parseFloat(s['pat-bun']), 7, 20],
         'pr-lab-cr': [parseFloat(s['pat-cr']), 0.6, 1.3],
-        'pr-lab-glu': [parseFloat(s['pat-glu']), 70, 140],
+        'pr-lab-glu': [parseFloat(s['pat-glu']), 70, 249],
         'pr-lab-mg': [parseFloat(s['pat-mg']), 1.7, 2.2],
         'pr-lab-wbc': [parseFloat(s['pat-wbc']), 4.0, 11.0],
         'pr-lab-hgb': [parseFloat(s['pat-hgb']), 12.0, 17.5],
@@ -468,36 +648,17 @@
         ['pmh-osa','OSA'], ['pmh-obesity','Obesity'], ['pmh-hypothyroid','Hypothyroidism'], ['pmh-stroketia','Stroke/TIA'], ['pmh-seizure','Seizure Disorder'],
         ['pmh-anemia','Anemia'], ['pmh-liver','Liver Disease'], ['pmh-chronicpain','Chronic Pain'], ['pmh-depression','Depression'], ['pmh-anxiety','Anxiety'], ['pmh-cancer','Cancer']
       ].filter(function(x) { return !!s[x[0]]; }).map(function(x) { return x[1]; });
-      setText('pr-pmh', pmhChecks.concat(pmhItems).join(', ') || 'None');
-
-      var extraSurgRow = document.getElementById('pr-extra-surg-row');
-      var extraSurgItems = [];
-      try {
-        var extraSurg = JSON.parse(s['extra-surg-list'] || '[]') || [];
-        extraSurgItems = extraSurg.map(function(r) {
-          var surgName = String((r && r.surg) || '').trim();
-          var posName = String((r && r.pos) || '').trim();
-          if (!surgName && !posName) return '';
-          if (surgName && posName) return surgName + ' (' + posName + ')';
-          return surgName || posName;
-        }).filter(function(x) { return !!x; });
-      } catch (e) {}
-      if (extraSurgRow) {
-        if (extraSurgItems.length) {
-          setText('pr-extra-surg', extraSurgItems.join('; '));
-          extraSurgRow.style.display = 'flex';
-        } else {
-          extraSurgRow.style.display = 'none';
-        }
+      if (s['pat-smoker-yes'] && pmhChecks.indexOf('Smoker') === -1 && pmhItems.indexOf('Smoker') === -1) {
+        pmhChecks.push('Smoker');
       }
+      setText('pr-pmh', pmhChecks.concat(pmhItems).join(', ') || 'None');
 
       var meds = [];
       try { meds = JSON.parse(s['med-list'] || '[]') || []; } catch (e) {}
       var medsHtml = meds.filter(function(m) { return m && (m.med || m.other); }).map(function(m) {
         var name = m.med === 'Other' ? (m.other || 'Other') : (m.med || '');
-        var when = m.time || '-';
-        return '<div class="med-print-row"><span>' + name + '</span><span>' + when + '</span></div>';
-      }).join('');
+        return name;
+      }).join(', ');
       document.getElementById('pr-meds-list').innerHTML = medsHtml || '<em>None</em>';
 
       ['awareness','famhx','mh','pseudo'].forEach(function(k) {
@@ -505,39 +666,38 @@
         var row = document.getElementById('pr-row-' + k);
         if (row) row.style.display = on ? 'flex' : 'none';
       });
-      setText('pr-mets', s['hx-mets::Yes'] ? 'Yes' : (s['hx-mets::No'] ? 'No' : '_'));
+      var metsRow = document.getElementById('pr-mets-row');
+      if (metsRow) {
+        if (s['hx-mets::Yes']) {
+          setText('pr-mets', 'Yes');
+          metsRow.style.display = 'flex';
+        } else {
+          metsRow.style.display = 'none';
+        }
+      }
 
       setText('pr-mallampati', radioVal(s, 'exam-mallampati', '_'));
       var mpExam = parseFloat(radioVal(s, 'exam-mallampati', ''));
       var tmdExam = parseFloat(radioVal(s, 'exam-tmd', ''));
       var gapExam = parseFloat(radioVal(s, 'exam-interincisor', ''));
-      var mandExam = radioVal(s, 'airway-mandibular', '');
       var atlExam = radioVal(s, 'exam-atlanto', '');
 
       var tmdRow = document.getElementById('pr-abn-tmd-row');
       var gapRow = document.getElementById('pr-abn-gap-row');
-      var mandRow = document.getElementById('pr-abn-mand-row');
       var atlRow = document.getElementById('pr-abn-atl-row');
 
-      if (!isNaN(tmdExam) && tmdExam < 4) {
+      if (!isNaN(tmdExam) && tmdExam < 3) {
         setText('pr-abn-tmd', String(tmdExam));
         if (tmdRow) { tmdRow.style.display = 'flex'; tmdRow.style.color = '#c41c3b'; tmdRow.style.fontWeight = 'bold'; }
       } else if (tmdRow) {
         tmdRow.style.display = 'none';
       }
 
-      if (!isNaN(gapExam) && gapExam < 4) {
+      if (!isNaN(gapExam) && gapExam < 3) {
         setText('pr-abn-gap', String(gapExam));
         if (gapRow) { gapRow.style.display = 'flex'; gapRow.style.color = '#c41c3b'; gapRow.style.fontWeight = 'bold'; }
       } else if (gapRow) {
         gapRow.style.display = 'none';
-      }
-
-      if (mandExam === '2' || mandExam === '3') {
-        setText('pr-abn-mand', mandExam);
-        if (mandRow) { mandRow.style.display = 'flex'; mandRow.style.color = '#c41c3b'; mandRow.style.fontWeight = 'bold'; }
-      } else if (mandRow) {
-        mandRow.style.display = 'none';
       }
 
       if (atlExam === 'Limited Mobility') {
@@ -555,6 +715,9 @@
         mpEl.style.color = '';
         mpEl.style.fontWeight = '';
       }
+
+      var neuroRow = document.getElementById('pr-neuro-monitor-row');
+      if (neuroRow) neuroRow.style.display = (s['pat-neuro-monitoring'] === 'Yes') ? 'block' : 'none';
 
       var anes = s['anes-type'] || '_';
       if (anes === 'General' && s['tiva-box']) anes = 'General (TIVA)';
@@ -579,6 +742,13 @@
         airwayEl.style.color = '';
         airwayEl.style.fontWeight = '';
       }
+      var extubPlan = s['ind-extubation-plan'] || 'Awake';
+      setText('pr-extubation', extubPlan);
+      var extubEl = document.getElementById('pr-extubation');
+      if (extubEl) {
+        extubEl.style.color = extubPlan === 'Deep' ? '#c41c3b' : '';
+        extubEl.style.fontWeight = extubPlan === 'Deep' ? 'bold' : '';
+      }
       
       if (s['ind-anxiolytic-yes']) {
         var anxUnit = getDrugUnit(s['ind-anxiolytic-select'], 'anxiolytic');
@@ -589,9 +759,8 @@
       var indUnit = getDrugUnit(s['ind-agent-select'], 'induction');
       setText('pr-ind', (s['ind-agent-select'] || '_') + (s['ind-agent-dose'] ? ' (' + s['ind-agent-dose'] + ' ' + indUnit + ')' : ''));
       var vesicantRow = document.getElementById('pr-vesicant-row');
-      if (s['ind-agent-select'] === 'Propofol' && s['vesicant-prop'] != null && s['vesicant-prop'] !== '') {
-        var vMap = { '0': 'None', '50': 'Propofol + Lidocaine 50 mg', '100': 'Propofol + Lidocaine 100 mg' };
-        setText('pr-vesicant', vMap[s['vesicant-prop']] || s['vesicant-prop']);
+      if (s['vesicant-prop'] === 'lidocaine' && s['vesicant-dose'] && s['vesicant-dose'] !== '') {
+        setText('pr-vesicant', 'Lidocaine ' + s['vesicant-dose'] + ' mg IV');
         vesicantRow.style.display = 'flex';
       } else {
         vesicantRow.style.display = 'none';
@@ -605,14 +774,20 @@
       var mhYes = !!s['hx-mh::Yes'];
       var pseudoYes = !!s['hx-pseudo::Yes'];
       var kVal = parseFloat(s['pat-k']);
-      var highK = !isNaN(kVal) && kVal > 5.0;
+      var highK = !isNaN(kVal) && kVal >= 5.5;
       var suxContra = s['ind-paralytic'] === 'Succinylcholine' && (mhYes || highK || pseudoYes);
       setWarnStyle('pr-nmb', suxContra);
 
       var inhal = s['ind-inhalation'] || '_';
       if (s['ind-mac-plan']) inhal += ' (' + s['ind-mac-plan'] + ' MAC)';
+      var inhal2 = (s['ind-inhalation-2'] || '').trim();
+      if (inhal2) {
+        var inhal2str = inhal2;
+        if (s['ind-mac-plan-2']) inhal2str += ' (' + s['ind-mac-plan-2'] + ' MAC)';
+        inhal += '\n' + inhal2str;
+      }
       setText('pr-inhal', inhal);
-      var volatileContra = mhYes && ['Sevoflurane', 'Desflurane', 'Isoflurane'].indexOf(s['ind-inhalation']) >= 0;
+      var volatileContra = mhYes && (['Sevoflurane', 'Desflurane', 'Isoflurane'].indexOf(s['ind-inhalation']) >= 0 || ['Sevoflurane', 'Desflurane', 'Isoflurane'].indexOf(inhal2) >= 0);
       setWarnStyle('pr-inhal', volatileContra);
 
       var painUnitMap = {
@@ -626,21 +801,25 @@
         'Magnesium sulfate': 'mg', 'Pregabalin': 'mg', 'Gabapentin': 'mg',
         'Dexamethasone': 'mg'
       };
-      function formatPainEntry(r) {
+      function formatPainEntry(r, includeDose) {
+        includeDose = includeDose !== false;
         if (!r) return '';
         var drug = '';
         var dose = '';
+        var sub = '';
         if (typeof r === 'string') {
           drug = r;
         } else {
           drug = r.drug || r.name || r.med || '';
           dose = r.dose || r.dosage || r.amount || r.amt || '';
+          sub = r.sub || '';
         }
         if (!drug) return '';
-        if (dose) {
+        if (dose && includeDose) {
           var unit = painUnitMap[drug] || '';
           return drug + ' (' + dose + (unit ? ' ' + unit : '') + ')';
         }
+        if (sub) return drug + ' \u2014 ' + sub;
         return drug;
       }
       var painIntraList = [];
@@ -650,13 +829,55 @@
         var intra = JSON.parse(s['plan-intraop-list'] || '[]') || [];
         var postop = JSON.parse(s['plan-postop-list'] || '[]') || [];
         var nonopioid = JSON.parse(s['plan-nonopioid-list'] || '[]') || [];
-        painIntraList = intra.map(formatPainEntry).filter(function(x) { return !!x; });
-        painPostList = postop.map(formatPainEntry).filter(function(x) { return !!x; });
-        painNonOpioidList = nonopioid.map(formatPainEntry).filter(function(x) { return !!x; });
+        painIntraList = intra.map(function(x) { return formatPainEntry(x, true); }).filter(function(x) { return !!x; });
+        painPostList = postop.map(function(x) { return formatPainEntry(x, false); }).filter(function(x) { return !!x; });
+        painNonOpioidList = nonopioid.map(function(x) { return formatPainEntry(x, true); }).filter(function(x) { return !!x; });
       } catch (e) {}
       setLines('pr-pain-intra', painIntraList);
       setLines('pr-pain-post', painPostList);
       setLines('pr-pain-nonopioid', painNonOpioidList);
+      var painVal = String(s['pat-anticipated-pain'] || '').trim();
+      setOptionalRow('pr-anticipated-pain-row', 'pr-anticipated-pain', painVal ? painVal + '/10' : '');
+
+      var compLabels = [
+        ['pat-comp-aspiration', 'Aspiration risk'],
+        ['pat-comp-difficult-airway', 'Difficult airway'],
+        ['pat-comp-laryngospasm', 'Laryngospasm'],
+        ['pat-comp-bronchospasm', 'Bronchospasm'],
+        ['pat-comp-hypoxemia', 'Hypoxemia / desaturation'],
+        ['pat-comp-hypotension', 'Hypotension'],
+        ['pat-comp-hypertension', 'Hypertension'],
+        ['pat-comp-arrhythmia', 'Arrhythmia'],
+        ['pat-comp-myocardial-ischemia', 'Myocardial ischemia'],
+        ['pat-comp-major-blood-loss', 'Major blood loss'],
+        ['pat-comp-transfusion', 'Transfusion requirement'],
+        ['pat-comp-pneumothorax', 'Pneumothorax'],
+        ['pat-comp-ponv', 'PONV'],
+        ['pat-comp-emergence-delirium', 'Emergence delirium/agitation'],
+        ['pat-comp-delayed-emergence', 'Delayed emergence'],
+        ['pat-comp-awareness', 'Awareness risk'],
+        ['pat-comp-postop-vent', 'Post-op ventilation need'],
+        ['pat-comp-pain-control', 'Difficult pain control'],
+        ['pat-comp-position-injury', 'Positioning/nerve injury'],
+        ['pat-comp-thromboembolism', 'DVT/PE risk'],
+        ['pat-comp-anaphylaxis', 'Anaphylaxis/allergic reaction']
+      ];
+      var compVals = compLabels.filter(function(x) { return !!s[x[0]]; }).map(function(x) { return x[1]; });
+      if (s['pat-comp-other']) {
+        var otherComp = String(s['pat-comp-other-text'] || '').trim();
+        compVals.push(otherComp ? ('Other: ' + otherComp) : 'Other');
+      }
+      var compRow = document.getElementById('pr-anticipated-complications-row');
+      var compEl = document.getElementById('pr-anticipated-complications');
+      if (compRow && compEl) {
+        if (compVals.length) {
+          compEl.textContent = compVals.join(', ');
+          compRow.style.display = 'block';
+        } else {
+          compRow.style.display = 'none';
+          compEl.textContent = '';
+        }
+      }
 
       var anti = [];
       if (s['tiva-box']) anti.push('TIVA');
@@ -706,6 +927,12 @@
         'equip-aline': 'Art Line',
         'equip-bilat-bp-cuff': 'Bilateral BP cuff',
         'equip-ogtube': 'OG Tube',
+        'equip-foley': 'Foley',
+        'equip-lead': 'Lead',
+        'equip-face-foam': 'Face foam',
+        'equip-patient-goggles': 'Patient goggles',
+        'equip-ett-accordion': 'ETT accordion',
+        'equip-circuit-extender': 'Circuit extender',
         'equip-bairhugger': 'Bair Hugger'
       };
       Object.keys(equipLabels).forEach(function(key) {
@@ -719,7 +946,21 @@
         equipDiv.innerHTML = equipItems.length > 0 ? equipItems.join('<br>') : 'None';
       }
 
+      // Extras section in print card (after vent settings)
+      var extrasSection = document.getElementById('pr-extras-section');
+      var extrasList = document.getElementById('pr-extras-list');
+      if (extrasSection && extrasList) {
+        if (equipItems.length > 0) {
+          extrasList.textContent = equipItems.join(', ');
+          extrasSection.style.display = 'block';
+        } else {
+          extrasSection.style.display = 'none';
+        }
+      }
+
       setText('pr-fluid-type', s['plan-fluid-type'] || 'None');
+      setOptionalRow('pr-warm-fluids-row', 'pr-warm-fluids', String(s['plan-fluid-warm-enabled'] || '').toLowerCase() === 'yes' ? 'Yes' : '');
+      setOptionalRow('pr-albumin-row', 'pr-albumin', String(s['plan-fluid-albumin'] || '').toLowerCase() === 'yes' ? 'Yes' : '');
       setText('pr-fluid-hr1', '_');
       setText('pr-fluid-hr2', '_');
       setText('pr-fluid-hr3', '_');
@@ -766,6 +1007,27 @@
       } else {
         setText('pr-ebv-abl', '_');
       }
+
+      // Vent Settings
+      var ventMode = (s['vent-mode'] || '').trim();
+      var ventTv = (s['vent-tv'] || '').trim();
+      var ventPeep = (s['vent-peep'] || '').trim();
+      var ventIe = (s['vent-ie'] || '').trim();
+      var ventFio2 = (s['vent-fio2'] || '').trim();
+      var ventAny = ventMode || ventTv || ventPeep || ventIe || ventFio2;
+      var ventSection = document.getElementById('pr-vent-section');
+      if (ventSection) ventSection.style.display = ventAny ? 'block' : 'none';
+      setOptionalRow('pr-vent-mode-row', 'pr-vent-mode', ventMode);
+      // Row 2: FiO₂ / PEEP / TV combined as "50% / 5 / 500"
+      var ventMainParts = [];
+      if (ventFio2) ventMainParts.push(ventFio2 + '%');
+      if (ventPeep) ventMainParts.push(ventPeep + '+');
+      if (ventTv) ventMainParts.push(ventTv + 'mL');
+      setOptionalRow('pr-vent-main-row', 'pr-vent-main', ventMainParts.join(' / '));
+      // Row 3: I:E
+      var ventRestParts = [];
+      if (ventIe) ventRestParts.push('I:E ' + ventIe);
+      setOptionalRow('pr-vent-rest-row', 'pr-vent-rest', ventRestParts.join(' / '));
 
       // Notes
       var notesText = String(s['notes-freetext'] || '').trim();
@@ -834,11 +1096,15 @@
       buildPrintCard();
       document.getElementById('main-content').style.display = 'none';
       document.getElementById('preview-screen').style.display = 'flex';
+      var nav = document.getElementById('cp-side-nav');
+      if (nav) nav.style.display = 'none';
     }
 
     function closePreview() {
       document.getElementById('preview-screen').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
+      var nav = document.getElementById('cp-side-nav');
+      if (nav) nav.style.display = '';
       setPreviewActionMode('single');
       setPrintMode('single');
       fitAll();
@@ -885,8 +1151,8 @@
         '@media print {' +
         '  @page { margin: ' + printPageMargin + '; size: 8.5in 11in; }' +
         '  body { margin: 0; padding: 0; background: #fff; }' +
-        '  #multi-preview-container { display: block !important; width: 8in !important; margin: 0 auto !important; }' +
-        '  .multi-sheet-page { width: 8in !important; height: 10.95in !important; margin: 0 auto !important; box-shadow: none !important; page-break-after: always; break-after: page; }' +
+        '  #multi-preview-container { display: block !important; width: 8.5in !important; margin: 0 !important; padding: 0 !important; }' +
+        '  .multi-sheet-page { width: 8.5in !important; height: 11in !important; margin: 0 !important; box-shadow: none !important; overflow: hidden !important; page-break-after: always; break-after: page; }' +
         '  .multi-sheet-page:last-child { page-break-after: auto; break-after: auto; }' +
         '}' +
         'body { margin: 0; padding: 0; background: #fff; }' +
@@ -906,6 +1172,17 @@
       }
 
       frameWin.focus();
+      // Force print dimensions directly on iframe DOM before printing
+      if (mode === 'multi') {
+        var iDoc = iframe.contentDocument || iframe.contentWindow.document;
+        var sheets = iDoc.querySelectorAll('.multi-sheet-page');
+        for (var si = 0; si < sheets.length; si++) {
+          sheets[si].style.cssText += ';width:8.0in!important;height:11in!important;overflow:hidden!important;box-shadow:none!important;margin:0!important;page-break-after:always;break-after:page;';
+        }
+        if (sheets.length) { sheets[sheets.length - 1].style.pageBreakAfter = 'auto'; sheets[sheets.length - 1].style.breakAfter = 'auto'; }
+        var mc = iDoc.getElementById('multi-preview-container');
+        if (mc) mc.style.cssText += ';display:block!important;gap:0!important;margin:0!important;padding:0!important;';
+      }
       setTimeout(function() {
         try {
           frameWin.print();
@@ -940,7 +1217,7 @@
         '.spp-title{font-size:1rem;font-weight:700;color:#1b2a41;margin:0;}',
         '.spp-sub{font-size:.86rem;color:#516277;margin-top:3px;}',
         '.spp-count{font-weight:700;color:#0b5cab;}',
-        '.spp-list{padding:10px 12px;overflow:auto;display:grid;grid-template-columns:1fr;gap:7px;}',
+        '.spp-list{padding:10px 12px;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:7px;flex:1;min-height:0;}',
         '.spp-option{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #d9e2ef;border-radius:9px;background:#fff;cursor:pointer;user-select:none;}',
         '.spp-option:hover{background:#f7fbff;border-color:#b9cde7;}',
         '.spp-check{position:absolute;opacity:0;pointer-events:none;}',
@@ -1194,56 +1471,88 @@
     function setStorageStatus(message, tone) {
       var el = document.getElementById('storage-status');
       if (!el) return;
+      if (!message) { el.style.display = 'none'; return; }
+      el.style.display = '';
       el.textContent = message;
       el.setAttribute('data-tone', tone || 'warn');
+      if (tone === 'ok') {
+        if (setStorageStatus._timer) clearTimeout(setStorageStatus._timer);
+        setStorageStatus._timer = setTimeout(function() { el.style.display = 'none'; }, 5000);
+      }
+    }
+
+    function showTopbarFlash(msg) {
+      var el = document.getElementById('topbar-flash');
+      if (!el) return;
+      if (showTopbarFlash._timer) clearTimeout(showTopbarFlash._timer);
+      el.textContent = msg;
+      el.style.display = '';
+      el.style.opacity = '1';
+      showTopbarFlash._timer = setTimeout(function() {
+        el.style.opacity = '0';
+        setTimeout(function() { el.style.display = 'none'; el.style.opacity = '1'; }, 420);
+      }, 5000);
     }
 
     function getCloudUserId() {
-      if (!window.carePlanCloudStorage || !window.carePlanCloudStorage.getUserId) return '';
-      return window.carePlanCloudStorage.getUserId();
+      // Use real Firebase Auth UID when available
+      try {
+        if (window.firebase && window.firebase.auth) {
+          var fbUser = window.firebase.auth().currentUser;
+          if (fbUser && fbUser.uid) return fbUser.uid;
+        }
+      } catch (e) {}
+      return '';
     }
 
     function updateCloudLoginUi() {
-      var userId = getCloudUserId();
-      var label = document.getElementById('cloud-user-label');
-      var input = document.getElementById('cloud-user-id');
-      var loginBtn = document.getElementById('cloud-login-btn');
-      var logoutBtn = document.getElementById('cloud-logout-btn');
-      var display = document.getElementById('cloud-user-display');
-      var status = document.getElementById('storage-status');
+      var fbUser = null;
+      try {
+        if (window.firebase && window.firebase.auth) fbUser = window.firebase.auth().currentUser;
+      } catch (e) {}
+      var isLoggedIn = !!(fbUser && fbUser.uid);
+      var displayName = isLoggedIn
+        ? (fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : ''))
+        : '';
 
-      var isLoggedIn = !!userId;
-      if (input) {
-        input.value = userId || '';
-        input.style.display = isLoggedIn ? 'none' : 'inline-block';
-      }
-      if (label) label.style.display = isLoggedIn ? 'none' : 'inline-block';
-      if (loginBtn) loginBtn.style.display = isLoggedIn ? 'none' : 'inline-block';
+      // Desktop header
+      var loginBtn  = document.getElementById('cloud-login-btn');
+      var logoutBtn = document.getElementById('cloud-logout-btn');
+      var nameEl    = document.getElementById('header-auth-name');
+      if (loginBtn)  loginBtn.style.display  = isLoggedIn ? 'none' : 'inline-block';
       if (logoutBtn) logoutBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
-      if (display) display.textContent = isLoggedIn ? ('Logged in as ' + userId) : 'Not logged in';
-      if (status) status.style.display = isLoggedIn ? 'none' : 'block';
+      if (nameEl)    nameEl.textContent = displayName;
+
+      // Mobile drawer
+      var mobLoginBtn  = document.getElementById('mob-cloud-login-btn');
+      var mobLogoutBtn = document.getElementById('mob-cloud-logout-btn');
+      var mobAuthName  = document.getElementById('mob-drawer-auth-name');
+      var mobTopName   = document.getElementById('mob-topbar-name');
+      if (mobLoginBtn)  mobLoginBtn.style.display  = isLoggedIn ? 'none' : 'inline-block';
+      if (mobLogoutBtn) mobLogoutBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+      if (mobAuthName)  mobAuthName.textContent    = isLoggedIn ? ('👤 ' + displayName) : '';
+      if (mobTopName)   mobTopName.textContent     = displayName;
+    }
+
+    function updateDeskTopbarPatient() {
+      var el = document.getElementById('desk-topbar-patient');
+      if (!el) return;
+      var s = getState();
+      var initials = String(s['pat-initials'] || '').trim();
+      var surgery  = String(s['pat-surgery']  || '').trim();
+      var parts = [];
+      if (initials) parts.push(initials);
+      if (surgery)  parts.push(surgery);
+      el.textContent = parts.length ? '— ' + parts.join(' • ') : '';
     }
 
     async function applyCloudLogin() {
-      if (!window.carePlanCloudStorage || !window.carePlanCloudStorage.setUserId) {
-        alert('Cloud login is unavailable right now.');
-        return;
-      }
-
-      var input = document.getElementById('cloud-user-id');
-      var typed = input ? input.value : '';
-      var clean = window.carePlanCloudStorage.setUserId(typed);
-      if (!clean) {
-        alert('Please enter first initial + last name (e.g., jsmith).');
-        return;
-      }
-      updateCloudLoginUi();
-      await shouldUseCloudPlans();
+      // Sign-in is handled globally by AnesthesiaAuth overlay
+      if (window.AnesthesiaAuth) window.AnesthesiaAuth.showLogin();
     }
 
     async function clearCloudLogin() {
-      if (!window.carePlanCloudStorage || !window.carePlanCloudStorage.setUserId) return;
-      window.carePlanCloudStorage.setUserId('');
+      if (window.AnesthesiaAuth) await window.AnesthesiaAuth.signOut();
       updateCloudLoginUi();
       await shouldUseCloudPlans();
     }
@@ -1260,7 +1569,7 @@
       return Object.keys(plans).sort(function(a, b) {
         var ta = (plans[a] && plans[a].savedAt) ? new Date(plans[a].savedAt).getTime() : 0;
         var tb = (plans[b] && plans[b].savedAt) ? new Date(plans[b].savedAt).getTime() : 0;
-        return ta - tb;
+        return tb - ta;
       });
     }
 
@@ -1280,11 +1589,54 @@
         var ready = await window.carePlanCloudStorage.ensureReady();
         var status = window.carePlanCloudStorage.getStatus(userId);
         setStorageStatus(status.message, status.tone);
+        if (ready && userId) {
+          checkAndRestoreCloudDraft(userId);
+        }
         return !!(ready && userId);
       } catch (error) {
         setStorageStatus('Cloud sync is unavailable right now. ' + (error.message || String(error)), 'warn');
         return false;
       }
+    }
+
+    async function checkAndRestoreCloudDraft(userId) {
+      try {
+        var draft = await window.carePlanCloudStorage.loadDraft(userId);
+        if (!draft || !draft.savedAt) return;
+
+        var cloudTime = new Date(draft.savedAt).getTime();
+        if (isNaN(cloudTime)) return;
+
+        // Compare to local state timestamp if available, else use 0.
+        var localRaw = '';
+        try { localRaw = localStorage.getItem('carePlanSplitState') || ''; } catch (e) {}
+        var localState = {};
+        try { localState = JSON.parse(localRaw) || {}; } catch (e) {}
+        var localTime = 0;
+        if (localState.__draftSavedAt) {
+          localTime = new Date(localState.__draftSavedAt).getTime() || 0;
+        }
+
+        if (cloudTime > localTime + 10000) {
+          // Cloud draft is meaningfully newer — restore it.
+          var nextState = draft.state || {};
+          suspendIncomingStateUntil = Date.now() + 2000;
+          mirroredState = Object.assign({}, nextState);
+          stateRevision += 1;
+          try { localStorage.setItem('carePlanSplitState', JSON.stringify(mirroredState)); } catch (e) {}
+          var notesEl = document.getElementById('notes-freetext');
+          if (notesEl) notesEl.value = nextState['notes-freetext'] || '';
+          syncFramesFromState();
+          fitAll();
+          var fromOtherDevice = draft.deviceId && draft.deviceId !== getDeviceId();
+          var timeStr = new Date(cloudTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+          if (fromOtherDevice) {
+            setStorageStatus('Restored your work from another device (' + timeStr + ').', 'ok');
+          } else {
+            setStorageStatus('Restored your recent work (' + timeStr + ').', 'ok');
+          }
+        }
+      } catch (e) {}
     }
 
     async function getSavedPlans() {
@@ -1297,7 +1649,7 @@
         setLocalSavedPlans(plans);
         return plans;
       } catch (error) {
-        setStorageStatus('Cloud sync is unavailable right now. Falling back to this browser only. ' + (error.message || String(error)), 'warn');
+        setStorageStatus('Cloud sync is unavailable right now. Showing this device\'s cached plans (may be stale). ' + (error.message || String(error)), 'warn');
         return getLocalSavedPlans();
       }
     }
@@ -1329,6 +1681,7 @@
       if (!name) return;
 
       var cloudEnabled = await shouldUseCloudPlans();
+      var savedToCloud = false;
       var plans = getLocalSavedPlans();
       if (cloudEnabled) {
         try {
@@ -1353,7 +1706,8 @@
       if (cloudEnabled) {
         try {
           await window.carePlanCloudStorage.savePlan(name, s, getCloudUserId());
-          setStorageStatus('Firebase cloud sync is on. Save Plan stores named plans online; unsaved typing still stays local.', 'ok');
+          savedToCloud = true;
+          setStorageStatus('Firebase cloud sync is on.', 'ok');
         } catch (error) {
           setStorageStatus('Cloud save failed. Saving in this browser only. ' + (error.message || String(error)), 'warn');
           cloudEnabled = false;
@@ -1361,7 +1715,14 @@
       }
 
       setLocalSavedPlans(plans);
-      alert('Saved plan: ' + name);
+      isDirty = false;
+      if (savedToCloud) {
+        showTopbarFlash('Saved to cloud: ' + name);
+      } else if (cloudEnabled) {
+        showTopbarFlash('Saved locally: ' + name + ' (cloud not confirmed)');
+      } else {
+        showTopbarFlash('Saved locally: ' + name + ' (log in to sync)');
+      }
     }
 
     async function loadNamedPlan() {
@@ -1393,7 +1754,8 @@
       if (notesEl) notesEl.value = nextState['notes-freetext'] || '';
       syncFramesFromState();
       fitAll();
-      alert('Loaded plan: ' + selected);
+      isDirty = false;
+      showTopbarFlash('Loaded: ' + selected);
     }
 
     async function deleteNamedPlan() {
@@ -1433,7 +1795,7 @@
 
       setLocalSavedPlans(plans);
       if (cloudEnabled) {
-        setStorageStatus('Firebase cloud sync is on. Save Plan stores named plans online; unsaved typing still stays local.', 'ok');
+        setStorageStatus('Firebase cloud sync is on.', 'ok');
       }
       alert('Deleted ' + picked.length + ' plan' + (picked.length > 1 ? 's' : '') + '.');
     }
@@ -1450,7 +1812,7 @@
       style.id = 'multi-preview-style';
       style.textContent = [
         '#multi-preview-container{display:flex;flex-direction:column;gap:18px;align-items:center;width:100%;}',
-        '.multi-sheet-page{position:relative;width:8.0in;height:10.95in;background:#fff;box-shadow:0 0 20px rgba(0,0,0,0.5);overflow:hidden;}',
+        '.multi-sheet-page{position:relative;width:8.0in;height:11in;background:#fff;box-shadow:0 0 20px rgba(0,0,0,0.5);overflow:hidden;}',
         '.multi-sheet-page .sheet-slot{position:absolute;width:3.95in;height:5.5in;overflow:hidden;}',
         '.multi-sheet-page .slot-1{left:0;top:0;}',
         '.multi-sheet-page .slot-2{left:0;top:5.5in;}',
@@ -1458,7 +1820,7 @@
         '.multi-sheet-page .slot-4{left:4.05in;top:5.5in;}',
         '.multi-sheet-page .sheet-slot .print-card{width:3.95in !important;height:5.5in !important;margin:0;box-shadow:none;border:1px solid #000;}',
         '.multi-sheet-page .sheet-slot.upside-down .print-card{transform:rotate(180deg);transform-origin:center center;}',
-        '@media print{#multi-preview-container{gap:0;} .multi-sheet-page{box-shadow:none;page-break-after:always;break-after:page;} .multi-sheet-page:last-child{page-break-after:auto;break-after:auto;}}'
+        '@media print{#multi-preview-container{gap:0;margin:0;padding:0;} .multi-sheet-page{box-shadow:none;overflow:hidden;page-break-after:always;break-after:page;} .multi-sheet-page:last-child{page-break-after:auto;break-after:auto;}}'
       ].join('');
       document.head.appendChild(style);
     }
@@ -1495,6 +1857,8 @@
       setPrintMode('multi');
       document.getElementById('main-content').style.display = 'none';
       document.getElementById('preview-screen').style.display = 'flex';
+      var nav = document.getElementById('cp-side-nav');
+      if (nav) nav.style.display = 'none';
     }
 
     async function buildMultiPreviewPdfBlob(filename) {
@@ -1519,11 +1883,20 @@
 
       var pageClones = Array.from(source.querySelectorAll('.multi-sheet-page')).map(function(page) {
         var pageClone = page.cloneNode(true);
-        pageClone.style.width = '8in';
-        pageClone.style.height = '10.95in';
+        pageClone.style.width = '8.5in';
+        pageClone.style.height = '11in';
         pageClone.style.margin = '0';
         pageClone.style.boxShadow = 'none';
         pageClone.style.background = '#fff';
+        pageClone.querySelectorAll('.sheet-slot').forEach(function(slot) {
+          slot.style.setProperty('width', '4.235in', 'important');
+          var card = slot.querySelector('.print-card');
+          if (card) card.style.setProperty('width', '4.235in', 'important');
+        });
+        var s1 = pageClone.querySelector('.slot-1'); if (s1) s1.style.left = '0';
+        var s2 = pageClone.querySelector('.slot-2'); if (s2) s2.style.left = '0';
+        var s3 = pageClone.querySelector('.slot-3'); if (s3) s3.style.left = '4.265in';
+        var s4 = pageClone.querySelector('.slot-4'); if (s4) s4.style.left = '4.265in';
         return pageClone;
       });
       document.body.appendChild(host);
@@ -1558,7 +1931,7 @@
         // Fallback: use html2pdf worker when jspdf isn't exposed on window.
         host.innerHTML = '';
         var exportRoot = document.createElement('div');
-        exportRoot.style.width = '8in';
+        exportRoot.style.width = '8.5in';
         exportRoot.style.margin = '0';
         exportRoot.style.padding = '0';
         exportRoot.style.background = '#fff';
@@ -1648,6 +2021,15 @@
     }
 
     async function printOrEmailSavedPlans() {
+      // Prompt to save current in-progress plan if there are unsaved changes
+      var s = (mirroredState && Object.keys(mirroredState).length) ? mirroredState : getState();
+      var hasPatient = !!(s['pat-initials'] || s['pat-surgery'] || s['pat-surg-date']);
+      if (isDirty && hasPatient) {
+        var choice = confirm('You have unsaved changes to the current plan.\n\nSave it before printing?');
+        if (choice) {
+          await saveNamedPlan();
+        }
+      }
       var plans = await getSavedPlans();
       var names = getSavedPlanNamesSorted(plans);
       if (!names.length) {
@@ -1655,8 +2037,16 @@
         return;
       }
 
-      var maxSelectable = Math.min(20, names.length);
-      var defaults = names.slice(0, Math.min(2, maxSelectable));
+      var maxSelectable = Math.min(12, names.length);
+      var tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
+      var tmrStr = (tmr.getMonth() + 1) + '/' + tmr.getDate() + '/' + tmr.getFullYear();
+      var tmrDefaults = names.filter(function(n) {
+        var surgDate = (plans[n] && plans[n].state && plans[n].state['pat-surg-date']) ? String(plans[n].state['pat-surg-date']).trim() : '';
+        // Normalize both sides: strip leading zeros for comparison
+        var normalize = function(d) { return d.replace(/\b0(\d)/g, '$1'); };
+        return normalize(surgDate) === normalize(tmrStr);
+      });
+      var defaults = tmrDefaults.length ? tmrDefaults.slice(0, 1) : names.slice(0, 1);
       var selected = await showSavedPlanPicker(names, defaults, {
         maxSelection: maxSelectable,
         title: 'Select up to ' + maxSelectable + ' saved plans',
@@ -1669,12 +2059,38 @@
       openMultiPlansPreview(selected, plans);
     }
 
-    function printSelectedPlansFromPreview() {
+    async function printSelectedPlansFromPreview() {
       if (!multiPreviewSelectedNames.length) {
         alert('No selected plans in preview.');
         return;
       }
-      printIsolated('multi');
+      // Prompt to save current in-progress plan if there are unsaved changes
+      var s = (mirroredState && Object.keys(mirroredState).length) ? mirroredState : getState();
+      var hasPatient = !!(s['pat-initials'] || s['pat-surgery'] || s['pat-surg-date']);
+      if (isDirty && hasPatient) {
+        var choice = confirm('You have unsaved changes to the current plan.\n\nSave it before printing?');
+        if (choice) {
+          await saveNamedPlan();
+        }
+      }
+      var btn = document.getElementById('btn-preview-print-multi');
+      if (btn) { btn.disabled = true; btn.textContent = 'Generating PDF…'; }
+      try {
+        var filename = 'Care_Plans_' + String(multiPreviewSelectedNames.length) + '_plans.pdf';
+        var blob = await buildMultiPreviewPdfBlob(filename);
+        var url = URL.createObjectURL(blob);
+        var w = window.open(url, '_blank');
+        if (!w) {
+          // Pop-up blocked — fall back to download
+          downloadBlob(blob, filename);
+          alert('Pop-up blocked. PDF downloaded — open it and print from your PDF viewer.');
+        }
+        setTimeout(function() { URL.revokeObjectURL(url); }, 120000);
+      } catch (err) {
+        alert('Could not generate PDF. Try again or use Email.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Print Selected Plans'; }
+      }
     }
 
     async function emailSelectedPlansFromPreview() {
@@ -1758,6 +2174,21 @@
       return out.replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/^_+|_+$/g, '') || (fallback || 'Plan');
     }
 
+    function safeNamePart(value, fallback) {
+      var out = String(value || '').trim()
+        .replace(/\//g, '-')
+        .replace(/:/g, '');
+      if (!out) out = fallback || '';
+      return out.replace(/[\\*?"<>|]+/g, '').trim() || (fallback || '');
+    }
+
+    function formatDateShort(dateStr) {
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var m = String(dateStr || '').match(/^(\d{1,2})\/(\d{1,2})/);
+      if (!m) return safeNamePart(dateStr, '');
+      return (months[parseInt(m[1], 10) - 1] || m[1]) + ' ' + parseInt(m[2], 10);
+    }
+
     async function buildCurrentPlanPdfBlob(state, filename) {
       if (typeof window.html2pdf !== 'function') {
         throw new Error('PDF library unavailable');
@@ -1821,12 +2252,11 @@
       var state = (mirroredState && Object.keys(mirroredState).length) ? mirroredState : getState();
       var initials = String(state['pat-initials'] || 'Patient').trim();
       var surgery = String(state['pat-surgery'] || 'Procedure').trim();
-      var subject = 'Anesthetic Care Plan - ' + initials + ' - ' + surgery;
-      var filename = [
-        'Anesthetic_Care_Plan',
-        safeFilePart(initials, 'Patient'),
-        safeFilePart(state['pat-surg-date'] || '', 'NoDate')
-      ].join('_') + '.pdf';
+      var date = formatDateShort(state['pat-surg-date'] || '');
+      var time = safeNamePart(state['pat-sched-surg-time'] || '', '');
+      var filenameParts = [date, time, safeNamePart(initials, 'Patient'), safeNamePart(surgery, 'Procedure')].filter(Boolean);
+      var filename = filenameParts.join(' ') + '.pdf';
+      var subject = filename.replace(/\.pdf$/i, '');
 
       var blob;
       try {
@@ -1849,7 +2279,7 @@
         try {
           await navigator.share({
             title: subject,
-            text: 'Anesthetic care plan PDF',
+            text: filename,
             files: [file]
           });
           return;
@@ -1861,7 +2291,7 @@
       downloadBlob(blob, filename);
 
       var attachBody = [
-        'Attached is the anesthetic care plan PDF.',
+        'Attached is the SRNA care plan PDF.',
         '',
         'If attachment is missing, please attach: ' + filename
       ].join('\n');
@@ -1872,22 +2302,61 @@
 
     (function initStorageMode() {
       enforceIframeNoScrollDefaults();
+      // Remove legacy text-based user ID — only Firebase Auth is used now.
+      try { localStorage.removeItem('carePlanCloudUserId'); } catch (e) {}
 
-      updateCloudLoginUi();
-      var userInput = document.getElementById('cloud-user-id');
-      if (userInput) {
-        userInput.addEventListener('keydown', function(ev) {
-          if (ev.key === 'Enter') {
-            ev.preventDefault();
-            applyCloudLogin();
-          }
+      var logoutBtn = document.getElementById('cloud-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+          clearCloudLogin();
         });
       }
 
-      if (!window.carePlanCloudStorage) {
-        setStorageStatus('Plans you create and save will ONLY be available on this specific device UNLESS you log in', 'warn');
-        return;
-      }
+      // Keep global fallback for existing inline onclick attributes.
+      window.applyCloudLogin = applyCloudLogin;
+      window.clearCloudLogin = clearCloudLogin;
 
-      shouldUseCloudPlans();
+      updateCloudLoginUi();
+      // Always listen to Firebase auth state — fires on load with persisted user AND on sign-in/out
+      var _authFired = false;
+      try {
+        if (window.firebase && window.firebase.auth) {
+          window.firebase.auth().onAuthStateChanged(function(user) {
+            _authFired = true;
+            updateCloudLoginUi();
+            if (user) {
+              shouldUseCloudPlans().then(function(ready) {
+                if (ready) { try { getSavedPlans(); } catch (e) {} }
+              });
+            } else {
+              shouldUseCloudPlans();
+            }
+          });
+        }
+      } catch (e) {}
+      // Fallback: if Firebase never fires onAuthStateChanged, clear Checking... after 4s
+      setTimeout(function() {
+        if (_authFired) return;
+        updateCloudLoginUi();
+        shouldUseCloudPlans();
+      }, 4000);
+      // Also listen via AnesthesiaAuth overlay for sign-ins triggered on this page
+      if (window.AnesthesiaAuth) {
+        window.AnesthesiaAuth.onAuthChange(function(user) {
+          updateCloudLoginUi();
+        });
+      } else {
+        if (!window.carePlanCloudStorage) {
+          setStorageStatus('Plans you create and save will ONLY be available on this specific device UNLESS you log in', 'warn');
+        }
+      }
     })();
+
+    // Expose internals needed by the phone-share feature
+    Object.defineProperty(window, 'mirroredState', {
+      get: function() { return mirroredState; },
+      set: function(v) { mirroredState = v; },
+      configurable: true
+    });
+    window.openPreview = function() { openPreview(); };
+    window.buildPrintCard = function(state) { buildPrintCard(state || {}); };

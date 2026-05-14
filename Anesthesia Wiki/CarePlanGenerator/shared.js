@@ -73,6 +73,8 @@ function saveState() {
       state[key] = el.value;
     }
   });
+
+  updateOtherFieldTracker(state);
   setGlobalState(state);
   
   // Notify parent window to refit iframes when content changes
@@ -84,6 +86,76 @@ function saveState() {
     }
   } catch (e) {}
 }
+
+function updateOtherFieldTracker(state) {
+  const trackerKey = '__otherFieldTracker';
+  const existing = (state && typeof state[trackerKey] === 'object' && state[trackerKey]) ? state[trackerKey] : {};
+  const next = Object.assign({}, existing);
+  const page = (window.location.pathname || '').split('/').pop() || '';
+  const nowIso = new Date().toISOString();
+  const seenPageKeys = new Set();
+
+  // Track explicit "other" user-entry controls and persist latest non-empty value.
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    const rawId = String(el.id || el.name || '').trim();
+    if (!rawId) return;
+    if (el.type === 'checkbox' || el.type === 'radio') return;
+    if (!/other/i.test(rawId)) return;
+
+    const value = String(el.value || '').trim();
+    const fieldKey = page + '::' + rawId;
+    seenPageKeys.add(fieldKey);
+
+    if (!value) {
+      delete next[fieldKey];
+      return;
+    }
+
+    const prev = existing[fieldKey] || {};
+    next[fieldKey] = {
+      field: rawId,
+      page: page,
+      value: value,
+      updatedAt: nowIso,
+      firstSeenAt: prev.firstSeenAt || nowIso
+    };
+  });
+
+  // Remove stale entries for "other" controls that no longer exist on this page.
+  Object.keys(next).forEach(function(k) {
+    if (k.indexOf(page + '::') !== 0) return;
+    if (!seenPageKeys.has(k) && /other/i.test(k)) delete next[k];
+  });
+
+  state[trackerKey] = next;
+}
+
+function getOtherFieldTrackerReport() {
+  const state = getGlobalState();
+  const tracker = (state && typeof state.__otherFieldTracker === 'object' && state.__otherFieldTracker) ? state.__otherFieldTracker : {};
+  const grouped = {};
+
+  Object.keys(tracker).forEach(function(key) {
+    const item = tracker[key] || {};
+    const field = item.field || key;
+    if (!grouped[field]) grouped[field] = [];
+    const exists = grouped[field].some(function(row) {
+      return row.value === item.value && row.page === item.page;
+    });
+    if (!exists && item.value) {
+      grouped[field].push({
+        value: item.value,
+        page: item.page || '',
+        firstSeenAt: item.firstSeenAt || '',
+        updatedAt: item.updatedAt || ''
+      });
+    }
+  });
+
+  return grouped;
+}
+
+window.getOtherFieldTrackerReport = getOtherFieldTrackerReport;
 
 function setGlobalState(state) {
   // During iframe hydration, block outgoing writes that can overwrite loaded plans
@@ -122,6 +194,148 @@ function restoreState() {
       el.checked = !!state[key];
     } else {
       el.value = state[key];
+    }
+  });
+}
+
+// ── iOS Yes/No toggles ──────────────────────────────────────────────────────
+// Finds all Yes/No radio pairs and injects an iOS toggle on mobile (≤600px).
+// The original radio inputs are hidden with .ios-yn-source but remain functional
+// so all existing JS that reads/sets radio values continues to work.
+function initYNToggles() {
+
+  var processed = new Set();
+  var yesInputs = document.querySelectorAll('input[type="radio"][value="Yes"]');
+  var idx = 0;
+
+  yesInputs.forEach(function(yesInput) {
+    var name = yesInput.name;
+    if (!name || processed.has(name)) return;
+    var noInput = document.querySelector('input[type="radio"][name="' + CSS.escape(name) + '"][value="No"]');
+    if (!noInput) return;
+    processed.add(name);
+
+    // Find the <label> elements wrapping each radio
+    var yesLabel = yesInput.closest('label');
+    var noLabel  = noInput.closest('label');
+    if (!yesLabel || !noLabel) return;
+
+    // Mark originals hidden by CSS
+    yesLabel.classList.add('ios-yn-source');
+    noLabel.classList.add('ios-yn-source');
+
+    var useSegPill = false; // always use iOS toggle style
+    idx++;
+
+    var wrap;
+    if (useSegPill) {
+      // ── Segmented pill style ──
+      wrap = document.createElement('div');
+      wrap.className = 'seg-yn-wrap';
+      wrap.dataset.ynName = name;
+
+      var yesBtn = document.createElement('button');
+      yesBtn.type = 'button';
+      yesBtn.className = 'seg-btn seg-yes';
+      yesBtn.textContent = 'Yes';
+      var noBtn = document.createElement('button');
+      noBtn.type = 'button';
+      noBtn.className = 'seg-btn seg-no';
+      noBtn.textContent = 'No';
+
+      function updateSegState() {
+        yesBtn.classList.toggle('seg-active', yesInput.checked);
+        noBtn.classList.toggle('seg-active', noInput.checked);
+      }
+      updateSegState();
+
+      yesBtn.addEventListener('click', function() {
+        yesInput.checked = true; noInput.checked = false;
+        updateSegState();
+        yesInput.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      noBtn.addEventListener('click', function() {
+        noInput.checked = true; yesInput.checked = false;
+        updateSegState();
+        noInput.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      yesInput.addEventListener('change', updateSegState);
+      noInput.addEventListener('change', updateSegState);
+
+      wrap.appendChild(yesBtn);
+      wrap.appendChild(noBtn);
+    } else {
+      // ── iOS toggle style ──
+      wrap = document.createElement('div');
+      wrap.className = 'ios-yn-wrap';
+      wrap.dataset.ynName = name;
+
+      var toggleLabel = document.createElement('label');
+      toggleLabel.className = 'ios-toggle';
+
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = yesInput.checked;
+
+      var track = document.createElement('span');
+      track.className = 'ios-track';
+
+      toggleLabel.appendChild(cb);
+      toggleLabel.appendChild(track);
+
+      var stateLabel = document.createElement('span');
+      stateLabel.className = 'yn-state-label';
+      stateLabel.textContent = cb.checked ? 'Yes' : 'No';
+
+      wrap.appendChild(toggleLabel);
+      wrap.appendChild(stateLabel);
+
+      cb.addEventListener('change', function() {
+        yesInput.checked = cb.checked;
+        noInput.checked  = !cb.checked;
+        stateLabel.textContent = cb.checked ? 'Yes' : 'No';
+        var evt = new Event('change', { bubbles: true });
+        (cb.checked ? yesInput : noInput).dispatchEvent(evt);
+      });
+
+      function syncFromRadio() {
+        cb.checked = yesInput.checked;
+        stateLabel.textContent = cb.checked ? 'Yes' : 'No';
+      }
+      yesInput.addEventListener('change', syncFromRadio);
+      noInput.addEventListener('change', syncFromRadio);
+    }
+
+    // Insert toggle immediately before the first hidden label
+    yesLabel.parentNode.insertBefore(wrap, yesLabel);
+  });
+}
+
+// Re-sync both toggle styles after external state restores
+function syncYNToggles() {
+  // iOS toggles
+  document.querySelectorAll('.ios-yn-wrap').forEach(function(wrap) {
+    var name = wrap.dataset.ynName;
+    if (!name) return;
+    var yesInput = document.querySelector('input[type="radio"][name="' + CSS.escape(name) + '"][value="Yes"]');
+    var cb = wrap.querySelector('input[type="checkbox"]');
+    var lbl = wrap.querySelector('.yn-state-label');
+    if (yesInput && cb) {
+      cb.checked = yesInput.checked;
+      if (lbl) lbl.textContent = cb.checked ? 'Yes' : 'No';
+    }
+  });
+  // Segmented pills
+  document.querySelectorAll('.seg-yn-wrap').forEach(function(wrap) {
+    var name = wrap.dataset.ynName;
+    if (!name) return;
+    var yesInput = document.querySelector('input[type="radio"][name="' + CSS.escape(name) + '"][value="Yes"]');
+    var noInput  = document.querySelector('input[type="radio"][name="' + CSS.escape(name) + '"][value="No"]');
+    var yesBtn = wrap.querySelector('.seg-yes');
+    var noBtn  = wrap.querySelector('.seg-no');
+    if (yesBtn && noBtn && yesInput) {
+      yesBtn.classList.toggle('seg-active', yesInput.checked);
+      noBtn.classList.toggle('seg-active', !!(noInput && noInput.checked));
     }
   });
 }
@@ -198,7 +412,11 @@ function pageBoot(extraInit, onExternalUpdate) {
     restoreState();
     applyMobileKeyboardHints();
     initSelectTypeaheadNavigation();
-    if (typeof extraInit === 'function') extraInit();
+    try {
+      if (typeof extraInit === 'function') extraInit();
+    } catch (e) {
+      console.error('[CarePlan] Error in page boot():', e);
+    }
     initAutoSave();
     window.__carePlanSuspendSave = false;
 
@@ -339,3 +557,65 @@ function pageBoot(extraInit, onExternalUpdate) {
     finalizeBoot();
   }
 }
+
+// === SIDE NAV (to disable: delete this block and the /* === SIDE NAV === */ block in shared.css) ===
+function buildSideNav() {
+  if (window.self !== window.top) return;
+  if (document.getElementById('cp-side-nav')) return;
+  // Inject CSS inline so it works regardless of shared.css caching
+  if (!document.getElementById('cp-side-nav-style')) {
+    var s = document.createElement('style');
+    s.id = 'cp-side-nav-style';
+    s.textContent =
+      '#cp-side-nav{position:fixed;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:2px;z-index:900;background:#fff;border:1px solid #dbe5f0;border-radius:8px;padding:8px 6px;box-shadow:0 2px 10px rgba(17,74,141,.09);min-width:108px;max-width:260px;width:136px;resize:horizontal;overflow:auto;}' +
+      '#cp-side-nav a{display:block;padding:5px 9px;border-radius:5px;font-size:1em;color:#4f6073;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .15s,color .15s;line-height:1.4;}' +
+      '#cp-side-nav a:hover{background:#eef5ff;color:#114a8d;}' +
+      '#cp-side-nav a.active{background:#dbeaff;color:#1a4f82;font-weight:600;}' +
+      '@media(max-width:1039px){#cp-side-nav{display:none;}}' +
+      'body.embedded #cp-side-nav{display:none;}';
+    document.head.appendChild(s);
+  }
+  var pages = [
+    { label: 'Patient / Surgery', file: '1-Patient-Demographics.html' },
+    { label: 'Labs',              file: '3-Labs-Chemistries.html' },
+    { label: 'PMH / PSH',         file: '4-PMH.html' },
+    { label: 'Meds',              file: '5-Prescribed-Medications.html' },
+    { label: 'Preop History',     file: '6-Preop-History.html' },
+    { label: 'Airway',            file: '7-Airway-Exam.html' },
+    { label: 'Extras',            file: '7b-Extras.html' },
+    { label: 'Plan',              file: '8-Anesthetic-Plan.html' },
+    { label: 'PONV',              file: '8b-APFEL-PONV.html' },
+    { label: 'Fluid / Blood',     file: '9-Fluid-Blood-Plan.html' }
+  ];
+  var path = window.location.pathname;
+  var nav = document.createElement('nav');
+  nav.id = 'cp-side-nav';
+  nav.setAttribute('aria-label', 'Care Plan sections');
+  pages.forEach(function(p) {
+    var a = document.createElement('a');
+    a.href = p.file;
+    a.textContent = p.label;
+    if (path.indexOf(p.file) !== -1) a.className = 'active';
+    nav.appendChild(a);
+  });
+  document.body.appendChild(nav);
+
+  // Scale font-size with nav width
+  if (typeof ResizeObserver !== 'undefined') {
+    var ro = new ResizeObserver(function(entries) {
+      var w = entries[0].contentRect.width;
+      // Base: 108px wide → 0.72em; scale linearly up to 260px → ~1.1em
+      var fs = Math.max(0.72, Math.min(1.1, 0.72 + (w - 108) / (260 - 108) * (1.1 - 0.72)));
+      nav.style.fontSize = fs.toFixed(3) + 'em';
+    });
+    ro.observe(nav);
+  }
+}
+// Fire as early as possible; fall back to load event
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', buildSideNav);
+} else {
+  buildSideNav();
+}
+window.addEventListener('load', buildSideNav);
+// === END SIDE NAV ===

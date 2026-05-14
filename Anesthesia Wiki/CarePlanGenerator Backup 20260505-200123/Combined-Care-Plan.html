@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Combined Care Plan (All 8 Sections)</title>
+  <style>
+    :root {
+      --section-gap: 6px;
+      --ink: #1f2a37;
+      --line: #dbe5f0;
+    }
+
+    html, body {
+      overflow-x: hidden;
+      max-width: 100%;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 10% 8%, #eaf4ff 0%, transparent 34%),
+        radial-gradient(circle at 92% 14%, #edf8f2 0%, transparent 30%),
+        #f3f7fb;
+      color: var(--ink);
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+    @media (max-width: 760px) {
+      .wrap { padding: 8px 4px; }
+    }
+    h1 {
+      margin: 0 0 12px 0;
+      font-family: Georgia, "Times New Roman", serif;
+      border-bottom: 2px solid #cbdcf2;
+      padding-bottom: 6px;
+      color: #1a365d;
+    }
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    #main-content .main-header > h1 {
+      margin: 0;
+      flex: 1;
+      min-width: 280px;
+    }
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      margin: 0 0 14px;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      border: 1px solid #bfd2ec;
+      background: #eaf3ff;
+      color: #114a8d;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .action-btn:hover { background: #dbeaff; }
+    .action-btn-danger {
+      border-color: #e4b7b7;
+      background: #fff1f1;
+      color: #8f2424;
+    }
+    .action-btn-danger:hover { background: #ffe5e5; }
+    .note {
+      background: #eaf3ff;
+      border: 1px solid #cce0ff;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+    .note[data-tone="ok"] {
+      background: #edf8f2;
+      border-color: #c6e7d1;
+      color: #215a36;
+    }
+    .note[data-tone="warn"] {
+      background: #fff7e8;
+      border-color: #eed19a;
+      color: #7a4e16;
+    }
+    .cloud-login {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 0;
+      background: #fff;
+      border: 1px solid #dbe5f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .cloud-login label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1a365d;
+    }
+    .cloud-login input {
+      min-width: 180px;
+      border: 1px solid #bfd2ec;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 0.92rem;
+    }
+    .cloud-login .who {
+      font-size: 0.88rem;
+      color: #355271;
+      margin-left: 4px;
+    }
+    @media (max-width: 760px) {
+      .main-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #main-content .main-header > h1 {
+        min-width: 0;
+      }
+      .cloud-login {
+        width: 100%;
+      }
+    }
+
+    /* ── Mobile side-drawer menu (≤760px only) ── */
+    @media (max-width: 760px) {
+      /* Sticky top bar replaces the main-header + top-actions */
+      #mob-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 150;
+        background: white;
+        border-bottom: 1px solid #dbe5f0;
+        padding: 10px 14px;
+        overflow: hidden;
+        min-width: 0;
+      }
+      #mob-topbar-title   { font-size: 1rem; font-weight: 700; color: #1a365d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #mob-topbar-name    { font-size: 0.72rem; color: #7f8c8d; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #mob-menu-btn {
+        display: flex; align-items: center; gap: 6px;
+        background: #eaf3ff; border: 1.5px solid #bfd2ec; color: #114a8d;
+        border-radius: 8px; padding: 8px 14px; font-size: 0.9rem; font-weight: 700;
+        cursor: pointer;
+      }
+      #mob-menu-btn span { font-size: 1.1rem; }
+
+      /* Backdrop */
+      #mob-drawer-backdrop {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.4); z-index: 200;
+      }
+      #mob-drawer-backdrop.open { display: block; }
+
+      /* Drawer panel */
+      #mob-drawer {
+        position: fixed; top: 0; left: 0; bottom: 0;
+        width: 82%; max-width: 320px; z-index: 201;
+        background: white; box-shadow: 4px 0 32px rgba(0,0,0,0.18);
+        transform: translateX(-100%);
+        transition: transform 0.26s cubic-bezier(.4,0,.2,1);
+        display: flex; flex-direction: column;
+      }
+      #mob-drawer.open { transform: translateX(0); }
+
+      /* Drawer header */
+      #mob-drawer-hdr {
+        padding: 28px 18px 16px;
+        border-bottom: 2px solid #dbe5f0;
+        background: #1a365d;
+      }
+      #mob-drawer-hdr-name { font-size: 1.05rem; font-weight: 700; color: white; }
+      #mob-drawer-hdr-sub  { font-size: 0.78rem; color: #a8c4e0; margin-top: 2px; }
+      #mob-drawer-auth-row {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-top: 12px;
+      }
+      #mob-drawer-auth-name { font-size: 0.82rem; color: #c8dff5; font-weight: 600; }
+
+      /* Drawer items list */
+      #mob-drawer-items { overflow-y: auto; flex: 1; }
+      .mob-drawer-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 15px 18px; border-bottom: 1px solid #eef0f4;
+        font-size: 0.95rem; font-weight: 600; color: #1a365d; cursor: pointer;
+        background: none; border-left: none; border-right: none; border-top: none;
+        width: 100%; text-align: left;
+      }
+      .mob-drawer-item:active { background: #eaf3ff; }
+      .mob-drawer-item .di-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+      .mob-drawer-item-danger { color: #8f2424 !important; }
+      .mob-drawer-close {
+        margin: 12px; padding: 12px;
+        background: #f0f4f8; border: none; border-radius: 8px;
+        width: calc(100% - 24px); font-weight: 700; color: #445;
+        font-size: 0.9rem; cursor: pointer;
+      }
+
+      /* Hide original header/auth/top-actions on mobile */
+      .main-header,
+      .top-actions { display: none !important; }
+    }
+
+    /* Hide mob-topbar + drawer elements on desktop */
+    @media (min-width: 761px) {
+      #mob-topbar,
+      #mob-drawer-backdrop,
+      #mob-drawer { display: none !important; }
+    }
+
+    /* ── Desktop sticky top bar ── */
+    @media (min-width: 761px) {
+      #desk-topbar {
+        position: sticky; top: 0; z-index: 150;
+        background: white; border-bottom: 2px solid #dbe5f0;
+        box-shadow: 0 2px 8px rgba(17,74,141,.07);
+        margin: 0 -20px; padding: 0 20px;
+      }
+      #desk-topbar-top {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 8px 0; gap: 12px;
+      }
+      #desk-topbar-title-wrap {
+        display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1;
+      }
+      #desk-topbar-title { font-size: 1rem; font-weight: 700; color: #1a365d; white-space: nowrap; }
+      #desk-topbar-patient {
+        font-size: 0.82rem; color: #7f8c8d; font-weight: 500;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      #topbar-flash {
+        font-size: 0.82rem; font-weight: 600; color: #1a7a3a;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        transition: opacity 0.4s;
+      }
+      #desk-topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+      #desk-topbar-auth-name { font-size: 0.85rem; font-weight: 600; color: #355271; }
+      #desk-topbar-toggle {
+        background: #f0f4f8; border: 1px solid #dbe5f0; color: #4f6073;
+        border-radius: 50%; width: 30px; height: 30px; padding: 0;
+        cursor: pointer; font-size: 1rem; line-height: 30px;
+        text-align: center; flex-shrink: 0; display: flex;
+        align-items: center; justify-content: center;
+      }
+      #desk-topbar-toggle:hover { background: #ddeeff; }
+      #desk-topbar-body {
+        display: flex; align-items: center; gap: 12px;
+        padding: 0 0 8px; border-top: 1px solid #eef2f7; flex-wrap: wrap;
+        padding-top: 6px;
+      }
+      #desk-topbar-body.dtb-collapsed { display: none; }
+      #desk-action-btns { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+      /* Hide old static header + top action bar since desk-topbar replaces them */
+      #legacy-main-header, #top-actions-bar { display: none !important; }
+    }
+    @media (max-width: 760px) { #desk-topbar { display: none !important; } }
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .quick-links a {
+      text-decoration: none;
+      color: #0645ad;
+      background: #fff;
+      border: 1px solid #c8ccd1;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+    }
+    .section {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin-bottom: var(--section-gap);
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(17, 74, 141, 0.08);
+    }
+    .section h2 {
+      margin: 0;
+      padding: 10px 12px;
+      background: linear-gradient(90deg, #eef5ff 0%, #f6fbff 100%);
+      border-bottom: 1px solid var(--line);
+      font-size: 1rem;
+      color: #114a8d;
+    }
+    @media (max-width: 760px) {
+      .section {
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(20,120,80,0.08);
+        border-color: #c2e0d0;
+      }
+      .section h2 {
+        background: #0d6e6e;
+        color: white;
+        font-size: 0.95rem;
+        padding: 11px 14px;
+        border-bottom: none;
+        letter-spacing: 0.01em;
+      }
+    }
+    iframe {
+      width: 100%;
+      max-width: 100%;
+      border: 0;
+      min-height: 120px;
+      background: #fff;
+      display: block;
+      overflow: hidden;
+    }
+
+    #preview-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      background: #525659;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    #print-container,
+    .print-card {
+      width: 3.95in;
+      height: 5.5in;
+      background: #fff;
+      padding: 0.08in 0.05in;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      font-family: Arial, sans-serif;
+      font-size: 6.5pt;
+      color: #000;
+      box-sizing: border-box;
+      border: 1px solid #000;
+      overflow: hidden;
+    }
+    #print-container .print-header,
+    .print-card .print-header {
+      text-align: center;
+      border-bottom: 1px solid #000;
+      padding-bottom: 1px;
+      margin-bottom: 3px;
+      font-size: 7pt;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+    #print-container .print-grid,
+    .print-card .print-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+    #print-container .print-bottom-row,
+    .print-card .print-bottom-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 4px;
+    }
+    #print-container .print-section,
+    .print-card .print-section {
+      border: 1px solid #aaa;
+      padding: 3px;
+      border-radius: 2px;
+    }
+    #print-container .print-section h3,
+    .print-card .print-section h3 {
+      margin-top: 0;
+      margin-bottom: 1px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0;
+      font-size: 7.0pt;
+      font-weight: 600;
+      line-height: 1.1;
+      text-align: center;
+    }
+    #print-container .print-row,
+    .print-card .print-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1px;
+      line-height: 1.1;
+      gap: 4px;
+    }
+    #print-container #pr-lab-a1c-row,
+    .print-card #pr-lab-a1c-row {
+      margin-top: 5px;
+    }
+    #print-container .compact-lab-row,
+    .print-card .compact-lab-row {
+      justify-content: flex-start;
+      gap: 0;
+    }
+    #print-container .compact-lab-row span:first-child,
+    .print-card .compact-lab-row span:first-child {
+      margin-right: 2px !important;
+    }
+    #print-container .compact-lab-row span:last-child,
+    .print-card .compact-lab-row span:last-child {
+      flex: 0 !important;
+      text-align: left !important;
+      white-space: nowrap;
+    }
+    #print-container .print-row span:first-child,
+    .print-card .print-row span:first-child {
+      font-weight: bold;
+      margin-right: 5px;
+      white-space: nowrap;
+    }
+    #print-container .print-row span:last-child,
+    .print-card .print-row span:last-child {
+      text-align: right;
+      white-space: pre-line;
+      flex: 1;
+    }
+    #print-container #pr-height,
+    .print-card #pr-height {
+      font-weight: normal;
+    }
+    #print-container .med-print-row,
+    .print-card .med-print-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dotted #ccc;
+      margin-bottom: 1px;
+      padding-bottom: 0;
+      gap: 4px;
+    }
+    #print-container .med-print-row:last-child,
+    .print-card .med-print-row:last-child { border-bottom: none; }
+    #print-container #pr-antiemetic,
+    .print-card #pr-antiemetic {
+      text-align: right;
+      white-space: pre-line;
+    }
+
+    #print-sheet {
+      display: none;
+      width: 8.0in;
+      height: 10.4in;
+      background: #fff;
+      position: relative;
+      box-sizing: border-box;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
+    .sheet-slot {
+      position: absolute;
+      width: 3.95in;
+      height: 5.5in;
+      overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
+    .slot-1 { left: 0; top: 0; }
+    .slot-2 { left: 0; top: 5.5in; }
+    .slot-3 { left: 4.05in; top: 0; }
+    .slot-4 { left: 4.05in; top: 5.5in; }
+    .sheet-slot .print-card {
+      width: 3.95in !important;
+      height: 5.5in !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      border: 1px solid #000 !important;
+      transform: none !important;
+    }
+    .sheet-slot.upside-down .print-card {
+      transform: rotate(180deg) !important;
+      transform-origin: center center;
+    }
+    #print-sheet {
+      display: none;
+      width: 7.40in;
+      height: 9.80in;
+      background: #fff;
+      position: relative;
+      box-sizing: border-box;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    #print-container {
+      width: 3.95in !important;
+      height: 5.5in !important;
+      margin: 0 !important;
+      padding: 0.08in 0.05in !important;
+      box-shadow: none !important;
+      border: 1px solid #000 !important;
+      page-break-after: avoid !important;
+      break-after: avoid-page !important;
+    }
+    #print-sheet {
+      width: 7.40in !important;
+      height: 9.80in !important;
+      margin: 0 auto !important;
+      box-shadow: none !important;
+      page-break-after: avoid !important;
+      break-after: avoid-page !important;
+    }
+    body.print-mode-sheet #print-container { display: none !important; }
+    body.print-mode-sheet #print-sheet { visibility: visible !important; }
+    body:not(.print-mode-sheet) #print-sheet { visibility: hidden !important; }
+
+    /* ── Print Layout Editor ── */
+    .layout-hidden { display: none !important; }
+    #print-container.layout-landscape, .print-card.layout-landscape { width: 5.5in; height: 3.95in; }
+    #print-container.layout-landscape .print-grid, .print-card.layout-landscape .print-grid { grid-template-columns: repeat(4, 1fr); }
+    /* Page size variants */
+    #print-container.lps-half    { width: 5.5in;  height: 8.5in;  font-size: 8pt; }
+    #print-container.lps-full    { width: 7.5in;  height: 10in;   font-size: 9pt; }
+    #print-container.lps-half .print-grid, #print-container.lps-full .print-grid { grid-template-columns: 1fr 1fr; }
+    /* Phone: continuous-scroll single column */
+    #print-container.lps-phone {
+      width: min(420px, 100%) !important;
+      height: auto !important; min-height: 0 !important;
+      overflow: visible !important;
+      font-size: 10pt !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      border: none !important; border-radius: 12px !important;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.13) !important;
+      padding: 0 !important; background: #f2f4f8 !important;
+    }
+    #print-container.lps-phone .print-header {
+      background: #1a365d !important; color: white !important;
+      font-size: 10pt !important; font-weight: 700 !important;
+      padding: 10px 14px !important; margin-bottom: 0 !important;
+      border: none !important; border-radius: 12px 12px 0 0 !important;
+      text-align: left !important; line-height: 1.4 !important;
+    }
+    #print-container.lps-phone .print-grid {
+      display: flex !important; flex-direction: column !important; gap: 0 !important;
+    }
+    #print-container.lps-phone .print-bottom-row {
+      display: contents !important;
+    }
+    #print-container.lps-phone .print-section {
+      border: none !important; border-radius: 0 !important;
+      padding: 0 !important; background: white !important;
+      margin-bottom: 8px !important;
+    }
+    #print-container.lps-phone .print-section:last-child { margin-bottom: 0 !important; border-radius: 0 0 12px 12px !important; }
+    #print-container.lps-phone .print-section h3 {
+      background: #e8edf5 !important; color: #1a365d !important;
+      font-size: 10pt !important; font-weight: 800 !important;
+      margin: 0 !important; padding: 7px 14px !important;
+      border-bottom: 1px solid #ccd5e8 !important; border-top: none !important;
+      text-align: left !important; line-height: 1.4 !important;
+      letter-spacing: 0.01em !important;
+    }
+    #print-container.lps-phone .print-row {
+      display: flex !important; justify-content: space-between !important;
+      padding: 7px 14px !important; margin-bottom: 0 !important;
+      border-bottom: 1px solid #eef0f4 !important;
+      line-height: 1.4 !important; gap: 10px !important; font-size: 10pt !important;
+    }
+    #print-container.lps-phone .print-row:last-child { border-bottom: none !important; }
+    #print-container.lps-phone .print-row span:first-child {
+      color: #5a6a7e !important; font-weight: 600 !important;
+      white-space: nowrap !important; flex-shrink: 0 !important;
+    }
+    #print-container.lps-phone .print-row span:last-child {
+      color: #1a1a2e !important; font-weight: 700 !important;
+      text-align: right !important; flex: 1 !important;
+    }
+    /* Fix inline pt font sizes on specific elements — targeted, NOT catch-all (fishbones use precise pt sizing) */
+    #print-container.lps-phone #pr-row-equipment,
+    #print-container.lps-phone #pr-equip-items,
+    #print-container.lps-phone #pr-anticipated-complications,
+    #print-container.lps-phone #pr-notes,
+    #print-container.lps-phone #pr-meds-list {
+      font-size: 10pt !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      line-height: 1.5 !important;
+    }
+    /* Uppercase sub-section label headers (Anticipated Complications, Notes, Equipment) */
+    #print-container.lps-phone #pr-anticipated-complications-row > div:first-child,
+    #print-container.lps-phone #pr-notes-section > div:first-child {
+      font-size: 10pt !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      font-weight: 700 !important; color: #5a6a7e !important;
+      text-transform: uppercase !important; letter-spacing: 0.06em !important;
+      padding: 6px 14px 2px !important; margin: 0 !important;
+    }
+    /* Free-text content blocks */
+    #print-container.lps-phone #pr-anticipated-complications,
+    #print-container.lps-phone #pr-notes {
+      padding: 4px 14px 8px !important;
+      font-size: 12pt !important;
+      line-height: 1.55 !important;
+      white-space: pre-wrap !important; word-break: break-word !important;
+    }
+    /* Sub-section wrappers — remove card-mode dotted borders/margins */
+    #print-container.lps-phone .print-section > div[style*="border-top"],
+    #print-container.lps-phone .print-section > div[style*="margin-top"] {
+      border-top: none !important; margin-top: 0 !important; padding-top: 0 !important;
+      border-top: 1px solid #eef0f4 !important;
+    }
+    /* Equipment block */
+    #print-container.lps-phone #pr-row-equipment {
+      padding: 7px 14px !important; line-height: 1.4 !important;
+    }
+    /* Lab fishbone diagrams: zoom up in phone mode (zoom affects layout flow, unlike transform:scale) */
+    #pr-lab-phone-display { display: none !important; }
+    #print-container.lps-phone #pr-row-labs {
+      padding: 8px 14px 0 !important;
+    }
+    #print-container.lps-phone #pr-lab-bmp-wrap {
+      zoom: 2.2;
+      margin-bottom: 12px !important;
+      justify-content: flex-start !important;
+    }
+    #print-container.lps-phone #pr-lab-cbccoag-wrap {
+      zoom: 2.2;
+      justify-content: flex-start !important;
+      gap: 16px !important;
+    }
+    /* Split wrap: always flex, editor panel hidden until .le-open */
+    #layout-split-wrap { display: flex; gap: 0; align-items: flex-start; }
+    #layout-editor-panel { display: none; width: 270px; flex-shrink: 0; background: white; border-right: 1.5px solid #dbe5f0; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-height: 80vh; overflow: hidden; position: sticky; top: 0; }
+    #layout-split-wrap.le-open #layout-editor-panel { display: flex; }
+    #layout-print-wrap { flex: 1; overflow-x: auto; padding-left: 12px; }
+    .lep-group-title { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #7f8c8d; margin: 0 0 6px; }
+    .lep-orientation-row { display: flex; gap: 6px; margin-bottom: 4px; }
+    .lep-orient-btn { flex: 1; padding: 6px; border: 1.5px solid #dde3ec; background: white; border-radius: 6px; font-size: 0.74rem; font-weight: 700; color: #445; cursor: pointer; }
+    .lep-orient-btn.active { border-color: #0d6e6e; background: #e8f7f5; color: #0d6e6e; }
+    .lep-orient-btn:hover:not(.active) { border-color: #aab; }
+    .lep-sec-item { border: 1.5px solid #dde8f5; border-radius: 8px; margin-bottom: 7px; overflow: hidden; }
+    .lep-sec-head { display: flex; align-items: center; gap: 5px; padding: 7px 9px; background: #f5f9ff; cursor: pointer; user-select: none; }
+    .lep-drag { cursor: grab; color: #b0c0d8; font-size: 1rem; flex-shrink: 0; }
+    .lep-drag:active { cursor: grabbing; }
+    .lep-sec-label { flex: 1; font-size: 0.78rem; font-weight: 700; color: #1a365d; }
+    .lep-arrow { font-size: 0.65rem; color: #7f8c8d; transition: transform 0.2s; flex-shrink: 0; }
+    .lep-sec-item.expanded .lep-arrow { transform: rotate(90deg); }
+    .lep-sec-body { display: none; padding: 4px 8px 6px; }
+    .lep-sec-item.expanded .lep-sec-body { display: block; }
+    .lep-row-item { display: flex; align-items: center; gap: 5px; padding: 4px 2px; border-radius: 4px; }
+    .lep-row-item:hover { background: #f0f6ff; }
+    .lep-row-drag { cursor: grab; color: #c0cce0; font-size: 0.85rem; flex-shrink: 0; }
+    .lep-row-drag:active { cursor: grabbing; }
+    .lep-row-label { flex: 1; font-size: 0.74rem; color: #334; }
+    .lep-tgl { position: relative; width: 32px; height: 18px; flex-shrink: 0; display: inline-block; }
+    .lep-tgl input { display: none; }
+    .lep-tgl-track { position: absolute; inset: 0; background: #ccd4e0; border-radius: 18px; cursor: pointer; transition: background 0.2s; }
+    .lep-tgl-track::after { content: ''; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; background: white; border-radius: 50%; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+    .lep-tgl input:checked ~ .lep-tgl-track { background: #0d6e6e; }
+    .lep-tgl input:checked ~ .lep-tgl-track::after { left: 16px; }
+  </style>
+</head>
+<body>
+<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
+
+
+</div>
+  <div id="preview-screen">
+    <div id="preview-actions" style="margin-bottom:20px;display:flex;gap:10px;">
+      <button type="button" class="action-btn" onclick="closePreview()">Back to Edit</button>
+      <button type="button" class="action-btn" id="btn-preview-print-single" onclick="printNow()">Print This Plan</button>
+      <button type="button" class="action-btn" id="btn-preview-email-single" onclick="emailCurrentPlan()">Email This Plan (PDF)</button>
+      <button type="button" class="action-btn" id="btn-preview-print-multi" onclick="printSelectedPlansFromPreview()" style="display:none;">Print Selected Plans</button>
+      <button type="button" class="action-btn" id="btn-preview-email-multi" onclick="emailSelectedPlansFromPreview()" style="display:none;">Email Selected Plans (PDF)</button>
+      <button type="button" class="action-btn" id="btn-layout-edit" onclick="toggleLayoutEditor()">Edit Layout</button>
+    </div>
+
+
+    <div id="layout-split-wrap">
+    <div id="layout-editor-panel">
+      <div style="padding:12px 14px;border-bottom:1.5px solid #e8eef5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <span style="font-size:0.9rem;font-weight:800;color:#1a365d;">✏️ Edit Layout</span>
+        <div style="display:flex;gap:5px;align-items:center;">
+          <select id="layout-template-select" style="font-size:0.71rem;border:1px solid #ccd4e0;border-radius:4px;padding:2px 4px;max-width:110px;" onclick="layoutLoadTemplates()"><option value="">— Template —</option></select>
+          <button onclick="layoutApplyTemplate()" style="font-size:0.71rem;border:1px solid #0d6e6e;background:white;color:#0d6e6e;border-radius:4px;padding:2px 6px;cursor:pointer;white-space:nowrap;">Load</button>
+        </div>
+      </div>
+      <div id="layout-panel-body" style="flex:1;overflow-y:auto;padding:10px 12px;"></div>
+      <div style="padding:8px 12px;border-top:1.5px solid #e8eef5;display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;align-items:center;background:white;">
+        <button onclick="layoutSaveTemplate()" style="flex:1;padding:7px;background:#0d6e6e;color:white;border:none;border-radius:7px;font-size:0.78rem;font-weight:700;cursor:pointer;">💾 Save Template</button>
+        <button onclick="layoutSetDefault()" style="flex:1;padding:7px;background:#1a365d;color:white;border:none;border-radius:7px;font-size:0.78rem;font-weight:700;cursor:pointer;">⭐ Set Default</button>
+        <button onclick="layoutResetAll()" style="flex:1;padding:7px;background:#f0f4f8;color:#445;border:none;border-radius:7px;font-size:0.78rem;font-weight:700;cursor:pointer;">↺ Reset</button>
+        <span id="layout-save-status" style="font-size:0.72rem;color:#0d6e6e;width:100%;text-align:center;min-height:1.2em;"></span>
+      </div>
+    </div>
+    <div id="layout-print-wrap">
+    <div id="print-container">
+      <div class="print-header"><span id="pr-header-initials">_</span> | <span id="pr-header-date">_</span> | <span id="pr-header-time">_</span> | <span id="pr-header-surgery">_</span></div>
+      <div class="print-grid" id="print-grid-inner">
+        <div class="print-section" id="ps-patient">
+          <h3>Patient Details</h3>
+          <div class="print-row" id="pr-row-age-gen"><span>Age / Gender:</span><span id="pr-age-gen">_</span></div>
+          <div class="print-row" id="pr-row-ht-wt"><span></span><span><span id="pr-height">_</span><span style="margin:0 2px;">/</span><span id="pr-weight">_</span><span style="margin:0 2px;">/</span><span id="pr-bmi">_</span></span></div>
+          <div class="print-row" id="pr-row-allergies"><span>Allergies:</span><span id="pr-allergies">_</span></div>
+          <div class="print-row" id="pr-row-pmh"><span>PMH:</span><span id="pr-pmh">_</span></div>
+          <div class="print-row" id="pr-past-surg-row" style="display:none;"><span>PSH:</span><span id="pr-past-surg">_</span></div>
+          <div class="print-row" id="pr-prior-anesthetic-row" style="display:none;"><span>Prior Anes:</span><span id="pr-prior-anesthetic">_</span></div>
+          <div id="pr-row-meds" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px; margin-bottom: 6px;">
+            <span style="font-weight:bold; display:block; margin-bottom:2px;">Home Meds:</span>
+            <div id="pr-meds-list" style="font-size:0.9em; padding-left: 5px;"></div>
+          </div>
+          <div class="print-row" id="pr-pregnant-row" style="display:none;"><span>Pregnant:</span><span id="pr-pregnant">_</span></div>
+          <div class="print-row" id="pr-fasted-row" style="display:none;"><span>Fasted:</span><span id="pr-fasted">_</span></div>
+          <span id="pr-smoker" style="display:none;"></span>
+          <div class="print-row" id="pr-interpreter-row" style="display:none;"><span>Interpreter:</span><span id="pr-interpreter">_</span></div>
+          <div class="print-row" id="pr-hearing-row" style="display:none;"><span>Hearing Loss:</span><span id="pr-hearing">_</span></div>
+          <div class="print-row" id="pr-pacer-row" style="display:none;"><span>Device:</span><span id="pr-pacer">_</span></div>
+        </div>
+
+        <div class="print-section" id="ps-preop">
+          <h3>Preop & Airway</h3>
+          <div id="pr-row-labs" style="margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
+            <!-- BMP Fishbone -->
+            <div id="pr-lab-bmp-wrap" style="display:flex;gap:3px;align-items:center;margin-bottom:2px;">
+              <div style="display:inline-block;position:relative;width:118px;height:32px;font-size:5.4pt;flex-shrink:0;">
+                <svg width="118" height="32" viewBox="0 0 118 32" style="position:absolute;left:0;top:0;">
+                  <line x1="2" y1="17" x2="92" y2="17" stroke="#555" stroke-width="1" />
+                  <line x1="30" y1="4" x2="30" y2="30" stroke="#555" stroke-width="1" />
+                  <line x1="60" y1="4" x2="60" y2="30" stroke="#555" stroke-width="1" />
+                  <line x1="92" y1="17" x2="114" y2="4" stroke="#555" stroke-width="1" />
+                  <line x1="92" y1="17" x2="114" y2="30" stroke="#555" stroke-width="1" />
+                </svg>
+                <span style="position:absolute;left:10px;top:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-na">—</span>
+                <span style="position:absolute;left:10px;bottom:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-k">—</span>
+                <span style="position:absolute;left:40px;top:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-cl">—</span>
+                <span style="position:absolute;left:40px;bottom:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-mg">—</span>
+                <span style="position:absolute;left:70px;top:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-bun">—</span>
+                <span style="position:absolute;left:70px;bottom:6px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-cr">—</span>
+                <span style="position:absolute;right:1px;top:13px;background:#fff;padding:0 1px;line-height:1;" id="pr-lab-glu">—</span>
+              </div>
+            </div>
+            <!-- CBC + Coags -->
+            <div id="pr-lab-cbccoag-wrap" style="display:flex;gap:2pt;align-items:center;margin-top:1px;justify-content:space-between;">
+              <div style="display:inline-block;position:relative;width:60px;height:32px;font-size:5.2pt;flex-shrink:0;">
+                <svg width="60" height="32" viewBox="0 0 70 36" style="position:absolute;left:0;top:0;">
+                  <line x1="14" y1="4" x2="60" y2="34" stroke="#555" stroke-width="1" />
+                  <line x1="60" y1="4" x2="14" y2="34" stroke="#555" stroke-width="1" />
+                </svg>
+                <span style="position:absolute;left:27px;top:1px;background:#fff;padding:0;line-height:1;" id="pr-lab-hgb">—</span>
+                <span style="position:absolute;left:3px;top:14px;background:#fff;padding:0;line-height:1;" id="pr-lab-wbc">—</span>
+                <span style="position:absolute;right:3px;top:14px;background:#fff;padding:0;line-height:1;" id="pr-lab-plt">—</span>
+                <span style="position:absolute;left:27px;bottom:1px;background:#fff;padding:0;line-height:1;" id="pr-lab-hct">—</span>
+              </div>
+              <div style="display:inline-block;position:relative;width:54px;height:38px;font-size:5.4pt;flex-shrink:0;margin-right:2px;">
+                <svg width="54" height="38" viewBox="0 0 54 38" style="position:absolute;left:0;top:0;">
+                  <line x1="29" y1="18" x2="12" y2="3" stroke="#555" stroke-width="1" />
+                  <line x1="29" y1="18" x2="46" y2="3" stroke="#555" stroke-width="1" />
+                  <line x1="29" y1="18" x2="29" y2="36" stroke="#555" stroke-width="1" />
+                </svg>
+                <span style="position:absolute;left:22px;top:0;background:#fff;padding:0;line-height:1;" id="pr-lab-inr">—</span>
+                <span style="position:absolute;left:3px;top:18px;background:#fff;padding:0;line-height:1;" id="pr-lab-pt">—</span>
+                <span style="position:absolute;right:3px;top:18px;background:#fff;padding:0;line-height:1;" id="pr-lab-ptt">—</span>
+              </div>
+            </div>
+            <div class="print-row compact-lab-row" id="pr-lab-a1c-row" style="display:none;"><span>A1C:</span><span id="pr-lab-a1c">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-alb-row" style="display:none;"><span>Albumin:</span><span id="pr-lab-alb">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-ast-row" style="display:none;"><span>AST:</span><span id="pr-lab-ast">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-alt-row" style="display:none;"><span>ALT:</span><span id="pr-lab-alt">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-ca-row" style="display:none;"><span>Ca:</span><span id="pr-lab-ca">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-ica-row" style="display:none;"><span>iCa:</span><span id="pr-lab-ica">_</span></div>
+            <div class="print-row compact-lab-row" id="pr-lab-ts-date-row" style="display:none;"><span>T+S Date:</span><span id="pr-lab-ts-date">_</span></div>
+            <div class="print-row" id="pr-gas-row" style="display:none;"><span id="pr-gas-label">Gas:</span><span id="pr-gas-values">_</span></div>
+          </div>
+          <!-- Phone-only lab grid (hidden in card/sheet modes) -->
+          <div id="pr-lab-phone-display">
+            <div class="pr-lab-ph-group" id="pr-lab-ph-bmp">
+              <div class="pr-lab-ph-row"><span>Na</span><span id="pr-lab-ph-na">—</span></div>
+              <div class="pr-lab-ph-row"><span>K</span><span id="pr-lab-ph-k">—</span></div>
+              <div class="pr-lab-ph-row"><span>Cl</span><span id="pr-lab-ph-cl">—</span></div>
+              <div class="pr-lab-ph-row"><span>Mg</span><span id="pr-lab-ph-mg">—</span></div>
+              <div class="pr-lab-ph-row"><span>BUN</span><span id="pr-lab-ph-bun">—</span></div>
+              <div class="pr-lab-ph-row"><span>Cr</span><span id="pr-lab-ph-cr">—</span></div>
+              <div class="pr-lab-ph-row"><span>Glucose</span><span id="pr-lab-ph-glu">—</span></div>
+            </div>
+            <div class="pr-lab-ph-group" id="pr-lab-ph-cbc">
+              <div class="pr-lab-ph-row"><span>Hgb</span><span id="pr-lab-ph-hgb">—</span></div>
+              <div class="pr-lab-ph-row"><span>Hct</span><span id="pr-lab-ph-hct">—</span></div>
+              <div class="pr-lab-ph-row"><span>WBC</span><span id="pr-lab-ph-wbc">—</span></div>
+              <div class="pr-lab-ph-row"><span>Plt</span><span id="pr-lab-ph-plt">—</span></div>
+            </div>
+            <div class="pr-lab-ph-group" id="pr-lab-ph-coag">
+              <div class="pr-lab-ph-row"><span>PT</span><span id="pr-lab-ph-pt">—</span></div>
+              <div class="pr-lab-ph-row"><span>INR</span><span id="pr-lab-ph-inr">—</span></div>
+              <div class="pr-lab-ph-row"><span>PTT</span><span id="pr-lab-ph-ptt">—</span></div>
+            </div>
+          </div>
+          <div class="print-row" id="pr-row-procedure" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;"><span>Procedure:</span><span id="pr-surgery">_</span></div>
+          <div class="print-row" id="pr-extra-surg-row" style="display:none;"><span>Additional:</span><span id="pr-extra-surg">_</span></div>
+          <div class="print-row" id="pr-row-position"><span>Positioning:</span><span id="pr-position">_</span></div>
+          <div class="print-row" id="pr-pressure-points-row" style="display:none;"><span>Pressure Pts:</span><span id="pr-pressure-points">_</span></div>
+          <div class="print-row" id="pr-row-insufflation"><span>Insufflation:</span><span id="pr-insufflation">_</span></div>
+          <div class="print-row" id="pr-obtain-ts-row" style="display:none;"><span>Obtain T+S:</span><span id="pr-obtain-ts">_</span></div>
+          <div class="print-row" id="pr-blood-room-row" style="display:none;"><span>Blood in room:</span><span id="pr-blood-room">_</span></div>
+          <div class="print-row" id="pr-row-asa"><span>ASA Class:</span><span id="pr-asa-class">_</span></div>
+          <div class="print-row" id="pr-row-nerve-stim"><span>Nerve Stim:</span><span id="pr-nerve-stim">_</span></div>
+          <div class="print-row" id="pr-antibiotic-plan-row" style="display:none;"><span>Antibiotic:</span><span id="pr-antibiotic-plan">_</span></div>
+          <div class="print-row" id="pr-row-awareness" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Awareness Hx</span></div>
+          <div class="print-row" id="pr-row-famhx" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Fam Hx Anes Comp</span></div>
+          <div class="print-row" id="pr-row-mh" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Malignant Hyperthermia</span></div>
+          <div class="print-row" id="pr-row-pseudo" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>PChE Def</span></div>
+          <div class="print-row" id="pr-mets-row" style="display:none;margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;"><span>METs &lt;4:</span><span id="pr-mets">_</span></div>
+          <div id="pr-row-airway-exam" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;">
+            <div class="print-row"><span>Mallampati:</span><span id="pr-mallampati">_</span></div>
+            <div class="print-row" id="pr-abn-tmd-row" style="display:none;"><span>Thyromental:</span><span id="pr-abn-tmd">_</span></div>
+            <div class="print-row" id="pr-abn-gap-row" style="display:none;"><span>Interincisor Gap:</span><span id="pr-abn-gap">_</span></div>
+            <div class="print-row" id="pr-abn-atl-row" style="display:none;"><span>Atlanto-occipital:</span><span id="pr-abn-atl">_</span></div>
+            <div class="print-row" id="pr-dentition-row" style="display:none;"><span>Dentition:</span><span id="pr-dentition">_</span></div>
+          </div>
+        </div>
+
+        <div class="print-bottom-row">
+        <div class="print-section" id="ps-plan">
+          <h3>Anesthetic Plan</h3>
+          <div class="print-row" id="pr-row-anes-type"><span>Type:</span><span id="pr-anes-type">_</span></div>
+          <div class="print-row" id="pr-tiva-row" style="display:none;"><span>TIVA Reason:</span><span id="pr-tiva-reason">_</span></div>
+          <div id="pr-row-ga-details" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;">
+            <div class="print-row"><span>Airway / RSI:</span><span id="pr-airway">_</span></div>
+            <div class="print-row"><span>Extubation:</span><span id="pr-extubation">_</span></div>
+            <div class="print-row"><span>Anxiolytic:</span><span id="pr-anx">_</span></div>
+            <div class="print-row"><span>Induction:</span><span id="pr-ind">_</span></div>
+            <div class="print-row"><span>Adrenergic:</span><span id="pr-blunt">_</span></div>
+            <div class="print-row" id="pr-vesicant-row" style="display:none;"><span>Vesicant:</span><span id="pr-vesicant">_</span></div>
+            <div class="print-row"><span>Paralytic:</span><span id="pr-nmb">_</span></div>
+            <div class="print-row"><span>Inhal (MAC):</span><span id="pr-inhal">_</span></div>
+            <div class="print-row" id="pr-anticipated-pain-row" style="display:none;"><span>Anticip Pain:</span><span id="pr-anticipated-pain">_</span></div>
+            <div class="print-row" id="pr-pain-intra-row"><span>Intra Pain:</span><span id="pr-pain-intra">_</span></div>
+            <div class="print-row" id="pr-pain-post-row"><span>Post Pain:</span><span id="pr-pain-post">_</span></div>
+            <div class="print-row" id="pr-pain-nonopioid-row"><span>Non-Opioid:</span><span id="pr-pain-nonopioid">_</span></div>
+            <div class="print-row"><span>APFEL:</span><span id="pr-apfel-score">_</span></div>
+            <div class="print-row"><span>Antiemetics:</span><span id="pr-antiemetic">_</span></div>
+          </div>
+        </div>
+
+        <div class="print-section" id="ps-misc">
+          <h3>Miscellaneous</h3>
+          <div id="pr-row-equipment" style="font-size:6.4pt;line-height:1.1;min-height:24px;">
+            <div id="pr-equip-items" style="margin-top:1px;">None</div>
+          </div>
+          <div id="pr-row-fluids" style="margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
+            <div class="print-row"><span>Type:</span><span id="pr-fluid-type">_</span></div>
+            <div class="print-row" id="pr-warm-fluids-row" style="display:none;"><span>Warm Fluids:</span><span id="pr-warm-fluids">_</span></div>
+            <div class="print-row" id="pr-albumin-row" style="display:none;"><span>Albumin:</span><span id="pr-albumin">_</span></div>
+            <div class="print-row"><span>Hr 1:</span><span id="pr-fluid-hr1">_</span></div>
+            <div class="print-row"><span>Hr 2:</span><span id="pr-fluid-hr2">_</span></div>
+            <div class="print-row"><span>Hr 3:</span><span id="pr-fluid-hr3">_</span></div>
+            <div class="print-row"><span>Hr 4+:</span><span id="pr-fluid-hr4">_</span></div>
+            <div class="print-row"><span>EBV / ABL:</span><span id="pr-ebv-abl">_</span></div>
+            <div class="print-row" id="pr-anticipated-ebl-row" style="display:none;"><span>Anticip EBL:</span><span id="pr-anticipated-ebl">_</span></div>
+            <div class="print-row"><span>Target TV:</span><span id="pr-target-tv-plan">_</span></div>
+          </div>
+          <div id="pr-anticipated-complications-row" style="display:none;margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
+            <div style="font-size:6.2pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#444;margin-bottom:2px;">Anticipated Complications</div>
+            <div id="pr-anticipated-complications" style="font-size:6.4pt;line-height:1.35;white-space:pre-wrap;word-break:break-word;"></div>
+          </div>
+          <div id="pr-notes-section" style="display:none;margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
+            <div style="font-size:6.2pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#444;margin-bottom:2px;">Notes</div>
+            <div id="pr-notes" style="font-size:6.4pt;line-height:1.35;white-space:pre-wrap;word-break:break-word;"></div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+    <div id="print-sheet">
+      <div id="sheet-slot-1" class="sheet-slot slot-1"></div>
+      <div id="sheet-slot-2" class="sheet-slot slot-2 upside-down"></div>
+      <div id="sheet-slot-3" class="sheet-slot slot-3"></div>
+      <div id="sheet-slot-4" class="sheet-slot slot-4 upside-down"></div>
+    </div>
+    <div id="multi-preview-container" style="display:none;"></div>
+    </div><!-- /layout-print-wrap -->
+    </div><!-- /layout-split-wrap -->
+  </div>
+
+  <div id="main-content" class="wrap">
+
+    <!-- ── Mobile sticky top bar (hidden on desktop) ── -->
+    <div id="mob-topbar">
+      <div style="min-width:0;flex:1;overflow:hidden;margin-right:10px;">
+        <div id="mob-topbar-title">Anesthetic Care Plan</div>
+        <div id="mob-topbar-name"></div>
+      </div>
+      <button id="mob-menu-btn" onclick="openMobDrawer()" style="flex-shrink:0;"><span>☰</span> Menu</button>
+    </div>
+
+    <!-- ── Side drawer backdrop ── -->
+    <div id="mob-drawer-backdrop" onclick="closeMobDrawer()"></div>
+
+    <!-- ── Side drawer panel ── -->
+    <div id="mob-drawer">
+      <div id="mob-drawer-hdr">
+        <div id="mob-drawer-hdr-name">Anesthetic Care Plan</div>
+        <div id="mob-drawer-hdr-sub">Care Plan Generator</div>
+        <div id="mob-drawer-auth-row">
+          <span id="mob-drawer-auth-name"></span>
+          <button type="button" id="mob-cloud-login-btn" class="action-btn" style="display:none;font-size:0.8rem;padding:5px 12px;" onclick="applyCloudLogin();closeMobDrawer()">Sign In</button>
+          <button type="button" id="mob-cloud-logout-btn" class="action-btn" style="display:none;font-size:0.8rem;padding:5px 12px;" onclick="clearCloudLogin();closeMobDrawer()">Sign Out</button>
+        </div>
+      </div>
+      <div id="mob-drawer-items">
+        <button class="mob-drawer-item" onclick="openPreview();closeMobDrawer()"><span class="di-icon">🖨️</span>Print / Email</button>
+        <button class="mob-drawer-item" onclick="printOrEmailSavedPlans();closeMobDrawer()"><span class="di-icon">📄</span>Print / Email Plans</button>
+        <button class="mob-drawer-item" onclick="saveNamedPlan();closeMobDrawer()"><span class="di-icon">💾</span>Save Plan</button>
+        <button class="mob-drawer-item" onclick="loadNamedPlan();closeMobDrawer()"><span class="di-icon">📂</span>Load Plan</button>
+        <button class="mob-drawer-item" onclick="deleteNamedPlan();closeMobDrawer()"><span class="di-icon">🗑️</span>Delete Plan</button>
+        <button class="mob-drawer-item mob-drawer-item-danger" onclick="clearAllData();closeMobDrawer()"><span class="di-icon">✕</span>Clear Current Plan</button>
+      </div>
+      <button class="mob-drawer-close" onclick="closeMobDrawer()">Close</button>
+    </div>
+
+    <!-- ── Desktop sticky top bar (hidden on mobile) ── -->
+    <div id="desk-topbar">
+      <div id="desk-topbar-top">
+        <div id="desk-topbar-title-wrap">
+          <span id="desk-topbar-title">Anesthetic Care Plan</span>
+          <span id="desk-topbar-patient"></span>
+          <span id="topbar-flash" style="display:none;"></span>
+        </div>
+        <div id="desk-topbar-right">
+          <span id="header-auth-name" style="font-size:0.85rem;font-weight:600;color:#355271;"></span>
+          <button type="button" id="cloud-login-btn" class="action-btn" style="display:none;font-size:0.8rem;padding:5px 10px;" onclick="applyCloudLogin()">Sign In</button>
+          <button type="button" id="cloud-logout-btn" class="action-btn" style="display:none;font-size:0.8rem;padding:5px 10px;" onclick="clearCloudLogin()">Sign Out</button>
+          <button type="button" id="desk-topbar-toggle" onclick="toggleDeskTopbar()" title="Settings / collapse menu">&#9881;</button>
+        </div>
+      </div>
+      <div id="desk-topbar-body">
+        <div id="desk-action-btns">
+          <button type="button" class="action-btn" onclick="printOrEmailSavedPlans()">&#128196; Print / Email Plans</button>
+          <button type="button" class="action-btn" onclick="saveNamedPlan()">&#128190; Save</button>
+          <button type="button" class="action-btn" onclick="loadNamedPlan()">&#128194; Load</button>
+          <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-header" id="legacy-main-header">
+      <h1>Anesthetic Care Plan</h1>
+    </div>
+    <div class="note" id="storage-status" data-tone="warn">Checking save storage mode...</div>
+    <div class="top-actions" id="top-actions-bar">
+      <button type="button" class="action-btn" onclick="saveNamedPlan()">Save Plan</button>
+      <button type="button" class="action-btn" onclick="loadNamedPlan()">Load Plan</button>
+      <button type="button" class="action-btn" onclick="deleteNamedPlan()">Delete Plan</button>
+      <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear current care plan</button>
+    </div>
+
+    <div id="sec-1" class="section"><h2>Patient / Surgery</h2><iframe id="frame-1" src="1-Patient-Demographics.html?v=2" title="Section 1"></iframe></div>
+    <div id="sec-3" class="section"><h2>Past Medical History</h2><iframe id="frame-3" src="3-PMH.html" title="Section 3"></iframe></div>
+    <div id="sec-4" class="section"><h2>Home Meds</h2><iframe id="frame-4" src="4-Prescribed-Medications.html" title="Section 4"></iframe></div>
+    <div id="sec-2" class="section"><h2>Labs</h2><iframe id="frame-2" src="2-Labs-Chemistries.html" title="Section 2"></iframe></div>
+    <div id="sec-5" class="section"><h2>Preoperative History</h2><iframe id="frame-5" src="5-Preop-History.html" title="Section 5"></iframe></div>
+    <div id="sec-6" class="section"><h2>Airway Exam</h2><iframe id="frame-6" src="6-Airway-Exam.html" title="Section 6"></iframe></div>
+    <div id="sec-6b" class="section"><h2>Extras</h2><iframe id="frame-6b" src="6b-Extras.html" title="Section 6b"></iframe></div>
+    <div id="sec-7" class="section"><h2>Anesthetic Plan</h2><iframe id="frame-7" src="7-Anesthetic-Plan.html?v=2" title="Section 7"></iframe></div>
+    <div id="sec-7b" class="section"><h2>APFEL &amp; PONV</h2><iframe id="frame-7b" src="7b-APFEL-PONV.html" title="Section 7b"></iframe></div>
+    <div id="sec-8" class="section"><h2>Fluid &amp; Blood Plan</h2><iframe id="frame-8" src="8-Fluid-Blood-Plan.html" title="Section 8"></iframe></div>
+    <div class="section" style="margin-top:16px;">
+      <h2 style="margin-bottom:8px;">Notes</h2>
+      <textarea id="notes-freetext" placeholder="Add your own notes here..." style="width:100%;min-height:100px;resize:vertical;font-family:inherit;font-size:0.92rem;padding:10px;border:1px solid #c9d6e3;border-radius:8px;background:#fafcff;color:#1d2938;line-height:1.5;box-sizing:border-box;"></textarea>
+    </div>
+    <div class="top-actions" style="margin-top:20px;margin-bottom:20px;">
+      <button type="button" class="action-btn" onclick="openPreview()">Print / Email</button>
+      <button type="button" class="action-btn" onclick="printOrEmailSavedPlans()">Print / Email Plans</button>
+      <button type="button" class="action-btn" onclick="saveNamedPlan()">Save Plan</button>
+      <button type="button" class="action-btn" onclick="loadNamedPlan()">Load Plan</button>
+      <button type="button" class="action-btn" onclick="deleteNamedPlan()">Delete Plan</button>
+      <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear current care plan</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="firebase-config.js?v=2"></script>
+  <script src="firebase-care-plans.js?v=2"></script>
+  <script>
+    // Inline Firebase Auth init — replaces ../shared-auth.js which 404s on this server.
+    // Uses the same project config as AnesthesiaWiki.html so auth state is shared across pages.
+    (function() {
+      var FIREBASE_CONFIG = {
+        apiKey:            'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+        authDomain:        'anesthesia-wiki-saved-files.firebaseapp.com',
+        projectId:         'anesthesia-wiki-saved-files',
+        storageBucket:     'anesthesia-wiki-saved-files.firebasestorage.app',
+        messagingSenderId: '493278937716',
+        appId:             '1:493278937716:web:6d4055acbb6f5745810721'
+      };
+      if (!window.firebase) return;
+      if (!window.firebase.apps || !window.firebase.apps.length) {
+        window.firebase.initializeApp(FIREBASE_CONFIG);
+      }
+      var _popupInProgress = false;
+      window.AnesthesiaAuth = {
+        showLogin: function() {
+          if (_popupInProgress) return;
+          _popupInProgress = true;
+          var provider = new window.firebase.auth.GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+          window.firebase.auth().signInWithPopup(provider).then(function() {
+            _popupInProgress = false;
+          }).catch(function(e) {
+            _popupInProgress = false;
+            if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+              alert(e.message || 'Google sign-in failed. Make sure pop-ups are allowed.');
+            }
+          });
+        },
+        signOut: function() {
+          try { return window.firebase.auth().signOut(); } catch(e) { return Promise.resolve(); }
+        },
+        onAuthChange: function(cb) {
+          try { window.firebase.auth().onAuthStateChanged(cb); } catch(e) {}
+        },
+        getUser: function() {
+          try { return window.firebase.auth().currentUser; } catch(e) { return null; }
+        }
+      };
+    })();
+  </script>
+  <script src="combined.js?v=5.7"></script>
+  <script>
+    (function initNotes() {
+      var ta = document.getElementById('notes-freetext');
+      if (!ta) return;
+      // Load persisted value
+      try {
+        var saved = JSON.parse(localStorage.getItem('carePlanSplitState') || '{}');
+        if (saved && saved['notes-freetext']) ta.value = saved['notes-freetext'];
+      } catch (e) {}
+      // Save on input
+      ta.addEventListener('input', function() {
+        try {
+          var state = JSON.parse(localStorage.getItem('carePlanSplitState') || '{}') || {};
+          state['notes-freetext'] = ta.value;
+          localStorage.setItem('carePlanSplitState', JSON.stringify(state));
+          // Mirror into parent mirroredState so buildPrintCard picks it up live
+          if (typeof mirroredState !== 'undefined') mirroredState['notes-freetext'] = ta.value;
+        } catch (e) {}
+      });
+    })();
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+
+<style id="cp-side-nav-style">
+@media print{#cp-side-nav{display:none!important;}}
+#cp-side-nav{
+  position:fixed;left:150px;top:33%;
+  display:flex;flex-direction:column;gap:4px;
+  z-index:900;background:#fff;
+  border:1px solid #dbe5f0;border-radius:8px;
+  padding:12px 8px;
+  box-shadow:0 2px 10px rgba(17,74,141,.09);
+  width:155px;min-width:90px;max-width:300px;
+  min-height:80px;
+  resize:both;overflow:auto;
+  cursor:default;
+  user-select:none;
+}
+#cp-side-nav-handle{
+  display:block;text-align:center;font-size:13px;color:#b0bec5;
+  cursor:grab;margin:-4px -2px 4px;padding:2px 0;
+  letter-spacing:2px;line-height:1;
+}
+#cp-side-nav-handle:active{cursor:grabbing;}
+#cp-side-nav a{display:block;padding:7px 10px;border-radius:5px;font-size:.82em;color:#4f6073;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .15s,color .15s;line-height:1.4;}
+#cp-side-nav a:hover{background:#eef5ff;color:#114a8d;}
+@media(max-width:1039px){#cp-side-nav{display:none;}}
+</style>
+<nav id="cp-side-nav" aria-label="Care Plan sections">
+  <span id="cp-side-nav-handle" title="Drag to move">&bull;&bull;&bull;</span>
+  <a href="#sec-1">Patient / Surgery</a>
+  <a href="#sec-3">PMH / PSH</a>
+  <a href="#sec-4">Meds</a>
+  <a href="#sec-2">Labs</a>
+  <a href="#sec-5">Preop History</a>
+  <a href="#sec-6">Airway</a>
+  <a href="#sec-6b">Extras</a>
+  <a href="#sec-7">Plan</a>
+  <a href="#sec-7b">PONV</a>
+  <a href="#sec-8">Fluid / Blood</a>
+</nav>
+<script>
+(function(){
+  var nav = document.getElementById('cp-side-nav');
+  var handle = document.getElementById('cp-side-nav-handle');
+  if (!nav || !handle) return;
+  // Restore saved position
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('cpNavPos') || '{}'); } catch(e){}
+  if (saved.left) nav.style.left = saved.left;
+  if (saved.top)  nav.style.top  = saved.top;
+  if (saved.width)  nav.style.width  = saved.width;
+  if (saved.height) nav.style.height = saved.height;
+  nav.style.transform = 'none';
+  // Drag
+  var dragging = false, ox = 0, oy = 0;
+  handle.addEventListener('mousedown', function(e){
+    if (e.button !== 0) return;
+    dragging = true;
+    ox = e.clientX - nav.getBoundingClientRect().left;
+    oy = e.clientY - nav.getBoundingClientRect().top;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e){
+    if (!dragging) return;
+    var x = Math.max(0, e.clientX - ox);
+    var y = Math.max(0, e.clientY - oy);
+    nav.style.left = x + 'px';
+    nav.style.top  = y + 'px';
+  });
+  document.addEventListener('mouseup', function(){
+    if (!dragging) return;
+    dragging = false;
+    try { localStorage.setItem('cpNavPos', JSON.stringify({left:nav.style.left,top:nav.style.top,width:nav.style.width,height:nav.style.height})); } catch(e){}
+  });
+  // Save size after resize (ResizeObserver)
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(function(){
+      if (dragging) return;
+      try { localStorage.setItem('cpNavPos', JSON.stringify({left:nav.style.left,top:nav.style.top,width:nav.style.width,height:nav.style.height})); } catch(e){}
+    });
+    ro.observe(nav);
+  }
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════
+//  PRINT LAYOUT EDITOR
+// ═══════════════════════════════════════════════
+(function(){
+'use strict';
+// ── Config: sections and their draggable/toggleable row blocks ──
+var LC = [
+  { id:'ps-patient', label:'👤 Patient Details', rows:[
+    { id:'pr-row-age-gen',          label:'Age / Gender'      },
+    { id:'pr-row-ht-wt',            label:'Ht / Wt / BMI'    },
+    { id:'pr-row-allergies',        label:'Allergies'         },
+    { id:'pr-row-pmh',              label:'PMH'               },
+    { id:'pr-past-surg-row',        label:'PSH'               },
+    { id:'pr-prior-anesthetic-row', label:'Prior Anes'        },
+    { id:'pr-row-meds',             label:'Home Meds'         },
+    { id:'pr-pregnant-row',         label:'Pregnant'          },
+    { id:'pr-fasted-row',           label:'Fasted'            },
+    { id:'pr-interpreter-row',      label:'Interpreter'       },
+    { id:'pr-hearing-row',          label:'Hearing Loss'      },
+    { id:'pr-pacer-row',            label:'Device'            },
+  ]},
+  { id:'ps-preop', label:'🫁 Preop & Airway', rows:[
+    { id:'pr-row-labs',            label:'Labs (BMP/CBC/Coags)' },
+    { id:'pr-lab-a1c-row',         label:'A1C'                  },
+    { id:'pr-lab-alb-row',         label:'Albumin'              },
+    { id:'pr-lab-ast-row',         label:'AST'                  },
+    { id:'pr-lab-alt-row',         label:'ALT'                  },
+    { id:'pr-lab-ca-row',          label:'Ca'                   },
+    { id:'pr-lab-ica-row',         label:'iCa'                  },
+    { id:'pr-lab-ts-date-row',     label:'T+S Date'             },
+    { id:'pr-gas-row',             label:'Gas'                  },
+    { id:'pr-row-procedure',       label:'Procedure'            },
+    { id:'pr-extra-surg-row',      label:'Additional Surg'      },
+    { id:'pr-row-position',        label:'Positioning'          },
+    { id:'pr-pressure-points-row', label:'Pressure Points'      },
+    { id:'pr-row-insufflation',    label:'Insufflation'         },
+    { id:'pr-obtain-ts-row',       label:'Obtain T+S'           },
+    { id:'pr-blood-room-row',      label:'Blood in Room'        },
+    { id:'pr-row-asa',             label:'ASA Class'            },
+    { id:'pr-row-nerve-stim',      label:'Nerve Stim'           },
+    { id:'pr-antibiotic-plan-row', label:'Antibiotic'           },
+    { id:'pr-mets-row',            label:'METs'                 },
+    { id:'pr-row-awareness',       label:'Alert: Awareness Hx'  },
+    { id:'pr-row-famhx',           label:'Alert: Fam Hx'        },
+    { id:'pr-row-mh',              label:'Alert: Mal. Hyperthermia' },
+    { id:'pr-row-pseudo',          label:'Alert: PChE Def'      },
+    { id:'pr-row-airway-exam',     label:'Airway Exam'          },
+  ]},
+  { id:'ps-plan', label:'💉 Anesthetic Plan', rows:[
+    { id:'pr-row-anes-type',  label:'Anes Type'        },
+    { id:'pr-tiva-row',       label:'TIVA Reason'       },
+    { id:'pr-row-ga-details', label:'GA Details & Meds' },
+  ]},
+  { id:'ps-misc', label:'📋 Miscellaneous', rows:[
+    { id:'pr-row-equipment',                 label:'Equipment'                 },
+    { id:'pr-row-fluids',                    label:'Fluids'                    },
+    { id:'pr-anticipated-complications-row', label:'Anticipated Complications' },
+    { id:'pr-notes-section',                 label:'Notes'                     },
+  ]},
+];
+
+// ── State ──────────────────────────────────────────────────────
+// Default column widths matching the existing print card exactly
+var LS_DEFAULTS = {
+  sectionOrder: LC.map(function(s){ return s.id; }),
+  rowOrders: (function(){
+    var o = {};
+    LC.forEach(function(s){ o[s.id] = s.rows.map(function(r){ return r.id; }); });
+    return o;
+  })(),
+  hiddenRows: {},
+  hiddenSections: {},
+  orientation: 'portrait',
+  pageSize: 'card',
+  // top row: 50/50. bottom row: 56/44 (matching 1.12fr / 0.88fr)
+  colWidths: { top: 50, bottom: 56 },
+};
+
+var LS = JSON.parse(JSON.stringify(LS_DEFAULTS));
+var lepOpen = false;
+var _sort = {};
+
+// ── Apply layout to actual print DOM ──────────────────────────
+function applyLayout() {
+  LC.forEach(function(sec) {
+    var secEl = document.getElementById(sec.id);
+    if (!secEl) return;
+    if (LS.hiddenSections[sec.id]) {
+      secEl.classList.add('layout-hidden');
+    } else {
+      secEl.classList.remove('layout-hidden');
+      // Reorder direct-child rows in the section
+      var order = LS.rowOrders[sec.id] || sec.rows.map(function(r){ return r.id; });
+      order.forEach(function(rowId) {
+        var rowEl = document.getElementById(rowId);
+        if (rowEl && rowEl.parentElement === secEl) secEl.appendChild(rowEl);
+      });
+      // Show/hide each row
+      sec.rows.forEach(function(row) {
+        var rowEl = document.getElementById(row.id);
+        if (!rowEl) return;
+        if (LS.hiddenRows[row.id]) rowEl.classList.add('layout-hidden');
+        else rowEl.classList.remove('layout-hidden');
+      });
+    }
+  });
+  // Section reordering in the print grid
+  var grid = document.getElementById('print-grid-inner');
+  if (grid) {
+    var bottomRow = grid.querySelector('.print-bottom-row');
+    var topOrder = LS.sectionOrder.filter(function(id){ return id==='ps-patient'||id==='ps-preop'; });
+    topOrder.forEach(function(secId) {
+      var el = document.getElementById(secId);
+      if (el && el.parentElement === grid) {
+        if (bottomRow) grid.insertBefore(el, bottomRow); else grid.appendChild(el);
+      }
+    });
+    if (bottomRow) {
+      var botOrder = LS.sectionOrder.filter(function(id){ return id==='ps-plan'||id==='ps-misc'; });
+      botOrder.forEach(function(secId) {
+        var el = document.getElementById(secId);
+        if (el && el.parentElement === bottomRow) bottomRow.appendChild(el);
+      });
+    }
+  }
+  // Orientation
+  var pc = document.getElementById('print-container');
+  if (pc) {
+    pc.classList.toggle('layout-landscape', LS.orientation === 'landscape');
+    pc.classList.toggle('layout-portrait',  LS.orientation === 'portrait');
+    // Page size
+    ['lps-card','lps-half','lps-full','lps-phone'].forEach(function(c){ pc.classList.remove(c); });
+    if (LS.pageSize !== 'card') pc.classList.add('lps-' + LS.pageSize);
+  }
+  // Column widths — skip inline grid styles in phone mode (CSS handles single-col layout)
+  var grid = document.getElementById('print-grid-inner');
+  if (grid) {
+    var br = grid.querySelector('.print-bottom-row');
+    if (LS.pageSize === 'phone') {
+      grid.style.gridTemplateColumns = '';
+      if (br) br.style.gridTemplateColumns = '';
+    } else {
+      var topPct = LS.colWidths.top;
+      grid.style.gridTemplateColumns = topPct + 'fr ' + (100 - topPct) + 'fr';
+      if (br) {
+        var botPct = LS.colWidths.bottom;
+        br.style.gridTemplateColumns = botPct + 'fr ' + (100 - botPct) + 'fr';
+      }
+    }
+  }
+}
+
+// ── Build split-screen editor panel ──────────────────────────
+function buildPanel() {
+  var body = document.getElementById('layout-panel-body');
+  if (!body) return;
+  var topW = LS.colWidths.top;
+  var botW = LS.colWidths.bottom;
+  var sizes = [
+    { id:'card',  label:'Card',       desc:'3.95" × 5.5"'  },
+    { id:'half',  label:'½ Sheet',    desc:'5.5" × 8.5"'   },
+    { id:'full',  label:'Full Sheet', desc:'7.5" × 10"'    },
+    { id:'phone', label:'Phone',      desc:'Narrow col'    },
+  ];
+  var html = '<div class="lep-group-title">Page Size</div>' +
+    '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;">' +
+    sizes.map(function(sz){
+      return '<button class="lep-orient-btn' + (LS.pageSize===sz.id?' active':'') + '" ' +
+        'title="' + sz.desc + '" onclick="layoutSetPageSize(\'' + sz.id + '\')">' + sz.label + '</button>';
+    }).join('') + '</div>' +
+    '<div class="lep-group-title">Orientation</div>' +
+    '<div class="lep-orientation-row">' +
+    '<button class="lep-orient-btn' + (LS.orientation==='portrait'?' active':'') + '" onclick="layoutSetOrientation(\'portrait\')">&#9723; Portrait</button>' +
+    '<button class="lep-orient-btn' + (LS.orientation==='landscape'?' active':'') + '" onclick="layoutSetOrientation(\'landscape\')">&#11035; Landscape</button>' +
+    '</div>' +
+    '<div class="lep-group-title" style="margin-top:12px;">Column Widths</div>' +
+    '<div style="font-size:0.73rem;color:#445;margin-bottom:3px;">Top row — left ' + topW + '% / right ' + (100-topW) + '%</div>' +
+    '<input type="range" min="25" max="75" value="' + topW + '" id="lep-slider-top" oninput="layoutSetColWidth(\'top\',+this.value)" style="width:100%;margin-bottom:10px;accent-color:#0d6e6e;">' +
+    '<div style="font-size:0.73rem;color:#445;margin-bottom:3px;">Bottom row — left ' + botW + '% / right ' + (100-botW) + '%</div>' +
+    '<input type="range" min="25" max="75" value="' + botW + '" id="lep-slider-bot" oninput="layoutSetColWidth(\'bottom\',+this.value)" style="width:100%;margin-bottom:4px;accent-color:#0d6e6e;">' +
+    '<div class="lep-group-title" style="margin-top:12px;">Sections &amp; Rows</div>' +
+    '<div id="lep-sec-list">';
+
+  LS.sectionOrder.forEach(function(secId) {
+    var sec = LC.find(function(s){ return s.id===secId; });
+    if (!sec) return;
+    var secHidden = !!LS.hiddenSections[secId];
+    var rowOrder  = LS.rowOrders[secId] || sec.rows.map(function(r){ return r.id; });
+    html += '<div class="lep-sec-item" data-sec-id="' + secId + '">' +
+      '<div class="lep-sec-head" onclick="this.closest(\'.lep-sec-item\').classList.toggle(\'expanded\')">' +
+      '<span class="lep-drag" title="Drag to reorder section">⠿</span>' +
+      '<label class="lep-tgl" onclick="event.stopPropagation()">' +
+      '<input type="checkbox"' + (secHidden?'':' checked') + ' onchange="layoutToggleSection(\'' + secId + '\',this.checked)">' +
+      '<span class="lep-tgl-track"></span></label>' +
+      '<span class="lep-sec-label">' + sec.label + '</span>' +
+      '<span class="lep-arrow">▶</span></div>' +
+      '<div class="lep-sec-body"><div class="lep-row-list" data-sec-id="' + secId + '">';
+
+    rowOrder.forEach(function(rowId) {
+      var row = sec.rows.find(function(r){ return r.id===rowId; });
+      if (!row) return;
+      var hidden = !!LS.hiddenRows[rowId];
+      html += '<div class="lep-row-item" data-row-id="' + rowId + '">' +
+        '<span class="lep-row-drag" title="Drag to reorder">⠿</span>' +
+        '<span class="lep-row-label">' + row.label + '</span>' +
+        '<label class="lep-tgl"><input type="checkbox"' + (hidden?'':' checked') + ' onchange="layoutToggleRow(\'' + rowId + '\',this.checked)"><span class="lep-tgl-track"></span></label>' +
+        '</div>';
+    });
+    html += '</div></div></div>';
+  });
+  html += '</div>';
+  body.innerHTML = html;
+
+  // SortableJS: sections
+  if (_sort.secs) { _sort.secs.destroy(); _sort.secs = null; }
+  var secList = document.getElementById('lep-sec-list');
+  if (secList && window.Sortable) {
+    _sort.secs = Sortable.create(secList, {
+      handle: '.lep-drag', animation: 150,
+      onEnd: function() {
+        LS.sectionOrder = Array.from(secList.querySelectorAll('[data-sec-id]')).map(function(e){ return e.dataset.secId; });
+        _lsDirty = true;
+        applyLayout();
+      }
+    });
+  }
+  // SortableJS: rows within each section
+  document.querySelectorAll('.lep-row-list').forEach(function(list) {
+    var sid = list.dataset.secId;
+    var key = 'r_' + sid;
+    if (_sort[key]) { _sort[key].destroy(); _sort[key] = null; }
+    if (window.Sortable) {
+      _sort[key] = Sortable.create(list, {
+        handle: '.lep-row-drag', animation: 150,
+        onEnd: function() {
+          LS.rowOrders[sid] = Array.from(list.querySelectorAll('[data-row-id]')).map(function(e){ return e.dataset.rowId; });
+          _lsDirty = true;
+          applyLayout();
+        }
+      });
+    }
+  });
+}
+
+// ── Public API ────────────────────────────────────────────────
+window.toggleLayoutEditor = function() {
+  lepOpen = !lepOpen;
+  var panel = document.getElementById('layout-editor-panel');
+  var wrap  = document.getElementById('layout-split-wrap');
+  var btn   = document.getElementById('btn-layout-edit');
+  if (!panel || !wrap) return;
+  if (lepOpen) {
+    wrap.classList.add('le-open');
+    if (btn) btn.textContent = '✕ Close Layout';
+    // Auto-load default template
+    var db = window.firebase && firebase.firestore ? firebase.firestore() : null;
+    if (db) {
+      db.collection('printLayoutTemplates').doc('__default__').get().then(function(doc) {
+        if (doc.exists) {
+          var d = doc.data();
+          LS.sectionOrder = d.sectionOrder || LS_DEFAULTS.sectionOrder.slice();
+          LS.rowOrders = d.rowOrders || JSON.parse(JSON.stringify(LS_DEFAULTS.rowOrders));
+          LS.hiddenRows = {};
+          (d.hiddenRows || []).forEach(function(id){ LS.hiddenRows[id] = true; });
+          LS.hiddenSections = {};
+          (d.hiddenSections || []).forEach(function(id){ LS.hiddenSections[id] = true; });
+          LS.orientation = d.orientation || 'portrait';
+          LS.pageSize = d.pageSize || 'card';
+          LS.colWidths = d.colWidths || JSON.parse(JSON.stringify(LS_DEFAULTS.colWidths));
+          applyLayout();
+        }
+        buildPanel();
+      }).catch(function(){ buildPanel(); });
+    } else {
+      buildPanel();
+    }
+  } else {
+    if (_lsDirty && !confirm('You have unsaved layout changes. Close without saving?')) return;
+    wrap.classList.remove('le-open');
+    if (btn) btn.textContent = 'Edit Layout';
+  }
+};
+
+var _lsDirty = false;
+
+window.addEventListener('beforeunload', function(e) {
+  if (_lsDirty) {
+    e.preventDefault();
+    e.returnValue = 'You have unsaved layout changes. Leave without saving?';
+  }
+});
+
+window.layoutToggleSection = function(secId, visible) {
+  LS.hiddenSections[secId] = !visible;
+  _lsDirty = true;
+  applyLayout();
+};
+
+window.layoutToggleRow = function(rowId, visible) {
+  LS.hiddenRows[rowId] = !visible;
+  _lsDirty = true;
+  applyLayout();
+};
+
+window.layoutSetOrientation = function(orientation) {
+  LS.orientation = orientation;
+  _lsDirty = true;
+  applyLayout();
+  buildPanel();
+};
+
+window.layoutSetPageSize = function(size) {
+  LS.pageSize = size;
+  _lsDirty = true;
+  applyLayout();
+  buildPanel();
+};
+
+window.layoutSetColWidth = function(which, val) {
+  LS.colWidths[which] = val;
+  // Update the sibling label without full rebuild
+  var key = which === 'top' ? 'lep-slider-top' : 'lep-slider-bot';
+  var slider = document.getElementById(key);
+  if (slider) {
+    var lbl = slider.previousElementSibling;
+    if (lbl) {
+      var side = which === 'top' ? 'Top row' : 'Bottom row';
+      lbl.textContent = side + ' — left ' + val + '% / right ' + (100-val) + '%';
+    }
+  }
+  _lsDirty = true;
+  applyLayout();
+};
+
+window.layoutResetAll = function() {
+  LS = JSON.parse(JSON.stringify(LS_DEFAULTS));
+  _lsDirty = false;
+  applyLayout();
+  buildPanel();
+};
+
+window.layoutSaveTemplate = function() {
+  var name = prompt('Template name:');
+  if (!name) return;
+  var db = window.firebase && firebase.firestore ? firebase.firestore() : null;
+  if (!db) { alert('Firebase not available'); return; }
+  var rowOrdersPlain = {};
+  Object.keys(LS.rowOrders).forEach(function(k){ rowOrdersPlain[k] = LS.rowOrders[k]; });
+  var payload = {
+    sectionOrder: LS.sectionOrder,
+    rowOrders: rowOrdersPlain,
+    hiddenRows: Object.keys(LS.hiddenRows).filter(function(k){ return LS.hiddenRows[k]; }),
+    hiddenSections: Object.keys(LS.hiddenSections).filter(function(k){ return LS.hiddenSections[k]; }),
+    orientation: LS.orientation,
+    pageSize: LS.pageSize,
+    colWidths: LS.colWidths,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  db.collection('printLayoutTemplates').doc(name).set(payload).then(function() {
+    _lsDirty = false;
+    var st = document.getElementById('layout-save-status');
+    if (st) { st.textContent = '✔ Saved "' + name + '"'; setTimeout(function(){ st.textContent = ''; }, 2500); }
+  }).catch(function(err) { alert('Save failed: ' + err.message); });
+};
+
+window.layoutSetDefault = function() {
+  var db = window.firebase && firebase.firestore ? firebase.firestore() : null;
+  if (!db) { alert('Firebase not available'); return; }
+  var rowOrdersPlain = {};
+  Object.keys(LS.rowOrders).forEach(function(k){ rowOrdersPlain[k] = LS.rowOrders[k]; });
+  db.collection('printLayoutTemplates').doc('__default__').set({
+    sectionOrder: LS.sectionOrder,
+    rowOrders: rowOrdersPlain,
+    hiddenRows: Object.keys(LS.hiddenRows).filter(function(k){ return LS.hiddenRows[k]; }),
+    hiddenSections: Object.keys(LS.hiddenSections).filter(function(k){ return LS.hiddenSections[k]; }),
+    orientation: LS.orientation,
+    pageSize: LS.pageSize,
+    colWidths: LS.colWidths,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  }).then(function() {
+    _lsDirty = false;
+    var st = document.getElementById('layout-save-status');
+    if (st) { st.textContent = '⭐ Default saved!'; setTimeout(function(){ st.textContent = ''; }, 2500); }
+  }).catch(function(err) { alert('Save failed: ' + err.message); });
+};
+
+window.layoutLoadTemplates = function() {
+  var db = window.firebase && firebase.firestore ? firebase.firestore() : null;
+  if (!db) return;
+  var sel = document.getElementById('layout-template-select');
+  if (!sel) return;
+  db.collection('printLayoutTemplates').get().then(function(snap) {
+    sel.innerHTML = '<option value="">— Template —</option>';
+    snap.forEach(function(doc) {
+      var opt = document.createElement('option');
+      opt.value = doc.id; opt.textContent = doc.id;
+      sel.appendChild(opt);
+    });
+  });
+};
+
+window.layoutApplyTemplate = function() {
+  var sel = document.getElementById('layout-template-select');
+  var name = sel && sel.value;
+  if (!name) return;
+  var db = window.firebase && firebase.firestore ? firebase.firestore() : null;
+  if (!db) return;
+  db.collection('printLayoutTemplates').doc(name).get().then(function(doc) {
+    if (!doc.exists) { alert('Template not found'); return; }
+    var d = doc.data();
+    LS.sectionOrder = d.sectionOrder || LC.map(function(s){ return s.id; });
+    LS.rowOrders = d.rowOrders || (function(){
+      var o = {}; LC.forEach(function(s){ o[s.id] = s.rows.map(function(r){ return r.id; }); }); return o;
+    })();
+    LS.hiddenRows = {};
+    (d.hiddenRows || []).forEach(function(id){ LS.hiddenRows[id] = true; });
+    LS.hiddenSections = {};
+    (d.hiddenSections || []).forEach(function(id){ LS.hiddenSections[id] = true; });
+    LS.orientation = d.orientation || 'portrait';
+    LS.pageSize = d.pageSize || 'card';
+    LS.colWidths = d.colWidths || JSON.parse(JSON.stringify(LS_DEFAULTS.colWidths));
+    _lsDirty = false;
+    applyLayout();
+    buildPanel();
+  });
+};
+
+})();
+</script>
+
+<script>
+// ── Phone Share ───────────────────────────────────────────────
+async function sharePhoneView() {
+  var btn = document.getElementById('btn-share-phone');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
+
+  try {
+    var state = (window.mirroredState && Object.keys(window.mirroredState).length)
+      ? window.mirroredState
+      : (function(){ try { return JSON.parse(localStorage.getItem('carePlanSplitState') || '{}') || {}; } catch(e){ return {}; } })();
+
+    var initials = (state['pat-initials'] || 'Patient').trim();
+    var surgery  = (state['pat-surgery']  || 'Procedure').trim();
+    var date = (function(d) {
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var m = d.match(/^(\d{1,2})\/(\d{1,2})/);
+      return m ? (months[parseInt(m[1],10)-1] || m[1]) + ' ' + parseInt(m[2],10) : d.replace(/\//g,'-');
+    })(String(state['pat-surg-date'] || '').trim());
+    var time     = (state['pat-sched-surg-time'] || '').trim().replace(/:/g, '');
+    var fParts   = [date, time, initials, surgery].filter(Boolean);
+    var filename = fParts.join(' ') + '.pdf';
+    var shareTitle = filename.replace(/\.pdf$/i, '');
+
+    if (typeof window.html2pdf !== 'function') { alert('PDF library unavailable.'); return; }
+
+    var pc = document.getElementById('print-container');
+    if (!pc) { alert('Print card not found.'); return; }
+
+    // Record current size classes so we can restore after
+    var prevClasses = ['lps-half','lps-full','lps-phone','layout-landscape'].filter(function(c){ return pc.classList.contains(c); });
+
+    // Switch to phone layout and rebuild card
+    pc.classList.remove('lps-half','lps-full','layout-landscape');
+    pc.classList.add('lps-phone');
+    if (typeof window.buildPrintCard === 'function') window.buildPrintCard(state);
+
+    // Wait a tick for paint
+    await new Promise(function(r){ requestAnimationFrame(function(){ requestAnimationFrame(r); }); });
+
+    // Measure the fully-rendered phone card
+    var cardW = pc.scrollWidth  || 390;
+    var cardH = pc.scrollHeight || 800;
+    var inW = (cardW / 96) + 0.3;
+    var inH = (cardH / 96) + 0.3;
+
+    // Off-screen clone for html2pdf — keep id so #print-container.lps-phone CSS applies
+    var host = document.createElement('div');
+    host.style.cssText = 'position:fixed;left:-10000px;top:0;z-index:-1;';
+    var clone = pc.cloneNode(true);
+    clone.style.margin = '0';
+    clone.style.boxShadow = 'none';
+
+    // Phone layout: move Notes section to the top of the card
+    var cloneGrid = clone.querySelector('#print-grid-inner');
+    var cloneNotes = clone.querySelector('#pr-notes-section');
+    if (cloneGrid && cloneNotes && cloneNotes.style.display !== 'none') {
+      var notesPhoneWrap = document.createElement('div');
+      notesPhoneWrap.className = 'print-section';
+      cloneGrid.insertBefore(notesPhoneWrap, cloneGrid.firstChild);
+      notesPhoneWrap.appendChild(cloneNotes);
+    }
+
+    host.appendChild(clone);
+    document.body.appendChild(host);
+
+    try {
+      var worker = window.html2pdf()
+        .set({
+          filename: filename,
+          margin: [0.15, 0.15, 0.15, 0.15],
+          image: { type: 'jpeg', quality: 0.97 },
+          html2canvas: { scale: 3, backgroundColor: '#f2f4f8', useCORS: true, scrollY: 0 },
+          jsPDF: { unit: 'in', format: [inW, inH], orientation: 'portrait' }
+        })
+        .from(clone)
+        .toPdf();
+
+      var pdf = await worker.get('pdf');
+      var blob = pdf.output('blob');
+      var file = null;
+      try { file = new File([blob], filename, { type: 'application/pdf' }); } catch(e) {}
+
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: shareTitle, text: shareTitle });
+      } else {
+        // Fallback: mailto with PDF download
+        var blobUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = blobUrl; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(blobUrl); }, 5000);
+        var subject = encodeURIComponent(shareTitle);
+        var body    = encodeURIComponent('Care plan PDF attached (just downloaded).');
+        window.open('mailto:?subject=' + subject + '&body=' + body);
+      }
+    } finally {
+      if (host.parentNode) host.parentNode.removeChild(host);
+      // Restore original layout
+      pc.classList.remove('lps-phone');
+      prevClasses.forEach(function(c){ pc.classList.add(c); });
+      if (typeof window.buildPrintCard === 'function') window.buildPrintCard(state);
+    }
+  } catch(e) {
+    if (e && e.name !== 'AbortError') { console.error('sharePhoneView', e); alert('Could not generate PDF: ' + e.message); }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📱 Share Phone View'; }
+  }
+}
+
+// Mobile side-drawer helpers
+function openMobDrawer() {
+  document.getElementById('mob-drawer').classList.add('open');
+  document.getElementById('mob-drawer-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMobDrawer() {
+  document.getElementById('mob-drawer').classList.remove('open');
+  document.getElementById('mob-drawer-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeMobDrawer();
+});
+
+// Desktop top bar collapse toggle
+function toggleDeskTopbar() {
+  var body = document.getElementById('desk-topbar-body');
+  var btn  = document.getElementById('desk-topbar-toggle');
+  if (!body) return;
+  var collapsed = body.classList.toggle('dtb-collapsed');
+  try { localStorage.setItem('deskTopbarCollapsed', collapsed ? '1' : '0'); } catch(e) {}
+}
+// Restore desk topbar collapsed state on load
+(function() {
+  if (localStorage.getItem('deskTopbarCollapsed') !== '1') return;
+  var body = document.getElementById('desk-topbar-body');
+  var btn  = document.getElementById('desk-topbar-toggle');
+  if (body) body.classList.add('dtb-collapsed');
+})();
+
+// On load: if ?phoneview=1 is present, restore state from hash and open phone preview
+(function() {
+  if (!/[?&]phoneview=1/.test(location.search)) return;
+  var hash = location.hash.replace(/^#/, '');
+  if (!hash) return;
+  var state;
+  try {
+    state = JSON.parse(decodeURIComponent(escape(atob(hash))));
+  } catch(e) { console.warn('phoneview: could not decode state', e); return; }
+
+  // Wait for combined.js to finish initialising, then restore + open preview
+  var attempts = 0;
+  var timer = setInterval(function() {
+    attempts++;
+    if (attempts > 60) { clearInterval(timer); return; } // give up after 6s
+    // mirroredState and openPreview are set up by combined.js
+    if (typeof window.openPreview !== 'function') return;
+    clearInterval(timer);
+
+    // Push state into mirroredState so buildPrintCard picks it up
+    window.mirroredState = state;
+    // Force phone layout via public API
+    if (typeof window.layoutSetPageSize === 'function') window.layoutSetPageSize('phone');
+    // Brief delay for DOM to settle, then open preview
+    setTimeout(function() {
+      window.openPreview();
+    }, 200);
+  }, 100);
+})();
+</script>
+</body>
+</html>
