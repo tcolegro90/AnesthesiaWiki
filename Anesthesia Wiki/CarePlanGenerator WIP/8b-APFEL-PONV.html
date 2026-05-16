@@ -213,6 +213,9 @@
       var s = getGlobalState();
       var data = [];
       try { data = JSON.parse(s['plan-antiemetic-list']) || []; } catch(e) {}
+      if (!Array.isArray(data) || data.length === 0) {
+        data = [{ drug: 'Ondansetron', dose: '4' }, { drug: 'Dexamethasone', dose: '4' }];
+      }
       data.forEach(function(item) { addAntiemeticRow(item.drug || '', item.dose || '', true); });
       updateAntiemeticOptions();
     }
@@ -288,9 +291,7 @@
       if (isFemale) score++;
 
       // 2) Non-smoker
-      var smokerYes = !!s['pat-smoker-yes'];
-      var smokerNo  = !!s['pat-smoker-no'];
-      var isNonSmoker = smokerNo && !smokerYes;
+      var isNonSmoker = !s['pat-smoker::Yes'];
       if (isNonSmoker) score++;
 
       // 3) PONV / motion sickness history
@@ -307,7 +308,7 @@
       });
       if (hasOpioidPlan) score++;
 
-      var risk = score === 0 ? '<10%' : score === 1 ? '10%' : score === 2 ? '20%' : score === 3 ? '60%' : '80%';
+      var risk = score === 0 ? '10%' : score === 1 ? '20%' : score === 2 ? '40%' : score === 3 ? '60%' : '80%';
       var recommendation = score === 0 ? '0-1 antiemetic' : score < 3 ? '2 antiemetics' : '3-4 antiemetics';
       var target = score === 0 ? 0 : score < 3 ? 2 : 3;
       var selectedCount = getSelectedAntiemeticCount();

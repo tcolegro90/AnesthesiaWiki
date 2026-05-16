@@ -817,12 +817,12 @@ function updateJaffeBadge(page) {
   if (pages.length) {
     badge.innerHTML =
       pages.map(function(p) {
-        return `<span style="display:inline-flex;align-items:center;gap:2px;margin-right:4px;">` +
-          `<button type="button" onclick="removeJaffePage(${p})" title="Remove" style="background:none;border:none;padding:0 3px 0 0;color:#9a7a5a;cursor:pointer;font-size:13px;line-height:1;font-weight:700;">&times;</button>` +
+        return `<span style="display:inline-flex;align-items:center;gap:0;margin-right:16px;padding-right:16px;border-right:1px solid #d4a574;">` +
+          `<button type="button" onclick="removeJaffePage(${p})" title="Remove" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#b08060;color:white;border:none;cursor:pointer;font-size:14px;font-weight:900;line-height:1;margin-right:5px;padding:0;">&times;</button>` +
           `<button type="button" onclick="openJaffePage(${p})" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;">📖 Jaffe 6th Ed p.${p}</button>` +
           `</span>`;
       }).join('') +
-      `<span style="display:inline-flex;align-items:center;padding-left:6px;border-left:1px solid #c8d9ee;margin-left:2px;"><button type="button" onclick="addJaffeChapter()" title="Add another chapter" style="background:none;border:none;padding:0;color:#5a7ea0;cursor:pointer;font-size:16px;line-height:1;font-weight:700;">+</button></span>`;
+      `<button type="button" onclick="addJaffeChapter()" title="Add another chapter" style="background:none;border:none;padding:0;color:#5a7ea0;cursor:pointer;font-size:11px;font-weight:600;line-height:1;margin-left:8px;">+ Add</button>`;
     badge.style.display = 'inline-flex';
     badge.style.alignItems = 'center';
     badge.style.flexWrap = 'wrap';

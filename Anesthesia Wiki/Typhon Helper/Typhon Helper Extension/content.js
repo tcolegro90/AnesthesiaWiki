@@ -5,11 +5,36 @@
 // DETECT PAGE TYPE
 // ============================================================
 function getPageType() {
-  const heading = (document.querySelector('h1, h2, h3')?.textContent || '').toLowerCase();
   const title   = document.title.toLowerCase();
   const url     = window.location.href.toLowerCase();
-  const body    = (document.body?.innerText || '').toLowerCase();
 
+  // Collect text from the top-level document AND any same-origin iframes
+  // (Typhon renders real content inside iframes; outer doc only has nav chrome)
+  function gatherText(doc) {
+    return (doc?.body?.innerText || '').toLowerCase();
+  }
+  function gatherHeadings(doc) {
+    return [...(doc?.querySelectorAll('h1,h2,h3') || [])].map(h => h.textContent).join(' ').toLowerCase();
+  }
+  const iframeDocs = [...document.querySelectorAll('iframe')].map(f => {
+    try { return f.contentDocument; } catch (e) { return null; }
+  }).filter(Boolean);
+  const allDocs = [document, ...iframeDocs];
+
+  const body    = allDocs.map(gatherText).join(' ');
+  const heading = allDocs.map(gatherHeadings).join(' ');
+
+  // ── URL-based detection (most reliable — Typhon uses predictable ASP filenames) ──
+  // timelog1.asp covers both the date-picker step AND the clock in/out entry form
+  if (url.includes('timelog1.asp')) return 'timelog';
+  // Time log list: timelogs.asp
+  if (url.includes('timelogs.asp')) return 'timeloglist';
+  // Case log data entry: data2.asp
+  if (url.includes('/nast/data/data2.asp')) return 'caselog';
+  // Lumina EASI SJF survey page (respond/survey URL) — must be before text-based detection
+  if (url.includes('/EASI/respond/survey/') || url.includes('/easi/respond/survey/')) return 'sjfsurvey';
+
+  // ── Text-based detection (fallback for unknown URL patterns) ──
   const looksLikeCaseEntry =
     body.includes('case log - data entry') ||
     body.includes('case id #') ||
@@ -41,6 +66,13 @@ function getPageType() {
       looksLikeTimeEntry) {
     return 'timelog';
   }
+  // Eval selection list — "My Evaluations & Surveys" (must detect before generic eval entry)
+  const looksLikeEvalList =
+    heading.includes('my evaluations') ||
+    (body.includes('daily clinical evaluation sjf') && !body.includes('preceptor comments') && !body.includes('preceptor signature'));
+  if (looksLikeEvalList) {
+    return 'evallist';
+  }
   // Evaluation page
   if (looksLikeEvalEntry) {
     return 'eval';
@@ -48,7 +80,6 @@ function getPageType() {
   // Case log entry page (the actual data entry form, not the list view)
   if ((heading.includes('case log') && document.querySelector('select, input[type="text"]')) ||
       url.includes('caselog') || url.includes('case_log') || url.includes('casedata') ||
-      url.includes('/nast/data/data2.asp') ||
       title.includes('case log - data') ||
       looksLikeCaseEntry) {
     return 'caselog';
@@ -74,9 +105,33 @@ function getPageType() {
   return 'unknown';
 }
 
-// ============================================================
-// UTILITIES
-// ============================================================
+// Returns all searchable documents: top-level + same-origin iframes.
+// Typhon renders page content inside iframes; all DOM queries should use this.
+function getAllSearchDocs() {
+  const docs = [document];
+  for (const frame of document.querySelectorAll('iframe')) {
+    try { if (frame.contentDocument) docs.push(frame.contentDocument); } catch (e) {}
+  }
+  return docs;
+}
+
+// querySelector across all docs (top-level + iframes)
+function docQuerySelector(selector) {
+  for (const doc of getAllSearchDocs()) {
+    const el = doc.querySelector(selector);
+    if (el) return el;
+  }
+  return null;
+}
+
+// querySelectorAll across all docs (top-level + iframes), returns flat array
+function docQuerySelectorAll(selector) {
+  const results = [];
+  for (const doc of getAllSearchDocs()) {
+    results.push(...doc.querySelectorAll(selector));
+  }
+  return results;
+}
 
 // Find a <select> or <input> by searching labels and td cells for matching text
 function findFieldByLabel(labelText) {
@@ -192,10 +247,23 @@ function findLikelySelectByHints(hints) {
 }
 
 function findClinicalSiteSelect() {
-  return (
-    findFieldByLabel('Clinical Site') ||
-    findLikelySelectByHints(['clinical site', 'clinical_site', 'site', 'facility', 'hospital'])
-  );
+  // findFieldByLabel may return the chosen.js container <div> (id="location")
+  // instead of the underlying hidden <select>. Unwrap it.
+  const byLabel = findFieldByLabel('Clinical Site');
+  if (byLabel?.tagName === 'SELECT') return byLabel;
+  if (byLabel) {
+    // chosen.js hides the original <select> just before its container div, or inside it
+    const inner = byLabel.querySelector('select');
+    if (inner) return inner;
+    let sib = byLabel.previousElementSibling;
+    while (sib) {
+      if (sib.tagName === 'SELECT') return sib;
+      sib = sib.previousElementSibling;
+    }
+    const parentSel = byLabel.parentElement?.querySelector('select');
+    if (parentSel) return parentSel;
+  }
+  return findLikelySelectByHints(['clinical site', 'clinical_site', 'site', 'facility', 'hospital']);
 }
 
 function setClinicalSite(selectEl, siteName) {
@@ -222,7 +290,55 @@ function setClinicalSite(selectEl, siteName) {
   };
   const key = normalizeText(siteName);
   const candidates = aliases[key] || [siteName];
-  return setSelectFromCandidates(selectEl, candidates) || setSelect(selectEl, siteName);
+
+  // Set value SILENTLY — do NOT fire 'change'. Typhon listens to change on this
+  // select and makes an AJAX call (check.asp?facility=...) which reloads the form,
+  // wiping all our filled values. We set the native value directly, then update
+  // chosen.js cosmetically via an injected page script.
+  const result = setSelectSilent(selectEl, candidates) || setSelectSilent(selectEl, [siteName]);
+  if (result) {
+    // Notify chosen.js / tomselect via page-bridge.js (MAIN world), which has
+    // access to the page's own jQuery instance. We can't call jQuery directly
+    // from the isolated content script world, and inline script injection is
+    // blocked by Typhon's CSP — so we bridge via a CustomEvent on document.
+    try {
+      document.dispatchEvent(new CustomEvent('__typhon_chosen_update', {
+        detail: { selId: selectEl.id || '', selName: selectEl.name || '' }
+      }));
+    } catch(e) {}
+  }
+  return result;
+}
+
+// Set a select value by matching candidate texts — without dispatching 'change'.
+// Used for dropdowns whose change event triggers unwanted AJAX (e.g. Clinical Site).
+function setSelectSilent(el, candidates) {
+  if (!el || el.tagName !== 'SELECT') return false;
+  const needles = (candidates || []).map(normalizeText).filter(Boolean);
+  if (!needles.length) return false;
+  const options = [...el.options].filter(opt => !opt.disabled && opt.value !== '');
+  // Exact match first
+  for (const needle of needles) {
+    for (const opt of options) {
+      if (normalizeText(opt.text) === needle) {
+        el.value = opt.value;
+        el.dispatchEvent(new Event('input', { bubbles: true })); // input only, no change
+        return true;
+      }
+    }
+  }
+  // Contains match
+  for (const needle of needles) {
+    for (const opt of options) {
+      const text = normalizeText(opt.text);
+      if (text && (text.includes(needle) || needle.includes(text))) {
+        el.value = opt.value;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function findPreceptorTypeSelect() {
@@ -456,8 +572,13 @@ function resetCaseLogForm() {
   });
 
   // Reset selects to first option.
+  // NOTE: Do NOT dispatch 'change' on the Clinical Site select — Typhon listens
+  // to that event and fires an AJAX reload of the form (check.asp?facility=...).
+  // We skip it here; setClinicalSite() will set it silently after reset.
+  const clinicalSiteSel = findClinicalSiteSelect();
   document.querySelectorAll('select').forEach(sel => {
     sel.selectedIndex = 0;
+    if (sel === clinicalSiteSel) return; // skip change — would trigger AJAX reload
     sel.dispatchEvent(new Event('change', { bubbles: true }));
   });
 
@@ -535,8 +656,8 @@ function clickAddNewTimeLog() {
 }
 
 function clickAddNewTimeLogBtn() {
-  // From the time log list page: click the green "+ Add New Time Log" button
-  const btn = [...document.querySelectorAll('a, button')]
+  // From the time log list page: click the green "+ Add New Time Log" button (search iframes too)
+  const btn = docQuerySelectorAll('a, button')
     .find(el => /add new time log/i.test(el.textContent.trim()));
   if (btn) { btn.click(); return true; }
   return false;
@@ -544,6 +665,10 @@ function clickAddNewTimeLogBtn() {
 
 function clickAddNewEval() {
   const links = [...document.querySelectorAll('a, button')];
+  // First try: "My Evaluations & Surveys" menu link (Typhon main menu)
+  const menuLink = links.find(el => /my evaluations/i.test((el.textContent || '').trim()));
+  if (menuLink) { menuLink.click(); return true; }
+  // Fallback: direct daily eval links
   const target = links.find(el => {
     const txt = (el.textContent || '').trim().toLowerCase();
     return (
@@ -557,6 +682,113 @@ function clickAddNewEval() {
   });
   if (target) { target.click(); return true; }
   return false;
+}
+
+function clickDailyEvalSJF() {
+  const target = docQuerySelectorAll('a, button, td').find(el =>
+    /daily clinical evaluation sjf/i.test((el.textContent || '').trim())
+  );
+  if (target) { target.click(); return true; }
+  return false;
+}
+
+// Incremented each time a new fill is initiated — lets stale timers detect they've been superseded
+let _fillGeneration = 0;
+
+function fillEvalSJFPanel(item) {
+  const myGeneration = ++_fillGeneration;
+  // After clicking "Daily Clinical Evaluation SJF", the ng-select panel renders.
+  // Store the eval item so the survey page can auto-fill from it after "Begin New Survey" navigates.
+  if (item) {
+    try { chrome.storage.local.set({ 'typhon-pending-sjf-fill': item }); } catch(e) {}
+  }
+  // The reviewee dropdown always contains only the student (self) — open it and click first option.
+  let attempts = 0;
+  const timer = setInterval(() => {
+    attempts++;
+    const input = document.querySelector('input#reviewee-dropdown, input[role="combobox"]');
+    if (!input) {
+      if (attempts >= 20) clearInterval(timer);
+      return;
+    }
+    clearInterval(timer);
+
+    // ng-select opens on mousedown on the container, not click on the input
+    const container = input.closest('.ng-select-container') || input.closest('.ng-select') || input.parentElement;
+    const openTarget = container || input;
+    openTarget.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    openTarget.dispatchEvent(new MouseEvent('click',     { bubbles: true, cancelable: true }));
+    input.focus();
+
+    // Poll for options to appear (up to ~3s)
+    let optAttempts = 0;
+    const optTimer = setInterval(() => {
+      optAttempts++;
+      const option = document.querySelector('.ng-option:not(.ng-option-disabled)');
+      if (!option) {
+        if (optAttempts >= 15) clearInterval(optTimer);
+        return;
+      }
+      clearInterval(optTimer);
+      option.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      option.click();
+
+      // After selection, click Begin New Survey
+      setTimeout(() => {
+        const beginBtn = [...document.querySelectorAll('button')].find(b =>
+          /begin new survey/i.test((b.textContent || '').trim())
+        );
+        if (beginBtn) {
+          beginBtn.click();
+          // The survey form is loaded via Angular SPA routing (pushState) — no new page load,
+          // so content.js is NOT re-injected. Poll here until the survey URL and form appear.
+          let surveyAttempts = 0;
+          const surveyTimer = setInterval(() => {
+            surveyAttempts++;
+            const onSurveyPage = window.location.href.toLowerCase().includes('/easi/respond/survey/');
+            const inputCount = document.querySelectorAll('input[type="radio"], input[type="checkbox"]').length;
+            if (!onSurveyPage || inputCount < 6) {
+              if (surveyAttempts >= 75) { // ~15s timeout
+                clearInterval(surveyTimer);
+                showTyphonToast('⚠ Survey page not detected — please fill manually');
+              }
+              return;
+            }
+            if (_fillGeneration !== myGeneration) { clearInterval(surveyTimer); return; }
+            clearInterval(surveyTimer);
+            // Remove old floating button (from evallist page, now stale)
+            const oldFloat = document.getElementById('typhon-helper-float');
+            if (oldFloat) oldFloat.remove();
+            // Give Angular one extra tick to finish rendering all form controls
+            setTimeout(() => {
+              if (_fillGeneration !== myGeneration) return; // still stale-check before filling
+              fillSJFSurvey(item);
+              // Angular lazy-renders question blocks — only visible questions exist in the DOM
+              // at first call. Scroll down step-by-step to force all components to render,
+              // then run a second fill pass to catch comment fields that were off-screen.
+              const gen = myGeneration;
+              let step = 0;
+              const scrollFill = setInterval(() => {
+                if (_fillGeneration !== gen) { clearInterval(scrollFill); return; }
+                step++;
+                window.scrollBy(0, 500);
+                if (step >= 12) {
+                  clearInterval(scrollFill);
+                  setTimeout(() => {
+                    if (_fillGeneration !== gen) return;
+                    fillSJFSurvey(item);
+                    window.scrollTo(0, 0);
+                    showTyphonToast('Daily Eval SJF filled ✓ — review and submit');
+                    chrome.storage.local.remove('typhon-pending-sjf-fill');
+                  }, 400);
+                }
+              }, 150);
+            }, 300);
+          }, 200);
+        }
+      }, 500);
+    }, 200);
+  }, 200);
 }
 
 function fillCaseDatePage(data) {
@@ -599,10 +831,8 @@ function fillCaseDatePage(data) {
 }
 
 function clickNextButton() {
-  // Find the "Continue" button on the date picker page
-  const candidates = [
-    ...document.querySelectorAll('input[type="submit"], input[type="button"], button')
-  ];
+  // Find the "Continue" button on the date picker page (search iframes too)
+  const candidates = docQuerySelectorAll('input[type="submit"], input[type="button"], button');
   const next = candidates.find(el => {
     const t = (el.value || el.textContent || '').toLowerCase().trim();
     return t.includes('continue') || t === 'next' || t === 'submit';
@@ -615,22 +845,21 @@ function fillTimeLogDateStep(data) {
   const dateStr = isoToTyphonDate(data?.date);
   if (!dateStr) return { handled: false, continued: false, reason: 'No valid date found in selected time log.' };
 
-  const headingText = (document.querySelector('h1, h2, h3')?.textContent || '').toLowerCase();
-  const bodyText = (document.body?.innerText || '').toLowerCase();
-  const hasDateInputHints =
-    !!document.querySelector('input[placeholder*="MM" i][placeholder*="YYYY" i]') ||
-    !!document.querySelector('input[id*="date" i], input[name*="date" i], input[type="date"]');
-  const looksLikeDateStep =
-    (headingText.includes('add a time log') || headingText.includes('edit time log')) &&
-    (bodyText.includes('time log date') || hasDateInputHints);
+  // Check via iframe-aware body text: date step has 'time log date' but no clock fields
+  const docs = getAllSearchDocs();
+  const bodyText = docs.map(d => d.body?.innerText || '').join(' ').toLowerCase();
+  const hasTimeLogDate = bodyText.includes('time log date');
+  const hasClockFields = bodyText.includes('clock in') || bodyText.includes('clock out');
 
-  if (!looksLikeDateStep) return { handled: false, continued: false, reason: 'Not on time log date step.' };
+  if (!hasTimeLogDate || hasClockFields) {
+    return { handled: false, continued: false, reason: 'Not on time log date step.' };
+  }
 
   let dateInput = null;
   let allDateInputs = [];
 
-  // Strongest match: row containing "Time Log Date"
-  for (const row of document.querySelectorAll('tr, div, td')) {
+  // Strongest match: row containing "Time Log Date" (search all docs including iframes)
+  for (const row of docQuerySelectorAll('tr, div, td')) {
     const t = (row.textContent || '').toLowerCase();
     if (!t.includes('time log date')) continue;
     allDateInputs = [...row.querySelectorAll('input[type="text"], input[type="date"]')];
@@ -640,18 +869,17 @@ function fillTimeLogDateStep(data) {
 
   if (!dateInput) {
     dateInput =
-      findFieldByLabel('Time Log Date') ||
-      document.querySelector('input[placeholder="MM/DD/YYYY"]') ||
-      document.querySelector('input[type="date"]') ||
-      [...document.querySelectorAll('input[type="text"]')].find(i => i.offsetParent !== null);
+      docQuerySelector('input[placeholder="MM/DD/YYYY"]') ||
+      docQuerySelector('input[type="date"]') ||
+      docQuerySelectorAll('input[type="text"]').find(i => i.offsetParent !== null);
     if (dateInput) allDateInputs = [dateInput];
   }
 
   if (!dateInput) return { handled: false, continued: false, reason: 'Could not find Time Log Date input on page.' };
 
   const globalDateCandidates = [
-    ...document.querySelectorAll('input[placeholder*="MM" i][placeholder*="YYYY" i]'),
-    ...document.querySelectorAll('input[id*="date" i], input[name*="date" i]')
+    ...docQuerySelectorAll('input[placeholder*="MM" i][placeholder*="YYYY" i]'),
+    ...docQuerySelectorAll('input[id*="date" i], input[name*="date" i]')
   ];
   allDateInputs = [...new Set([...allDateInputs, ...globalDateCandidates].filter(Boolean))];
   if (!allDateInputs.length) allDateInputs = [dateInput];
@@ -663,7 +891,7 @@ function fillTimeLogDateStep(data) {
 
   // Prefer the Continue button in the same form as the date input.
   function clickContinueNearDateInput() {
-    const form = dateInput.closest('form') || document;
+    const form = dateInput.closest('form') || dateInput.ownerDocument;
     const candidates = [
       ...form.querySelectorAll('input[type="submit"], input[type="button"], button, a')
     ];
@@ -697,10 +925,14 @@ function fillTimeLogDateStep(data) {
 }
 
 function isTimeLogDateStepPage() {
-  const headingText = (document.querySelector('h1, h2, h3')?.textContent || '').toLowerCase();
-  const bodyText = (document.body?.innerText || '').toLowerCase();
-  return (headingText.includes('add a time log') || headingText.includes('edit time log')) &&
-    bodyText.includes('time log date');
+  // The date-picker step has "time log date" label but NO clock in/out fields.
+  // The full time entry form has clock fields — that's how we distinguish them
+  // even when both share the same URL (timelog1.asp).
+  const docs = getAllSearchDocs();
+  const bodyText = docs.map(d => d.body?.innerText || '').join(' ').toLowerCase();
+  const hasTimeLogDate = bodyText.includes('time log date');
+  const hasClockFields = bodyText.includes('clock in') || bodyText.includes('clock out');
+  return hasTimeLogDate && !hasClockFields;
 }
 
 function autoRunTimeLogDateStepIfPossible() {
@@ -763,9 +995,9 @@ function fillTimeLog(data) {
     };
   }
 
-  // Find clock in/out inputs by looking for rows with "Clock" in the label
+  // Find clock in/out inputs by looking for rows with "Clock" in the label (search iframes too)
   const clockInputs = [];
-  for (const td of document.querySelectorAll('td, th, label')) {
+  for (const td of docQuerySelectorAll('td, th, label')) {
     if (td.textContent.toLowerCase().includes('clock')) {
       const row = td.closest('tr') || td.parentElement;
       for (const inp of (row?.querySelectorAll('input[type="text"]') || [])) {
@@ -777,7 +1009,7 @@ function fillTimeLog(data) {
   // Fallback: use all visible text inputs in document order
   const inputs = clockInputs.length >= 2
     ? clockInputs
-    : [...document.querySelectorAll('input[type="text"]')].filter(i => i.offsetParent !== null);
+    : docQuerySelectorAll('input[type="text"]').filter(i => i.offsetParent !== null);
 
   if (data.clockIn1  && inputs[0]) setInput(inputs[0], data.clockIn1);
   if (data.clockOut1 && inputs[1]) setInput(inputs[1], data.clockOut1);
@@ -807,7 +1039,62 @@ function rememberLastFilledTimeLog(data) {
 // FILL CASE LOG
 // ============================================================
 function fillCaseLog(data) {
+  const siteEl = findClinicalSiteSelect();
+
+  // If no clinical site was saved in the item, read whatever Typhon has
+  // pre-selected on the page (from server/cookie) BEFORE we reset the form.
+  // Then we can restore it without firing the AJAX again.
+  const preSelectedSiteVal  = siteEl ? siteEl.value : '';
+  const preSelectedSiteText = (siteEl && siteEl.selectedIndex >= 0)
+    ? (siteEl.options[siteEl.selectedIndex] || {}).text || ''
+    : '';
+
   resetCaseLogForm();
+
+  if (siteEl && data.clinicalSite) {
+    // We have a stored site name — fire change so Typhon's check.asp AJAX
+    // registers the facility server-side, then fill after it settles.
+    setClinicalSite(siteEl, data.clinicalSite);
+    siteEl.dispatchEvent(new Event('change', { bubbles: true }));
+
+    let done = false;
+    let timer;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      obs.disconnect();
+      clearTimeout(timer);
+      fillCaseLogFields(data);
+    };
+    const obs = new MutationObserver(() => {
+      clearTimeout(timer);
+      timer = setTimeout(finish, 400);
+    });
+    obs.observe(document.body, { subtree: true, childList: true });
+    timer = setTimeout(finish, 1500);
+  } else {
+    // No stored clinical site — restore Typhon's pre-selected value silently
+    // (no change event = no AJAX = server-side Facility hidden field stays intact).
+    if (siteEl && preSelectedSiteVal) {
+      siteEl.value = preSelectedSiteVal;
+      // Notify chosen.js cosmetically
+      document.dispatchEvent(new CustomEvent('__typhon_chosen_update', {
+        detail: { selId: siteEl.id || '', selName: siteEl.name || '' }
+      }));
+    }
+    // Store the restored value so the pre-submit interceptor can re-assert it
+    window.__typhonLastFilledClinicalSite = preSelectedSiteText || preSelectedSiteVal || null;
+    fillCaseLogFields(data);
+  }
+}
+
+function fillCaseLogFields(data) {
+  // Store the clinical site name so the pre-submit interceptor can re-assert it.
+  // Use stored value if available; otherwise keep whatever fillCaseLog already set.
+  if (data.clinicalSite) {
+    window.__typhonLastFilledClinicalSite = data.clinicalSite;
+  }
+  // (if no data.clinicalSite, fillCaseLog already set it from Typhon's pre-selection)
 
   // --- Dropdowns ---
   setClinicalSite(findClinicalSiteSelect(), data.clinicalSite);
@@ -994,6 +1281,220 @@ function fillEvaluation(data) {
   return true;
 }
 
+// ============================================================
+// FILL SJF SURVEY (Lumina EASI respond/survey page)
+// ============================================================
+function fillSJFSurvey(data) {
+  if (!data) return;
+
+  // Find the nearest ancestor of a text node matching snippet that also contains an input/textarea.
+  // Uses TreeWalker (text nodes only) — much faster than querySelectorAll('div,...') on large Angular DOMs.
+  function findQContainer(snippet) {
+    const lower = snippet.toLowerCase();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (!node.textContent.toLowerCase().includes(lower)) continue;
+      // Walk up from the text node until we find an ancestor that contains an input/textarea
+      let el = node.parentElement;
+      for (let i = 0; i < 10; i++) {
+        if (!el || el === document.body) break;
+        if (el.querySelector('input, textarea')) return el;
+        el = el.parentElement;
+      }
+    }
+    return null;
+  }
+
+  // Fill a comment field by DOM order: find the LAST text node matching snippet
+  // (deepest in DOM, closest to the form field), then fill the first
+  // input[name="singleLine"] that follows it. DOM-order is the only reliable
+  // approach because all singleLine inputs share common ancestors at the survey level.
+  function fillTA(snippet, value) {
+    if (!value) return;
+    const lower = snippet.toLowerCase();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let lastMatch = null, node;
+    while ((node = walker.nextNode())) {
+      if (node.textContent.toLowerCase().includes(lower)) lastMatch = node;
+    }
+    if (!lastMatch) return;
+    for (const inp of document.querySelectorAll('input[name="singleLine"], textarea')) {
+      if (lastMatch.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_FOLLOWING) {
+        setInputNative(inp, value);
+        return;
+      }
+    }
+  }
+
+  // Click a radio whose label text matches value (case-insensitive, partial for longer values)
+  function clickRadio(container, value) {
+    if (!container || !value) return false;
+    const val = value.toLowerCase();
+    for (const radio of container.querySelectorAll('input[type="radio"]')) {
+      const lbl = radio.closest('label') ||
+        (radio.id ? document.querySelector(`label[for="${CSS.escape(radio.id)}"]`) : null);
+      const text = (lbl ? lbl.textContent : (radio.parentElement || {}).textContent || '').trim().toLowerCase();
+      if (text === val || text.startsWith(val) || (val.length > 3 && text.includes(val))) {
+        radio.click();
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Tick checkboxes globally whose labels fuzzy-match any value in the array
+  function tickCheckboxes(values) {
+    if (!values || !values.length) return;
+    const normalize = s => s.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    const normVals = values.map(normalize);
+    for (const cb of document.querySelectorAll('input[type="checkbox"]')) {
+      const lbl = cb.closest('label') ||
+        (cb.id ? document.querySelector(`label[for="${CSS.escape(cb.id)}"]`) : null);
+      const text = normalize(lbl ? lbl.textContent : '');
+      if (!text) continue;
+      const matches = normVals.some(v => {
+        if (text === v || text.includes(v) || v.includes(text)) return true;
+        // Word-level: first significant word handles slight label differences (e.g. "neonate" vs "neonates")
+        const vW = v.split(' ').filter(w => w.length > 3);
+        const tW = text.split(' ').filter(w => w.length > 3);
+        return vW.length > 0 && tW.length > 0 &&
+          (vW[0] === tW[0] || tW[0].startsWith(vW[0]) || vW[0].startsWith(tW[0]));
+      });
+      if (matches && !cb.checked) {
+        cb.click();
+        cb.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+  }
+
+  // Fill the first text input / textarea inside a container
+  // Prefers input[name="singleLine"] (Typhon EASI comment/text fields) over generic text inputs
+  function fillText(container, value) {
+    if (!container || !value) return;
+    const input = container.querySelector('input[name="singleLine"], textarea, input[type="text"], input:not([type])');
+    if (input) setInputNative(input, value);
+  }
+
+  // Q2: Clinical Preceptor Name
+  if (data.preceptorName) {
+    const q2 = findQContainer('Clinical Preceptor Name');
+    fillText(q2, data.preceptorName);
+  }
+
+  // Q3: Facility (checkboxes)
+  if (data.facility && data.facility.length) tickCheckboxes(data.facility);
+
+  // Q4: Arrived on time prepared (Yes/No) + comments
+  if (data.arrivedPrepared) clickRadio(findQContainer('arrived on time prepared'), data.arrivedPrepared);
+  fillTA('arrived on time prepared', data.arrivedComments);
+
+  // Q5: Age ranges (checkboxes)
+  if (data.ageRanges && data.ageRanges.length) tickCheckboxes(data.ageRanges);
+
+  // Q6: ASA classes (checkboxes)
+  if (data.asaClasses && data.asaClasses.length) tickCheckboxes(data.asaClasses);
+
+  // Q7: Surgical cases (checkboxes) + comments
+  if (data.surgicalCases && data.surgicalCases.length) tickCheckboxes(data.surgicalCases);
+  fillTA('surgical case', data.surgicalComments);
+
+  // Q8–Q11: Self-evaluation ratings + comments
+  const ratingFields = [
+    [data.q8,  data.q8Comments,  'preoperative assessment, anesthesia care plan'],
+    [data.q9,  data.q9Comments,  'perioperative anesthesia care'],
+    [data.q10, data.q10Comments, 'performance of clinical skills'],
+    [data.q11, data.q11Comments, 'critical thinking'],
+  ];
+  for (const [val, comment, snippet] of ratingFields) {
+    if (val) clickRadio(findQContainer(snippet), val);
+    fillTA(snippet, comment);
+  }
+
+  // Q12: Vigilant (Yes/No) + comments
+  if (data.vigilant) clickRadio(findQContainer('remained vigilant'), data.vigilant);
+  fillTA('remained vigilant', data.vigilantComments);
+
+  // Q13: Documentation (Yes/No/preceptor)
+  if (data.documentation) clickRadio(findQContainer('completed all documentation'), data.documentation);
+
+  // Q14: Post-op care — hardcode Yes + comments
+  clickRadio(findQContainer('completed post operative care'), 'yes');
+  fillTA('completed post operative care', data.postOpCareComments);
+
+  // Q15: Day summary
+  if (data.daySummary) fillText(findQContainer('brief summary of the day'), data.daySummary);
+
+  // Q16: Discussed strengths (Yes/No/Other) + other text + comments
+  const q16 = findQContainer('discussed my strengths');
+  if (data.discussedStrengths) clickRadio(q16, data.discussedStrengths);
+  if (data.discussedStrengthsOther && q16) {
+    const otherInput = [...(q16.querySelectorAll('input[type="text"], input:not([type])') || [])][0];
+    if (otherInput) setInputNative(otherInput, data.discussedStrengthsOther);
+  }
+  fillTA('discussed my strengths', data.discussedStrengthsComments);
+
+  // Q17: Preceptor comments / areas of improvement
+  if (data.preceptorComments) fillText(findQContainer('summarize or have your preceptor'), data.preceptorComments);
+
+  // Q18: Please Type Name (below signature pad)
+  if (data.sigName) {
+    const typeNameInput =
+      document.querySelector('input[placeholder*="ype name" i]') ||
+      document.querySelector('input[placeholder*="type your" i]') ||
+      document.querySelector('input[placeholder*="your name" i]') ||
+      document.querySelector('input[placeholder*="full name" i]') ||
+      document.querySelector('input[placeholder*="print name" i]') ||
+      (() => {
+        for (const snippet of ['type your name', 'type name', 'please type', 'print name', 'printed name', 'student name']) {
+          const c = findQContainer(snippet);
+          if (c) {
+            const inp = c.querySelector('input[type="text"], input:not([type])');
+            if (inp) return inp;
+          }
+        }
+        return null;
+      })();
+    if (typeNameInput) setInputNative(typeNameInput, data.sigName);
+  }
+
+  // Preceptor signature canvas — draw the stored signature image onto the survey's canvas
+  if (data.sigDataUrl) {
+    // Find the signature canvas: look near a "signature" label first, then fall back to largest canvas
+    let sigCanvas = null;
+    for (const snippet of ['preceptor signature', 'clinical preceptor', 'signature']) {
+      const c = findQContainer(snippet);
+      if (c) { const cv = c.querySelector('canvas'); if (cv) { sigCanvas = cv; break; } }
+    }
+    if (!sigCanvas) {
+      const canvases = [...document.querySelectorAll('canvas')];
+      if (canvases.length) {
+        sigCanvas = canvases.sort((a, b) => (b.width * b.height) - (a.width * a.height))[0];
+      }
+    }
+    if (sigCanvas) {
+      // If the page uses signature_pad.js, fromDataURL() updates both visual and internal state
+      const pad = sigCanvas._signaturePad || sigCanvas.signaturePad;
+      if (pad && typeof pad.fromDataURL === 'function') {
+        pad.fromDataURL(data.sigDataUrl);
+      } else {
+        const img = new Image();
+        img.onload = () => {
+          const ctx = sigCanvas.getContext('2d');
+          ctx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+          const scale = Math.min(sigCanvas.width / img.width, sigCanvas.height / img.height) * 0.85;
+          const x = (sigCanvas.width - img.width * scale) / 2;
+          const y = (sigCanvas.height - img.height * scale) / 2;
+          ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+          sigCanvas.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        img.src = data.sigDataUrl;
+      }
+    }
+  }
+}
+
 function rememberLastFilledCase(data) {
   if (!data || data.type !== 'case') return;
   const payload = {
@@ -1064,6 +1565,11 @@ function markLastFilledCaseSubmitted(onDone) {
           finish(false, 'Could not update Typhon Helper storage.');
           return;
         }
+        // Sync updated submitted state back to Firestore so popup doesn't re-fetch stale data
+        chrome.runtime.sendMessage({ action: 'syncSubmittedToFirestore', items: items });
+        // Remove the overlay immediately so it doesn't linger during page navigation
+        const floatEl = document.getElementById('typhon-helper-float');
+        if (floatEl) floatEl.remove();
         finish(true, 'Marked submitted in Typhon Helper.');
       });
     });
@@ -1122,6 +1628,11 @@ function markLastFilledTimeLogSubmitted(onDone) {
           finish(false, 'Could not update Typhon Helper storage.');
           return;
         }
+        // Sync updated submitted state back to Firestore so popup doesn't re-fetch stale data
+        chrome.runtime.sendMessage({ action: 'syncSubmittedToFirestore', items: items });
+        // Remove the overlay immediately so it doesn't linger during page navigation
+        const floatEl = document.getElementById('typhon-helper-float');
+        if (floatEl) floatEl.remove();
         finish(true, 'Marked time log submitted in Typhon Helper.');
       });
     });
@@ -1133,6 +1644,57 @@ function markLastFilledTimeLogSubmitted(onDone) {
 function installCaseSubmitPrompt() {
   if (window.__typhonCaseSubmitPromptInstalled) return;
   window.__typhonCaseSubmitPromptInstalled = true;
+
+  // Combined fix + diagnostic: capture phase, runs before Typhon's handlers.
+  document.addEventListener('click', function(event) {
+    if (getPageType() !== 'caselog') return;
+    const el = event.target && event.target.closest
+      ? event.target.closest('input[type="submit"], input[type="button"], button, a')
+      : null;
+    if (!el) return;
+    const text = (el.value || el.textContent || '').toLowerCase().trim();
+    if (!(text.includes('save data') || text === 'save' || text.includes('submit'))) return;
+    if (text.includes('cancel')) return;
+
+    const site = window.__typhonLastFilledClinicalSite || null;
+    const siteSel = findClinicalSiteSelect();
+    const siteValBefore = siteSel ? siteSel.value : '(no select)';
+    const optionsList = siteSel
+      ? [...siteSel.options].slice(0, 8).map(o => `${o.value}="${o.text}"`).join(' | ')
+      : '(no select)';
+
+    // Attempt fix: re-assert select if blank
+    let fixResult = 'not_needed';
+    if (siteSel && !siteSel.value) {
+      if (site) {
+        // Try matching by text name first
+        const didSet = setClinicalSite(siteSel, site);
+        if (!didSet) {
+          // site might be a raw option value (e.g. "23") — set directly
+          const opt = [...siteSel.options].find(o => o.value === site || o.text === site);
+          if (opt) { siteSel.value = opt.value; fixResult = 'direct→' + siteSel.value; }
+          else fixResult = 'no_match';
+        } else {
+          fixResult = 'set→' + siteSel.value;
+        }
+      } else {
+        fixResult = 'no_site_in_window';
+      }
+    }
+
+    const siteValAfter = siteSel ? siteSel.value : '(no select)';
+    const hiddenFacility = [...document.querySelectorAll('input[type="hidden"]')]
+      .filter(h => /facil|site|loc/i.test(h.name || h.id))
+      .map(h => `${h.name||h.id}=${h.value}`)
+      .join(', ') || '(none)';
+
+    try {
+      sessionStorage.setItem('__typhon_diag_submit', JSON.stringify({
+        ts: new Date().toLocaleTimeString(),
+        site, siteValBefore, siteValAfter, fixResult, hiddenFacility, optionsList
+      }));
+    } catch(e) {}
+  }, true);
 
   document.addEventListener('click', function(event) {
     if (getPageType() !== 'caselog') return;
@@ -1204,9 +1766,120 @@ function fmtDateShort(iso) {
   return `${parseInt(m, 10)}/${parseInt(d, 10)}`;
 }
 
+function injectDiagnosticBadge(pageType, allItems, matchingItems) {
+  if (document.getElementById('typhon-diag-icon')) return;
+
+  const heading = document.querySelector('h1,h2,h3')?.textContent?.trim() || '(no heading)';
+
+  // --- Slide-out panel ---
+  const panel = document.createElement('div');
+  panel.id = 'typhon-diag-panel';
+  panel.style.cssText = [
+    'position:fixed','top:0','left:0','height:100%',
+    'width:280px','z-index:2147483646',
+    'background:#1a1a2e','color:#e0e0e0',
+    'font-size:12px','font-family:monospace',
+    'padding:16px 14px','box-sizing:border-box',
+    'box-shadow:4px 0 24px rgba(0,0,0,0.5)',
+    'transform:translateX(-100%)','transition:transform 0.25s ease',
+    'overflow-y:auto','line-height:1.6'
+  ].join(';');
+  panel.innerHTML = [
+    `<div style="font-size:14px;font-weight:700;color:#7ec8e3;margin-bottom:10px">🔧 Typhon Helper Diag</div>`,
+    `<div><span style="color:#aaa">pageType:</span> <b style="color:#f5c542">${pageType}</b></div>`,
+    `<div><span style="color:#aaa">heading:</span> "${heading}"</div>`,
+    `<div><span style="color:#aaa">allItems (unsubmitted):</span> ${allItems.length}</div>`,
+    `<div><span style="color:#aaa">matching:</span> ${matchingItems.length}</div>`,
+    `<div style="margin-top:8px;color:#aaa">Matched items:</div>`,
+    matchingItems.length
+      ? matchingItems.map(i => `<div style="padding-left:8px;color:#90ee90">• ${i.type} · ${i.date||'?'} · id=${i.id||'?'}</div>`).join('')
+      : `<div style="padding-left:8px;color:#888">(none)</div>`
+  ].join('');
+
+  // Show last pre-submit snapshot if available
+  try {
+    const raw = sessionStorage.getItem('__typhon_diag_submit');
+    if (raw) {
+      const snap = JSON.parse(raw);
+      const div = document.createElement('div');
+      div.style.cssText = 'margin-top:12px;padding-top:8px;border-top:1px solid #444;';
+      div.innerHTML = [
+        `<div style="color:#f5c542;font-weight:700">LAST PRE-SUBMIT @ ${snap.ts}</div>`,
+        `<div><span style="color:#aaa">window site name:</span> <b style="color:#fff">${snap.site}</b></div>`,
+        `<div><span style="color:#aaa">select before fix:</span> <b style="color:#f88">${snap.siteValBefore}</b></div>`,
+        `<div><span style="color:#aaa">fix result:</span> <b style="color:#7fc">${snap.fixResult}</b></div>`,
+        `<div><span style="color:#aaa">select after fix:</span> <b style="color:#fff">${snap.siteValAfter}</b></div>`,
+        `<div><span style="color:#aaa">hidden fields:</span> ${snap.hiddenFacility}</div>`,
+        `<div style="margin-top:4px;color:#aaa;font-size:10px">options: ${snap.optionsList}</div>`,
+        `<div style="margin-top:6px"><span style="color:#e88;cursor:pointer;font-size:11px" id="__typhon_diag_clear">clear snapshot</span></div>`
+      ].join('');
+      panel.appendChild(div);
+      setTimeout(() => {
+        const clr = document.getElementById('__typhon_diag_clear');
+        if (clr) clr.addEventListener('click', () => { sessionStorage.removeItem('__typhon_diag_submit'); div.remove(); });
+      }, 0);
+    }
+  } catch(e) {}
+  document.body.appendChild(panel);
+
+  // --- Small icon button ---
+  const icon = document.createElement('div');
+  icon.id = 'typhon-diag-icon';
+  icon.title = 'Typhon Helper Diagnostics';
+  icon.textContent = '🔧';
+  icon.style.cssText = [
+    'position:fixed','top:10px','left:10px','z-index:2147483647',
+    'width:28px','height:28px','border-radius:50%',
+    'background:rgba(0,0,0,0.55)','color:#fff',
+    'font-size:15px','line-height:28px','text-align:center',
+    'cursor:pointer','user-select:none',
+    'box-shadow:0 2px 8px rgba(0,0,0,0.4)',
+    'transition:background 0.15s'
+  ].join(';');
+
+  let open = false;
+  icon.addEventListener('click', () => {
+    open = !open;
+    panel.style.transform = open ? 'translateX(0)' : 'translateX(-100%)';
+    icon.style.left = open ? '290px' : '10px';
+  });
+  document.body.appendChild(icon);
+}
+
 function injectFloatingFillButton() {
   const pageType = getPageType();
-  if (pageType === 'unknown') return;
+  if (pageType === 'unknown') {
+    // Still show diag badge so we can see what the page type resolved to
+    chrome.storage.local.get('typhon-items', (data) => {
+      const allItems = (data['typhon-items'] || []).filter(i => !i.submitted);
+      injectDiagnosticBadge('unknown', allItems, []);
+    });
+    return;
+  }
+
+  if (pageType === 'sjfsurvey') {
+    // Auto-fill the SJF survey from the eval item stored before navigation
+    chrome.storage.local.get('typhon-pending-sjf-fill', (stored) => {
+      const item = stored['typhon-pending-sjf-fill'];
+      if (!item) return;
+      // Poll until the survey form has rendered (radio/checkbox inputs present)
+      let attempts = 0;
+      const timer = setInterval(() => {
+        attempts++;
+        const ready = document.querySelectorAll('input[type="radio"], input[type="checkbox"]').length > 5;
+        if (!ready) {
+          if (attempts >= 40) clearInterval(timer); // give up after 8s
+          return;
+        }
+        clearInterval(timer);
+        fillSJFSurvey(item);
+        showTyphonToast('Daily Eval SJF filled ✓ — review and submit');
+        chrome.storage.local.remove('typhon-pending-sjf-fill');
+      }, 200);
+    });
+    return;
+  }
+
   if (document.getElementById('typhon-helper-float')) return; // already injected
 
   chrome.storage.local.get('typhon-items', (data) => {
@@ -1217,9 +1890,18 @@ function injectFloatingFillButton() {
       (pageType === 'mainmenu'    && (i.type === 'case' || i.type === 'timelog' || i.type === 'eval')) ||
       (pageType === 'timeloglist' && i.type === 'timelog') ||
       (pageType === 'timelog'     && i.type === 'timelog') ||
+      (pageType === 'evallist'    && i.type === 'eval') ||
       (pageType === 'eval'        && i.type === 'eval')
     );
+    injectDiagnosticBadge(pageType, items, matching);
     if (!matching.length) return;
+
+    // Sort chronologically by date then start time
+    matching.sort((a, b) => {
+      const aKey = (a.date || '') + ' ' + (a.anesStart || a.clockIn1 || '');
+      const bKey = (b.date || '') + ' ' + (b.anesStart || b.clockIn1 || '');
+      return aKey < bKey ? -1 : aKey > bKey ? 1 : 0;
+    });
 
     const caseItems = matching.filter(i => i.type === 'case');
     const timeItems = matching.filter(i => i.type === 'timelog');
@@ -1272,8 +1954,10 @@ function injectFloatingFillButton() {
       const mainLine = document.createElement('div');
       mainLine.textContent = item.type === 'timelog' && btnPageType === 'mainmenu'    ? 'Add New Time Log →'
                            : item.type === 'timelog' && btnPageType === 'timeloglist' ? 'Add New Time Log →'
+                           : item.type === 'timelog' && isTimeLogDateStepPage()       ? 'Set Date & Continue →'
                            : item.type === 'timelog'    ? 'Fill Time Log'
                            : item.type === 'eval' && btnPageType === 'mainmenu' ? 'Add Daily Evaluation →'
+                           : item.type === 'eval' && btnPageType === 'evallist' ? 'Open Daily Eval SJF →'
                            : item.type === 'eval' ? 'Fill Daily Evaluation'
                            : btnPageType === 'casedate' ? 'Fill Date & Continue →'
                            : btnPageType === 'mainmenu' ? 'Add Case Log'
@@ -1324,6 +2008,13 @@ function injectFloatingFillButton() {
             btn.style.background = 'linear-gradient(135deg,#1a7a4a,#0f9b5e)';
             btn.style.boxShadow = '0 6px 20px rgba(15,155,94,0.45)';
             if (!clickAddNewTimeLog()) throw new Error('Could not find My Time Logs link.');
+          } else if (item.type === 'eval' && btnPageType === 'evallist') {
+            icon.textContent = '✓';
+            mainLine.textContent = 'Selecting preceptor…';
+            btn.style.background = 'linear-gradient(135deg,#1a7a4a,#0f9b5e)';
+            btn.style.boxShadow = '0 6px 20px rgba(15,155,94,0.45)';
+            if (!clickDailyEvalSJF()) throw new Error('Could not find Daily Clinical Evaluation SJF link.');
+            fillEvalSJFPanel(item);
           } else if (item.type === 'eval' && btnPageType === 'mainmenu') {
             icon.textContent = '✓';
             mainLine.textContent = 'Opening…';
@@ -1390,7 +2081,6 @@ if (document.readyState === 'loading') {
     injectFloatingFillButton();
     installCaseSubmitPrompt();
     installTimeLogSubmitPrompt();
-    setTimeout(autoRunTimeLogDateStepIfPossible, 300);
   });
 } else {
   // Small delay so Typhon's own JS finishes rendering the form
@@ -1398,14 +2088,47 @@ if (document.readyState === 'loading') {
     injectFloatingFillButton();
     installCaseSubmitPrompt();
     installTimeLogSubmitPrompt();
-    autoRunTimeLogDateStepIfPossible();
   }, 600);
 }
+
+// Re-inject if storage changes after initial load (e.g. popup pulled items from Firestore)
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes['typhon-items']) {
+    const existing = document.getElementById('typhon-helper-float');
+    if (existing) existing.remove();
+    injectFloatingFillButton();
+  }
+});
 
 // ============================================================
 // MESSAGE LISTENER
 // ============================================================
+function showTyphonToast(text) {
+  const existing = document.getElementById('__typhon-helper-toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = '__typhon-helper-toast';
+  toast.textContent = text;
+
+  toast.style.cssText = [
+    'position:fixed', 'bottom:180px', 'right:22px',
+    'background:#f5a800', 'color:#1a1a1a', 'padding:10px 16px', 'border-radius:8px',
+    'font-size:13px', 'font-family:sans-serif', 'z-index:2147483647',
+    'box-shadow:0 4px 16px rgba(0,0,0,0.35)', 'cursor:pointer',
+    'max-width:320px', 'line-height:1.4'
+  ].join(';');
+  toast.addEventListener('click', function() { toast.remove(); });
+  document.body.appendChild(toast);
+  setTimeout(function() { if (toast.parentNode) toast.remove(); }, 8000);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'showToast') {
+    showTyphonToast(message.message);
+    sendResponse({ ok: true });
+    return true;
+  }
+
   if (message.action === 'getPageType') {
     sendResponse({ pageType: getPageType() });
     return true;

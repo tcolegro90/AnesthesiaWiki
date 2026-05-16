@@ -29,6 +29,8 @@
           <label><input type="checkbox" id="equip-patient-goggles"> Patient goggles</label>
           <label><input type="checkbox" id="equip-ett-accordion"> ETT accordion</label>
           <label><input type="checkbox" id="equip-circuit-extender"> Circuit extender</label>
+          <label><input type="checkbox" id="equip-bite-block"> Bite block</label>
+          <label><input type="checkbox" id="equip-microbore-tubing"> Microbore tubing</label>
           <label><input type="checkbox" id="equip-bairhugger"> Bair Hugger</label>
           <span id="bair-hugger-wrap" style="display:none;align-items:center;gap:8px;">
             <label style="font-size:0.9em;">Blanket type</label>
@@ -58,7 +60,7 @@
     }
 
     function boot() {
-      ['equip-2piv','equip-central','equip-aline','equip-bilat-bp-cuff','equip-ogtube','equip-foley','equip-lead','equip-face-foam','equip-patient-goggles','equip-ett-accordion','equip-circuit-extender','equip-bairhugger'].forEach(function(id) {
+      ['equip-2piv','equip-central','equip-aline','equip-bilat-bp-cuff','equip-ogtube','equip-foley','equip-lead','equip-face-foam','equip-patient-goggles','equip-ett-accordion','equip-circuit-extender','equip-bite-block','equip-microbore-tubing','equip-bairhugger'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener('change', function() { syncBairHugger(); saveState(); });
       });

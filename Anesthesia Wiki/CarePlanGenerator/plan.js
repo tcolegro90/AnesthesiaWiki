@@ -19,6 +19,17 @@ function populateMedicationCatalogSelects() {
   fillSelectFromList('ind-blunt-select', ['Fentanyl', 'Esmolol', 'Dexmedetomidine'], s['ind-blunt-select'] || '');
 }
 
+function toggleLmaSize() {
+  var method = document.getElementById('ind-airway-method');
+  var wrap = document.getElementById('lma-size-wrap');
+  if (!method || !wrap) return;
+  wrap.style.display = method.value === 'LMA' ? 'inline' : 'none';
+  if (method.value !== 'LMA') {
+    var sizeEl = document.getElementById('lma-size');
+    if (sizeEl) sizeEl.value = '';
+  }
+}
+
 function toggleGeneralOptions() {
   const t = document.getElementById('anes-type').value;
   document.getElementById('general-options').style.display = t === 'General' ? 'block' : 'none';
@@ -60,8 +71,9 @@ function enforceTivaInhalationRule() {
 }
 
 function toggleTivaOther() {
-  const isOther = document.getElementById('tiva-reason').value === 'Other';
-  document.getElementById('tiva-other').style.display = isOther ? 'inline-block' : 'none';
+  const val = document.getElementById('tiva-reason').value;
+  const showText = val === 'Other' || val === 'Neuromonitoring';
+  document.getElementById('tiva-other').style.display = showText ? 'inline-block' : 'none';
   saveState();
 }
 
@@ -135,13 +147,29 @@ function validateDoseInput(inputEl) {
 }
 
 var PAIN_OPTIONS = {
-  intraop:  ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Ketamine (sub-dissociative)','Neuraxial (epidural/spinal)','Regional nerve block','Multimodal — see adjuncts'],
+  intraop:  ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Ketamine (sub-dissociative)','Ketamine infusion','Neuraxial (epidural/spinal)','Regional nerve block','Multimodal — see adjuncts','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone'],
   postop:   ['Fentanyl PCA','Hydromorphone PCA','Morphine PCA','Oxycodone (oral)','Tramadol','Neuraxial opioids','Regional / nerve block','Non-opioid multimodal'],
   nonopioid:['Acetaminophen IV','Ketorolac','Celecoxib','Ketamine (low-dose)','Dexmedetomidine','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Regional / Nerve Block','Dexamethasone'],
   sedation_bolus: ['Propofol','Ketamine','Dexmedetomidine'],
-  sedation_drips: ['Propofol Drip','Ketamine Drip','Dexmedetomidine Drip']
+  sedation_drips: ['Propofol Drip','Ketamine Drip','Dexmedetomidine Drip'],
+  vasopressors: ['Ephedrine','Phenylephrine','Epinephrine','Vasopressin','Norepinephrine','Dopamine','Dobutamine','Phenylephrine gtt','Epinephrine gtt','Norepinephrine gtt','Vasopressin gtt','Avoid Epinephrine','Avoid Ephedrine','Other']
 };
-var PAIN_COUNTS = { intraop: 0, postop: 0, nonopioid: 0, sedation_bolus: 0, sedation_drips: 0 };
+var PAIN_COUNTS = { intraop: 0, postop: 0, nonopioid: 0, sedation_bolus: 0, sedation_drips: 0, vasopressors: 0 };
+
+var PAIN_GROUPS = {
+  intraop: {
+    'Opioids': ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Neuraxial (epidural/spinal)'],
+    'Non-Opioid Adjuncts': ['Ketamine (sub-dissociative)','Ketamine infusion','Regional nerve block','Multimodal — see adjuncts','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone']
+  }
+};
+
+var PAIN_ROW_NOTES = {
+  'Dexmedetomidine (bolus)': 'Administer over 10 minutes'
+};
+
+document.addEventListener('click', function() {
+  document.querySelectorAll('.pain-note-tip').forEach(function(t) { t.style.display = 'none'; });
+});
 
 function painRowDoseSpec(type, drug) {
   var s = getGlobalState();
@@ -154,7 +182,18 @@ function painRowDoseSpec(type, drug) {
       'Remifentanil infusion':       { min: 0.05,  max: 0.5,  unit: 'mcg/kg/min',  perKg: false },
       'Sufentanil':                  { min: 0.1,   max: 0.5,  unit: 'mcg',         perKg: true  },
       'Alfentanil':                  { min: 20,    max: 50,   unit: 'mcg',         perKg: true  },
-      'Ketamine (sub-dissociative)': { min: 0.1,   max: 0.5,  unit: 'mg',          perKg: true  }
+      'Ketamine (sub-dissociative)': { min: 0.1,   max: 0.5,  unit: 'mg',          perKg: true  },
+      'Ketamine infusion':           { min: 0.1,   max: 0.5,  unit: 'mg/kg/hr',    perKg: false },
+      'Acetaminophen IV':            { min: 650,   max: 1000, unit: 'mg',          perKg: false },
+      'Ketorolac':                   { min: 15,    max: 30,   unit: 'mg',          perKg: false },
+      'Celecoxib':                   { min: 200,   max: 400,  unit: 'mg',          perKg: false },
+      'Dexmedetomidine (bolus)':     { min: 0.5,   max: 1,    unit: 'mcg/kg',      perKg: true  },
+      'Dexmedetomidine (infusion)':  { min: 0.2,   max: 1,    unit: 'mcg/kg/hr',   perKg: false },
+      'Lidocaine infusion':          { min: 1,     max: 2,    unit: 'mg/kg/hr',    perKg: false },
+      'Magnesium sulfate':           { min: 30,    max: 50,   unit: 'mg',          perKg: true  },
+      'Pregabalin':                  { min: 75,    max: 300,  unit: 'mg',          perKg: false },
+      'Gabapentin':                  { min: 300,   max: 1200, unit: 'mg/dose',     perKg: false },
+      'Dexamethasone':               { min: 4,     max: 10,   unit: 'mg',          perKg: false }
     },
     postop: {
       'Fentanyl PCA':      { min: 10,  max: 20,  unit: 'mcg/dose', perKg: false },
@@ -185,6 +224,21 @@ function painRowDoseSpec(type, drug) {
       'Propofol Drip':        { min: 25,  max: 75,  unit: 'mcg/kg/min', perKg: false },
       'Ketamine Drip':        { min: 0.1, max: 0.5, unit: 'mg/kg/hr',   perKg: false },
       'Dexmedetomidine Drip': { min: 0.2, max: 1.5, unit: 'mcg/kg/hr',  perKg: false }
+    },
+    vasopressors: {
+      'Ephedrine':          { min: 5,    max: 10,   unit: 'mg',          perKg: false },
+      'Phenylephrine':      { min: 50,   max: 200,  unit: 'mcg',         perKg: false },
+      'Epinephrine':        { min: 10,   max: 100,  unit: 'mcg',         perKg: false },
+      'Vasopressin':        { min: 0.2,  max: 0.4,  unit: 'units',       perKg: false },
+      'Norepinephrine':     { min: 4,    max: 12,   unit: 'mcg',         perKg: false },
+      'Dopamine':           { min: 2,    max: 20,   unit: 'mcg/kg/min',  perKg: false },
+      'Dobutamine':         { min: 2,    max: 20,   unit: 'mcg/kg/min',  perKg: false },
+      'Phenylephrine gtt':  { min: 0.5,  max: 2,    unit: 'mcg/kg/min',  perKg: false },
+      'Epinephrine gtt':    { min: 0.01, max: 0.1,  unit: 'mcg/kg/min',  perKg: false },
+      'Norepinephrine gtt': { min: 2,    max: 12,   unit: 'mcg/min',     perKg: false },
+      'Vasopressin gtt':    { min: 0.01, max: 0.04, unit: 'units/min',   perKg: false },
+      'Avoid Epinephrine':  { unit: '' },
+      'Avoid Ephedrine':    { unit: '' }
     }
   };
   var spec = (specs[type] || {})[drug];
@@ -212,7 +266,7 @@ function updatePainRowRange(type, selEl, doseEl, rangeEl) {
 }
 
 function refreshAllPainRowRanges() {
-  ['intraop', 'postop', 'nonopioid', 'sedation_bolus', 'sedation_drips'].forEach(function(type) {
+  ['intraop', 'postop', 'nonopioid', 'sedation_bolus', 'sedation_drips', 'vasopressors'].forEach(function(type) {
     var container = document.getElementById(type + '-rows');
     if (!container) return;
     container.querySelectorAll('.repeat-row').forEach(function(row) {
@@ -244,16 +298,48 @@ function addPainRow(type, drug, dose, skipSave, sub) {
   var hasDoseField = type !== 'postop';
 
   var row = document.createElement('div');
-  row.className = 'repeat-row';
+  row.className = 'repeat-row' + (type === 'intraop' ? ' intraop-row' : '');
+
+  // Note icon (intraop only)
+  var noteIconEl = null;
+  var noteTipEl = null;
+  if (type === 'intraop') {
+    noteIconEl = document.createElement('button');
+    noteIconEl.type = 'button';
+    noteIconEl.className = 'pain-note-icon';
+    noteIconEl.textContent = '?';
+    noteIconEl.style.visibility = 'hidden';
+    noteIconEl.style.position = 'relative';
+    noteTipEl = document.createElement('div');
+    noteTipEl.className = 'pain-note-tip';
+    noteTipEl.style.display = 'none';
+    noteIconEl.appendChild(noteTipEl);
+    noteIconEl.addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.querySelectorAll('.pain-note-tip').forEach(function(t) { t.style.display = 'none'; });
+      noteTipEl.style.display = noteTipEl.style.display === 'none' ? '' : 'none';
+    });
+  }
   // grid layout is handled by .repeat-row CSS in 8-Anesthetic-Plan.html
 
   var sel = document.createElement('select');
   sel.id = id;
   sel.className = 'long';
-  sel.innerHTML = '<option value="">Select...</option>' +
-    opts.map(function(o) {
-      return '<option' + (drug === o ? ' selected' : '') + '>' + o + '</option>';
-    }).join('');
+  var groups = PAIN_GROUPS[type];
+  if (groups) {
+    sel.innerHTML = '<option value="">Select...</option>' +
+      Object.keys(groups).map(function(grp) {
+        return '<optgroup label="' + grp + '">' +
+          groups[grp].map(function(o) {
+            return '<option' + (drug === o ? ' selected' : '') + '>' + o + '</option>';
+          }).join('') + '</optgroup>';
+      }).join('');
+  } else {
+    sel.innerHTML = '<option value="">Select...</option>' +
+      opts.map(function(o) {
+        return '<option' + (drug === o ? ' selected' : '') + '>' + o + '</option>';
+      }).join('');
+  }
 
   var doseEl = null;
   var rangeEl = null;
@@ -275,9 +361,41 @@ function addPainRow(type, drug, dose, skipSave, sub) {
     subEl.style.gridColumn = '2 / 4';
   }
 
+  // Vasopressors: "Other" name text input
+  var vasoOtherEl = null;
+  if (type === 'vasopressors') {
+    vasoOtherEl = document.createElement('input');
+    vasoOtherEl.className = 'small';
+    vasoOtherEl.style.width = '160px';
+    vasoOtherEl.placeholder = 'Drug name...';
+    vasoOtherEl.style.display = (drug === 'Other') ? '' : 'none';
+    if (drug === 'Other' && sub) vasoOtherEl.value = sub;
+    vasoOtherEl.addEventListener('input', function() { row.dataset.sub = vasoOtherEl.value; savePainRows(); });
+  }
+
   sel.addEventListener('change', function() {
     if (hasDoseField) updatePainRowRange(type, sel, doseEl, rangeEl);
     if (!hasDoseField) updatePostopSub(row, sel, subEl);
+    if (noteIconEl && noteTipEl) {
+      var note = PAIN_ROW_NOTES[sel.value];
+      noteIconEl.style.visibility = note ? '' : 'hidden';
+      noteTipEl.style.display = 'none';
+      if (note) noteTipEl.textContent = note;
+    }
+    if (vasoOtherEl) {
+      var isOther = sel.value === 'Other';
+      var isAvoid = sel.value === 'Avoid Epinephrine' || sel.value === 'Avoid Ephedrine';
+      vasoOtherEl.style.display = isOther ? '' : 'none';
+      sel.style.width = isOther ? '80px' : '';
+      doseEl.style.display = isAvoid ? 'none' : '';
+      rangeEl.style.display = (isOther || isAvoid) ? 'none' : '';
+      if (!isOther) { row.dataset.sub = ''; vasoOtherEl.value = ''; }
+      if (isOther) {
+        row.insertBefore(vasoOtherEl, doseEl);
+      } else {
+        row.insertBefore(doseEl, rangeEl);
+      }
+    }
     updatePainRowOptions(type);
     savePainRows();
   });
@@ -309,11 +427,29 @@ function addPainRow(type, drug, dose, skipSave, sub) {
     row.appendChild(doseEl);
     row.appendChild(rangeEl);
   }
+  if (vasoOtherEl) row.appendChild(vasoOtherEl);
   if (!hasDoseField && subEl) row.appendChild(subEl);
+  if (noteIconEl) row.appendChild(noteIconEl);
   row.appendChild(rm);
   container.appendChild(row);
 
-  if (drug && hasDoseField) updatePainRowRange(type, sel, doseEl, rangeEl);
+  if (drug && hasDoseField && drug !== 'Other') updatePainRowRange(type, sel, doseEl, rangeEl);
+  if (drug && noteIconEl && noteTipEl) {
+    var note = PAIN_ROW_NOTES[drug];
+    noteIconEl.style.visibility = note ? '' : 'hidden';
+    if (note) noteTipEl.textContent = note;
+  }
+  // Restore Other state: shrink select, move name box before dose, hide range
+  if (vasoOtherEl && drug === 'Other') {
+    sel.style.width = '80px';
+    rangeEl.style.display = 'none';
+    row.insertBefore(vasoOtherEl, doseEl);
+  }
+  // Restore avoid state: hide dose and range
+  if (vasoOtherEl && (drug === 'Avoid Epinephrine' || drug === 'Avoid Ephedrine')) {
+    doseEl.style.display = 'none';
+    rangeEl.style.display = 'none';
+  }
   if (!hasDoseField && sub && subEl) {
     updatePostopSub(row, sel, subEl);
     var subSelect = subEl.querySelector('select');
@@ -365,7 +501,7 @@ function updatePostopSub(row, sel, subEl) {
 
 function savePainRows() {
   var s = getGlobalState();
-  ['intraop','postop','nonopioid','sedation_bolus','sedation_drips'].forEach(function(type) {
+  ['intraop','postop','nonopioid','sedation_bolus','sedation_drips','vasopressors'].forEach(function(type) {
     var container = document.getElementById(type + '-rows');
     if (!container) return;
     var data = Array.from(container.querySelectorAll('.repeat-row')).map(function(r) {
@@ -378,7 +514,7 @@ function savePainRows() {
 
 function restorePainRows() {
   var s = getGlobalState();
-  ['intraop','postop','nonopioid','sedation_bolus','sedation_drips'].forEach(function(type) {
+  ['intraop','postop','nonopioid','sedation_bolus','sedation_drips','vasopressors'].forEach(function(type) {
     var container = document.getElementById(type + '-rows');
     if (!container) return;
     container.innerHTML = '';
@@ -386,7 +522,6 @@ function restorePainRows() {
     var raw = s['plan-' + type + '-list'];
     var data = [];
     try { data = JSON.parse(raw) || []; } catch(e) {}
-    if (data.length === 0) data = [{ drug: '', dose: '' }];
     data.forEach(function(item) {
       var drug = typeof item === 'string' ? item : (item.drug || '');
       var dose = typeof item === 'string' ? '' : (item.dose || '');
@@ -411,19 +546,18 @@ function maybeRestorePainRows() {
   if (active) {
     var inDynamicPainInput =
       (active.tagName === 'SELECT' || active.tagName === 'INPUT') &&
-      !!active.closest('#intraop-rows, #postop-rows, #nonopioid-rows, #sedation_bolus-rows, #sedation_drips-rows');
+      !!active.closest('#intraop-rows, #postop-rows, #nonopioid-rows, #sedation_bolus-rows, #sedation_drips-rows, #vasopressors-rows');
     if (inDynamicPainInput) return;
   }
 
   var s = getGlobalState();
   var same = true;
-  ['intraop','postop','nonopioid','sedation_bolus','sedation_drips'].forEach(function(type) {
+  ['intraop','postop','nonopioid','sedation_bolus','sedation_drips','vasopressors'].forEach(function(type) {
     var container = document.getElementById(type + '-rows');
     if (!container) return;
 
     var stateRows = [];
     try { stateRows = JSON.parse(s['plan-' + type + '-list'] || '[]') || []; } catch (e) { stateRows = []; }
-    if (stateRows.length === 0) stateRows = [{ drug: '', dose: '' }];
     stateRows = stateRows.map(function(item) {
       if (typeof item === 'string') return { drug: item || '', dose: '' };
       return { drug: (item && item.drug) || '', dose: (item && item.dose) || '' };
@@ -435,7 +569,10 @@ function maybeRestorePainRows() {
         dose: (r.querySelector('input') || {}).value || ''
       };
     });
-    if (domRows.length === 0) domRows = [{ drug: '', dose: '' }];
+    if (domRows.length === 0) {
+      if (stateRows.length !== 0) same = false;
+      return;
+    }
 
     if (painRowsSignature(stateRows) !== painRowsSignature(domRows)) same = false;
   });
@@ -536,6 +673,18 @@ function stateRadioValue(state, name) {
 }
 
 function triggerCrossConditions() {
+  var s = getGlobalState();
+  var fastedNo = !s['pat-fasted::Yes'];
+  var overrideEl = document.getElementById('rsi-override');
+  var rsiNoEl = document.getElementById('ind-rsi-no');
+  var rsiYesEl2 = document.getElementById('ind-rsi-yes');
+  if (overrideEl) {
+    if (fastedNo && rsiNoEl && rsiNoEl.checked) {
+      overrideEl.value = '1'; // user explicitly chose No despite not fasted
+    } else if (rsiYesEl2 && rsiYesEl2.checked) {
+      overrideEl.value = ''; // user chose Yes — clear override
+    }
+  }
   applyCrossConditions();
   highlightAbnormalRSI();
   saveState();
@@ -543,7 +692,7 @@ function triggerCrossConditions() {
 
 function highlightAbnormalRSI() {
   const s = getGlobalState();
-  const fastedNo = !s['pat-fasted-yes'];
+  const fastedNo = !s['pat-fasted::Yes'];
   const rsiNo = !document.getElementById('ind-rsi-yes').checked;
   const rsiRow = document.getElementById('row-ind-rsi');
   if (rsiRow && fastedNo && rsiNo) {
@@ -557,9 +706,9 @@ function highlightAbnormalRSI() {
 
 function applyCrossConditions() {
   const s = getGlobalState();
-  const fastedNo = !s['pat-fasted-yes'];
-  const mhYes = !!s['hx-mh-yes'];
-  const pseudoYes = !!s['hx-pseudo-yes'];
+  const fastedNo = !s['pat-fasted::Yes'];
+  const mhYes = !!s['hx-mh::Yes'];
+  const pseudoYes = !!s['hx-pseudo::Yes'];
   const kVal = parseFloat(s['pat-k']);
   const highK = !isNaN(kVal) && kVal >= 5.5;
   const cautionK = !isNaN(kVal) && kVal > 5.0 && kVal < 5.5;
@@ -572,7 +721,9 @@ function applyCrossConditions() {
   rsiRow.classList.toggle('alert', fastedNo && rsiNo);
   const rsiAutoNote = document.getElementById('rsi-auto-note');
   if (fastedNo) {
-    if (!rsiYesEl.checked) { rsiYesEl.checked = true; changed = true; }
+    var overrideEl = document.getElementById('rsi-override');
+    var rsiOverride = overrideEl && overrideEl.value === '1';
+    if (!rsiYesEl.checked && !rsiOverride) { rsiYesEl.checked = true; changed = true; }
     if (rsiAutoNote) rsiAutoNote.style.display = 'inline-block';
   } else if (rsiAutoNote) {
     rsiAutoNote.style.display = 'none';

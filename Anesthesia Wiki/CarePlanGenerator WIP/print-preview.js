@@ -1,6 +1,6 @@
 // print-preview.js — preview UI, plan picker, multi-plan print/email
 // Extracted from combined.js. Depends on: print-card.js, email-plan.js.
-/* global mirroredState, getState, getSavedPlans, fitAll, previewMode, multiPreviewSelectedNames */
+/* global mirroredState, getState, getSavedPlans, fitAll, previewMode, multiPreviewSelectedNames, multiPreviewPlans */
 /* global buildPrintCard, buildPrintCardHtml, escapeHtml */
 /* global downloadBlob, buildCurrentPlanPdfBlob, buildEmailPlanText, safeFilePart, safeNamePart, formatDateShort */
 
@@ -63,6 +63,7 @@
       buildPrintCard();
       document.getElementById('main-content').style.display = 'none';
       document.getElementById('preview-screen').style.display = 'flex';
+      document.body.classList.add('preview-open');
       var nav = document.getElementById('cp-side-nav');
       if (nav) nav.style.display = 'none';
     }
@@ -70,6 +71,7 @@
     function closePreview() {
       document.getElementById('preview-screen').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
+      document.body.classList.remove('preview-open');
       var nav = document.getElementById('cp-side-nav');
       if (nav) nav.style.display = '';
       setPreviewActionMode('single');
@@ -198,7 +200,18 @@
         '.spp-foot{display:flex;justify-content:flex-end;gap:9px;padding:12px 14px;border-top:1px solid #e5ebf4;background:#fbfdff;}',
         '.spp-btn{padding:8px 12px;border-radius:8px;border:1px solid #b9c8da;background:#fff;color:#1f3550;font-weight:600;cursor:pointer;}',
         '.spp-btn.spp-primary{border-color:#0b5cab;background:#0b5cab;color:#fff;}',
-        '.spp-btn:disabled{opacity:.5;cursor:not-allowed;}'
+        '.spp-btn:disabled{opacity:.5;cursor:not-allowed;}',
+        '.spp-folder-header{display:flex;align-items:center;gap:7px;padding:7px 10px;cursor:pointer;user-select:none;font-size:.8rem;font-weight:700;color:#29466f;border-radius:7px;background:#eef3fa;border:1px solid #d2ddef;margin-top:4px;}',
+        '.spp-folder-header:hover{background:#e4edf8;}',
+        '.spp-folder-chevron{font-style:normal;display:inline-block;transition:transform .15s;line-height:1;}',
+        '.spp-folder-header.spp-collapsed .spp-folder-chevron{transform:rotate(-90deg);}',
+        '.spp-folder-count{font-weight:400;color:#516277;margin-left:auto;font-size:.77rem;}',
+        '.spp-archive-header{display:flex;align-items:center;gap:7px;padding:8px 10px;cursor:pointer;user-select:none;font-size:.82rem;font-weight:700;color:#1b2a41;border-radius:8px;background:#e2e9f4;border:1px solid #b8c8df;margin-top:6px;}',
+        '.spp-archive-header:hover{background:#d5e0f0;}',
+        '.spp-archive-chevron{font-style:normal;display:inline-block;transition:transform .15s;line-height:1;}',
+        '.spp-archive-header.spp-collapsed .spp-archive-chevron{transform:rotate(-90deg);}',
+        '.spp-archive-count{font-weight:400;color:#516277;margin-left:auto;font-size:.77rem;}',
+        '.spp-folder-header{margin-left:14px;}'
       ].join('');
       document.head.appendChild(style);
     }
@@ -250,33 +263,105 @@
         list.className = 'spp-list';
         dialog.appendChild(list);
 
-        names.forEach(function(name, i) {
-          var row = document.createElement('label');
-          row.className = 'spp-option';
-          row.setAttribute('data-name', name);
+        // Group names: today = flat, yesterday + older = date folders
+        var _now = new Date();
+        var _todayStr = _now.toDateString();
+        var _yesterdayStr = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() - 1).toDateString();
+        var _todayNames = [], _folderGroups = {};
+        names.forEach(function(name) {
+          var sa = (opts.plans && opts.plans[name] && opts.plans[name].savedAt) ? String(opts.plans[name].savedAt) : '';
+          var d = sa ? new Date(sa) : null;
+          var dtStr = (d && !isNaN(d.getTime())) ? d.toDateString() : 'Unknown';
+          if (dtStr === _todayStr) { _todayNames.push(name); }
+          else { if (!_folderGroups[dtStr]) _folderGroups[dtStr] = []; _folderGroups[dtStr].push(name); }
+        });
 
-          var savedAt = (opts.plans && opts.plans[name] && opts.plans[name].savedAt) ? String(opts.plans[name].savedAt) : '';
-          var savedLabel = '';
-          if (savedAt) {
-            var dt = new Date(savedAt);
-            if (!isNaN(dt.getTime())) {
-              var now = new Date();
-              var isToday = dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth() && dt.getDate() === now.getDate();
-              var dateStr = isToday ? 'Today' : dt.toLocaleDateString();
-              var timeStr = dt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-              savedLabel = dateStr + ' ' + timeStr;
-            }
+        var _groups = [];
+        if (_todayNames.length) _groups.push({ label: null, key: 'today', names: _todayNames });
+        Object.keys(_folderGroups).sort(function(a, b) { return new Date(b) - new Date(a); }).forEach(function(dtStr) {
+          var dt = new Date(dtStr);
+          var isYest = dtStr === _yesterdayStr;
+          var label = isYest
+            ? 'Yesterday \u2014 ' + dt.toLocaleDateString([], { month: 'short', day: 'numeric' })
+            : dt.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+          _groups.push({ label: label, key: dtStr, names: _folderGroups[dtStr] });
+        });
+
+        // Count total archived plans for the Archive header badge
+        var _archiveGroups = _groups.filter(function(g) { return g.label !== null; });
+        var _archiveTotal = _archiveGroups.reduce(function(sum, g) { return sum + g.names.length; }, 0);
+
+        // Render Archive header (only if there are any non-today plans)
+        var _archiveHeader = null;
+        if (_archiveGroups.length) {
+          _archiveHeader = document.createElement('div');
+          _archiveHeader.className = 'spp-archive-header';
+          _archiveHeader.innerHTML =
+            '<span class="spp-archive-chevron">&#9662;</span>' +
+            '<span>&#128193; Archive</span>' +
+            '<span class="spp-archive-count">' + _archiveTotal + ' plan' + (_archiveTotal !== 1 ? 's' : '') + '</span>';
+          _archiveHeader.addEventListener('click', function() {
+            var collapsed = _archiveHeader.classList.toggle('spp-collapsed');
+            // Toggle all date sub-headers and plan rows inside the archive
+            list.querySelectorAll('.spp-folder-header, .spp-option[data-archive="1"]').forEach(function(el) {
+              el.style.display = collapsed ? 'none' : '';
+            });
+          });
+        }
+
+        var _globalIdx = 0;
+        _groups.forEach(function(group) {
+          if (group.label !== null) {
+            // Insert Archive header before the very first date sub-folder
+            if (_archiveHeader) { list.appendChild(_archiveHeader); _archiveHeader = null; }
+
+            var header = document.createElement('div');
+            header.className = 'spp-folder-header';
+            header.setAttribute('data-folder-key', group.key);
+            header.innerHTML =
+              '<span class="spp-folder-chevron">&#9662;</span>' +
+              '<span class="spp-folder-label">' + escapeHtml(group.label) + '</span>' +
+              '<span class="spp-folder-count">(' + group.names.length + ')</span>';
+            header.addEventListener('click', function() {
+              var collapsed = header.classList.toggle('spp-collapsed');
+              var fKey = header.getAttribute('data-folder-key');
+              list.querySelectorAll('.spp-option[data-folder-key="' + CSS.escape(fKey) + '"]').forEach(function(row) {
+                row.style.display = collapsed ? 'none' : '';
+              });
+            });
+            list.appendChild(header);
           }
 
-          var checked = selectedOrder.indexOf(name) !== -1;
-          row.innerHTML =
-            '<input type="checkbox" class="spp-check" ' + (checked ? 'checked' : '') + '>' +
-            '<span class="spp-bubble"></span>' +
-            '<span class="spp-label"><span class="spp-index">' + (i + 1) + '.</span><span class="spp-name"></span><span class="spp-meta"></span></span>';
-          row.querySelector('.spp-name').textContent = name;
-          var meta = row.querySelector('.spp-meta');
-          if (meta) meta.textContent = savedLabel;
-          list.appendChild(row);
+          group.names.forEach(function(name) {
+            _globalIdx++;
+            var row = document.createElement('label');
+            row.className = 'spp-option';
+            row.setAttribute('data-name', name);
+            if (group.label !== null) {
+              row.setAttribute('data-folder-key', group.key);
+              row.setAttribute('data-archive', '1');
+            }
+
+            var savedAt = (opts.plans && opts.plans[name] && opts.plans[name].savedAt) ? String(opts.plans[name].savedAt) : '';
+            var savedLabel = '';
+            if (savedAt) {
+              var dt = new Date(savedAt);
+              if (!isNaN(dt.getTime())) {
+                var timeStr = dt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                savedLabel = (group.label === null) ? 'Today ' + timeStr : timeStr;
+              }
+            }
+
+            var checked = selectedOrder.indexOf(name) !== -1;
+            row.innerHTML =
+              '<input type="checkbox" class="spp-check" ' + (checked ? 'checked' : '') + '>' +
+              '<span class="spp-bubble"></span>' +
+              '<span class="spp-label"><span class="spp-index">' + _globalIdx + '.</span><span class="spp-name"></span><span class="spp-meta"></span></span>';
+            row.querySelector('.spp-name').textContent = name;
+            var meta = row.querySelector('.spp-meta');
+            if (meta) meta.textContent = savedLabel;
+            list.appendChild(row);
+          });
         });
 
         var foot = document.createElement('div');
@@ -328,6 +413,11 @@
 
         function onKeyDown(ev) {
           if (ev.key === 'Escape') closeWith(null);
+          if (ev.key === 'Enter') {
+            ev.preventDefault();
+            var confirmBtn = dialog.querySelector('#spp-confirm');
+            if (confirmBtn && !confirmBtn.disabled) confirmBtn.click();
+          }
         }
 
         list.addEventListener('change', function(ev) {
@@ -443,11 +533,13 @@
 
     function openMultiPlansPreview(selectedNames, plans) {
       multiPreviewSelectedNames = (selectedNames || []).slice();
+      multiPreviewPlans = plans || {};
       buildMultiPreviewPages(multiPreviewSelectedNames, plans || {});
       setPreviewActionMode('multi');
       setPrintMode('multi');
       document.getElementById('main-content').style.display = 'none';
       document.getElementById('preview-screen').style.display = 'flex';
+      document.body.classList.add('preview-open');
       var nav = document.getElementById('cp-side-nav');
       if (nav) nav.style.display = 'none';
     }
@@ -571,25 +663,45 @@
       if (!selectedNames || !selectedNames.length) return;
       openMultiPlansPreview(selectedNames, plans);
 
-      var filename = 'Anesthetic_Care_Plans_' + String(selectedNames.length) + '_plans.pdf';
+      // Build filename from dates + OR numbers across selected plans
+      var dateOrParts = [];
+      var dateOrMap = {}; // date -> [or numbers]
+      selectedNames.forEach(function(name) {
+        var state = (plans[name] && plans[name].state) ? plans[name].state : {};
+        var d = formatDateShort(state['pat-surg-date'] || '') || '';
+        var or = String(state['pat-or-number'] || '').trim();
+        if (!d) return;
+        if (!dateOrMap[d]) { dateOrMap[d] = []; dateOrParts.push(d); }
+        if (or && dateOrMap[d].indexOf('OR' + or) === -1) dateOrMap[d].push('OR' + or);
+      });
+      var filenameStem;
+      if (dateOrParts.length) {
+        filenameStem = dateOrParts.map(function(d) {
+          var ors = dateOrMap[d];
+          return ors.length ? d + ' ' + ors.join(' ') : d;
+        }).join(' · ');
+      } else {
+        filenameStem = 'Anesthetic_Care_Plans_' + String(selectedNames.length) + '_plans';
+      }
+      var filename = filenameStem + '.pdf';
+      var subject = filenameStem.replace(/_/g, ' ');
+
       var blob;
       try {
         blob = await buildMultiPreviewPdfBlob(filename);
       } catch (err) {
-        alert('Could not generate combined PDF for selected plans.');
+        showTopbarFlash('Could not generate combined PDF for selected plans.');
         return;
       }
 
       var file = null;
       try { file = new File([blob], filename, { type: 'application/pdf' }); } catch (e) {}
 
-      var subject = 'Anesthetic Care Plans - ' + String(selectedNames.length) + ' plan' + (selectedNames.length === 1 ? '' : 's');
       var canShareFile = !!(navigator.share && navigator.canShare && file && navigator.canShare({ files: [file] }));
       if (canShareFile) {
         try {
           await navigator.share({
             title: subject,
-            text: 'Attached anesthetic care plans PDF (4 cards per page).',
             files: [file]
           });
           return;
@@ -600,31 +712,20 @@
 
       downloadBlob(blob, filename);
       var body = [
-        'Attached is the anesthetic care plans PDF (4 cards per page).',
-        '',
         'Selected plans:',
         selectedNames.map(function(n, idx) { return String(idx + 1) + '. ' + n; }).join('\n'),
         '',
         'If attachment is missing, please attach: ' + filename
       ].join('\n');
       window.location.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-      alert('Combined PDF downloaded. An email draft opened; please attach the downloaded PDF.');
+      showTopbarFlash('Combined PDF downloaded. An email draft opened — please attach the downloaded PDF.');
     }
 
     async function printOrEmailSavedPlans() {
-      // Prompt to save current in-progress plan if there are unsaved changes
-      var s = (mirroredState && Object.keys(mirroredState).length) ? mirroredState : getState();
-      var hasPatient = !!(s['pat-initials'] || s['pat-surgery'] || s['pat-surg-date']);
-      if (isDirty && hasPatient) {
-        var choice = confirm('You have unsaved changes to the current plan.\n\nSave it before printing?');
-        if (choice) {
-          await saveNamedPlan();
-        }
-      }
       var plans = await getSavedPlans();
       var names = getSavedPlanNamesSorted(plans);
       if (!names.length) {
-        alert('No saved plans found.');
+        showTopbarFlash('No saved plans found.');
         return;
       }
 
@@ -652,17 +753,8 @@
 
     async function printSelectedPlansFromPreview() {
       if (!multiPreviewSelectedNames.length) {
-        alert('No selected plans in preview.');
+        showTopbarFlash('No selected plans in preview.');
         return;
-      }
-      // Prompt to save current in-progress plan if there are unsaved changes
-      var s = (mirroredState && Object.keys(mirroredState).length) ? mirroredState : getState();
-      var hasPatient = !!(s['pat-initials'] || s['pat-surgery'] || s['pat-surg-date']);
-      if (isDirty && hasPatient) {
-        var choice = confirm('You have unsaved changes to the current plan.\n\nSave it before printing?');
-        if (choice) {
-          await saveNamedPlan();
-        }
       }
       var btn = document.getElementById('btn-preview-print-multi');
       if (btn) { btn.disabled = true; btn.textContent = 'Generating PDF…'; }
@@ -674,11 +766,11 @@
         if (!w) {
           // Pop-up blocked — fall back to download
           downloadBlob(blob, filename);
-          alert('Pop-up blocked. PDF downloaded — open it and print from your PDF viewer.');
+          showTopbarFlash('PDF downloaded — open it and print from your PDF viewer.');
         }
         setTimeout(function() { URL.revokeObjectURL(url); }, 120000);
       } catch (err) {
-        alert('Could not generate PDF. Try again or use Email.');
+        showTopbarFlash('Could not generate PDF. Try again or use Email.');
       } finally {
         if (btn) { btn.disabled = false; btn.textContent = 'Print Selected Plans'; }
       }
@@ -686,29 +778,46 @@
 
     async function emailSelectedPlansFromPreview() {
       if (!multiPreviewSelectedNames.length) {
-        alert('No selected plans in preview.');
+        showTopbarFlash('No selected plans in preview.');
         return;
       }
 
       var filename = 'Anesthetic_Care_Plans_' + String(multiPreviewSelectedNames.length) + '_plans.pdf';
+      // Build smart filename from dates + OR numbers
+      var dateOrMap = {};
+      var dateOrParts = [];
+      multiPreviewSelectedNames.forEach(function(name) {
+        var state = (multiPreviewPlans[name] && multiPreviewPlans[name].state) ? multiPreviewPlans[name].state : {};
+        var d = formatDateShort(state['pat-surg-date'] || '') || '';
+        var or = String(state['pat-or-number'] || '').trim();
+        if (!d) return;
+        if (!dateOrMap[d]) { dateOrMap[d] = []; dateOrParts.push(d); }
+        if (or && dateOrMap[d].indexOf('OR' + or) === -1) dateOrMap[d].push('OR' + or);
+      });
+      if (dateOrParts.length) {
+        var stem = dateOrParts.map(function(d) {
+          var ors = dateOrMap[d];
+          return ors.length ? d + ' ' + ors.join(' ') : d;
+        }).join(' - ');
+        filename = stem + '.pdf';
+      }
+      var subject = filename.replace(/\.pdf$/i, '');
       var blob;
       try {
         blob = await buildMultiPreviewPdfBlob(filename);
       } catch (err) {
-        alert('Could not generate combined PDF from preview.');
+        showTopbarFlash('Could not generate combined PDF from preview.');
         return;
       }
 
       var file = null;
       try { file = new File([blob], filename, { type: 'application/pdf' }); } catch (e) {}
 
-      var subject = 'Anesthetic Care Plans - ' + String(multiPreviewSelectedNames.length) + ' plan' + (multiPreviewSelectedNames.length === 1 ? '' : 's');
       var canShareFile = !!(navigator.share && navigator.canShare && file && navigator.canShare({ files: [file] }));
       if (canShareFile) {
         try {
           await navigator.share({
             title: subject,
-            text: 'Attached anesthetic care plans PDF (4 cards per page).',
             files: [file]
           });
           return;
@@ -719,15 +828,13 @@
 
       downloadBlob(blob, filename);
       var body = [
-        'Attached is the anesthetic care plans PDF (4 cards per page).',
-        '',
         'Selected plans:',
         multiPreviewSelectedNames.map(function(n, idx) { return String(idx + 1) + '. ' + n; }).join('\n'),
         '',
         'If attachment is missing, please attach: ' + filename
       ].join('\n');
       window.location.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-      alert('Combined PDF downloaded. An email draft opened; please attach the downloaded PDF.');
+      showTopbarFlash('Combined PDF downloaded. An email draft opened — please attach the downloaded PDF.');
     }
 
     // Backward-compatible wrapper for older button hooks.

@@ -314,19 +314,19 @@
 
       <hr>
 
-      <div class="row" style="margin-top:10px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
-        <div><label>Fasted</label><div style="margin-top:4px;"><label><input type="radio" name="pat-fasted" id="pat-fasted-yes" value="Yes" onchange="highlightAbnormal()"> Yes</label> <label><input type="radio" name="pat-fasted" id="pat-fasted-no" value="No" onchange="highlightAbnormal()"> No</label></div></div>
-        <div><label>Smoker</label><br><label><input type="radio" name="pat-smoker" id="pat-smoker-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-smoker" id="pat-smoker-no" value="No"> No</label></div>
-        <div><label>Pacer</label><br><label><input type="radio" name="pat-pacer" id="pacer-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-pacer" id="pacer-no" value="No"> No</label></div>
+      <div class="row" style="margin-top:10px;flex-wrap:wrap;align-items:flex-start;gap:12px;">
+        <div><label>Fasted</label><div style="margin-top:4px;"><label><input type="radio" name="pat-fasted" id="pat-fasted-yes" value="Yes" checked onchange="highlightAbnormal()"> Yes</label> <label><input type="radio" name="pat-fasted" id="pat-fasted-no" value="No" onchange="highlightAbnormal()"> No</label></div></div>
+        <div><label>Smoker</label><br><label><input type="radio" name="pat-smoker" id="pat-smoker-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-smoker" id="pat-smoker-no" value="No" checked> No</label></div>
+        <div><label>Pacer</label><br><label><input type="radio" name="pat-pacer" id="pacer-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-pacer" id="pacer-no" value="No" checked> No</label></div>
         <div id="aicd-wrap" style="display:none;"><label>AICD</label><br><label><input type="radio" name="pat-aicd" id="aicd-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-aicd" id="aicd-no" value="No"> No</label></div>
         <div id="pacer-settings-wrap" style="display:none;"><label>Pacer Settings</label><br><input id="pat-pacer-settings" class="med" placeholder="e.g. VVI 60" /></div>
       </div>
 
-      <div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+      <div class="row" style="margin-top:6px;flex-wrap:wrap;align-items:flex-start;gap:12px;">
         <div>
           <label>Interpreter</label><br>
           <label><input type="radio" name="pat-interpreter" id="pat-interpreter-yes" value="Yes"> Yes</label>
-          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-no" value="No"> No</label>
+          <label><input type="radio" name="pat-interpreter" id="pat-interpreter-no" value="No" checked> No</label>
         </div>
         <div id="pat-interpreter-language-wrap" style="display:none;">
           <label>Language</label><br>
@@ -335,7 +335,7 @@
         <div>
           <label>Hearing Loss</label><br>
           <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-yes" value="Yes"> Yes</label>
-          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-no" value="No"> No</label>
+          <label><input type="radio" name="pat-hearing-loss" id="pat-hearing-loss-no" value="No" checked> No</label>
         </div>
         <div id="pat-hearing-aids-wrap" style="display:none;">
           <label>Hearing Aids</label><br>
@@ -348,7 +348,7 @@
         <div>
           <label>Prior Anesthetic in Chart?</label><br>
           <label><input type="radio" name="pat-prior-anesthetic" id="pat-prior-anesthetic-yes" value="Yes"> Yes</label>
-          <label><input type="radio" name="pat-prior-anesthetic" id="pat-prior-anesthetic-no" value="No"> No</label>
+          <label><input type="radio" name="pat-prior-anesthetic" id="pat-prior-anesthetic-no" value="No" checked> No</label>
         </div>
         <div id="pat-prior-anesthetic-notes-wrap" style="display:none;flex-basis:100%;width:100%;">
           <label>Notes</label><br>

@@ -1,17 +1,243 @@
     var mirroredState = {};
-    var isDirty = false;
     var stateRevision = 0;
+    var pageLoadTime = Date.now();
     // Suppress dirty flag during initial iframe boot-up state echo (first 4 seconds)
-    var suspendIncomingStateUntil = Date.now() + 4000;
+    var suspendIncomingStateUntil = pageLoadTime + 4000;
     var previewMode = 'single';
     var multiPreviewSelectedNames = [];
+    var multiPreviewPlans = {};
     var draftSyncTimer = null;
     var lastDraftSyncWarningAt = 0;
+    // Track last JSON written to localStorage so we skip redundant writes from the poll loop.
+    var lastPersistedStateJson = '';
     // Snapshot localStorage at session start so we can detect user changes before cloud draft restore.
     var sessionStartStateJson = '';
     try { sessionStartStateJson = localStorage.getItem('carePlanSplitState') || ''; } catch (e) {}
+    lastPersistedStateJson = sessionStartStateJson;
     // DIAGNOSTIC: mark that combined.js loaded successfully
     window.__combinedJsLoaded = true;
+
+    /* DIAG_START */
+    // ── Diagnostic log panel ──────────────────────────────────────────────────
+    // Panel is created lazily the first time _diag() is called, so it works
+    // even before DOMContentLoaded. Always position:fixed so topbar state doesn't matter.
+    var _diagEntries = [];
+    var _diagEl = null;
+    function _ensureDiagPanel() {
+      if (_diagEl || !document.body) return;
+      var panel = document.createElement('div');
+      panel.id = 'cp-diag-panel';
+      panel.style.cssText = [
+        'position:fixed', 'top:0', 'right:0', 'width:440px', 'max-height:400px',
+        'overflow-y:auto', 'background:rgba(10,10,20,0.93)', 'color:#39ff14',
+        'font-family:monospace', 'font-size:10.5px', 'line-height:1.4', 'padding:5px 8px',
+        'z-index:2147483647', 'border-bottom:2px solid #39ff14', 'border-left:2px solid #39ff14',
+        'box-shadow:0 2px 12px rgba(0,0,0,.6)', 'pointer-events:auto',
+        'resize:both', 'overflow:auto', 'transition:none'
+      ].join(';');
+      var hdr = document.createElement('div');
+      hdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;border-bottom:1px solid #1a5c1a;padding-bottom:3px;';
+      var title = document.createElement('strong');
+      title.style.color = '#39ff14';
+      title.textContent = '\uD83D\uDCCB CarePlan Diagnostics';
+      var closeBtn = document.createElement('button');
+      closeBtn.textContent = '\u2715 hide';
+      closeBtn.style.cssText = 'background:none;border:1px solid #39ff14;color:#39ff14;cursor:pointer;font-size:9px;padding:1px 5px;border-radius:3px;font-family:monospace;';
+      closeBtn.addEventListener('click', function() { panel.style.display = 'none'; });
+      hdr.appendChild(title);
+      hdr.appendChild(closeBtn);
+      panel.appendChild(hdr);
+      var logArea = document.createElement('div');
+      logArea.id = 'cp-diag-log';
+      panel.appendChild(logArea);
+      document.body.appendChild(panel);
+      _diagEl = logArea;
+      // Flush buffered entries
+      _diagEntries.forEach(function(e) {
+        var row = document.createElement('div');
+        row.textContent = e;
+        logArea.appendChild(row);
+      });
+    }
+    var _diagLastMsg = null;
+    var _diagRepeatCount = 0;
+    var _diagLastRow = null;
+    function _diag(msg) {
+      var t = ((Date.now() - pageLoadTime) / 1000).toFixed(1) + 's';
+      var entry = '[' + t + '] ' + msg;
+      console.log('[CPDiag]', entry);
+      // Deduplicate rapid identical messages — update a repeat counter instead of spamming rows.
+      var msgCore = msg.substring(0, 60);
+      if (msgCore === _diagLastMsg && _diagLastRow) {
+        _diagRepeatCount++;
+        _diagLastRow.textContent = entry + ' ×' + (_diagRepeatCount + 1);
+        return;
+      }
+      _diagLastMsg = msgCore;
+      _diagRepeatCount = 0;
+      _diagEntries.push(entry);
+      _ensureDiagPanel();
+      if (_diagEl) {
+        var row = document.createElement('div');
+        row.textContent = entry;
+        _diagLastRow = row;
+        _diagEl.insertBefore(row, _diagEl.firstChild);
+        while (_diagEl.children.length > 500) _diagEl.removeChild(_diagEl.lastChild);
+      }
+    }
+
+    // Intercept ALL parent-page localStorage writes.
+    (function patchLocalStorage() {
+      var _orig = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(key, value) {
+        _orig.call(this, key, value);
+        if (key === 'carePlanSplitState') {
+          var count = 0;
+          try { count = Object.keys(JSON.parse(value || '{}')).length; } catch (e) {}
+          var caller = '';
+          try { caller = new Error().stack.split('\n').slice(2, 4).join(' \u2190 ').replace(/\s+/g, ' ').substring(0, 100); } catch (e) {}
+          _diag('PARENT SET(' + count + 'k): ' + caller);
+        }
+      };
+      var _origRemove = Storage.prototype.removeItem;
+      Storage.prototype.removeItem = function(key) {
+        _origRemove.call(this, key);
+        if (key === 'carePlanSplitState') {
+          var caller = '';
+          try { caller = new Error().stack.split('\n').slice(2, 4).join(' \u2190 ').replace(/\s+/g, ' ').substring(0, 100); } catch (e) {}
+          _diag('PARENT REMOVE! ' + caller);
+        }
+      };
+    })();
+
+    // Catch iframe localStorage writes via storage event.
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'carePlanSplitState') {
+        var oldCount = 0, newCount = 0;
+        try { oldCount = Object.keys(JSON.parse(e.oldValue || '{}')).length; } catch (er) {}
+        try { newCount = Object.keys(JSON.parse(e.newValue || '{}')).length; } catch (er) {}
+        _diag('STORAGE EVENT: ' + oldCount + '\u2192' + newCount + 'k (from other window)');
+      }
+    });
+    /* DIAG_END */
+
+    // ── Custom modal helpers (replace native confirm/alert/prompt to avoid browser dialog suppression) ──
+
+    function showSimpleModal(message, confirmLabel, cancelLabel) {
+      return new Promise(function(resolve) {
+        var overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center;';
+        var box = document.createElement('div');
+        box.style.cssText = 'background:#fff;border-radius:12px;padding:24px 28px;max-width:380px;width:90%;box-shadow:0 8px 30px rgba(0,0,0,.25);font-family:inherit;';
+        var msg = document.createElement('p');
+        msg.style.cssText = 'margin:0 0 20px;font-size:1rem;color:#1a365d;line-height:1.5;white-space:pre-wrap;';
+        msg.textContent = message;
+        var foot = document.createElement('div');
+        foot.style.cssText = 'display:flex;justify-content:flex-end;gap:10px;';
+        var cancelBtn = document.createElement('button');
+        cancelBtn.textContent = cancelLabel || 'Cancel';
+        cancelBtn.style.cssText = 'padding:8px 16px;border-radius:8px;border:1px solid #b9c8da;background:#fff;color:#444;font-size:0.9rem;cursor:pointer;font-family:inherit;';
+        var confirmBtn = document.createElement('button');
+        confirmBtn.textContent = confirmLabel || 'OK';
+        confirmBtn.style.cssText = 'padding:8px 16px;border-radius:8px;border:none;background:#c0392b;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;';
+        foot.appendChild(cancelBtn);
+        foot.appendChild(confirmBtn);
+        box.appendChild(msg);
+        box.appendChild(foot);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        function close(val) {
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          resolve(val);
+        }
+        function onKey(ev) {
+          if (ev.key === 'Escape') { document.removeEventListener('keydown', onKey, true); close(false); }
+          if (ev.key === 'Enter')  { ev.preventDefault(); document.removeEventListener('keydown', onKey, true); close(true); }
+        }
+        cancelBtn.addEventListener('click', function() { document.removeEventListener('keydown', onKey, true); close(false); });
+        confirmBtn.addEventListener('click', function() { document.removeEventListener('keydown', onKey, true); close(true); });
+        overlay.addEventListener('click', function(ev) { if (ev.target === overlay) { document.removeEventListener('keydown', onKey, true); close(false); } });
+        document.addEventListener('keydown', onKey, true);
+      });
+    }
+
+    function showAlertModal(message) {
+      return new Promise(function(resolve) {
+        var overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center;';
+        var box = document.createElement('div');
+        box.style.cssText = 'background:#fff;border-radius:12px;padding:24px 28px;max-width:380px;width:90%;box-shadow:0 8px 30px rgba(0,0,0,.25);font-family:inherit;';
+        var msg = document.createElement('p');
+        msg.style.cssText = 'margin:0 0 20px;font-size:1rem;color:#1a365d;line-height:1.5;white-space:pre-wrap;';
+        msg.textContent = message;
+        var foot = document.createElement('div');
+        foot.style.cssText = 'display:flex;justify-content:flex-end;';
+        var okBtn = document.createElement('button');
+        okBtn.textContent = 'OK';
+        okBtn.style.cssText = 'padding:8px 20px;border-radius:8px;border:none;background:#0b5cab;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;';
+        foot.appendChild(okBtn);
+        box.appendChild(msg);
+        box.appendChild(foot);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        okBtn.focus();
+        function close() {
+          document.removeEventListener('keydown', onKey, true);
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          resolve();
+        }
+        function onKey(ev) {
+          if (ev.key === 'Enter' || ev.key === 'Escape') { ev.preventDefault(); close(); }
+        }
+        okBtn.addEventListener('click', close);
+        document.addEventListener('keydown', onKey, true);
+      });
+    }
+
+    function showPromptModal(message, defaultValue) {
+      return new Promise(function(resolve) {
+        var overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center;';
+        var box = document.createElement('div');
+        box.style.cssText = 'background:#fff;border-radius:12px;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 8px 30px rgba(0,0,0,.25);font-family:inherit;';
+        var msg = document.createElement('p');
+        msg.style.cssText = 'margin:0 0 12px;font-size:1rem;color:#1a365d;';
+        msg.textContent = message;
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.value = defaultValue || '';
+        input.style.cssText = 'width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #b9c8da;border-radius:6px;font-size:1rem;margin-bottom:16px;font-family:inherit;';
+        var foot = document.createElement('div');
+        foot.style.cssText = 'display:flex;justify-content:flex-end;gap:10px;';
+        var cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.style.cssText = 'padding:8px 16px;border-radius:8px;border:1px solid #b9c8da;background:#fff;color:#444;font-size:0.9rem;cursor:pointer;font-family:inherit;';
+        var okBtn = document.createElement('button');
+        okBtn.textContent = 'Save';
+        okBtn.style.cssText = 'padding:8px 16px;border-radius:8px;border:none;background:#0b5cab;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;';
+        foot.appendChild(cancelBtn);
+        foot.appendChild(okBtn);
+        box.appendChild(msg);
+        box.appendChild(input);
+        box.appendChild(foot);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        setTimeout(function() { input.focus(); input.select(); }, 30);
+        function close(val) {
+          document.removeEventListener('keydown', onKey, true);
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          resolve(val);
+        }
+        function onKey(ev) {
+          if (ev.key === 'Enter') { ev.preventDefault(); close(input.value || null); }
+          if (ev.key === 'Escape') { ev.preventDefault(); close(null); }
+        }
+        cancelBtn.addEventListener('click', function() { close(null); });
+        okBtn.addEventListener('click', function() { close(input.value || null); });
+        overlay.addEventListener('click', function(ev) { if (ev.target === overlay) close(null); });
+        document.addEventListener('keydown', onKey, true);
+      });
+    }
 
     function getDeviceId() {
       var key = 'carePlanDeviceId';
@@ -33,10 +259,15 @@
         var userId = cs.getUserId ? cs.getUserId() : '';
         if (!userId) return;
         var now = new Date().toISOString();
-        mirroredState.__draftSavedAt = now;
-        try { localStorage.setItem('carePlanSplitState', JSON.stringify(mirroredState)); } catch (e) {}
-        var stateToSync = getState();
-        cs.saveDraft(stateToSync, userId, getDeviceId()).catch(function(error) {
+        // Merge full localStorage + mirroredState BEFORE writing, so we never
+        // overwrite other sections' data with a partial mirroredState snapshot.
+        var fullState = getState();
+        fullState.__draftSavedAt = now;
+        mirroredState.__draftSavedAt = now; // keep mirroredState timestamp in sync
+        var fullJson = JSON.stringify(fullState);
+        lastPersistedStateJson = fullJson;
+        try { localStorage.setItem('carePlanSplitState', fullJson); } catch (e) {}
+        cs.saveDraft(fullState, userId, getDeviceId()).catch(function(error) {
           var nowMs = Date.now();
           if (nowMs - lastDraftSyncWarningAt < 20000) return;
           lastDraftSyncWarningAt = nowMs;
@@ -109,9 +340,15 @@
         Object.keys(incoming).forEach(function(k) {
           mirroredState[k] = incoming[k];
         });
-        isDirty = true;
         stateRevision += 1;
-        try { localStorage.setItem('carePlanSplitState', JSON.stringify(mirroredState)); } catch (e2) {}
+        // Use getState() (localStorage merged with mirroredState) so one section
+        // reporting in doesn't overwrite all other sections' data.
+        // Only write if state actually changed to avoid ~10 writes/second churn from the poll loop.
+        var newJson = JSON.stringify(getState());
+        if (newJson !== lastPersistedStateJson) {
+          lastPersistedStateJson = newJson;
+          try { localStorage.setItem('carePlanSplitState', newJson); } catch (e2) {}
+        }
         updateDeskTopbarPatient();
         scheduleDraftSync();
         // Broadcast a lightweight update signal to all OTHER iframes so scores/summaries recalculate in real-time.
@@ -158,8 +395,8 @@
       return merged;
     }
 
-    function clearAllData() {
-      if (!confirm('Clear all currently entered data on this page? (Saved plans are kept)')) return;
+    async function clearAllData() {
+      if (!(await showSimpleModal('Clear all currently entered data on this page?\n\nSaved plans are kept.', 'Clear', 'Cancel'))) return;
       try {
         // Clear only current in-progress state in Combined page context.
         localStorage.removeItem('carePlanSplitState');
@@ -171,7 +408,6 @@
       // Clear parent-side mirrored snapshot so children cannot rehydrate stale values.
       mirroredState = {};
       stateRevision += 1;
-      isDirty = false;
 
       // Clear topbar patient display immediately
       updateDeskTopbarPatient();
@@ -334,36 +570,59 @@
     }
 
     async function checkAndRestoreCloudDraft(userId) {
+      // Only attempt once per page session. shouldUseCloudPlans() is called from
+      // onAuthStateChanged, getSavedPlans(), saveNamedPlan(), etc. — without this guard,
+      // every Save/Load/Delete click re-runs the restore logic and can wipe current work.
+      _diag('checkAndRestoreCloudDraft: called (done=' + !!checkAndRestoreCloudDraft._done + ')');
+      if (checkAndRestoreCloudDraft._done) { _diag('checkAndRestoreCloudDraft: already done, skip'); return; }
+      checkAndRestoreCloudDraft._done = true;
+
       try {
         var draft = await window.carePlanCloudStorage.loadDraft(userId);
-        if (!draft || !draft.savedAt) return;
+        if (!draft || !draft.savedAt) { _diag('checkAndRestoreCloudDraft: no cloud draft, done'); return; }
 
         var cloudTime = new Date(draft.savedAt).getTime();
-        if (isNaN(cloudTime)) return;
+        if (isNaN(cloudTime)) { _diag('checkAndRestoreCloudDraft: invalid savedAt'); return; }
 
-        // Don't clobber data the user has typed in this session — even if it happened
-        // during the 4-second boot suppression window before isDirty gets set.
-        if (isDirty) return;
         var currentLocalJson = '';
         try { currentLocalJson = localStorage.getItem('carePlanSplitState') || ''; } catch (e) {}
-        if (currentLocalJson !== sessionStartStateJson) return;
+        var localLen = 0, startLen = 0;
+        try { localLen = Object.keys(JSON.parse(currentLocalJson || '{}')).length; } catch (e) {}
+        try { startLen = Object.keys(JSON.parse(sessionStartStateJson || '{}')).length; } catch (e) {}
+        var jsonsMatch = currentLocalJson === sessionStartStateJson;
+        _diag('checkAndRestoreCloudDraft: currentLocal=' + localLen + 'keys, sessionStart=' + startLen + 'keys, match=' + jsonsMatch);
+        if (!jsonsMatch) { _diag('checkAndRestoreCloudDraft: JSON guard BLOCKED restore (user changed data)'); return; }
 
-        // Compare to local state timestamp if available, else use 0.
+        // Compare to local state timestamp if available.
         var localRaw = currentLocalJson;
         var localState = {};
         try { localState = JSON.parse(localRaw) || {}; } catch (e) {}
         var localTime = 0;
         if (localState.__draftSavedAt) {
           localTime = new Date(localState.__draftSavedAt).getTime() || 0;
+        } else {
+          // No __draftSavedAt means this content was never cloud-synced (user just started
+          // typing, cloud sync was disabled, or the browser reloaded due to memory pressure
+          // before the 3-second debounce could fire). Protect it by using page load time
+          // as the floor — any existing cloud draft predates this page load and cannot win.
+          var hasLocalContent = Object.keys(localState).some(function(k) {
+            return !k.startsWith('__') && !!localState[k];
+          });
+          if (hasLocalContent) localTime = pageLoadTime;
         }
 
+        var timeDiff = cloudTime - localTime;
+        _diag('checkAndRestoreCloudDraft: cloudTime=' + new Date(cloudTime).toLocaleTimeString() + ' localTime=' + new Date(localTime).toLocaleTimeString() + ' diff=' + Math.round(timeDiff / 1000) + 's');
         if (cloudTime > localTime + 10000) {
+          _diag('checkAndRestoreCloudDraft: RESTORING CLOUD DRAFT (cloud is newer by ' + Math.round(timeDiff / 1000) + 's)');
           // Cloud draft is meaningfully newer — restore it.
           var nextState = draft.state || {};
           suspendIncomingStateUntil = Date.now() + 2000;
           mirroredState = Object.assign({}, nextState);
           stateRevision += 1;
-          try { localStorage.setItem('carePlanSplitState', JSON.stringify(mirroredState)); } catch (e) {}
+          var cloudJson = JSON.stringify(mirroredState);
+          lastPersistedStateJson = cloudJson;
+          try { localStorage.setItem('carePlanSplitState', cloudJson); } catch (e) {}
           var notesEl = document.getElementById('notes-freetext');
           if (notesEl) notesEl.value = nextState['notes-freetext'] || '';
           syncFramesFromState();
@@ -375,8 +634,10 @@
           } else {
             setStorageStatus('Restored your recent work (' + timeStr + ').', 'ok');
           }
+        } else {
+          _diag('checkAndRestoreCloudDraft: cloud NOT newer enough, no restore');
         }
-      } catch (e) {}
+      } catch (e) { _diag('checkAndRestoreCloudDraft: ERROR ' + e); }
     }
 
     async function getSavedPlans() {
@@ -396,6 +657,7 @@
 
     function syncFramesFromState() {
       // Reload each section iframe so it requests latest snapshot from parent.
+      _diag('syncFramesFromState: CALLED - reloading all iframes');
       var stamp = Date.now();
       document.querySelectorAll('iframe').forEach(function(frame) {
         var src = frame.getAttribute('src') || '';
@@ -415,7 +677,7 @@
         s['pat-sched-surg-time'] || 'NoTime',
         s['pat-surgery'] || 'NoSurgery'
       ].join(' | ');
-      var name = prompt('Save plan as:', defaultName);
+      var name = await showPromptModal('Save plan as:', defaultName);
       if (!name) return;
       name = name.trim();
       if (!name) return;
@@ -433,7 +695,7 @@
       }
       var isOverwrite = !!plans[name];
       if (!isOverwrite && Object.keys(plans).length >= MAX_SAVED_PLANS) {
-        alert('You can save up to ' + MAX_SAVED_PLANS + ' plans. Delete one or overwrite an existing name.');
+        await showAlertModal('You can save up to ' + MAX_SAVED_PLANS + ' plans. Delete one first or overwrite an existing name.');
         return;
       }
       var entry = {
@@ -455,7 +717,6 @@
       }
 
       setLocalSavedPlans(plans);
-      isDirty = false;
       if (savedToCloud) {
         showTopbarFlash('Saved to cloud: ' + name);
       } else if (cloudEnabled) {
@@ -469,7 +730,7 @@
       var plans = await getSavedPlans();
       var names = getSavedPlanNamesSorted(plans);
       if (!names.length) {
-        alert('No saved plans found.');
+        showTopbarFlash('No saved plans found.');
         return;
       }
 
@@ -494,7 +755,6 @@
       if (notesEl) notesEl.value = nextState['notes-freetext'] || '';
       syncFramesFromState();
       fitAll();
-      isDirty = false;
       showTopbarFlash('Loaded: ' + selected);
     }
 
@@ -502,7 +762,7 @@
       var plans = await getSavedPlans();
       var names = getSavedPlanNamesSorted(plans);
       if (!names.length) {
-        alert('No saved plans found.');
+        showTopbarFlash('No saved plans found.');
         return;
       }
 
@@ -518,7 +778,7 @@
       var confirmMsg = picked.length === 1
         ? 'Delete saved plan: ' + picked[0] + '?'
         : 'Delete ' + picked.length + ' saved plans?\n\n' + picked.join('\n');
-      if (!confirm(confirmMsg)) return;
+      if (!(await showSimpleModal(confirmMsg, 'Delete', 'Cancel'))) return;
 
       var cloudEnabled = await shouldUseCloudPlans();
       for (var i = 0; i < picked.length; i++) {
@@ -537,7 +797,7 @@
       if (cloudEnabled) {
         setStorageStatus('Firebase cloud sync is on.', 'ok');
       }
-      alert('Deleted ' + picked.length + ' plan' + (picked.length > 1 ? 's' : '') + '.');
+      showTopbarFlash('Deleted ' + picked.length + ' plan' + (picked.length > 1 ? 's' : '') + '.');
     }
 
 
@@ -601,3 +861,15 @@
     });
     window.openPreview = function() { openPreview(); };
     window.buildPrintCard = function(state) { buildPrintCard(state || {}); };
+
+    /* DIAG_START */
+    // ── Diagnostic panel init ─────────────────────────────────────────────────
+    // Trigger the first _diag call to build the fixed overlay immediately.
+    // Also listen for postMessage diag events from iframes (shared.js instruments them).
+    _diag('combined.js loaded. sessionStart=' + sessionStartStateJson.length + 'chars');
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'cpIframeDiag') {
+        _diag('[iframe:' + (e.data.page || '?') + '] ' + e.data.msg);
+      }
+    }, true);
+    /* DIAG_END */

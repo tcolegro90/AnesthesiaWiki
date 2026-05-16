@@ -7,39 +7,24 @@
   <link rel="stylesheet" href="combined.css">
 </head>
 <body>
-<div style="position:fixed;top:10px;left:10px;z-index:9999;display:flex;gap:8px;">
-
-
+<!-- Auth gate: covers the entire app until sign-in is confirmed -->
+<div id="auth-gate" style="position:fixed;inset:0;z-index:99999;background:#f5f0e8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+  <div style="font-size:1.5rem;font-weight:700;color:#5a4a3a;">Care Plan Generator</div>
+  <div style="font-size:0.95rem;color:#7a6a5a;">Sign in to continue</div>
+  <button id="auth-gate-btn" onclick="window.AnesthesiaAuth && window.AnesthesiaAuth.showLogin()" style="padding:12px 28px;font-size:1rem;font-weight:600;background:#b08060;color:#fff;border:none;border-radius:6px;cursor:pointer;">Sign in with Google</button>
+  <div id="auth-gate-msg" style="font-size:0.82rem;color:#9a8a7a;"></div>
 </div>
+
+
   <div id="preview-screen">
     <div id="preview-actions" style="margin-bottom:20px;display:flex;gap:10px;">
       <button type="button" class="action-btn" onclick="closePreview()">Back to Edit</button>
-      <button type="button" class="action-btn" id="btn-preview-print-single" onclick="printNow()">Print This Plan</button>
-      <button type="button" class="action-btn" id="btn-preview-email-single" onclick="emailCurrentPlan()">Email This Plan (PDF)</button>
+      <button type="button" class="action-btn" id="btn-preview-print-single" onclick="printNow()" style="display:none;">Print This Plan</button>
       <button type="button" class="action-btn" id="btn-preview-print-multi" onclick="printSelectedPlansFromPreview()" style="display:none;">Print Selected Plans</button>
       <button type="button" class="action-btn" id="btn-preview-email-multi" onclick="emailSelectedPlansFromPreview()" style="display:none;">Email Selected Plans (PDF)</button>
-      <button type="button" class="action-btn" id="btn-layout-edit" onclick="toggleLayoutEditor()">Edit Layout</button>
     </div>
 
 
-    <div id="layout-split-wrap">
-    <div id="layout-editor-panel">
-      <div style="padding:12px 14px;border-bottom:1.5px solid #e8eef5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-        <span style="font-size:0.9rem;font-weight:800;color:#1a365d;">✏️ Edit Layout</span>
-        <div style="display:flex;gap:5px;align-items:center;">
-          <select id="layout-template-select" style="font-size:0.71rem;border:1px solid #ccd4e0;border-radius:4px;padding:2px 4px;max-width:110px;" onclick="layoutLoadTemplates()"><option value="">— Template —</option></select>
-          <button onclick="layoutApplyTemplate()" style="font-size:0.71rem;border:1px solid #0d6e6e;background:white;color:#0d6e6e;border-radius:4px;padding:2px 6px;cursor:pointer;white-space:nowrap;">Load</button>
-        </div>
-      </div>
-      <div id="layout-panel-body" style="flex:1;overflow-y:auto;padding:10px 12px;"></div>
-      <div style="padding:8px 12px;border-top:1.5px solid #e8eef5;display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;align-items:center;background:white;">
-        <button onclick="layoutSaveTemplate()" style="flex:1;padding:7px;background:#0d6e6e;color:white;border:none;border-radius:7px;font-size:0.78rem;font-weight:700;cursor:pointer;">💾 Save Template</button>
-        <button onclick="layoutSetDefault()" style="flex:1;padding:7px;background:#1a365d;color:white;border:none;border-radius:7px;font-size:0.78rem;font-weight:700;cursor:pointer;">⭐ Set Default</button>
-        <button onclick="layoutResetAll()" style="flex:1;padding:7px;background:#f0f4f8;color:#445;border:none;border-radius:7px;font-size:0.78rem;font-weight:700;cursor:pointer;">↺ Reset</button>
-        <span id="layout-save-status" style="font-size:0.72rem;color:#0d6e6e;width:100%;text-align:center;min-height:1.2em;"></span>
-      </div>
-    </div>
-    <div id="layout-print-wrap">
     <div id="print-container">
       <div class="print-header"><span id="pr-header-initials">_</span> | <span id="pr-header-date">_</span> | <span id="pr-header-time">_</span> | <span id="pr-header-surgery">_</span></div>
       <div class="print-grid" id="print-grid-inner">
@@ -48,6 +33,7 @@
           <div class="print-row" id="pr-row-age-gen"><span>Age / Gender:</span><span id="pr-age-gen">_</span></div>
           <div class="print-row" id="pr-row-ht-wt"><span></span><span><span id="pr-height">_</span><span style="margin:0 2px;">/</span><span id="pr-weight">_</span><span style="margin:0 2px;">/</span><span id="pr-bmi">_</span></span></div>
           <div class="print-row" id="pr-row-allergies"><span>Allergies:</span><span id="pr-allergies">_</span></div>
+          <div class="print-row" id="pr-row-asa"><span>ASA Class:</span><span id="pr-asa-class">_</span></div>
           <div class="print-row" id="pr-row-pmh"><span>PMH:</span><span id="pr-pmh">_</span></div>
           <div class="print-row" id="pr-past-surg-row" style="display:none;"><span>PSH:</span><span id="pr-past-surg">_</span></div>
           <div class="print-row" id="pr-prior-anesthetic-row" style="display:none;"><span>Prior Anes:</span><span id="pr-prior-anesthetic">_</span></div>
@@ -58,7 +44,6 @@
           <div class="print-row" id="pr-pregnant-row" style="display:none;"><span>Pregnant:</span><span id="pr-pregnant">_</span></div>
           <div class="print-row" id="pr-fasted-row" style="display:none;"><span>Fasted:</span><span id="pr-fasted">_</span></div>
           <span id="pr-smoker" style="display:none;"></span>
-          <div class="print-row" id="pr-interpreter-row" style="display:none;"><span>Interpreter:</span><span id="pr-interpreter">_</span></div>
           <div class="print-row" id="pr-hearing-row" style="display:none;"><span>Hearing Loss:</span><span id="pr-hearing">_</span></div>
           <div class="print-row" id="pr-pacer-row" style="display:none;"><span>Device:</span><span id="pr-pacer">_</span></div>
           <div id="pr-row-labs" style="margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
@@ -104,11 +89,16 @@
                           <span style="position:absolute;right:3px;top:18px;background:#fff;padding:0;line-height:1;" id="pr-lab-ptt">—</span>
                         </div>
                       </div>
-                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 4px;">
-                        <div class="print-row compact-lab-row" id="pr-lab-a1c-row" style="display:none;"><span>A1C:</span><span id="pr-lab-a1c">_</span></div>
-                        <div class="print-row compact-lab-row" id="pr-lab-ts-date-row" style="display:none;"><span>T+S:</span><span id="pr-lab-ts-date" style="white-space:nowrap;">_</span></div>
-                        <div class="print-row compact-lab-row" id="pr-lab-alb-row" style="display:none;"><span>Albumin:</span><span id="pr-lab-alb">_</span></div>
-                        <div class="print-row compact-lab-row" id="pr-lab-ts-good-until-row" style="display:none;"><span>Exp:</span><span id="pr-lab-ts-good-until" style="white-space:nowrap;">_</span></div>
+                      <div style="display:flex;gap:4px;">
+                        <div style="flex:1;min-width:0;">
+                          <div class="print-row compact-lab-row" id="pr-lab-a1c-row" style="display:none;"><span>A1C:</span><span id="pr-lab-a1c">_</span></div>
+                          <div class="print-row compact-lab-row" id="pr-lab-alb-row" style="display:none;"><span>Albumin:</span><span id="pr-lab-alb">_</span></div>
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                          <div class="print-row compact-lab-row" id="pr-lab-ts-date-row" style="display:none;"><span>T+S:</span><span id="pr-lab-ts-date" style="white-space:nowrap;">_</span></div>
+                          <div class="print-row compact-lab-row" id="pr-lab-ts-good-until-row" style="display:none;"><span>Exp:</span><span id="pr-lab-ts-good-until" style="white-space:nowrap;">_</span></div>
+                          <div class="print-row compact-lab-row" id="pr-obtain-ts-row" style="display:none;color:#c41c3b;font-weight:bold;"><span id="pr-obtain-ts">Obtain new T+S</span></div>
+                        </div>
                       </div>
                       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 4px;">
                         <div class="print-row compact-lab-row" id="pr-lab-ast-row" style="display:none;"><span>AST:</span><span id="pr-lab-ast">_</span></div>
@@ -117,7 +107,6 @@
                         <div class="print-row compact-lab-row" id="pr-lab-ica-row" style="display:none;"><span>iCa:</span><span id="pr-lab-ica">_</span></div>
                       </div>
                       <div class="print-row" id="pr-gas-row" style="display:none;"><span id="pr-gas-label">Gas:</span><span id="pr-gas-values">_</span></div>
-                      <div class="print-row" id="pr-obtain-ts-row" style="display:none;"><span>Obtain T+S:</span><span id="pr-obtain-ts">YES</span></div>
                     </div>
                     <!-- Phone-only lab grid (hidden in card/sheet modes) -->
                     <div id="pr-lab-phone-display">
@@ -148,30 +137,32 @@
           <h3>Preop &amp; Airway</h3>
           <div class="print-row" id="pr-row-position"><span>Positioning:</span><span id="pr-position">_</span></div>
           <div class="print-row" id="pr-pressure-points-row" style="display:none;"><span>Pressure Pts:</span><span id="pr-pressure-points">_</span></div>
-          <div class="print-row" id="pr-row-insufflation"><span>Insufflation:</span><span id="pr-insufflation">_</span></div>
-          <div class="print-row" id="pr-blood-room-row" style="display:none;"><span>Blood in room:</span><span id="pr-blood-room">_</span></div>
-          <div class="print-row" id="pr-row-asa"><span>ASA Class:</span><span id="pr-asa-class">_</span></div>
-          <div class="print-row" id="pr-row-nerve-stim"><span>Nerve Stim:</span><span id="pr-nerve-stim">_</span></div>
           <div class="print-row" id="pr-antibiotic-plan-row" style="display:none;"><span>Antibiotic:</span><span id="pr-antibiotic-plan">_</span></div>
-          <div class="print-row" id="pr-row-awareness" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Awareness Hx</span></div>
-          <div class="print-row" id="pr-row-famhx" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Fam Hx Anes Comp</span></div>
-          <div class="print-row" id="pr-row-mh" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>Malignant Hyperthermia</span></div>
-          <div class="print-row" id="pr-row-pseudo" style="display:none;color:red;font-weight:bold;"><span>Alert:</span><span>PChE Def</span></div>
-          <div class="print-row" id="pr-mets-row" style="display:none;margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;"><span>METs &lt;4:</span><span id="pr-mets">_</span></div>
+          <div class="print-row" id="pr-row-nerve-stim"><span>Nerve Stim:</span><span id="pr-nerve-stim">_</span></div>
+          <div class="print-row" id="pr-interpreter-alert-row" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span id="pr-interpreter-alert-text">_</span></div>
+          <div class="print-row" id="pr-neuro-monitoring-row" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>Intra-op Neuro Monitoring</span></div>
+          <div class="print-row" id="pr-blood-room-row" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>Have Blood in Room</span></div>
+          <div class="print-row" id="pr-row-awareness" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>Awareness Hx</span></div>
+          <div class="print-row" id="pr-row-famhx" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>Fam Hx Anes Comp</span></div>
+          <div class="print-row" id="pr-row-mh" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>Malignant Hyperthermia</span></div>
+          <div class="print-row" id="pr-row-pseudo" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>PChE Def</span></div>
+          <div class="print-row" id="pr-row-ponv" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>PONV / Motion Sickness Hx</span></div>
+          <div class="print-row" id="pr-mets-row" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>METs &lt;4</span></div>
           <div id="pr-row-airway-exam" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;">
-            <div class="print-row"><span>Mallampati:</span><span id="pr-mallampati">_</span></div>
-            <div class="print-row" id="pr-abn-tmd-row" style="display:none;"><span>Thyromental:</span><span id="pr-abn-tmd">_</span></div>
-            <div class="print-row" id="pr-abn-gap-row" style="display:none;"><span>Interincisor Gap:</span><span id="pr-abn-gap">_</span></div>
-            <div class="print-row" id="pr-abn-atl-row" style="display:none;"><span>Atlanto-occipital:</span><span id="pr-abn-atl">_</span></div>
+            <div class="print-row" id="pr-mallampati-row"><span>Mallampati:</span><span id="pr-mallampati">_</span></div>
+            <div class="print-row" id="pr-abn-tmd-row" style="display:none;"><span>Thyromental Dist (fingerbreadths):</span><span id="pr-abn-tmd">_</span></div>
+            <div class="print-row" id="pr-abn-gap-row" style="display:none;"><span>Interincisor Dist (fingerbreadths):</span><span id="pr-abn-gap">_</span></div>
+            <div class="print-row" id="pr-abn-atl-row" style="display:none;"><span id="pr-abn-atl" style="font-weight:bold;text-align:left;flex:1;">_</span></div>
             <div class="print-row" id="pr-dentition-row" style="display:none;"><span>Dentition:</span><span id="pr-dentition">_</span></div>
           </div>
           <div id="pr-vent-section" style="display:none;margin-top:6px;border-top:1px dotted #ccc;padding-top:4px;">
             <div class="print-row" id="pr-vent-mode-row" style="display:none;"><span>Vent mode:</span><span id="pr-vent-mode">_</span></div>
             <div class="print-row" id="pr-vent-main-row" style="display:none;"><span>Settings:</span><span id="pr-vent-main">_</span></div>
             <div class="print-row" id="pr-vent-rest-row" style="display:none;"><span></span><span id="pr-vent-rest">_</span></div>
+            <div class="print-row"><span>IBW / Target TV:</span><span id="pr-target-tv-plan">_</span></div>
           </div>
           <div id="pr-extras-section" style="display:none;margin-top:6px;border-top:1px dotted #ccc;padding-top:4px;">
-            <div class="print-row"><span style="font-weight:bold;">Extras:</span><span id="pr-extras-list" style="white-space:pre-line;text-align:left;flex:1;">_</span></div>
+            <div class="print-row"><span style="font-weight:bold;">Extras:</span><span id="pr-extras-list" style="white-space:normal;text-align:left;flex:1;">_</span></div>
           </div>
         </div>
 
@@ -182,7 +173,7 @@
           <div class="print-row" id="pr-row-anes-type"><span>Type:</span><span id="pr-anes-type">_</span></div>
           <div class="print-row" id="pr-tiva-row" style="display:none;"><span>TIVA Reason:</span><span id="pr-tiva-reason">_</span></div>
           <div id="pr-row-ga-details" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;">
-            <div class="print-row"><span>Airway / RSI:</span><span id="pr-airway">_</span></div>
+            <div class="print-row"><span id="pr-airway-label">Airway:</span><span id="pr-airway">_</span></div>
             <div class="print-row"><span>Extubation:</span><span id="pr-extubation">_</span></div>
             <div class="print-row"><span>Anxiolytic:</span><span id="pr-anx">_</span></div>
             <div class="print-row"><span>Induction:</span><span id="pr-ind">_</span></div>
@@ -190,10 +181,10 @@
             <div class="print-row" id="pr-vesicant-row" style="display:none;"><span>Vesicant:</span><span id="pr-vesicant">_</span></div>
             <div class="print-row"><span>Paralytic:</span><span id="pr-nmb">_</span></div>
             <div class="print-row"><span>Inhal (MAC):</span><span id="pr-inhal">_</span></div>
+            <div class="print-row" id="pr-sed-drip-row" style="display:none;"><span>Sedative Drip:</span><span id="pr-sed-drip">_</span></div>
             <div class="print-row" id="pr-anticipated-pain-row" style="display:none;"><span>Anticip Pain:</span><span id="pr-anticipated-pain">_</span></div>
             <div class="print-row" id="pr-pain-intra-row"><span>Intra Pain:</span><span id="pr-pain-intra">_</span></div>
             <div class="print-row" id="pr-pain-post-row"><span>Post Pain:</span><span id="pr-pain-post">_</span></div>
-            <div class="print-row" id="pr-pain-nonopioid-row"><span>Non-Opioid:</span><span id="pr-pain-nonopioid">_</span></div>
             <div class="print-row"><span>APFEL:</span><span id="pr-apfel-score">_</span></div>
             <div class="print-row"><span>Antiemetics:</span><span id="pr-antiemetic">_</span></div>
           </div>
@@ -214,7 +205,6 @@
             <div class="print-row"><span>Hr 4+:</span><span id="pr-fluid-hr4">_</span></div>
             <div class="print-row"><span>EBV / ABL:</span><span id="pr-ebv-abl">_</span></div>
             <div class="print-row" id="pr-anticipated-ebl-row" style="display:none;"><span>Anticip EBL:</span><span id="pr-anticipated-ebl" style="white-space:nowrap;">_</span></div>
-            <div class="print-row"><span>Target TV:</span><span id="pr-target-tv-plan">_</span></div>
           </div>
           <div id="pr-anticipated-complications-row" style="display:none;margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
             <div style="font-size:6.2pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#444;margin-bottom:2px;">Anticipated Complications</div>
@@ -235,8 +225,6 @@
       <div id="sheet-slot-4" class="sheet-slot slot-4 upside-down"></div>
     </div>
     <div id="multi-preview-container" style="display:none;"></div>
-    </div><!-- /layout-print-wrap -->
-    </div><!-- /layout-split-wrap -->
   </div>
 
   <div id="main-content" class="wrap">
@@ -265,7 +253,6 @@
         </div>
       </div>
       <div id="mob-drawer-items">
-        <button class="mob-drawer-item" onclick="openPreview();closeMobDrawer()"><span class="di-icon">🖨️</span>Print / Email</button>
         <button class="mob-drawer-item" onclick="printOrEmailSavedPlans();closeMobDrawer()"><span class="di-icon">📄</span>Print / Email Plans</button>
         <button class="mob-drawer-item" onclick="saveNamedPlan();closeMobDrawer()"><span class="di-icon">💾</span>Save Plan</button>
         <button class="mob-drawer-item" onclick="loadNamedPlan();closeMobDrawer()"><span class="di-icon">📂</span>Load Plan</button>
@@ -296,6 +283,7 @@
           <button type="button" class="action-btn" onclick="saveNamedPlan()">&#128190; Save</button>
           <button type="button" class="action-btn" onclick="loadNamedPlan()">&#128194; Load</button>
           <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear</button>
+          <button type="button" class="action-btn action-btn-danger" onclick="deleteNamedPlan()">Delete Plan</button>
         </div>
       </div>
     </div>
@@ -331,8 +319,8 @@
       <button type="button" class="action-btn" onclick="printOrEmailSavedPlans()">&#128196; Print / Email Plans</button>
       <button type="button" class="action-btn" onclick="saveNamedPlan()">&#128190; Save</button>
       <button type="button" class="action-btn" onclick="loadNamedPlan()">&#128194; Load</button>
-      <button type="button" class="action-btn" onclick="deleteNamedPlan()">Delete Plan</button>
       <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear</button>
+      <button type="button" class="action-btn action-btn-danger" onclick="deleteNamedPlan()">Delete Plan</button>
     </div>
   </div>
 
@@ -363,12 +351,15 @@
         showLogin: function() {
           if (_popupInProgress) return;
           _popupInProgress = true;
+          var gateMsg = document.getElementById('auth-gate-msg');
+          if (gateMsg) gateMsg.textContent = 'Opening Google sign-in…';
           var provider = new window.firebase.auth.GoogleAuthProvider();
           provider.setCustomParameters({ prompt: 'select_account' });
           window.firebase.auth().signInWithPopup(provider).then(function() {
             _popupInProgress = false;
           }).catch(function(e) {
             _popupInProgress = false;
+            if (gateMsg) gateMsg.textContent = '';
             if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
               alert(e.message || 'Google sign-in failed. Make sure pop-ups are allowed.');
             }
@@ -384,9 +375,22 @@
           try { return window.firebase.auth().currentUser; } catch(e) { return null; }
         }
       };
+
+      // Wire auth gate visibility
+      window.firebase.auth().onAuthStateChanged(function(user) {
+        var gate = document.getElementById('auth-gate');
+        if (user) {
+          if (gate) gate.style.display = 'none';
+        } else {
+          if (gate) gate.style.display = 'flex';
+        }
+      });
     })();
   </script>
   <script src="combined.js"></script>
+  <script src="print-card.js"></script>
+  <script src="email-plan.js"></script>
+  <script src="print-preview.js"></script>
   <script>
     (function initNotes() {
       var ta = document.getElementById('notes-freetext');
@@ -515,9 +519,6 @@
   }
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-<script src="layout-editor.js"></script>
-
 <script src="phone-share.js"></script>
 </body>
 </html>

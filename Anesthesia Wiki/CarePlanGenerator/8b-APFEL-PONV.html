@@ -213,10 +213,9 @@
       var s = getGlobalState();
       var data = [];
       try { data = JSON.parse(s['plan-antiemetic-list']) || []; } catch(e) {}
-      if (data.length === 0) data = [
-        { drug: 'Ondansetron', dose: '4' },
-        { drug: 'Dexamethasone', dose: '4' }
-      ];
+      if (!Array.isArray(data) || data.length === 0) {
+        data = [{ drug: 'Ondansetron', dose: '4' }, { drug: 'Dexamethasone', dose: '4' }];
+      }
       data.forEach(function(item) { addAntiemeticRow(item.drug || '', item.dose || '', true); });
       updateAntiemeticOptions();
     }
@@ -226,10 +225,6 @@
       var data = [];
       try { data = JSON.parse(s['plan-antiemetic-list']) || []; } catch(e) {}
       if (!Array.isArray(data)) data = [];
-      if (data.length === 0) data = [
-        { drug: 'Ondansetron', dose: '4' },
-        { drug: 'Dexamethasone', dose: '4' }
-      ];
       return data.map(function(item) {
         if (!item) return { drug: '', dose: '' };
         if (typeof item === 'string') return { drug: item, dose: '' };
@@ -296,9 +291,7 @@
       if (isFemale) score++;
 
       // 2) Non-smoker
-      var smokerYes = !!s['pat-smoker-yes'];
-      var smokerNo  = !!s['pat-smoker-no'];
-      var isNonSmoker = smokerNo && !smokerYes;
+      var isNonSmoker = !s['pat-smoker::Yes'];
       if (isNonSmoker) score++;
 
       // 3) PONV / motion sickness history
@@ -315,15 +308,22 @@
       });
       if (hasOpioidPlan) score++;
 
-      var risk = score === 0 ? '<10%' : score === 1 ? '10%' : score === 2 ? '20%' : score === 3 ? '60%' : '80%';
+      var risk = score === 0 ? '10%' : score === 1 ? '20%' : score === 2 ? '40%' : score === 3 ? '60%' : '80%';
       var recommendation = score === 0 ? '0-1 antiemetic' : score < 3 ? '2 antiemetics' : '3-4 antiemetics';
       var target = score === 0 ? 0 : score < 3 ? 2 : 3;
       var selectedCount = getSelectedAntiemeticCount();
       var meetsTarget = selectedCount >= target;
 
+      var factors = [];
+      if (isFemale) factors.push('Female');
+      if (isNonSmoker) factors.push('Non-smoker');
+      if (hasPonv) factors.push('Hx PONV / motion sickness');
+      if (hasOpioidPlan) factors.push('Opioids');
+
       var apfel = document.getElementById('apfel-result');
       apfel.innerHTML =
         '<strong>APFEL Score:</strong> ' + score + '/4 (Risk: ' + risk + ')' +
+        (factors.length ? '<br><span style="font-size:0.88em;opacity:0.85;">' + factors.join(', ') + '</span>' : '') +
         '<br><strong>Recommendation:</strong> ' + recommendation +
         '<br><strong>Selected:</strong> ' + selectedCount + ' (target: ' + target + ')';
 

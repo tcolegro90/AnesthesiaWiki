@@ -8,6 +8,11 @@
       overflow-x: hidden;
       max-width: 100%;
     }
+    body.preview-open,
+    body.preview-open html {
+      overflow-x: auto;
+      max-width: none;
+    }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -326,9 +331,15 @@
       align-items: center;
       background: #525659;
       min-height: 100vh;
+      min-width: fit-content;
       padding: 20px;
       box-sizing: border-box;
-      overflow: hidden;
+    }
+    #preview-screen > #preview-actions,
+    #preview-screen > #print-container,
+    #preview-screen > #multi-preview-container {
+      margin-left: auto;
+      margin-right: auto;
     }
     #print-container,
     .print-card {
@@ -517,38 +528,6 @@
 
     /* ── Print Layout Editor ── */
     .layout-hidden { display: none !important; }
-    #print-container.layout-landscape, .print-card.layout-landscape { width: 5.5in; height: 3.95in; }
-    #print-container.layout-landscape .print-grid, .print-card.layout-landscape .print-grid { grid-template-columns: repeat(4, 1fr); }
-    /* Split wrap: always flex, editor panel hidden until .le-open */
-    #layout-split-wrap { display: flex; gap: 0; align-items: flex-start; }
-    #layout-editor-panel { display: none; width: 270px; flex-shrink: 0; background: white; border-right: 1.5px solid #dbe5f0; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-height: 80vh; overflow: hidden; position: sticky; top: 0; }
-    #layout-split-wrap.le-open #layout-editor-panel { display: flex; }
-    #layout-print-wrap { flex: 1; overflow-x: auto; padding-left: 12px; }
-    .lep-group-title { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #7f8c8d; margin: 0 0 6px; }
-    .lep-orientation-row { display: flex; gap: 6px; margin-bottom: 4px; }
-    .lep-orient-btn { flex: 1; padding: 6px; border: 1.5px solid #dde3ec; background: white; border-radius: 6px; font-size: 0.74rem; font-weight: 700; color: #445; cursor: pointer; }
-    .lep-orient-btn.active { border-color: #0d6e6e; background: #e8f7f5; color: #0d6e6e; }
-    .lep-orient-btn:hover:not(.active) { border-color: #aab; }
-    .lep-sec-item { border: 1.5px solid #dde8f5; border-radius: 8px; margin-bottom: 7px; overflow: hidden; }
-    .lep-sec-head { display: flex; align-items: center; gap: 5px; padding: 7px 9px; background: #f5f9ff; cursor: pointer; user-select: none; }
-    .lep-drag { cursor: grab; color: #b0c0d8; font-size: 1rem; flex-shrink: 0; }
-    .lep-drag:active { cursor: grabbing; }
-    .lep-sec-label { flex: 1; font-size: 0.78rem; font-weight: 700; color: #1a365d; }
-    .lep-arrow { font-size: 0.65rem; color: #7f8c8d; transition: transform 0.2s; flex-shrink: 0; }
-    .lep-sec-item.expanded .lep-arrow { transform: rotate(90deg); }
-    .lep-sec-body { display: none; padding: 4px 8px 6px; }
-    .lep-sec-item.expanded .lep-sec-body { display: block; }
-    .lep-row-item { display: flex; align-items: center; gap: 5px; padding: 4px 2px; border-radius: 4px; }
-    .lep-row-item:hover { background: #f0f6ff; }
-    .lep-row-drag { cursor: grab; color: #c0cce0; font-size: 0.85rem; flex-shrink: 0; }
-    .lep-row-drag:active { cursor: grabbing; }
-    .lep-row-label { flex: 1; font-size: 0.74rem; color: #334; }
-    .lep-tgl { position: relative; width: 32px; height: 18px; flex-shrink: 0; display: inline-block; }
-    .lep-tgl input { display: none; }
-    .lep-tgl-track { position: absolute; inset: 0; background: #ccd4e0; border-radius: 18px; cursor: pointer; transition: background 0.2s; }
-    .lep-tgl-track::after { content: ''; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; background: white; border-radius: 50%; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
-    .lep-tgl input:checked ~ .lep-tgl-track { background: #0d6e6e; }
-    .lep-tgl input:checked ~ .lep-tgl-track::after { left: 16px; }
 
 .global-home-btn {
   position: fixed;

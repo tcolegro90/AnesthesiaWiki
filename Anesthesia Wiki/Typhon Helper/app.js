@@ -1087,17 +1087,11 @@ function renderItemCard({ item, i }) {
   }
   if (item.type === 'eval') {
     const isPending = !item.submitted;
-    const ratingLine = [item.q8, item.q9, item.q10, item.q11].filter(Boolean).join(' · ') || '—';
-    const phoneLine = item.preceptorPhone ? ` &nbsp;|&nbsp; ${item.preceptorPhone}` : '';
-    const preceptorBadge = item.preceptorReviewStatus === 'completed'
-      ? ' &nbsp;<span class="badge badge-preceptor-done">✅ Preceptor Signed</span>'
-      : (item.preceptorShareToken ? ' &nbsp;<span class="badge badge-preceptor-pending">⏳ Awaiting Preceptor</span>' : '');
     return `<div class="saved-item">
       <div class="saved-item-top">
         <div>
           <div class="saved-item-title">📋 Daily Eval — ${fmtDate(item.date)}</div>
-          <div class="saved-item-sub">Preceptor: ${item.preceptorName || '—'} &nbsp;|&nbsp; ${item.facility?.[0] || '—'}${phoneLine}${preceptorBadge}</div>
-          <div class="saved-item-sub">${ratingLine}</div>
+          <div class="saved-item-sub">Preceptor: ${item.preceptorName || '—'}</div>
         </div>
         <span class="badge ${isPending ? 'badge-pending' : 'badge-done'}">${isPending ? 'Pending' : 'Submitted'}</span>
       </div>
@@ -1197,9 +1191,16 @@ async function renderSaved(options = {}) {
     <div class="submitted-folder-body">${draftCards}</div>
   </div>`;
 
-  // --- Pending section ---
+  // --- Pending / Need to be Submitted section ---
   if (pending.length) {
-    html += `<div id="pending-list">${pending.map(entry => renderItemCard(entry)).join('')}</div>`;
+    const pendingCards = pending.map(entry => renderItemCard(entry)).join('');
+    html += `<div class="submitted-folder open" id="pending-folder" data-folder-key="pending-root">
+      <div class="submitted-folder-header">
+        <div class="submitted-folder-title">⚠️ Need to be Submitted <span class="submitted-folder-meta">${pending.length} item${pending.length !== 1 ? 's' : ''}</span></div>
+        <span class="folder-chevron">▶</span>
+      </div>
+      <div class="submitted-folder-body">${pendingCards}</div>
+    </div>`;
   }
 
   // --- Submitted folder ---
@@ -2276,6 +2277,19 @@ function loadEvalData(e) {
   const q16c = document.getElementById('e-q16-comments'); if (q16c && e.discussedStrengthsComments) q16c.value = e.discussedStrengthsComments;
   const pcEl = document.getElementById('e-preceptor-comments'); if (pcEl && e.preceptorComments) pcEl.value = e.preceptorComments;
   if (e.sigName) { const sn = document.getElementById('e-sig-name'); if (sn) sn.value = e.sigName; }
+  if (e.sigDataUrl) {
+    const canvas = document.getElementById('sig-canvas');
+    if (canvas) {
+      const img = new Image();
+      img.onload = () => {
+        if (!_sigCtx) _sigCtx = canvas.getContext('2d');
+        _sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+        _sigCtx.drawImage(img, 0, 0);
+        _sigHasSig = true;
+      };
+      img.src = e.sigDataUrl;
+    }
+  }
   syncSelectionRowStates();
 }
 

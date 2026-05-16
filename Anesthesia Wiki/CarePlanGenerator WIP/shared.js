@@ -1,3 +1,13 @@
+// ── Iframe diagnostic logger — postMessages log entries to parent panel ──────
+function _cpIframeDiag(msg) {
+  try {
+    if (window.parent && window.parent !== window) {
+      var page = (window.location.pathname || '').split('/').pop() || '?';
+      window.parent.postMessage({ type: 'cpIframeDiag', msg: msg, page: page }, '*');
+    }
+  } catch (e) {}
+}
+
 function initAutoSave() {
   const controls = document.querySelectorAll('input, select, textarea');
   controls.forEach(el => {
@@ -62,11 +72,24 @@ function initSelectTypeaheadNavigation() {
 
 function saveState() {
   if (window.__carePlanSuspendSave) return;
+  // During a carePlanLiveUpdate callback, skip saveState entirely.
+  // onExternalUpdate callbacks may call saveState() to sync UI state, but doing so
+  // captures ALL current form values — including any newly-added dynamic fields that
+  // have no selection yet (e.g. extra-pos-1 = ""). This writes those empty values to
+  // the shared localStorage, which the parent then includes in its next snapshot.
+  // restoreState() then restores the empty value, wiping the user's selection.
+  // Functions that need to persist a specific calculated value during liveUpdate
+  // should call setGlobalState() directly with only those keys (as IBW does).
+  if (window.__carePlanInLiveUpdate) return;
 
   const state = getGlobalState();
   document.querySelectorAll('input, select, textarea').forEach(el => {
     if (!el.id && !el.name) return;
-    const key = el.id || (el.name + '::' + el.value);
+    // Radio buttons are keyed by name::value so radioVal() and print-card.js
+    // can look them up by group name regardless of whether an id is present.
+    const key = (el.type === 'radio')
+      ? (el.name + '::' + el.value)
+      : (el.id || (el.name + '::' + el.value));
     if (el.type === 'checkbox' || el.type === 'radio') {
       state[key] = el.checked;
     } else {
@@ -162,9 +185,19 @@ function setGlobalState(state) {
   // with default/empty controls before snapshot restore completes.
   if (window.__carePlanSuspendSave) return;
 
+  var count = 0;
+  try { count = Object.keys(state || {}).length; } catch (e) {}
+  _cpIframeDiag('setGlobalState(' + count + 'k) inLiveUpdate=' + !!window.__carePlanInLiveUpdate);
+
   try {
     localStorage.setItem('carePlanSplitState', JSON.stringify(state || {}));
   } catch (e) {}
+
+  // During a carePlanLiveUpdate callback, skip postMessage to parent to prevent
+  // the infinite feedback loop: liveUpdate → onExternalUpdate → saveState → carePlanState
+  // → parent broadcasts liveUpdate to all other iframes → repeat.
+  // The 1200ms poll will pick up any state changes written above.
+  if (window.__carePlanInLiveUpdate) return;
 
   // Mirror latest state to parent Combined page (works in file:// via child -> parent postMessage).
   try {
@@ -186,9 +219,14 @@ function getGlobalState() {
 
 function restoreState() {
   const state = getGlobalState();
+  var count = 0;
+  try { count = Object.keys(state).length; } catch(e) {}
+  _cpIframeDiag('restoreState(' + count + 'k)');
   document.querySelectorAll('input, select, textarea').forEach(el => {
     if (!el.id && !el.name) return;
-    const key = el.id || (el.name + '::' + el.value);
+    const key = (el.type === 'radio')
+      ? (el.name + '::' + el.value)
+      : (el.id || (el.name + '::' + el.value));
     if (!(key in state)) return;
     if (el.type === 'checkbox' || el.type === 'radio') {
       el.checked = !!state[key];
@@ -409,6 +447,7 @@ function pageBoot(extraInit, onExternalUpdate) {
   function finalizeBoot() {
     if (booted) return;
     booted = true;
+    _cpIframeDiag('finalizeBoot');
     restoreState();
     applyMobileKeyboardHints();
     initSelectTypeaheadNavigation();
@@ -457,12 +496,8 @@ function pageBoot(extraInit, onExternalUpdate) {
       
       // Send initial height with increasing delays to catch all loading stages
       setTimeout(sendHeightToParent, 100);
-      setTimeout(sendHeightToParent, 300);
       setTimeout(sendHeightToParent, 600);
-      setTimeout(sendHeightToParent, 1000);
       setTimeout(sendHeightToParent, 1500);
-      setTimeout(sendHeightToParent, 2000);
-      setTimeout(sendHeightToParent, 2500);
       
       // Mutation observer for DOM changes
       var mutTimeout = null;
@@ -472,9 +507,10 @@ function pageBoot(extraInit, onExternalUpdate) {
       });
       observer.observe(document.body, {
         childList: true,
-        subtree: true,
-        attributes: true,
-        characterData: true
+        subtree: true
+        // Note: attributes and characterData intentionally omitted — those options fire
+        // on every keypress and attribute toggle, generating enormous background activity
+        // across all 12 iframes and causing Safari to reload due to memory pressure.
       });
       
       // ResizeObserver for content size changes
@@ -512,8 +548,22 @@ function pageBoot(extraInit, onExternalUpdate) {
   // Listen for messages from parent window (via postMessage)
   window.addEventListener('message', function(e) {
     if (e.data && e.data.type === 'carePlanLiveUpdate') {
-      // Lightweight update: just trigger recalculation callbacks, no restoreState.
-      if (typeof onExternalUpdate === 'function') onExternalUpdate();
+      // Don't interrupt active user interaction (typing, open dropdowns).
+      var luActive = document.activeElement;
+      var luInteracting = luActive && (luActive.tagName === 'INPUT' || luActive.tagName === 'TEXTAREA' || luActive.tagName === 'SELECT');
+      if (luInteracting) {
+        _cpIframeDiag('liveUpdate skipped (user interacting)');
+      } else {
+        // Lightweight update: just trigger recalculation callbacks, no restoreState.
+        // Guard against the feedback loop: any saveState/setGlobalState calls inside
+        // onExternalUpdate will write to localStorage but NOT postMessage back to parent.
+        window.__carePlanInLiveUpdate = true;
+        try {
+          if (typeof onExternalUpdate === 'function') onExternalUpdate();
+        } finally {
+          window.__carePlanInLiveUpdate = false;
+        }
+      }
     } else if (e.data && e.data.type === 'refreshFromGlobalState') {
       restoreState();
       if (typeof onExternalUpdate === 'function') onExternalUpdate();
@@ -528,6 +578,9 @@ function pageBoot(extraInit, onExternalUpdate) {
       // and interrupt active dropdown interaction in embedded sections.
       if (rev > lastSnapshotRevision) {
         lastSnapshotRevision = rev;
+        var snapCount = 0;
+        try { snapCount = Object.keys(e.data.state || {}).length; } catch (er) {}
+        _cpIframeDiag('snapshot rev=' + rev + ' (' + snapCount + 'k) booted=' + booted);
         try {
           localStorage.setItem('carePlanSplitState', JSON.stringify(e.data.state || {}));
         } catch (err) {}
@@ -540,7 +593,14 @@ function pageBoot(extraInit, onExternalUpdate) {
           var userInteracting = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
           if (!userInteracting) {
             restoreState();
-            if (typeof onExternalUpdate === 'function') onExternalUpdate();
+            if (typeof onExternalUpdate === 'function') {
+              // Also block saveState during snapshot-triggered onExternalUpdate
+              // to prevent unnecessary writes from cascading to parent.
+              window.__carePlanInLiveUpdate = true;
+              try { onExternalUpdate(); } finally { window.__carePlanInLiveUpdate = false; }
+            }
+          } else {
+            _cpIframeDiag('snapshot skipped (user interacting)');
           }
         }
       }
