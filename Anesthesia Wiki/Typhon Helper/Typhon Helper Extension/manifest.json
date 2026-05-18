@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Typhon Case Helper",
-  "version": "1.66",
+  "version": "1.70",
   "description": "Fast, friendly case log and time log entry for Typhon NAST — St. John Fisher CRNA",
   "permissions": ["storage", "activeTab", "scripting", "tabs", "webNavigation", "identity"],
   "oauth2": {

@@ -321,7 +321,7 @@
               <div id="jaffe-badge" class="jaffe-badge"></div>
               <span id="jaffe-search-wrap" style="display:none;position:relative;">
                 <input id="jaffe-search-input" type="text" placeholder="Search Jaffe..." autocomplete="off"
-                  style="font-size:11px;padding:2px 5px;border:1px solid #d4a574;border-radius:3px;background:#fdf6ee;color:#5a4a3a;width:130px;"
+                  style="font-size:11px;padding:2px 5px;border:1px solid #d4a574;border-radius:3px;background:#fdf6ee;color:#5a4a3a;width:220px;"
                   oninput="onJaffeSearchInput(this.value)"
                   onkeydown="onJaffeSearchKey(event)"
                   onblur="setTimeout(closeJaffeSearch,180)" />
@@ -331,34 +331,36 @@
             <div style="margin-top:8px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
               <div>
                 <label>Positioning</label><br>
-                <select id="pat-position" style="width:220px;max-width:100%;">
-                  <option value="">Select...</option>
-                  <option>Supine</option>
-                  <option>Prone</option>
-                  <option>Lateral Decubitus</option>
-                  <option>Lithotomy</option>
-                  <option>Trendelenburg</option>
-                  <option>Steep Trendelenburg</option>
-                  <option>Reverse Trendelenburg</option>
-                  <option>Sitting / Beach Chair</option>
-                  <option>Jackknife</option>
-                  <option>Fowler / Semi-Fowler</option>
-                  <option>Knee-Chest</option>
-                  <option value="Other">Other</option>
-                </select>
-                <input id="pat-position-other" class="med" style="display:none;margin-top:6px;" placeholder="Enter positioning" />
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <select id="pat-position" style="width:220px;max-width:100%;" onchange="syncPositionOther(); saveState();">
+                    <option value="">Select...</option>
+                    <option>Supine</option>
+                    <option>Prone</option>
+                    <option>Lateral Decubitus</option>
+                    <option>Lithotomy</option>
+                    <option>Trendelenburg</option>
+                    <option>Steep Trendelenburg</option>
+                    <option>Reverse Trendelenburg</option>
+                    <option>Sitting / Beach Chair</option>
+                    <option>Jackknife</option>
+                    <option>Fowler / Semi-Fowler</option>
+                    <option>Knee-Chest</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <input id="pat-position-other" class="med" style="display:none;width:300px;max-width:100%;" placeholder="Enter positioning" />
+                </div>
                 <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
                 <button type="button" class="add-row-btn" style="margin-top:6px;" onclick="addExtraSurgRow()">+ Add position</button>
               </div>
               <div>
                 <label>Arms</label><br>
-                <select id="pat-arms-tucked" class="med" style="width:130px;" onchange="syncArmsTucked(); saveState();">
+                <select id="pat-arms-tucked" class="med" style="width:auto;" onchange="syncArmsTucked(); saveState();">
                   <option value="">Select...</option>
                   <option>Arms tucked</option>
                   <option>Arms out</option>
                   <option>Other</option>
                 </select>
-                <input id="pat-arms-tucked-other" class="med" style="display:none;margin-top:6px;" placeholder="Describe arm position" />
+                <input id="pat-arms-tucked-other" class="med" style="display:none;width:220px;margin-top:6px;" placeholder="Describe arm position" />
               </div>
             </div>
           </div>
@@ -380,6 +382,7 @@
               <option>SSEP</option>
               <option>MEP</option>
               <option>SSEP + MEP</option>
+              <option>RLN monitoring</option>
               <option>Unknown</option>
               <option>Other</option>
             </select>
@@ -998,7 +1001,16 @@
       }).join('');
     }
 
-    function addExtraSurgRow(surg, pos, skipSave) {
+    function syncExtraPosOther(sel) {
+      var row = sel.closest('.row');
+      if (!row) return;
+      var inp = row.querySelector('.extra-pos-other');
+      if (!inp) return;
+      inp.style.display = sel.value === 'Other' ? 'inline-block' : 'none';
+      if (sel.value !== 'Other') inp.value = '';
+    }
+
+    function addExtraSurgRow(surg, pos, skipSave, posOther) {
       if (extraSurgCount >= 30) return;
       extraSurgCount++;
       var i = extraSurgCount;
@@ -1007,8 +1019,10 @@
       row.id = 'extra-surg-row-' + i;
       row.style.gap = '8px';
       row.style.padding = '0';
+      var safeOther = (posOther || '').replace(/"/g, '&quot;');
       row.innerHTML =
-        '<select id="extra-pos-' + i + '" style="width:220px;max-width:100%;" onchange="saveExtraSurg()">' + positionOptions(pos || '') + '</select>' +
+        '<select id="extra-pos-' + i + '" style="width:220px;max-width:100%;" onchange="syncExtraPosOther(this); saveExtraSurg();">' + positionOptions(pos || '') + '</select>' +
+        '<input class="extra-pos-other" type="text" placeholder="Describe position..." value="' + safeOther + '" oninput="saveExtraSurg();" style="display:' + (pos === 'Other' ? 'inline-block' : 'none') + ';width:200px;max-width:100%;padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:0.95em;font-family:inherit;" />' +
         '<button type="button" style="background:none;border:none;color:#bbb;font-size:18px;cursor:pointer;padding:0 4px;" onclick="this.closest(\'[id^=extra-surg-row]\').remove();saveExtraSurg();">×</button>';
       document.getElementById('extra-surg-list').appendChild(row);
       if (!skipSave) saveExtraSurg();
@@ -1018,7 +1032,9 @@
       var rows = Array.from(document.querySelectorAll('#extra-surg-list .row'));
       var data = rows.map(function(row) {
         var sel = row.querySelector('select');
-        return { pos: sel ? sel.value : '' };
+        var inp = row.querySelector('.extra-pos-other');
+        var pos = sel ? sel.value : '';
+        return { pos: pos, posOther: (inp && pos === 'Other') ? inp.value : '' };
       });
       var json = JSON.stringify(data);
       _extraSurgLastSaved = json;
@@ -1039,11 +1055,10 @@
       try { data = JSON.parse(json) || []; } catch (e) {}
       document.getElementById('extra-surg-list').innerHTML = '';
       extraSurgCount = 0;
-      data.forEach(function(item) { addExtraSurgRow(item.surg || '', item.pos || '', true); });
+      data.forEach(function(item) { addExtraSurgRow(item.surg || '', item.pos || '', true, item.posOther || ''); });
     }
 
     function boot() {
-      document.getElementById('pat-position').addEventListener('change', syncPositionOther);
       document.getElementById('pat-position-other').addEventListener('input', saveState);
       document.querySelectorAll('input[name="pat-pressure-points"]').forEach(function(el) {
         el.addEventListener('change', saveState);
@@ -1185,7 +1200,7 @@
       }
     }
 
-    pageBoot(boot, function() { restoreExtraSurg(); restoreAbxRow2(); syncAnticipatedBloodPrep(false); syncArmsTucked(); syncComplicationsOther(); syncNeuroMonitoring(); });
+    pageBoot(boot, function() { restoreExtraSurg(); restoreAbxRow2(); syncAnticipatedBloodPrep(false); syncPositionOther(); syncArmsTucked(); syncComplicationsOther(); syncNeuroMonitoring(); });
   </script>
 
 <style>

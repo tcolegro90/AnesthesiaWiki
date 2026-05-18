@@ -671,12 +671,14 @@
       // No need to actively call saveState (causes CORS errors)
 
       var s = (mirroredState && Object.keys(mirroredState).length) ? mirroredState : getState();
-      var defaultName = [
+      var _nameParts = [
         s['pat-initials'] || 'Patient',
         s['pat-surg-date'] || 'NoDate',
-        s['pat-sched-surg-time'] || 'NoTime',
-        s['pat-surgery'] || 'NoSurgery'
-      ].join(' | ');
+        s['pat-sched-surg-time'] || 'NoTime'
+      ];
+      if (s['pat-surg-end-time']) _nameParts.push(s['pat-surg-end-time']);
+      _nameParts.push(s['pat-surgery'] || 'NoSurgery');
+      var defaultName = _nameParts.join(' | ');
       var name = await showPromptModal('Save plan as:', defaultName);
       if (!name) return;
       name = name.trim();

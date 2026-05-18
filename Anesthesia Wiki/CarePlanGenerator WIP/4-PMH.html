@@ -340,6 +340,14 @@
     }
     // ────────────────────────────────────────────────────────────────────────
 
+    var PMH_ABBREVS = {
+      'ms': 'Multiple Sclerosis'
+    };
+    function expandPmhAbbrev(input) {
+      var v = input.value.trim().toLowerCase();
+      if (PMH_ABBREVS[v]) { input.value = PMH_ABBREVS[v]; savePmhRows(); }
+    }
+
     function addPmhRow(value) {
       if (pmhRowCount >= 30) return;
       pmhRowCount++;
@@ -364,9 +372,11 @@
         }
       });
       input.addEventListener('input', savePmhRows);
+      input.addEventListener('blur', function() { expandPmhAbbrev(input); });
       input.addEventListener('keydown', function(e) {
         if (e.key !== 'Enter') return;
         e.preventDefault();
+        expandPmhAbbrev(input);
         addPmhFromInput(input);
       });
 

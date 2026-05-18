@@ -825,6 +825,10 @@
           equipItems[equipItems.length - 1] += ' (' + s['equip-bairhugger-type'] + ')';
         }
       });
+      var extrasNotes = s['extras-notes'];
+      if (Array.isArray(extrasNotes)) {
+        extrasNotes.forEach(function(n) { if (n && n.trim()) equipItems.push(n.trim()); });
+      }
       var equipDiv = document.getElementById('pr-equip-items');
       var equipRow = document.getElementById('pr-row-equipment');
       if (equipDiv) equipDiv.innerHTML = '';

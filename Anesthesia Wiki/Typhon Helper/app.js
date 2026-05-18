@@ -2246,6 +2246,8 @@ function loadEvalData(e) {
   document.querySelectorAll('#e-facility-grid input[type="checkbox"]').forEach(c => {
     c.checked = (e.facility || []).includes(c.value);
   });
+  const facilityOtherEl = document.getElementById('e-facility-other');
+  if (facilityOtherEl) { facilityOtherEl.value = e.facilityOther || ''; facilityOtherEl.style.display = (e.facility || []).includes('Other') ? '' : 'none'; }
   document.querySelectorAll('#e-arrived .btn-tog').forEach(b => b.classList.toggle('on', b.dataset.v === e.arrivedPrepared));
   if (e.arrivedComments) document.getElementById('e-arrived-comments').value = e.arrivedComments;
   document.querySelectorAll('#e-age-grid input[type="checkbox"]').forEach(c => {
@@ -2257,6 +2259,8 @@ function loadEvalData(e) {
   document.querySelectorAll('#e-surg-grid input[type="checkbox"]').forEach(c => {
     c.checked = (e.surgicalCases || []).includes(c.value);
   });
+  const surgOtherEl = document.getElementById('e-surg-other');
+  if (surgOtherEl) { surgOtherEl.value = e.surgicalCasesOther || ''; surgOtherEl.style.display = (e.surgicalCases || []).includes('Other') ? '' : 'none'; }
   if (e.surgicalComments) document.getElementById('e-surg-comments').value = e.surgicalComments;
   ['q8','q9','q10','q11'].forEach(q => {
     document.querySelectorAll(`#e-${q} .btn-tog`).forEach(b => b.classList.toggle('on', b.dataset.v === e[q]));
@@ -2849,6 +2853,14 @@ function bindUiEvents() {
     }
     if (event.target.matches('.count-input')) {
       syncSelectionRowStates();
+    }
+    if (event.target.closest('#e-facility-grid')) {
+      const el = document.getElementById('e-facility-other');
+      if (el) { const on = !!document.querySelector('#e-facility-grid input[value="Other"]:checked'); el.style.display = on ? '' : 'none'; if (!on) el.value = ''; }
+    }
+    if (event.target.closest('#e-surg-grid')) {
+      const el = document.getElementById('e-surg-other');
+      if (el) { const on = !!document.querySelector('#e-surg-grid input[value="Other"]:checked'); el.style.display = on ? '' : 'none'; if (!on) el.value = ''; }
     }
   });
 

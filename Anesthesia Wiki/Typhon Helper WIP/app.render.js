@@ -72,21 +72,15 @@ function renderItemCard({ item, i }) {
   }
   if (item.type === 'eval') {
     const isPending = !item.submitted;
-    const ratingLine = [item.q8, item.q9, item.q10, item.q11].filter(Boolean).join(' · ') || '—';
-    const phoneLine = item.preceptorPhone ? ` &nbsp;|&nbsp; ${item.preceptorPhone}` : '';
-    const preceptorBadge = item.preceptorReviewStatus === 'completed'
-      ? ' &nbsp;<span class="badge badge-preceptor-done">✅ Preceptor Signed</span>'
-      : (item.preceptorShareToken ? ' &nbsp;<span class="badge badge-preceptor-pending">⏳ Awaiting Preceptor</span>' : '');
     return `<div class="saved-item">
       <div class="saved-item-top">
         <div>
           <div class="saved-item-title">📋 Daily Eval — ${fmtDate(item.date)}</div>
-          <div class="saved-item-sub">Preceptor: ${item.preceptorName || '—'} &nbsp;|&nbsp; ${item.facility?.[0] || '—'}${phoneLine}${preceptorBadge}</div>
-          <div class="saved-item-sub">${ratingLine}</div>
+          <div class="saved-item-sub">Preceptor: ${item.preceptorName || '—'}</div>
         </div>
         <span class="badge ${isPending ? 'badge-pending' : 'badge-done'}">${isPending ? 'Pending' : 'Submitted'}</span>
       </div>
-      <div class="item-actions">
+      <div class="item-actions eval-actions">
         <button class="btn btn-secondary btn-sm" data-action="edit-eval" data-idx="${i}">✏️ Edit</button>
         <button class="btn btn-secondary btn-sm" data-action="text-eval" data-idx="${i}">📱 Text Preceptor</button>
         <button class="btn btn-secondary btn-sm" data-action="toggle-submit" data-idx="${i}">${isPending ? '✓ Mark Submitted' : 'Unmark'}</button>
@@ -174,7 +168,7 @@ async function renderSaved(options = {}) {
   const draftCards = drafts.length
     ? drafts.map(entry => renderItemCard(entry)).join('')
     : '<div class="saved-item"><div class="saved-item-sub">No drafts here yet.</div></div>';
-  html += `<div class="submitted-folder open" id="drafts-folder" data-folder-key="drafts-root">
+  html += `<div class="submitted-folder" id="drafts-folder" data-folder-key="drafts-root">
     <div class="submitted-folder-header">
       <div class="submitted-folder-title">📝 Drafts <span class="submitted-folder-meta">${drafts.length} item${drafts.length !== 1 ? 's' : ''}</span></div>
       <span class="folder-chevron">▶</span>
@@ -182,10 +176,17 @@ async function renderSaved(options = {}) {
     <div class="submitted-folder-body">${draftCards}</div>
   </div>`;
 
-  // --- Pending section ---
-  if (pending.length) {
-    html += `<div id="pending-list">${pending.map(entry => renderItemCard(entry)).join('')}</div>`;
-  }
+  // --- Pending folder ---
+  const pendingCards = pending.length
+    ? pending.map(entry => renderItemCard(entry)).join('')
+    : '<div class="saved-item"><div class="saved-item-sub">No pending items yet.</div></div>';
+  html += `<div class="submitted-folder" id="pending-folder" data-folder-key="pending-root">
+    <div class="submitted-folder-header">
+      <div class="submitted-folder-title">⏳ Pending <span class="submitted-folder-meta">${pending.length} item${pending.length !== 1 ? 's' : ''}</span></div>
+      <span class="folder-chevron">▶</span>
+    </div>
+    <div class="submitted-folder-body">${pendingCards}</div>
+  </div>`;
 
   // --- Submitted folder ---
   let submittedHtml = '';
@@ -434,4 +435,89 @@ function copyTimelog(i) {
     toast('Copied!');
   });
 }
+
+// ============================================================
+// PLANNED CASES (from Care Plan Generator)
+// ============================================================
+function renderPlannedCases(plans) {
+  const section = document.getElementById('planned-cases-section');
+  const list    = document.getElementById('planned-cases-list');
+  if (!section || !list) return;
+  if (!plans || plans.length === 0) {
+    section.style.display = 'none';
+    _updatePlannedSidebarSummary(plans || []);
+    return;
+  }
+  section.style.display = 'block';
+  list.innerHTML = '';
+
+  const today        = _todayIso();
+  const completions  = _getPlannedCompletions();
+
+  plans.forEach(plan => {
+    const s    = plan.state || {};
+    const done = completions.some(c => c.planName === plan.name && c.date === today);
+
+    const time      = s['pat-sched-surg-time'] || '';
+    const initials  = s['pat-initials'] || '';
+    const surgery   = s['pat-surgery'] || '';
+    const anesType  = s['anes-type']   || '';
+    const label     = [time, initials, surgery].filter(Boolean).join(' · ') || plan.name;
+
+    const card = document.createElement('div');
+    card.className = 'planned-case-card' + (done ? ' planned-done' : '');
+
+    card.innerHTML = `
+      <span class="planned-case-icon">${done ? '✅' : '📋'}</span>
+      <div class="planned-case-body">
+        <div class="planned-case-label">${label}</div>
+        <div class="planned-case-name">${plan.name}</div>
+      </div>
+      ${anesType ? `<span class="planned-case-chip">${anesType}</span>` : ''}
+    `;
+
+    if (!done) {
+      card.onclick = () => prefillFromCPGPlan(plan.name, plan.state);
+    }
+    list.appendChild(card);
+  });
+
+  _updatePlannedSidebarSummary(plans);
+}
+
+function _updatePlannedSidebarSummary(plans) {
+  const section = document.getElementById('drawer-planned-section');
+  const itemsEl = document.getElementById('drawer-planned-items');
+  if (!section || !itemsEl) return;
+
+  if (!plans || plans.length === 0) {
+    section.style.display = 'none';
+    itemsEl.innerHTML = '';
+    return;
+  }
+
+  const today       = _todayIso();
+  const completions = _getPlannedCompletions();
+  itemsEl.innerHTML = '';
+
+  plans.forEach(plan => {
+    const s    = plan.state || {};
+    const done = completions.some(c => c.planName === plan.name && c.date === today);
+    const time      = s['pat-sched-surg-time'] || '';
+    const initials  = s['pat-initials'] || '';
+    const surgery   = s['pat-surgery'] || plan.name;
+    const label     = [time, initials, surgery].filter(Boolean).join(' · ');
+
+    const row = document.createElement('div');
+    row.className = 'drawer-planned-item' + (done ? ' planned-item-done' : '');
+    row.textContent = (done ? '✅ ' : '') + label;
+    if (!done) {
+      row.onclick = () => { closeDrawer(); prefillFromCPGPlan(plan.name, plan.state); };
+    }
+    itemsEl.appendChild(row);
+  });
+
+  section.style.display = 'block';
+}
+
 

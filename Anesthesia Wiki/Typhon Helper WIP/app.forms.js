@@ -102,7 +102,7 @@ function readEval() {
     preceptorPhone: val('e-preceptor-phone'),
     studentPhone: val('e-student-phone'),
     preceptorShareToken: val('e-preceptor-share-token'),
-    facility: getCheckedVals('e-facility-grid'),
+    facility: [document.getElementById('e-facility-select')?.value].filter(Boolean),
     facilityOther: val('e-facility-other'),
     arrivedPrepared: pickVal('e-arrived'),
     arrivedComments: val('e-arrived-comments'),

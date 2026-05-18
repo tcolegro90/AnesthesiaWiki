@@ -85,7 +85,7 @@ async function detectPageTypeAcrossFrames(tabId) {
 }
 
 function openApp() {
-  chrome.tabs.create({ url: chrome.runtime.getURL('app.html') });
+  chrome.tabs.create({ url: 'https://courtstatus.gear.host/Typhon%20Helper/TyphonCaseHelper.html?v=20260424c' });
 }
 
 function fmtDate(iso) {

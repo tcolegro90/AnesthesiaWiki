@@ -34,6 +34,8 @@
       box-shadow: 0 16px 48px rgba(0,0,0,0.25);
       padding: 24px 22px;
       text-align: center;
+      max-height: calc(100dvh - 44px);
+      overflow-y: auto;
     }
     .welcome-title { font-size: clamp(1.4rem, 4vw, 1.95rem); font-weight: 800; color: #184954; line-height: 1.18; }
     .welcome-sub { margin-top: 10px; font-size: 0.95rem; color: #2b5a62; line-height: 1.45; }
@@ -41,6 +43,8 @@
     .welcome-choice-btn { border: none; border-radius: 12px; padding: 12px 20px; width: 100%; background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: #fff; font-size: 0.98rem; font-weight: 800; letter-spacing: 0.2px; cursor: pointer; box-shadow: 0 8px 22px rgba(13,110,110,0.33); }
     .welcome-choice-btn:active { transform: scale(0.99); }
     .welcome-choice-btn.secondary { background: white; color: #0d6e6e; border: 2px solid #0d6e6e; box-shadow: none; }
+    .welcome-continue-sub { display: none; margin-top: -6px; padding: 6px 20px 6px 34px; font-size: 0.85em; font-weight: 700; color: #0d6e6e; background: transparent; border: none; text-align: left; width: 100%; cursor: pointer; border-radius: 8px; }
+    .welcome-continue-sub:active { background: #e8f5f0; }
 
     #welcome-screen { display: none; }
     body.show-start-screen #welcome-screen { display: flex; }
@@ -78,6 +82,21 @@
     .draft-banner-text span { display: block; font-size: 0.82em; font-weight: 400; color: #4a5580; margin-top: 2px; }
     .draft-banner-btns { display: flex; gap: 7px; flex-shrink: 0; }
 
+    /* PLANNED CASES */
+    #planned-cases-section { display: none; margin: 14px 0; text-align: left; }
+    #case-plan-pill { display: none; margin-bottom: 10px; padding: 7px 11px; background: #e8f5f0; border: 1px solid #b0e0d6; border-radius: 8px; font-size: 0.82em; color: #1a4f3a; font-weight: 600; }
+    #planned-cases-header { font-size: 0.78em; font-weight: 700; color: #0d6e6e; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 7px; }
+    .planned-case-card { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border-radius: 11px; border: 1.5px solid #b0e0d6; background: linear-gradient(135deg, #f0faf7, #e8f5f0); margin-bottom: 7px; cursor: pointer; transition: background 0.15s; }
+    .planned-case-card:active { background: #d8ede8; }
+    .planned-case-card.planned-done { background: #f5f5f5; border-color: #ddd; cursor: default; opacity: 0.65; }
+    .planned-case-icon { font-size: 1.15em; flex-shrink: 0; }
+    .planned-case-body { flex: 1; min-width: 0; }
+    .planned-case-label { font-size: 0.88em; font-weight: 600; color: #1a4f3a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .planned-case-card.planned-done .planned-case-label { color: #888; }
+    .planned-case-name { font-size: 0.75em; color: #5a7a6e; margin-top: 1px; }
+    .planned-case-chip { font-size: 0.72em; background: #0d6e6e22; color: #0d6e6e; border-radius: 5px; padding: 1px 6px; flex-shrink: 0; font-weight: 700; }
+    .planned-case-card.planned-done .planned-case-chip { background: #ddd; color: #999; }
+
     /* STICKY WRAP — keeps header and tabs as one flush sticky unit */
     .sticky-header-wrap { position: sticky; top: 0; z-index: 100; }
     /* TABS */
@@ -90,6 +109,12 @@
     .tab-pane { display: none; padding: 14px 14px 90px; max-width: 700px; margin: 0 auto; }
     .tab-pane.active { display: block; }
     #pane-time { overflow-y: hidden; max-height: 100vh; padding-bottom: 14px; }
+
+    /* Prevent double-tap zoom on all interactive elements */
+    button, .btn, .btn-tog, .chk-item, .tab, .drawer-item, .mobile-stepper button,
+    .item-actions button, .welcome-choice-btn, input[type="checkbox"], label {
+      touch-action: manipulation;
+    }
 
     /* CARDS */
     .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,0.09); }
@@ -110,6 +135,7 @@
     .field input:focus, .field select:focus, .field textarea:focus { border-color: #0d6e6e; }
     .field textarea { min-height: 76px; resize: vertical; }
     #c-notes { min-height: clamp(150px, 34vh, 320px); }
+    #t-notes { min-height: 100px; }
 
     /* TOGGLE BUTTONS (single-select) */
     .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -121,17 +147,19 @@
     .btn-tog.wide { flex: 1 1 150px; text-align: center; padding: 11px 12px; font-size: 0.9em; }
     /* Two-option rows: always fill full width side by side */
     #grp-sex, #grp-admit, #grp-preceptor, #e-arrived { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    #grp-sex .btn-tog, #grp-admit .btn-tog, #grp-preceptor .btn-tog, #e-arrived .btn-tog { text-align: center; padding: 11px 8px; }
+    #grp-sex .btn-tog, #grp-admit .btn-tog, #grp-preceptor .btn-tog, #e-arrived .btn-tog { text-align: center; padding: 28px 8px; }
     /* Single-button full-width rows */
     #grp-urgency, #grp-neonate { display: grid; grid-template-columns: 1fr; gap: 8px; }
-    #grp-urgency .btn-tog, #grp-neonate .btn-tog { text-align: center; padding: 11px 8px; width: 100%; }
+    #grp-urgency .btn-tog, #grp-neonate .btn-tog { text-align: center; padding: 28px 8px; width: 100%; }
     /* Position: 4 buttons → single row */
     #grp-pos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    #grp-pos .btn-tog { text-align: center; padding: 11px 4px; }
+    #grp-pos .btn-tog { text-align: center; padding: 28px 4px; }
     /* Eval yes/no and similar full-width grids */
-    #e-q8, #e-q9, #e-q10, #e-q11, #e-q12, #e-q13, #e-q14, #e-q16 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #e-q8, #e-q9, #e-q10, #e-q11 { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    #e-q12, #e-q13, #e-q14, #e-q16 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #e-q13 .btn-tog:last-child, #e-q14 .btn-tog:last-child, #e-q16 .btn-tog:last-child { grid-column: 1 / -1; }
     #e-q8 .btn-tog, #e-q9 .btn-tog, #e-q10 .btn-tog, #e-q11 .btn-tog,
-    #e-q12 .btn-tog, #e-q13 .btn-tog, #e-q14 .btn-tog, #e-q16 .btn-tog { text-align: center; padding: 11px 8px; }
+    #e-q12 .btn-tog, #e-q13 .btn-tog, #e-q14 .btn-tog, #e-q16 .btn-tog { text-align: center; padding: 28px 8px; }
     #grp-anat .anat-dropdown { grid-column: 1 / -1; }
     .anat-dropdown {
       display: none;
@@ -149,12 +177,12 @@
       margin-bottom: 8px;
     }
     #grp-assess { display: grid; grid-template-columns: 1fr; gap: 8px; }
-    #grp-assess .btn-tog { width: 100%; text-align: left; }
+    #grp-assess .btn-tog { width: 100%; text-align: left; padding: 28px 16px; }
     #c-as::placeholder, #c-af::placeholder { color: rgba(0,0,0,0.18); }
 
     /* ASA BUTTONS — 6-column grid guarantees single row on all phone sizes */
     .asa-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-    .asa-btn { text-align: center; padding: 11px 2px; border: 1.5px solid #dde3ec; border-radius: 10px;
+    .asa-btn { text-align: center; padding: 28px 2px; border: 1.5px solid #dde3ec; border-radius: 10px;
       cursor: pointer; font-size: 0.86em; font-weight: 700; background: white; color: #4a5568; transition: all 0.15s; user-select: none; }
     .asa-btn.on { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
 
@@ -180,7 +208,9 @@
     #card-procedures-2 .chk-item input[type="checkbox"],
     #card-procedures .count-row label input[type="checkbox"],
     #card-medications .chk-item input[type="checkbox"],
-    #card-anes-type .sec-header input[type="checkbox"] {
+    #card-anes-type .sec-header input[type="checkbox"],
+    #e-asa-grid .chk-item input[type="checkbox"],
+    #e-surg-grid .chk-item input[type="checkbox"] {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -214,12 +244,13 @@
     /* Step 5 & 6 — match page 7 style (0.86em, semi-bold) */
     #card-procedures-2 .chk-item span { font-size: 0.86em; font-weight: 600; }
     #card-procedures-2 .proc-heading { border: none; background: none; padding-left: 2px; }
-    #card-procedures-2 .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 11px 13px; border-radius: 10px; }
+    #card-procedures-2 .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 22px 13px; border-radius: 10px; }
     #card-procedures-2 .chk-item span { font-size: 0.86em; font-weight: 600; }
     #card-procedures-2 .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
     #card-procedures-2 .chk-item.selected span { color: white; }
     #card-procedures .proc-heading { border: none; background: none; padding-left: 2px; }
-    #card-procedures .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 11px 13px; border-radius: 10px; }
+    #card-procedures .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 22px 13px; border-radius: 10px; }
+    #card-medications .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 26px 13px; border-radius: 10px; }
     #card-procedures .chk-item span { font-size: 0.86em; font-weight: 600; }
     #card-procedures .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
     #card-procedures .chk-item.selected span { color: white; }
@@ -232,23 +263,29 @@
     #card-anes-type .chk-item.selected span { color: white; }
     #card-medications .chk-item span { font-size: 0.86em; font-weight: 600; }
     #card-medications .chk-grid { grid-template-columns: 1fr; gap: 8px; }
-    #card-medications .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 11px 13px; border-radius: 10px; }
+    #card-medications .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 26px 13px; border-radius: 10px; }
     #card-medications .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
     #card-medications .chk-item.selected span { color: white; }
 
+    /* Eval chk-items — card style to match Case Log */
+    #e-facility-grid .chk-item, #e-age-grid .chk-item, #e-asa-grid .chk-item, #e-surg-grid .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 22px 13px; border-radius: 10px; }
+    #e-facility-grid .chk-item span, #e-age-grid .chk-item span, #e-asa-grid .chk-item span, #e-surg-grid .chk-item span { font-size: 0.86em; font-weight: 600; }
+    #e-facility-grid .chk-item.selected, #e-age-grid .chk-item.selected, #e-asa-grid .chk-item.selected, #e-surg-grid .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
+    #e-facility-grid .chk-item.selected span, #e-age-grid .chk-item.selected span, #e-asa-grid .chk-item.selected span, #e-surg-grid .chk-item.selected span { color: white; }
+
     /* COUNT ROWS */
-    .count-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 7px; border: 1.5px solid transparent; transition: all 0.15s; }
+    .count-row { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-radius: 7px; border: 1.5px solid transparent; transition: all 0.15s; }
     .count-row:hover { background: #f4f6f8; }
     .count-row.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
     .count-label { flex: 1; font-size: 0.83em; color: #4a5568; }
     .count-row.selected .count-label { color: white; }
     .count-stepper { display: flex; align-items: center; gap: 4px; }
-    .count-step-btn { background: #edf2f7; border: 1px solid #dde3ec; border-radius: 5px; width: 28px; height: 28px; font-size: 0.8em; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #4a5568; line-height: 1; padding: 0; }
+    .count-step-btn { background: #edf2f7; border: 1px solid #dde3ec; border-radius: 5px; width: 50px; height: 50px; font-size: 1.35em; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #4a5568; line-height: 1; padding: 0; }
     .count-step-btn:hover { background: #e2e8f0; }
     .count-row.selected .count-step-btn { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); color: white; }
     .count-input { width: 58px; padding: 5px 8px; border: 1.5px solid #dde3ec; border-radius: 6px; font-size: 0.85em; text-align: center; }
     .compact-input-8 { flex: 0 0 8ch !important; width: 8ch !important; text-align: center; }
-    .compact-age { width: 6ch !important; min-width: 6ch !important; max-width: 6ch !important; text-align: center; }
+    .compact-age { width: 80px !important; min-width: unset !important; max-width: unset !important; height: 80px; text-align: center; font-size: 1.8em; padding: 0; box-sizing: border-box; display: block; margin: 0 auto; }
 
     /* TIME GRID */
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -293,6 +330,8 @@
     .badge-pending { background: #fff3cd; color: #856404; }
     .badge-done { background: #d4edda; color: #155724; }
     .item-actions { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
+    .item-actions.eval-actions { flex-wrap: nowrap; gap: 5px; }
+    .item-actions.eval-actions .btn-sm { padding: 6px 8px; font-size: 0.75em; }
 
     /* EMPTY STATE */
     .empty { text-align: center; padding: 44px 20px; color: #95a5a6; }
@@ -321,7 +360,7 @@
 
     /* TIMESTAMP ROW */
     .ts-row { display: flex; align-items: center; gap: 8px; }
-    .ts-row input { flex: 1; padding: 11px 12px; border: 1.5px solid #dde3ec; border-radius: 8px;
+    .ts-row input { flex: 1; padding: 14px 12px; border: 1.5px solid #dde3ec; border-radius: 8px;
       font-size: 1.05em; font-weight: 700; letter-spacing: 1px; outline: none;
       transition: border-color 0.2s; background: white; }
     .ts-row input:focus { border-color: #0d6e6e; }
@@ -368,15 +407,15 @@
       text-overflow: ellipsis;
     }
     .step-nav {
-      min-height: 44px;
-      min-width: 74px;
+      min-height: 50px;
+      min-width: 88px;
       border-radius: 10px;
       border: 1.5px solid #d6dde6;
       background: #f8faf9;
-      font-size: 0.84em;
+      font-size: 1.0em;
       font-weight: 700;
       color: #2c3e50;
-      padding: 0 10px;
+      padding: 0 12px;
       cursor: pointer;
     }
     .step-nav:disabled {
@@ -394,6 +433,9 @@
       #grp-anat .btn-tog { flex: 1 1 calc(50% - 7px); }
       .h1-full { display: none; }
       .h1-short { display: inline; }
+      #e-surg-grid { grid-template-columns: 1fr 1fr; gap: 5px; }
+      #e-surg-grid .chk-item { padding: 10px 6px; }
+      #e-surg-grid .chk-item span { font-size: 0.78em; }
     }
 
     @media (max-width: 820px) {
@@ -406,11 +448,41 @@
       }
       #pane-case.mobile-paged .card { display: none; }
       #pane-case.mobile-paged .card.active-step { display: block; min-height: auto; }
+      #pane-case.mobile-paged #card-procedure-counts.active-step { margin-top: 18vh; }
+      /* Eval pane: constrained to viewport; active card scrolls internally */
+      #pane-eval.mobile-paged {
+        height: calc(100dvh - 52px);
+        overflow: hidden;
+        flex-direction: column;
+        padding: 0;
+      }
+      #pane-eval.mobile-paged.active { display: flex; }
+      #pane-eval.mobile-paged #eval-mobile-stepper { flex-shrink: 0; margin: 0 8px 0; position: relative; top: 0; align-items: center; }
+      #pane-eval.mobile-paged #eval-mobile-stepper .step-nav { min-height: 44px; height: 44px; align-self: center; }
       #pane-eval.mobile-paged .card { display: none; }
-      #pane-eval.mobile-paged .card.active-step { display: block; min-height: calc(100vh - 160px); }
+      #pane-eval.mobile-paged .card.active-step {
+        display: block;
+        flex: 1 1 0;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 8px 8px;
+      }
       #pane-eval.mobile-paged .eval-question-step { display: none; }
       #pane-eval.mobile-paged .eval-question-step.active-question { display: block; }
-      #pane-eval.mobile-paged.last-step .card.active-step { min-height: auto; }
+      #pane-eval.mobile-paged .spacer { display: none; }
+      #pane-eval.mobile-paged .eval-action-btns { display: none; }
+      #pane-eval.mobile-paged.last-step .eval-action-btns {
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        gap: 6px;
+        padding: 8px 8px 14px;
+      }
+      #pane-eval.mobile-paged #btn-save-eval,
+      #pane-eval.mobile-paged #btn-draft-eval { display: none; }
+      #pane-eval.mobile-paged.last-step #btn-save-eval,
+      #pane-eval.mobile-paged.last-step #btn-draft-eval { display: block; }
 
       /* 44px minimum touch targets for finger-friendly input */
       .btn,
@@ -437,16 +509,30 @@
       .btn-group { gap: 9px; }
       .btn-tog { padding: 10px 14px; }
       .asa-btn { width: 52px; }
-      #grp-anat .btn-tog { flex: 1 1 calc(50% - 9px); }
+      #grp-anat .btn-tog { flex: 1 1 calc(50% - 9px); padding: 16px 8px; }
 
       /* Page 2 compact layout so all clinical inputs fit better on one screen. */
-      #card-clinical { padding: 12px; }
-      #card-clinical .field { margin-bottom: 8px; }
-      #card-clinical .btn-group { gap: 6px; }
-      #card-clinical .btn-tog { padding: 8px 10px; font-size: 0.82em; }
-      #card-clinical .two-col { gap: 8px; }
+      #card-clinical { padding: 16px; }
+      #card-clinical .field { margin-bottom: 14px; }
+      #card-clinical .btn-group { gap: 10px; }
+      #card-clinical .btn-tog { padding: 14px 10px; font-size: 0.93em; }
+      #card-clinical .two-col { gap: 10px; }
 
       #c-notes { min-height: clamp(180px, 40vh, 360px); }
+
+      /* Eval: compact buttons and grids to fit each step on one screen */
+      #e-arrived .btn-tog,
+      #e-q8 .btn-tog, #e-q9 .btn-tog, #e-q10 .btn-tog, #e-q11 .btn-tog,
+      #e-q12 .btn-tog, #e-q13 .btn-tog, #e-q14 .btn-tog, #e-q16 .btn-tog { padding: 16px 8px; }
+      #e-facility-grid .chk-item, #e-age-grid .chk-item, #e-asa-grid .chk-item { padding: 10px 6px; }
+      #e-facility-grid .chk-item span, #e-age-grid .chk-item span, #e-asa-grid .chk-item span { font-size: 0.78em; }
+      #pane-eval textarea { min-height: 44px; max-height: 90px; }
+      #pane-eval #e-arrived-comments { min-height: 100px; max-height: 200px; }
+      #pane-eval #e-surg-comments,
+      #pane-eval #e-q8-comments, #pane-eval #e-q9-comments,
+      #pane-eval #e-q10-comments, #pane-eval #e-q11-comments,
+      #pane-eval #e-q12-comments { min-height: 200px; max-height: none; }
+      #pane-eval #e-summary { height: calc(100dvh - 160px); min-height: unset; max-height: none; resize: none; }
     }
 
     /* BTN-DRAFT */
@@ -454,6 +540,7 @@
     .btn-draft:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(90,110,143,0.35); }
 
     /* EVAL PANE */
+    #e-summary { min-height: 300px; resize: vertical; }
     .eval-action-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 0 0 14px; }
     .eval-wip-banner { border: 1.5px solid #f4c07a; background: linear-gradient(135deg, #fff8ea, #fff2d6); color: #7a4b00; border-radius: 11px; padding: 11px 12px; margin: 0 0 12px; font-size: 0.84em; line-height: 1.45; font-weight: 700; }
     .eval-wip-banner span { display: block; font-weight: 600; font-size: 0.93em; margin-bottom: 2px; }
@@ -474,32 +561,207 @@
     #phone-prompt-confirm { flex: 2; padding: 12px; border-radius: 12px; font-size: 0.95em; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; box-shadow: 0 4px 14px rgba(13,110,110,0.28); font-family: inherit; }
     #phone-prompt-confirm:hover { box-shadow: 0 6px 18px rgba(13,110,110,0.38); transform: translateY(-1px); }
 
+    /* ===== HAMBURGER NAV ===== */
+    #hamburger-bar {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-bottom: 2px solid #e0e0e0;
+      min-height: 52px;
+      padding: 0 4px;
+    }
+    #hamburger-btn {
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      padding: 10px 14px;
+      cursor: pointer;
+      color: #0d6e6e;
+      line-height: 1;
+    }
+    #current-tab-label {
+      flex: 1;
+      text-align: center;
+      font-size: 1.0em;
+      font-weight: 700;
+      color: #0d6e6e;
+      pointer-events: none;
+    }
+    /* ===== SIDE DRAWER ===== */
+    #drawer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1200;
+    }
+    #drawer-overlay.open { display: block; }
+    #nav-drawer {
+      position: fixed;
+      top: 0;
+      left: -270px;
+      width: 250px;
+      height: 100%;
+      background: white;
+      z-index: 1201;
+      transition: left 0.25s ease;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    #nav-drawer.open { left: 0; }
+    .drawer-title {
+      padding: 12px 20px 16px;
+      font-size: 0.75em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aab;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 8px;
+    }
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 22px;
+      font-size: 1.05em;
+      font-weight: 600;
+      color: #2c3e50;
+      cursor: pointer;
+      border-bottom: 1px solid #f4f4f4;
+      transition: background 0.15s;
+    }
+    .drawer-item:active { background: #e8f5f0; }
+    .drawer-item.active {
+      color: #0d6e6e;
+      background: #f0faf8;
+    }
+    .drawer-icon { font-size: 1.2em; width: 26px; text-align: center; }
+    .drawer-divider { border: none; border-top: 1px solid #e0e0e0; margin: 8px 0; }
+    .drawer-wiki { color: #0d6e6e; text-decoration: none; margin-top: auto; }
+    .drawer-wiki:active { background: #e8f5f0; }
+    .drawer-continue { display: none; padding: 7px 22px 7px 52px; font-size: 0.82em; font-weight: 600; color: #0d6e6e; cursor: pointer; border-bottom: 1px solid #f4f4f4; }
+    .drawer-continue::before { content: '▶ '; font-size: 0.75em; }
+    .drawer-continue:active { background: #e8f5f0; }
+    #drawer-planned-section { display: none; }
+    .drawer-planned-header { padding: 6px 22px 5px 52px; font-size: 0.73em; font-weight: 700; color: #0d6e6e; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #f4f4f4; }
+    .drawer-planned-item { padding: 7px 14px 7px 60px; font-size: 0.81em; color: #1a4f3a; cursor: pointer; border-bottom: 1px solid #f4f4f4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer-planned-item.planned-item-done { color: #999; cursor: default; }
+    .drawer-planned-item:not(.planned-item-done):active { background: #e8f5f0; }
+
   </style>
 </head>
 <body>
+
+
 
 <div id="welcome-screen" aria-modal="true" role="dialog" aria-label="Welcome to Typhon Case Helper">
   <div class="welcome-box">
     <div class="welcome-title">Typhon Case Helper</div>
     <div class="welcome-sub">Choose where to start.</div>
+    <div id="planned-cases-section">
+      <div id="planned-cases-header">Today's Planned Cases</div>
+      <div id="planned-cases-list"></div>
+    </div>
     <div class="welcome-choice-list">
-      <button id="welcome-continue" class="welcome-choice-btn secondary" type="button" style="display:none">▶ Continue</button>
-      <button id="welcome-new-case" class="welcome-choice-btn" type="button">📋 Case Entry</button>
       <button id="welcome-time-log" class="welcome-choice-btn" type="button">⏱ Time Log</button>
-      <button id="welcome-eval" class="welcome-choice-btn" type="button">📊 Daily Eval</button>
-      <button id="welcome-drafts" class="welcome-choice-btn secondary" type="button">📝 Drafts</button>
-      <button id="welcome-browse" class="welcome-choice-btn" type="button" style="background:none;color:#0d6e6e;border:2px solid #0d6e6e;box-shadow:none;font-weight:700;">Just Browse</button>
+      <button id="welcome-time-continue" class="welcome-continue-sub" type="button" style="display:none">▶ Continue Time Log</button>
+      <button id="welcome-new-case" class="welcome-choice-btn" type="button">📋 Case Log</button>
+      <button id="welcome-case-continue" class="welcome-continue-sub" type="button" style="display:none">▶ Continue Case</button>
+      <button id="welcome-eval" class="welcome-choice-btn" type="button">📝 Daily Eval</button>
+      <button id="welcome-eval-continue" class="welcome-continue-sub" type="button" style="display:none">▶ Continue Eval</button>
+      <button id="welcome-drafts" class="welcome-choice-btn secondary" type="button">📁 Saved / Drafts</button>
+      <div style="height:24px;"></div>
+      <a id="welcome-wiki-link" class="welcome-choice-btn" href="#" style="display:block;text-align:center;text-decoration:none;">🏠 Anesthesia Wiki</a>
     </div>
   </div>
 </div>
 
+<!-- ===== REMOVED TEMP NAV DEMO ===== -->
+<div style="display:none">
+  <div style="font-size:0.7em;text-transform:uppercase;letter-spacing:1px;color:#aab;text-align:center;margin-bottom:16px;">Pick a nav style →</div>
+
+  <!-- A: Simple 4th tab -->
+  <div style="margin-bottom:20px;">
+    <div style="font-size:0.75em;color:#7ec8e3;margin-bottom:6px;">A — 4th Tab</div>
+    <div style="display:flex;background:white;border-bottom:2px solid #e0e0e0;border-radius:8px 8px 0 0;overflow:hidden;">
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.78em;font-weight:700;color:#0d6e6e;border-bottom:3px solid #0d6e6e;">📋 Case</div>
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.78em;font-weight:600;color:#7f8c8d;">⏰ Time</div>
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.78em;font-weight:600;color:#7f8c8d;">📁 Saved</div>
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.78em;font-weight:600;color:#7f8c8d;">📝 Eval</div>
+    </div>
+    <div style="background:white;padding:8px 10px;font-size:0.72em;color:#888;border-radius:0 0 8px 8px;">Simple — all 4 tabs visible, text gets tight</div>
+  </div>
+
+  <!-- B: Overflow ⋯ menu -->
+  <div style="margin-bottom:20px;">
+    <div style="font-size:0.75em;color:#7ec8e3;margin-bottom:6px;">B — Overflow ⋯ Menu</div>
+    <div style="display:flex;background:white;border-bottom:2px solid #e0e0e0;border-radius:8px 8px 0 0;overflow:hidden;">
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.82em;font-weight:700;color:#0d6e6e;border-bottom:3px solid #0d6e6e;">📋 Case</div>
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.82em;font-weight:600;color:#7f8c8d;">⏰ Time</div>
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.82em;font-weight:600;color:#7f8c8d;">📁 Saved</div>
+      <div style="flex:0 0 44px;padding:10px 4px;text-align:center;font-size:1.1em;font-weight:700;color:#7f8c8d;">⋯</div>
+    </div>
+    <div style="background:white;border:1px solid #eee;border-radius:8px;margin-top:4px;padding:10px 14px;">
+      <div style="font-size:0.82em;color:#2c3e50;padding:8px 0;border-bottom:1px solid #f0f0f0;">📝 Daily Eval</div>
+      <div style="font-size:0.72em;color:#888;padding-top:6px;">Dropdown appears under ⋯</div>
+    </div>
+  </div>
+
+  <!-- C: Hamburger drawer -->
+  <div style="margin-bottom:20px;">
+    <div style="font-size:0.75em;color:#7ec8e3;margin-bottom:6px;">C — Hamburger Side Drawer</div>
+    <div style="display:flex;background:white;border-bottom:2px solid #e0e0e0;border-radius:8px 8px 0 0;overflow:hidden;align-items:center;">
+      <div style="padding:10px 14px;font-size:1.1em;color:#0d6e6e;">☰</div>
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.82em;font-weight:700;color:#0d6e6e;border-bottom:3px solid #0d6e6e;">📋 Case Log</div>
+      <div style="padding:10px 12px;font-size:0.82em;color:#7f8c8d;">⚙︎</div>
+    </div>
+    <div style="display:flex;gap:0;background:white;border-radius:0 0 8px 8px;overflow:hidden;border-top:1px solid #eee;">
+      <div style="flex:1;padding:16px 12px;border-right:1px solid #eee;">
+        <div style="font-size:0.82em;font-weight:700;color:#0d6e6e;margin-bottom:12px;">📋 Case Log</div>
+        <div style="font-size:0.82em;color:#4a5568;margin-bottom:12px;">⏰ Time Log</div>
+        <div style="font-size:0.82em;color:#4a5568;margin-bottom:12px;">📁 Saved</div>
+        <div style="font-size:0.82em;color:#4a5568;">📝 Daily Eval</div>
+      </div>
+      <div style="flex:2;padding:10px;background:#f8faf9;font-size:0.72em;color:#888;">← Drawer slides in from left</div>
+    </div>
+  </div>
+
+  <!-- D: Floating action button -->
+  <div style="margin-bottom:8px;">
+    <div style="font-size:0.75em;color:#7ec8e3;margin-bottom:6px;">D — Floating Action Button</div>
+    <div style="display:flex;background:white;border-bottom:2px solid #e0e0e0;border-radius:8px 8px 0 0;overflow:hidden;">
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.82em;font-weight:700;color:#0d6e6e;border-bottom:3px solid #0d6e6e;">📋 Case</div>
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.82em;font-weight:600;color:#7f8c8d;">⏰ Time</div>
+      <div style="flex:1;padding:10px 4px;text-align:center;font-size:0.82em;font-weight:600;color:#7f8c8d;">📁 Saved</div>
+    </div>
+    <div style="position:relative;background:#f8faf9;border-radius:0 0 8px 8px;padding:20px 14px;min-height:60px;">
+      <div style="font-size:0.72em;color:#888;">Content area...</div>
+      <div style="position:absolute;bottom:10px;right:14px;width:46px;height:46px;background:linear-gradient(135deg,#0d6e6e,#1e8f5b);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3em;box-shadow:0 4px 14px rgba(13,110,110,0.4);">📝</div>
+    </div>
+    <div style="background:white;padding:8px 10px;font-size:0.72em;color:#888;border-radius:0 0 8px 8px;">Floating 📝 button bottom-right → taps to open Eval</div>
+  </div>
+</div>
+<!-- ===== END TEMP NAV DEMO ===== -->
+
 <div class="sticky-header-wrap">
-<div class="tabs">
-  <div class="tab active" data-tab="case">📋 Case Log</div>
-  <div class="tab" data-tab="time">⏰ Time Log</div>
-  <div class="tab" data-tab="eval">📊 Daily Eval</div>
-  <div class="tab" data-tab="saved">📁 Saved <span id="badge-count" style="background:#e74c3c;color:white;border-radius:10px;padding:1px 6px;font-size:0.8em;display:none"></span></div>
+
+<!-- HAMBURGER NAV BAR -->
+<div id="hamburger-bar">
+  <button id="hamburger-btn" onclick="openDrawer()" aria-label="Open navigation menu">☰</button>
+  <span id="current-tab-label">📋 Case Log</span>
   <div class="tab-account" id="tab-acct" title="Account">⚙︎</div>
+</div>
+
+<!-- HIDDEN TAB ELEMENTS (needed for goTab active-class toggling) -->
+<div class="tabs" style="display:none">
+  <div class="tab active" data-tab="time">Time Log</div>
+  <div class="tab" data-tab="case">Case Log</div>
+  <div class="tab" data-tab="saved">Saved / Drafts <span id="badge-count" style="background:#e74c3c;color:white;border-radius:10px;padding:1px 6px;font-size:0.8em;display:none"></span></div>
+  <div class="tab" data-tab="eval">Daily Eval</div>
+</div>
 </div>
 
 <!-- ACCOUNT DRAWER -->
@@ -512,6 +774,45 @@
   </div>
 </div>
 </div><!-- end .sticky-header-wrap -->
+
+<!-- SIDE DRAWER OVERLAY -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+
+<!-- SIDE DRAWER PANEL -->
+<div id="nav-drawer">
+  <div class="drawer-title">Navigation</div>
+  <div class="drawer-item" data-drawer-tab="time" onclick="drawerNav('time')">
+    <span class="drawer-icon">⏰</span> Time Log
+  </div>
+  <div id="drawer-time-continue" class="drawer-continue" onclick="drawerNav('time')">Continue</div>
+  <div class="drawer-item active" data-drawer-tab="case" onclick="drawerNav('case')">
+    <span class="drawer-icon">📋</span> Case Log
+  </div>
+  <div id="drawer-case-continue" class="drawer-continue" onclick="drawerNav('case')">Continue</div>
+  <div id="drawer-planned-section" style="margin-top:8px;">
+    <div class="drawer-planned-header">📅 Care Plans</div>
+    <div id="drawer-planned-items"></div>
+  </div>
+  <div class="drawer-item" data-drawer-tab="eval" onclick="drawerNav('eval')">
+    <span class="drawer-icon">📝</span> Daily Eval
+  </div>
+  <div class="drawer-item" data-drawer-tab="saved" onclick="drawerNav('saved')">
+    <span class="drawer-icon">📁</span> Saved / Drafts
+  </div>
+  <div class="drawer-divider"></div>
+  <a id="drawer-wiki-link" class="drawer-item drawer-wiki" href="#" onclick="closeDrawer()">
+    <span class="drawer-icon">🏠</span> Anesthesia Wiki
+  </a>
+</div>
+<script>
+(function() {
+  var path = window.location.pathname;
+  var depth = path.split('/').filter(Boolean).length;
+  var base = '';
+  for (var i = 1; i < depth; i++) { base += '../'; }
+  document.getElementById('drawer-wiki-link').href = base + 'AnesthesiaWiki.html';
+})();
+</script>
 
 <!-- ===================== NEW CASE ===================== -->
 <div class="tab-pane active" id="pane-case">
@@ -530,6 +831,7 @@
     </div>
   </div>
 
+  <div id="case-plan-pill"></div>
   <div id="case-mobile-stepper" class="mobile-stepper" aria-live="polite">
     <button type="button" id="case-step-prev" class="step-nav">Back</button>
     <div class="step-meta">
@@ -575,17 +877,17 @@
     </div>
     <div class="times-card" style="margin-top:12px;padding:12px;border-radius:10px;">
       <div class="card-title">⏱ Anesthesia Times (Military)<span class="req">*</span></div>
-      <div style="margin-bottom:12px;">
-        <div class="ts-label">Anesthesia Start (AS)</div>
-        <div class="ts-row">
-            <input type="text" id="c-as" class="compact-input-8" placeholder="0730" maxlength="5" inputmode="numeric">
+      <div style="margin-bottom:12px;text-align:center;">
+        <div class="ts-label">Anesthesia Start</div>
+        <div class="ts-row" style="justify-content:center;">
+          <input type="text" id="c-as" class="compact-input-8" placeholder="0730" maxlength="5" inputmode="numeric">
           <button class="btn-stamp" data-target="c-as">⏱ Now</button>
         </div>
       </div>
-      <div>
-        <div class="ts-label">Anesthesia Finish (AF)</div>
-        <div class="ts-row">
-            <input type="text" id="c-af" class="compact-input-8" placeholder="1015" maxlength="5" inputmode="numeric">
+      <div style="text-align:center;">
+        <div class="ts-label">Anesthesia Finish</div>
+        <div class="ts-row" style="justify-content:center;">
+          <input type="text" id="c-af" class="compact-input-8" placeholder="1015" maxlength="5" inputmode="numeric">
           <button class="btn-stamp" data-target="c-af">⏱ Now</button>
         </div>
       </div>
@@ -891,17 +1193,17 @@
 
   <div class="card times-card">
     <div class="card-title">⏱ Shift Times (Military)</div>
-    <div style="margin-bottom:12px;">
+    <div style="margin-bottom:12px;text-align:center;">
       <div class="ts-label">1st Clock IN<span class="req">*</span></div>
-      <div class="ts-row">
-        <input type="text" id="t-in1" placeholder="0600" maxlength="5" inputmode="numeric">
+      <div class="ts-row" style="justify-content:center;">
+        <input type="text" id="t-in1" class="compact-input-8" placeholder="0600" maxlength="5" inputmode="numeric">
         <button class="btn-stamp" data-target="t-in1">⏱ Now</button>
       </div>
     </div>
-    <div style="margin-bottom:12px;">
+    <div style="margin-bottom:12px;text-align:center;">
       <div class="ts-label">1st Clock OUT<span class="req">*</span></div>
-      <div class="ts-row">
-        <input type="text" id="t-out1" placeholder="1430" maxlength="5" inputmode="numeric">
+      <div class="ts-row" style="justify-content:center;">
+        <input type="text" id="t-out1" class="compact-input-8" placeholder="1430" maxlength="5" inputmode="numeric">
         <button class="btn-stamp" data-target="t-out1">⏱ Now</button>
       </div>
     </div>
@@ -921,7 +1223,7 @@
   <div class="spacer"></div>
 </div>
 
-<!-- ===================== DAILY EVAL ===================== -->
+<!-- DAILY EVAL REMOVED -->
 <div class="tab-pane" id="pane-eval">
 
   <div id="eval-mobile-stepper" class="mobile-stepper" aria-live="polite">
@@ -933,18 +1235,12 @@
     <button type="button" id="eval-step-next" class="step-nav">Next</button>
   </div>
 
-  <div class="eval-wip-banner">
-    <span>Work In Progress</span>
-    The Daily Eval workflow is still in active development. Features may change.
-  </div>
-
   <div class="card" style="padding:10px 12px;">
     <div class="day-pills" id="e-day-pills"><!-- built by JS --></div>
   </div>
 
   <!-- Preceptor + Facility -->
   <div class="card" data-step-title="Q3 - Preceptor &amp; Facility">
-    <div class="card-title">Preceptor &amp; Facility</div>
     <div class="field">
       <label>Clinical Preceptor Name<span class="req">*</span></label>
       <input type="text" id="e-preceptor" placeholder="Enter preceptor's full name">
@@ -954,29 +1250,29 @@
     <input type="hidden" id="e-preceptor-share-token">
     <div class="field" style="margin-top:12px;">
       <label>Facility<span class="req">*</span></label>
-      <div class="chk-grid" id="e-facility-grid">
-        <label class="chk-item"><input type="checkbox" value="Rochester General Hospital"><span>Rochester General Hospital</span></label>
-        <label class="chk-item"><input type="checkbox" value="Unity Hospital"><span>Unity Hospital</span></label>
-        <label class="chk-item"><input type="checkbox" value="Strong Memorial Hospital"><span>Strong Memorial Hospital</span></label>
-        <label class="chk-item"><input type="checkbox" value="RSC"><span>RSC</span></label>
-        <label class="chk-item"><input type="checkbox" value="LSC"><span>LSC</span></label>
-        <label class="chk-item"><input type="checkbox" value="Highland Hospital"><span>Highland Hospital</span></label>
-        <label class="chk-item"><input type="checkbox" value="Thompson Hospital"><span>Thompson Hospital</span></label>
-        <label class="chk-item"><input type="checkbox" value="Clifton Springs Hospital"><span>Clifton Springs Hospital</span></label>
-        <label class="chk-item"><input type="checkbox" value="Newark Wayne Hospital"><span>Newark Wayne Hospital</span></label>
-        <label class="chk-item"><input type="checkbox" value="UMMC"><span>UMMC</span></label>
-        <label class="chk-item"><input type="checkbox" value="Upstate Community"><span>Upstate Community</span></label>
-        <label class="chk-item"><input type="checkbox" value="Sawgrass Surgery Center"><span>Sawgrass Surgery Center</span></label>
-        <label class="chk-item"><input type="checkbox" value="Noyes Hospital (Dansville)"><span>Noyes Hospital (Dansville)</span></label>
-        <label class="chk-item"><input type="checkbox" value="Noyes Health Surgery Center (Geneseo)"><span>Noyes Health Surgery Center (Geneseo)</span></label>
-        <label class="chk-item"><input type="checkbox" value="Other"><span>Other</span></label>
-      </div>
+      <select id="e-facility-select" style="width:calc(100% + 30px);margin:0 -15px;padding:14px 18px;border:1.5px solid #dde3ec;border-radius:0;font-size:1em;font-family:inherit;background:#f8fafb;color:#2c3e50;outline:none;box-sizing:border-box;">
+        <option value="">— Select facility —</option>
+        <option value="Rochester General Hospital">Rochester General Hospital</option>
+        <option value="Unity Hospital">Unity Hospital</option>
+        <option value="Strong Memorial Hospital">Strong Memorial Hospital</option>
+        <option value="RSC">RSC</option>
+        <option value="LSC">LSC</option>
+        <option value="Highland Hospital">Highland Hospital</option>
+        <option value="Thompson Hospital">Thompson Hospital</option>
+        <option value="Clifton Springs Hospital">Clifton Springs Hospital</option>
+        <option value="Newark Wayne Hospital">Newark Wayne Hospital</option>
+        <option value="UMMC">UMMC</option>
+        <option value="Upstate Community">Upstate Community</option>
+        <option value="Sawgrass Surgery Center">Sawgrass Surgery Center</option>
+        <option value="Noyes Hospital (Dansville)">Noyes Hospital (Dansville)</option>
+        <option value="Noyes Health Surgery Center (Geneseo)">Noyes Health Surgery Center (Geneseo)</option>
+        <option value="Other">Other</option>
+      </select>
     </div>
   </div>
 
   <!-- Q4: Arrival -->
   <div class="card">
-    <div class="card-title">Arrival &amp; Preparation</div>
     <div class="field eval-question-step" data-step-title="Q4 - Arrival &amp; Preparation">
       <div style="font-size:0.87em;color:#2c3e50;line-height:1.5;margin-bottom:8px;">I arrived on time prepared for clinical and completed the anesthesia machine check, preoperative assessment, and prepared the OR to facility standards including first case drugs and emergency medications.<span class="req">*</span></div>
       <div class="btn-group" id="e-arrived">
@@ -989,7 +1285,6 @@
 
   <!-- Q5–Q7: Case Summary -->
   <div class="card">
-    <div class="card-title">Case Summary</div>
     <div class="field eval-question-step" data-step-title="Q5 - Age Ranges">
       <label>Age Ranges of Patients<span class="req">*</span></label>
       <div class="chk-grid" id="e-age-grid">
@@ -1032,8 +1327,7 @@
 
   <!-- Q8–Q11: Self-Evaluation Ratings -->
   <div class="card">
-    <div class="card-title">Self-Evaluation Ratings</div>
-    <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:14px;line-height:1.4;">These are self-evaluations. The preceptor will agree or disagree and provide additional feedback.</div>
+
 
     <div class="field eval-question-step" data-step-title="Q8 - Preop Assessment &amp; Care Plan">
       <label>Q8 — Preoperative Assessment &amp; Care Plan<span class="req">*</span></label>
@@ -1094,7 +1388,6 @@
 
   <!-- Q12–Q14: End-of-Day Checklist -->
   <div class="card">
-    <div class="card-title">End-of-Day Checklist</div>
 
     <div class="field eval-question-step" data-step-title="Q12 - Vigilance">
       <label>Q12 — Vigilance<span class="req">*</span></label>
@@ -1130,7 +1423,6 @@
 
   <!-- Q15–Q17: Reflection &amp; Preceptor Feedback -->
   <div class="card">
-    <div class="card-title">Reflection &amp; Preceptor Feedback</div>
 
     <div class="field eval-question-step" data-step-title="Q15 - Day Summary">
       <label>Q15 — Day Summary</label>
@@ -1159,7 +1451,6 @@
 
   <!-- Preceptor Signature -->
   <div class="card">
-    <div class="card-title">Preceptor Signature</div>
     <div style="font-size:0.78em;color:#7f8c8d;margin-bottom:8px;line-height:1.4;">Have your preceptor sign below using their finger or stylus.</div>
     <canvas id="sig-canvas" width="600" height="160" style="width:100%;border:2px solid #dde3ec;border-radius:8px;background:white;touch-action:none;cursor:crosshair;display:block;"></canvas>
     <div class="field" style="margin-top:8px;">
@@ -1171,7 +1462,6 @@
 
   <div class="eval-action-btns">
     <div id="preceptor-review-banner" style="display:none;background:#e8f6f3;border:1px solid #b9dfd4;border-radius:9px;padding:9px 10px;font-size:0.83em;font-weight:600;color:#1c5d4d;"></div>
-    <button class="btn btn-secondary btn-full" id="btn-text-eval">📱 Text Preceptor</button>
     <button class="btn btn-primary btn-full" id="btn-submit-preceptor-review" style="display:none;">✅ Send Back To Student</button>
     <button class="btn btn-primary btn-full" id="btn-save-eval">💾 Save Evaluation</button>
     <button class="btn btn-draft btn-full" id="btn-draft-eval">📝 Save as Draft</button>
@@ -1181,9 +1471,6 @@
 
 <!-- ===================== SAVED ===================== -->
 <div class="tab-pane" id="pane-saved">
-  <div style="padding: 14px 14px 0; max-width: 700px; margin: 0 auto;">
-    <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:10px;" onclick="markAllSubmitted()">✓ Mark All as Submitted</button>
-  </div>
   <div id="saved-list"></div>
   <div class="spacer"></div>
 </div>
@@ -1311,41 +1598,61 @@
   });
 })();
 </script>
-<style>
-.global-home-btn {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 9999;
-  padding: 12px 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.45);
-  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
-  color: #ffffff;
-  text-decoration: none;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
-}
-.global-home-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
-}
-.global-home-btn:active { transform: translateY(0); }
-</style>
+
+
 <script>
-(function () {
-  if (window.self !== window.top) return;
-  var path = window.location.pathname;
-  var depth = path.split('/').filter(Boolean).length;
-  var base = '';
-  for (var i = 1; i < depth; i++) { base += '../'; }
-  var a = document.createElement('a');
-  a.className = 'global-home-btn';
-  a.href = base + 'AnesthesiaWiki.html';
-  a.textContent = 'Home';
-  a.setAttribute('aria-label', 'Go to Home');
-  document.body.appendChild(a);
+// ===== HAMBURGER DRAWER =====
+var drawerLabels = {
+  case:  '📋 Case Log',
+  time:  '⏰ Time Log',
+  saved: '📁 Saved',
+  eval:  '📝 Daily Eval'
+};
+
+function openDrawer() {
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('nav-drawer').classList.add('open');
+  var caseEl = document.getElementById('drawer-case-continue');
+  var timeEl = document.getElementById('drawer-time-continue');
+  if (caseEl) caseEl.style.display = (typeof hasCaseProgress === 'function' && hasCaseProgress()) ? 'block' : 'none';
+  if (timeEl) timeEl.style.display = (typeof hasTimeProgress === 'function' && hasTimeProgress()) ? 'block' : 'none';
+}
+
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('nav-drawer').classList.remove('open');
+}
+
+function drawerNav(name) {
+  // Switch pane
+  goTab(name);
+  // Update navbar label
+  var lbl = document.getElementById('current-tab-label');
+  if (lbl) lbl.textContent = drawerLabels[name] || name;
+  // Update active drawer item
+  document.querySelectorAll('.drawer-item').forEach(function(el) {
+    el.classList.toggle('active', el.getAttribute('data-drawer-tab') === name);
+  });
+  closeDrawer();
+}
+
+// Keep label in sync when goTab is called programmatically
+(function() {
+  if (typeof goTab !== 'function') return;
+  var _orig = goTab;
+  goTab = function(name) {
+    _orig(name);
+    var lbl = document.getElementById('current-tab-label');
+    if (lbl) lbl.textContent = drawerLabels[name] || name;
+    document.querySelectorAll('.drawer-item').forEach(function(el) {
+      el.classList.toggle('active', el.getAttribute('data-drawer-tab') === name);
+    });
+    // Lock scroll on Time Log and Daily Eval tabs (content fits in viewport)
+    if (name === 'time' || name === 'eval') {
+      document.documentElement.style.overflowY = 'hidden';
+      document.body.style.overflowY = 'hidden';
+    }
+  };
 })();
 </script>
 </body>

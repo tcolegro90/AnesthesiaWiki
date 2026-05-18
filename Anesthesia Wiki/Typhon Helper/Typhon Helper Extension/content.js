@@ -763,26 +763,8 @@ function fillEvalSJFPanel(item) {
             setTimeout(() => {
               if (_fillGeneration !== myGeneration) return; // still stale-check before filling
               fillSJFSurvey(item);
-              // Angular lazy-renders question blocks — only visible questions exist in the DOM
-              // at first call. Scroll down step-by-step to force all components to render,
-              // then run a second fill pass to catch comment fields that were off-screen.
-              const gen = myGeneration;
-              let step = 0;
-              const scrollFill = setInterval(() => {
-                if (_fillGeneration !== gen) { clearInterval(scrollFill); return; }
-                step++;
-                window.scrollBy(0, 500);
-                if (step >= 12) {
-                  clearInterval(scrollFill);
-                  setTimeout(() => {
-                    if (_fillGeneration !== gen) return;
-                    fillSJFSurvey(item);
-                    window.scrollTo(0, 0);
-                    showTyphonToast('Daily Eval SJF filled ✓ — review and submit');
-                    chrome.storage.local.remove('typhon-pending-sjf-fill');
-                  }, 400);
-                }
-              }, 150);
+              showTyphonToast('Daily Eval SJF filled ✓ — review and submit');
+              chrome.storage.local.remove('typhon-pending-sjf-fill');
             }, 300);
           }, 200);
         }
@@ -1306,21 +1288,63 @@ function fillSJFSurvey(data) {
     return null;
   }
 
-  // Fill a comment field by DOM order: find the LAST text node matching snippet
-  // (deepest in DOM, closest to the form field), then fill the first
-  // input[name="singleLine"] that follows it. DOM-order is the only reliable
-  // approach because all singleLine inputs share common ancestors at the survey level.
+  // Fill the inline text input adjacent to a checked "Other:" checkbox.
+  // container: scope search within this element.
+  // before: only consider checkboxes that precede this element (for Q3 scoping).
+  function fillOtherCheckboxText(value, options) {
+    if (!value) return;
+    const {container, before} = options || {};
+    const cbs = [...document.querySelectorAll('input[type="checkbox"]:checked')].filter(cb => {
+      const lbl = cb.closest('label');
+      return lbl && lbl.textContent.trim().toLowerCase().replace(/[:\s]/g, '') === 'other';
+    });
+    let targetCb;
+    if (container) {
+      targetCb = cbs.find(cb => container.contains(cb));
+    } else if (before) {
+      targetCb = cbs.find(cb => before.compareDocumentPosition(cb) & Node.DOCUMENT_POSITION_PRECEDING);
+    } else {
+      targetCb = cbs[0];
+    }
+    if (!targetCb) return;
+    for (const inp of document.querySelectorAll('input[type="text"], textarea, input:not([type])')) {
+      if (targetCb.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_FOLLOWING) {
+        setInputNative(inp, value);
+        return;
+      }
+    }
+  }
+
+  // Fill a comment/textarea field for a survey question.
+  // Strategy: find the question label, then find the first "Additional Comments"
+  // label after it, then fill the first text input after that label.
+  // This correctly skips any inline "Other:" or question-specific text boxes
+  // that appear before the Additional Comments field.
   function fillTA(snippet, value) {
     if (!value) return;
     const lower = snippet.toLowerCase();
+    // Collect all text nodes in document order
+    const textNodes = [];
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    let lastMatch = null, node;
-    while ((node = walker.nextNode())) {
-      if (node.textContent.toLowerCase().includes(lower)) lastMatch = node;
+    let node;
+    while ((node = walker.nextNode())) textNodes.push(node);
+    // Find last text node matching the question label snippet
+    let qIdx = -1;
+    for (let i = textNodes.length - 1; i >= 0; i--) {
+      if (textNodes[i].textContent.toLowerCase().includes(lower)) { qIdx = i; break; }
     }
-    if (!lastMatch) return;
-    for (const inp of document.querySelectorAll('input[name="singleLine"], textarea')) {
-      if (lastMatch.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_FOLLOWING) {
+    if (qIdx === -1) return;
+    // Find first "Additional Comments" label after the question anchor
+    let acNode = null;
+    for (let i = qIdx + 1; i < textNodes.length; i++) {
+      if (textNodes[i].textContent.toLowerCase().includes('additional comment')) {
+        acNode = textNodes[i]; break;
+      }
+    }
+    if (!acNode) return;
+    // Fill first text input after the "Additional Comments" label
+    for (const inp of document.querySelectorAll('input[type="text"], textarea, input:not([type])')) {
+      if (acNode.compareDocumentPosition(inp) & Node.DOCUMENT_POSITION_FOLLOWING) {
         setInputNative(inp, value);
         return;
       }
@@ -1356,10 +1380,11 @@ function fillSJFSurvey(data) {
       if (!text) continue;
       const matches = normVals.some(v => {
         if (text === v || text.includes(v) || v.includes(text)) return true;
-        // Word-level: first significant word handles slight label differences (e.g. "neonate" vs "neonates")
+        // Word-level fallback: only for single-significant-word labels (e.g. "neonate" vs "neonates")
+        // Do NOT use for multi-word labels — "intrathoracic lung" must not match "intrathoracic heart"
         const vW = v.split(' ').filter(w => w.length > 3);
         const tW = text.split(' ').filter(w => w.length > 3);
-        return vW.length > 0 && tW.length > 0 &&
+        return vW.length === 1 && tW.length === 1 &&
           (vW[0] === tW[0] || tW[0].startsWith(vW[0]) || vW[0].startsWith(tW[0]));
       });
       if (matches && !cb.checked) {
@@ -1383,8 +1408,12 @@ function fillSJFSurvey(data) {
     fillText(q2, data.preceptorName);
   }
 
-  // Q3: Facility (checkboxes)
+  // Q3: Facility (checkboxes) + optional Other text
   if (data.facility && data.facility.length) tickCheckboxes(data.facility);
+  if (data.facilityOther && (data.facility || []).includes('Other')) {
+    const q7anchor = findQContainer('surgical case');
+    fillOtherCheckboxText(data.facilityOther, { before: q7anchor });
+  }
 
   // Q4: Arrived on time prepared (Yes/No) + comments
   if (data.arrivedPrepared) clickRadio(findQContainer('arrived on time prepared'), data.arrivedPrepared);
@@ -1396,8 +1425,11 @@ function fillSJFSurvey(data) {
   // Q6: ASA classes (checkboxes)
   if (data.asaClasses && data.asaClasses.length) tickCheckboxes(data.asaClasses);
 
-  // Q7: Surgical cases (checkboxes) + comments
+  // Q7: Surgical cases (checkboxes) + Other text + comments
   if (data.surgicalCases && data.surgicalCases.length) tickCheckboxes(data.surgicalCases);
+  if (data.surgicalCasesOther && (data.surgicalCases || []).includes('Other')) {
+    fillOtherCheckboxText(data.surgicalCasesOther, { container: findQContainer('surgical case') });
+  }
   fillTA('surgical case', data.surgicalComments);
 
   // Q8–Q11: Self-evaluation ratings + comments

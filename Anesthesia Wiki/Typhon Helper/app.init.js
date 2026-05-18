@@ -128,45 +128,16 @@ function initWelcomeScreen() {
   const browseBtn = document.getElementById('welcome-browse');
   if (browseBtn) browseBtn.addEventListener('click', () => { hideStartScreen(); browseBtn.blur(); });
 
-  let _authStateResolved = false;
-
   const syncStartScreenToAuth = () => {
-    const user = window.AnesthesiaAuth?.getUser?.() ?? null;
-    const gate       = document.getElementById('auth-gate-overlay');
-    const gateLoad   = document.getElementById('auth-gate-loading');
-    const gateSignin = document.getElementById('auth-gate-signin');
-
-    if (!_authStateResolved) {
-      // Firebase hasn't resolved yet — keep loading gate visible
-      if (gate) gate.style.display = 'flex';
-      hideStartScreen();
-      return;
-    }
-
-    if (!user) {
-      // Auth resolved — not signed in: show sign-in gate
-      hideStartScreen();
-      if (gate) {
-        gate.style.display = 'flex';
-        if (gateLoad)   gateLoad.style.display   = 'none';
-        if (gateSignin) gateSignin.style.display = '';
-      }
-    } else {
-      // Signed in — hide gate and show welcome
-      if (gate) gate.style.display = 'none';
-      showStartScreen();
-    }
+    const landing = document.getElementById('auth-landing-screen');
+    const authRequired = !!(landing && !landing.classList.contains('hidden'));
+    if (authRequired) hideStartScreen();
+    else showStartScreen();
   };
 
-  // Initial call — Firebase not yet resolved, shows loading gate
+  // Run once at startup and whenever auth state changes.
   syncStartScreenToAuth();
-
-  // When Firebase resolves (or auth state changes), re-evaluate
-  window.addEventListener('typhon-auth-changed', () => {
-    _authStateResolved = true;
-    syncStartScreenToAuth();
-  });
-
+  window.addEventListener('typhon-auth-changed', syncStartScreenToAuth);
   window.addEventListener('resize', updateMobileEntryScrollLock);
   installMobileScrollGuard();
 }
@@ -389,6 +360,13 @@ function initEvalMobilePager() {
   pane.addEventListener('touchstart', (event) => {
     if (!shouldUseMobilePager()) return;
     if (!event.touches || event.touches.length !== 1) return;
+    // Touches that originate on the signature canvas must not trigger swipe navigation.
+    const sigCanvas = document.getElementById('sig-canvas');
+    if (sigCanvas && (event.target === sigCanvas || sigCanvas.contains(event.target))) {
+      touchStartX = null;
+      touchStartY = null;
+      return;
+    }
     const t = event.touches[0];
     touchStartX = t.clientX;
     touchStartY = t.clientY;
@@ -435,9 +413,6 @@ function bindUiEvents() {
   document.getElementById('btn-save-case')?.addEventListener('click', saveCase);
   document.getElementById('btn-draft-case')?.addEventListener('click', saveDraftCase);
   document.getElementById('btn-save-time')?.addEventListener('click', saveTimeLog);
-  document.getElementById('btn-clear-time')?.addEventListener('click', () => {
-    if (confirm('Clear the current time log form?')) resetTimeLog();
-  });
   document.getElementById('btn-draft-time')?.addEventListener('click', saveDraftTimeLog);
   document.getElementById('btn-save-eval')?.addEventListener('click', saveEval);
   document.getElementById('btn-draft-eval')?.addEventListener('click', saveDraftEval);
@@ -521,7 +496,7 @@ function bindUiEvents() {
       if (action === 'edit-eval') editEval(i);
       if (action === 'text-eval') textEval(i);
       if (action === 'toggle-submit') toggleSubmit(i);
-      if (action === 'delete-item') { if (confirm('Delete this item? This cannot be undone.')) deleteItem(i); }
+      if (action === 'delete-item') deleteItem(i);
       if (action === 'resume-draft') resumeDraftItem(i);
       if (action === 'sync-preceptor') syncPendingEvals();
       return;
@@ -655,36 +630,5 @@ function bindProcedureDependencies() {
   updateBadge(items);
   // Show draft banner if there is a saved draft case
   if (items.some(i => i.draft && i.type === 'case')) showDraftBanner();
-
-  // Extension sync mode: ?sync=1&eid=EXTENSION_ID
-  // Called by the extension popup — pushes items from Firestore to the extension's chrome.storage.
-  const _syncParams = new URLSearchParams(window.location.search);
-  const _syncExtId  = _syncParams.get('eid');
-  if (_syncParams.get('sync') === '1' && _syncExtId) {
-    // Wait for auth to resolve, then send items to the extension
-    const _doExtSync = async () => {
-      const user = window.AnesthesiaAuth?.getUser?.();
-      if (!user) { window.close(); return; }
-      try {
-        const allItems = (await store.get('typhon-items')) || [];
-        await new Promise((resolve, reject) => {
-          chrome.runtime.sendMessage(_syncExtId, { action: 'syncItems', items: allItems }, resp => {
-            if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
-            else resolve(resp);
-          });
-        });
-      } catch (e) {
-        console.warn('[sync] Extension message failed:', e.message || e);
-      }
-      window.close();
-    };
-    // Auth may or may not be resolved by the time we get here
-    if (window.AnesthesiaAuth?.getUser?.()) {
-      _doExtSync();
-    } else {
-      window.addEventListener('typhon-auth-changed', _doExtSync, { once: true });
-      setTimeout(() => window.close(), 8000); // fallback
-    }
-  }
 
 })();

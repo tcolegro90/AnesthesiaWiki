@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Load Plan — Design Concepts</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1e26; color: #eee; padding: 28px 16px; }
+  h1 { text-align:center; color:#fff; font-size:1.1rem; font-weight:600; margin-bottom:6px; letter-spacing:.04em; text-transform:uppercase; }
+  .byline { text-align:center; color:#7a8499; font-size:.82rem; margin-bottom:32px; }
+  .designs { display:flex; flex-wrap:wrap; gap:32px; justify-content:center; }
+  .design-slot { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .design-label { font-size:.78rem; font-weight:700; color:#8fa3c0; letter-spacing:.06em; text-transform:uppercase; }
+  .design-frame { width:340px; border-radius:16px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,.55); position:relative; }
+
+  /* ─── SAMPLE DATA ─── */
+  /* Plan names: "Initials | Date | Time | Surgery" — same as current format */
+  .plan-initials { font-weight:700; }
+  .plan-date     { color:#7a95b5; font-size:.75rem; }
+  .plan-surgery  { display:block; font-size:.78rem; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .plan-raw      { font-size:.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* ══════════════════════════════════════════
+     DESIGN A — Clean Clinical
+  ══════════════════════════════════════════ */
+  .da { background:#fff; border:1px solid #c5d2e5; }
+  .da-head { background:linear-gradient(135deg,#0b4d99 0%,#1166cc 100%); padding:16px 18px 14px; }
+  .da-head-title { color:#fff; font-size:.95rem; font-weight:700; }
+  .da-head-sub { color:#a8c8f5; font-size:.75rem; margin-top:3px; }
+  .da-search { margin:12px 12px 6px; position:relative; }
+  .da-search input { width:100%; border:1.5px solid #d0dff0; border-radius:8px; padding:8px 12px 8px 32px; font-size:.83rem; color:#1a2d45; background:#f7faff; outline:none; }
+  .da-search input:focus { border-color:#1166cc; }
+  .da-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#7ba3ce; font-size:.85rem; }
+  .da-list { padding:6px 12px 10px; display:flex; flex-direction:column; gap:5px; max-height:280px; overflow-y:auto; }
+  .da-item { display:flex; align-items:center; gap:9px; padding:9px 10px; border:1px solid #dde8f5; border-radius:9px; background:#fff; cursor:pointer; }
+  .da-item:hover { background:#f0f6ff; border-color:#a8c5e8; }
+  .da-item-dot { width:14px; height:14px; border-radius:50%; border:2px solid #9ab8d9; flex-shrink:0; }
+  .da-item-dot.selected { background:#1166cc; border-color:#1166cc; }
+  .da-item-name { font-size:.87rem; color:#172638; font-weight:500; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .da-item-time { font-size:.72rem; color:#8098b5; white-space:nowrap; }
+  .da-item-surgery { font-size:.73rem; color:#5577a0; display:block; margin-top:2px; }
+  .da-archive-toggle { margin:4px 12px 0; display:flex; align-items:center; gap:6px; padding:7px 10px; background:#edf2fb; border:1px solid #ccd9ed; border-radius:8px; cursor:pointer; font-size:.78rem; font-weight:700; color:#2c4875; }
+  .da-archive-toggle span { color:#7a95b8; font-weight:400; margin-left:auto; font-size:.72rem; }
+  .da-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 14px; border-top:1px solid #e5edf8; background:#f8fbff; }
+  .da-btn { padding:7px 14px; border-radius:8px; border:1.5px solid #b9cce0; background:#fff; color:#1f3a5f; font-size:.82rem; font-weight:600; cursor:pointer; }
+  .da-btn.primary { background:#0b4d99; border-color:#0b4d99; color:#fff; }
+
+  /* ══════════════════════════════════════════
+     DESIGN B — Modern Minimal
+  ══════════════════════════════════════════ */
+  .db { background:#fafafa; border:1px solid #e4e7ec; }
+  .db-head { padding:20px 18px 14px; border-bottom:1px solid #eaedf2; }
+  .db-head-title { font-size:1.05rem; font-weight:700; color:#111827; }
+  .db-head-sub { font-size:.78rem; color:#6b7280; margin-top:4px; }
+  .db-search { padding:10px 14px 4px; }
+  .db-search-inner { display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid #d1d5db; border-radius:10px; padding:8px 12px; }
+  .db-search-inner input { border:none; outline:none; flex:1; font-size:.83rem; color:#111827; background:transparent; }
+  .db-search-icon { color:#9ca3af; font-size:.88rem; }
+  .db-list { padding:8px 14px 12px; display:flex; flex-direction:column; gap:4px; max-height:270px; overflow-y:auto; }
+  .db-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:#fff; border:1px solid #e9ecf0; cursor:pointer; transition:all .1s; }
+  .db-item:hover { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.08); }
+  .db-item-icon { font-size:1.1rem; flex-shrink:0; }
+  .db-item-body { flex:1; min-width:0; }
+  .db-item-name { font-size:.88rem; font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .db-item-surgery { font-size:.73rem; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .db-item-time { font-size:.72rem; color:#9ca3af; white-space:nowrap; }
+  .db-archive-toggle { margin:0 14px 6px; display:flex; align-items:center; gap:7px; padding:8px 10px; border-radius:8px; background:#f3f4f6; cursor:pointer; font-size:.78rem; font-weight:600; color:#374151; border:none; }
+  .db-archive-toggle .ct { color:#9ca3af; font-weight:400; margin-left:auto; }
+  .db-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 14px; border-top:1px solid #e9ecf0; }
+  .db-btn { padding:8px 16px; border-radius:9px; border:1.5px solid #d1d5db; background:#fff; color:#374151; font-size:.83rem; font-weight:600; cursor:pointer; }
+  .db-btn.primary { background:#4f46e5; border-color:#4f46e5; color:#fff; }
+
+  /* ══════════════════════════════════════════
+     DESIGN C — Warm, Date-Grouped
+  ══════════════════════════════════════════ */
+  .dc { background:#fffdf8; border:1px solid #e8dece; }
+  .dc-head { background:linear-gradient(135deg,#c06030 0%,#d97840 100%); padding:16px 18px 14px; }
+  .dc-head-title { color:#fff; font-size:.95rem; font-weight:700; }
+  .dc-head-sub { color:#fdd9bc; font-size:.75rem; margin-top:3px; }
+  .dc-search { margin:12px 6px 6px; position:relative; }
+  .dc-search input { width:100%; border:1.5px solid #e8d8c5; border-radius:9px; padding:8px 12px 8px 32px; font-size:.83rem; color:#3d2a18; background:#fff8f0; outline:none; }
+  .dc-search input:focus { border-color:#c06030; }
+  .dc-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#c8926a; font-size:.85rem; }
+  .dc-list { padding:4px 6px 10px; display:flex; flex-direction:column; gap:3px; max-height:290px; overflow-y:auto; }
+  /* Date sub-header */
+  .dc-date-hdr { display:flex; align-items:center; gap:7px; padding:2px 4px 4px; margin-top:0; cursor:pointer; user-select:none; }
+  .dc-date-hdr-label { font-size:.72rem; font-weight:700; color:#b06040; text-transform:uppercase; letter-spacing:.05em; }
+  .dc-date-hdr-line { flex:1; height:1px; background:#ecd8c5; }
+  .dc-date-hdr-count { font-size:.68rem; color:#c8a080; font-weight:400; }
+  .dc-date-hdr-chev { font-size:.65rem; color:#c8906a; transition:transform .15s; }
+  .dc-date-hdr.collapsed .dc-date-hdr-chev { transform:rotate(-90deg); }
+  /* Plan row */
+  .dc-row { display:flex; align-items:center; gap:6px; padding:9px 8px; border:1.5px solid #eeddd0; border-radius:10px; background:#fff; cursor:pointer; }
+  .dc-row:hover { background:#fff4ea; border-color:#d09060; }
+  .dc-row-sel { width:16px; height:16px; border-radius:50%; border:2px solid #d09060; flex-shrink:0; }
+  .dc-row-sel.on { background:#c06030; border-color:#c06030; }
+  .dc-row-inittime { display:flex; align-items:center; gap:3px; flex-shrink:0; }
+  .dc-row-init { font-size:.82rem; font-weight:700; color:#3d1a08; }
+  .dc-row-time { font-size:.78rem; color:#a06840; background:#fdeedd; border-radius:5px; padding:1px 5px; white-space:nowrap; margin-right:1px; }
+  .dc-row-surg { font-size:.82rem; color:#3d1a08; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* Archive toggle */
+  .dc-archive-toggle { display:flex; align-items:center; gap:6px; padding:7px 8px; background:#fff0e0; border:1px solid #e8d0b8; border-radius:9px; cursor:pointer; font-size:.77rem; font-weight:700; color:#7a3a10; margin-top:6px; }
+  .dc-archive-toggle .ct { color:#c8906a; font-weight:400; margin-left:auto; font-size:.72rem; }
+  .dc-foot { display:flex; justify-content:flex-end; gap:8px; padding:11px 12px; border-top:1px solid #ede0d0; background:#fffaf4; }
+  .dc-btn { padding:7px 14px; border-radius:9px; border:1.5px solid #e0c8a8; background:#fff; color:#5a3010; font-size:.82rem; font-weight:600; cursor:pointer; }
+  .dc-btn.primary { background:#c06030; border-color:#c06030; color:#fff; }
+
+  /* ══════════════════════════════════════════
+     DESIGN D — Dark Mode
+  ══════════════════════════════════════════ */
+  .dd { background:#161c27; border:1px solid #2e3a50; }
+  .dd-head { padding:18px 18px 14px; border-bottom:1px solid #253044; }
+  .dd-head-title { color:#e8f0fc; font-size:.97rem; font-weight:700; }
+  .dd-head-sub { color:#5e7899; font-size:.75rem; margin-top:4px; }
+  .dd-search { padding:10px 12px 4px; }
+  .dd-search-inner { display:flex; align-items:center; gap:8px; background:#1e2840; border:1.5px solid #2e4060; border-radius:10px; padding:8px 12px; }
+  .dd-search-inner:focus-within { border-color:#4a7fc0; }
+  .dd-search-inner input { border:none; outline:none; flex:1; font-size:.83rem; color:#d0e4ff; background:transparent; }
+  .dd-search-inner input::placeholder { color:#4a607a; }
+  .dd-search-icon { color:#4a607a; font-size:.88rem; }
+  .dd-list { padding:8px 12px 12px; display:flex; flex-direction:column; gap:5px; max-height:270px; overflow-y:auto; }
+  .dd-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:#1e2840; border:1px solid #2b3a55; cursor:pointer; }
+  .dd-item:hover { background:#253350; border-color:#4a7fc0; }
+  .dd-item-accent { width:3px; height:34px; border-radius:2px; background:#2a4a80; flex-shrink:0; }
+  .dd-item-accent.selected { background:#4a9aff; }
+  .dd-item-body { flex:1; min-width:0; }
+  .dd-item-name { font-size:.87rem; font-weight:600; color:#c8dcf8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dd-item-surgery { font-size:.72rem; color:#5e7899; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dd-item-time { font-size:.71rem; color:#4a6080; white-space:nowrap; }
+  .dd-archive-toggle { margin:2px 12px 4px; display:flex; align-items:center; gap:7px; padding:8px 11px; background:#1a2235; border:1px solid #283a56; border-radius:9px; cursor:pointer; font-size:.78rem; font-weight:600; color:#7a9cc5; }
+  .dd-archive-toggle .ct { color:#3a5070; font-weight:400; margin-left:auto; }
+  .dd-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 14px; border-top:1px solid #253044; background:#161c27; }
+  .dd-btn { padding:8px 14px; border-radius:9px; border:1px solid #2e3f5a; background:#1e2840; color:#8aaad0; font-size:.83rem; font-weight:600; cursor:pointer; }
+  .dd-btn.primary { background:#1a4f99; border-color:#2266cc; color:#d8eaff; }
+
+  /* ─── Misc ─── */
+  .chevron { display:inline-block; margin-right:2px; }
+  .tag { display:inline-block; padding:2px 7px; border-radius:99px; font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-right:4px; }
+  .tag-new { background:#dcfce7; color:#166534; }
+</style>
+</head>
+<body>
+
+<h1>Load Plan — Design Concepts</h1>
+<p class="byline">Archive collapsed by default &nbsp;·&nbsp; Search by surgery type or plan name &nbsp;·&nbsp; Choose your favorite</p>
+
+<div class="designs">
+
+  <!-- ══ DESIGN A: Clean Clinical ══ -->
+  <div class="design-slot">
+    <div class="design-label">A — Clean Clinical</div>
+    <div class="design-frame da">
+      <div class="da-head">
+        <div class="da-head-title">📂 Load a Saved Plan</div>
+        <div class="da-head-sub">Tap a plan to load it into the Care Plan Generator</div>
+      </div>
+      <div class="da-search">
+        <span class="da-search-icon">🔍</span>
+        <input type="text" placeholder="Search by name or surgery…" />
+      </div>
+      <div class="da-list">
+        <div class="da-item">
+          <div class="da-item-dot selected"></div>
+          <div style="flex:1;min-width:0;">
+            <div class="da-item-name plan-raw"><span class="plan-initials">JD</span> <span class="plan-date">| 5/17/2026 | 07:30 |</span> Laparoscopic Cholecystectomy</div>
+          </div>
+          <div class="da-item-time">Today 8:14 AM</div>
+        </div>
+        <div class="da-item">
+          <div class="da-item-dot"></div>
+          <div style="flex:1;min-width:0;">
+            <div class="da-item-name plan-raw"><span class="plan-initials">MR</span> <span class="plan-date">| 5/17/2026 | 09:15 |</span> Total Knee Arthroplasty</div>
+          </div>
+          <div class="da-item-time">Today 6:52 AM</div>
+        </div>
+        <div class="da-item">
+          <div class="da-item-dot"></div>
+          <div style="flex:1;min-width:0;">
+            <div class="da-item-name plan-raw"><span class="plan-initials">AP</span> <span class="plan-date">| 5/17/2026 | 10:00 |</span> Thyroidectomy</div>
+          </div>
+          <div class="da-item-time">Today 6:31 AM</div>
+        </div>
+        <div class="da-archive-toggle">
+          <span class="chevron">▶</span> 📁 Archive
+          <span>8 plans — collapsed</span>
+        </div>
+      </div>
+      <div class="da-foot">
+        <button class="da-btn">Cancel</button>
+        <button class="da-btn primary">Load Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DESIGN B: Modern Minimal ══ -->
+  <div class="design-slot">
+    <div class="design-label">B — Modern Minimal</div>
+    <div class="design-frame db">
+      <div class="db-head">
+        <div class="db-head-title">Load a Plan</div>
+        <div class="db-head-sub">Select to continue where you left off</div>
+      </div>
+      <div class="db-search">
+        <div class="db-search-inner">
+          <span class="db-search-icon">🔍</span>
+          <input type="text" placeholder="Search surgery or plan name…" />
+        </div>
+      </div>
+      <div class="db-list">
+        <div class="db-item">
+          <span class="db-item-icon">📋</span>
+          <div class="db-item-body">
+            <div class="db-item-name plan-raw"><span class="plan-initials">JD</span> <span class="plan-date">| 5/17/2026 | 07:30 |</span> Laparoscopic Cholecystectomy &nbsp;<span class="tag tag-new">New</span></div>
+          </div>
+          <div class="db-item-time">8:14 AM</div>
+        </div>
+        <div class="db-item">
+          <span class="db-item-icon">📋</span>
+          <div class="db-item-body">
+            <div class="db-item-name plan-raw"><span class="plan-initials">MR</span> <span class="plan-date">| 5/17/2026 | 09:15 |</span> Total Knee Arthroplasty</div>
+          </div>
+          <div class="db-item-time">6:52 AM</div>
+        </div>
+        <div class="db-item">
+          <span class="db-item-icon">📋</span>
+          <div class="db-item-body">
+            <div class="db-item-name plan-raw"><span class="plan-initials">AP</span> <span class="plan-date">| 5/17/2026 | 10:00 |</span> Thyroidectomy</div>
+          </div>
+          <div class="db-item-time">6:31 AM</div>
+        </div>
+        <button class="db-archive-toggle">
+          <span>▶ 📁 Archive</span>
+          <span class="ct">8 plans — collapsed</span>
+        </button>
+      </div>
+      <div class="db-foot">
+        <button class="db-btn">Cancel</button>
+        <button class="db-btn primary">Load</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DESIGN C: Warm, Date-Grouped ══ -->
+  <div class="design-slot">
+    <div class="design-label">C — Warm, Date-Grouped</div>
+    <div class="design-frame dc">
+      <div class="dc-head">
+        <div class="dc-head-title">📂 Load a Saved Plan</div>
+        <div class="dc-head-sub">Tap a plan to load it</div>
+      </div>
+      <div class="dc-search">
+        <span class="dc-search-icon">🔍</span>
+        <input type="text" placeholder="Search surgery or initials…" />
+      </div>
+      <div class="dc-list">
+
+        <!-- Today group — expanded -->
+        <div class="dc-date-hdr">
+          <span class="dc-date-hdr-chev">▼</span>
+          <span class="dc-date-hdr-label">Today — May 17</span>
+          <span class="dc-date-hdr-line"></span>
+          <span class="dc-date-hdr-count">4 plans</span>
+        </div>
+        <div class="dc-row">
+          <div class="dc-row-sel on"></div>
+          <span class="dc-row-inittime"><span class="dc-row-init">JD</span><span class="dc-row-time">07:30</span></span>
+          <span class="dc-row-surg">Laparoscopic Cholecystectomy</span>
+        </div>
+        <div class="dc-row">
+          <div class="dc-row-sel"></div>
+          <span class="dc-row-inittime"><span class="dc-row-init">MR</span><span class="dc-row-time">09:15</span></span>
+          <span class="dc-row-surg">Total Knee Arthroplasty</span>
+        </div>
+        <div class="dc-row">
+          <div class="dc-row-sel"></div>
+          <span class="dc-row-inittime"><span class="dc-row-init">AP</span><span class="dc-row-time">10:00</span></span>
+          <span class="dc-row-surg">Thyroidectomy</span>
+        </div>
+        <div class="dc-row">
+          <div class="dc-row-sel"></div>
+          <span class="dc-row-inittime"><span class="dc-row-init">CL</span><span class="dc-row-time">11:30</span></span>
+          <span class="dc-row-surg">L4-L5 Discectomy</span>
+        </div>
+
+        <!-- Archive — collapsed -->
+        <div class="dc-archive-toggle">
+          <span>▶ 📁 Archive</span>
+          <span class="ct">8 plans — tap to expand</span>
+        </div>
+
+      </div>
+      <div class="dc-foot">
+        <button class="dc-btn">Cancel</button>
+        <button class="dc-btn primary">Load</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DESIGN D: Dark Mode ══ -->
+  <div class="design-slot">
+    <div class="design-label">D — Dark Mode</div>
+    <div class="design-frame dd">
+      <div class="dd-head">
+        <div class="dd-head-title">📂 Load a Saved Plan</div>
+        <div class="dd-head-sub">Select a plan to continue</div>
+      </div>
+      <div class="dd-search">
+        <div class="dd-search-inner">
+          <span class="dd-search-icon">🔍</span>
+          <input type="text" placeholder="Search surgery or plan name…" />
+        </div>
+      </div>
+      <div class="dd-list">
+        <div class="dd-item">
+          <div class="dd-item-accent selected"></div>
+          <div class="dd-item-body">
+            <div class="dd-item-name plan-raw"><span class="plan-initials">JD</span> <span style="color:#3e6080;font-size:.75rem;">| 5/17/2026 | 07:30 |</span> Laparoscopic Cholecystectomy</div>
+          </div>
+          <div class="dd-item-time">8:14 AM</div>
+        </div>
+        <div class="dd-item">
+          <div class="dd-item-accent"></div>
+          <div class="dd-item-body">
+            <div class="dd-item-name plan-raw"><span class="plan-initials">MR</span> <span style="color:#3e6080;font-size:.75rem;">| 5/17/2026 | 09:15 |</span> Total Knee Arthroplasty</div>
+          </div>
+          <div class="dd-item-time">6:52 AM</div>
+        </div>
+        <div class="dd-item">
+          <div class="dd-item-accent"></div>
+          <div class="dd-item-body">
+            <div class="dd-item-name plan-raw"><span class="plan-initials">AP</span> <span style="color:#3e6080;font-size:.75rem;">| 5/17/2026 | 10:00 |</span> Thyroidectomy</div>
+          </div>
+          <div class="dd-item-time">6:31 AM</div>
+        </div>
+        <div class="dd-archive-toggle">
+          <span>▶ 📁 Archive</span>
+          <span class="ct">8 plans — collapsed</span>
+        </div>
+      </div>
+      <div class="dd-foot">
+        <button class="dd-btn">Cancel</button>
+        <button class="dd-btn primary">Load Plan</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;color:#4a5a70;font-size:.78rem;margin-top:36px;">These are mockups — pick one (A / B / C / D) or mix elements from multiple. Archive is collapsed by default in all designs. Search filters by plan name and surgery type.</p>
+
+</body>
+</html>

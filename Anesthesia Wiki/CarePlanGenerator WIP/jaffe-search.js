@@ -185,6 +185,12 @@ const JAFFE_SURGERIES = [
   // 7.8 Pancreatic Surgery
   { name: "Operative drainage for pancreatitis", page: 1282 },
   { name: "Drainage of pancreatic pseudocyst", page: 1285 },
+  // 7.11 Endocrine Surgery
+  { name: "Excision of thyroglossal duct cyst", page: 1368 },
+  { name: "Thyroidectomy", page: 1372 },
+  { name: "Parathyroidectomy", page: 1385 },
+  { name: "Adrenalectomy", page: 1395 },
+  { name: "Pheochromocytoma resection (anesthetic considerations)", page: 1408 },
   // 8.1 Gynecologic Oncology
   { name: "Staging laparotomy for ovarian/fallopian tube/peritoneal cancer", page: 1544 },
   { name: "Cytoreductive/second look laparotomy", page: 1554 },

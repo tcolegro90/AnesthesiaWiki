@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Extras</title>
   <link rel="stylesheet" href="shared.css" />
+  <style>
+    .pmh-row { display:flex; align-items:center; gap:8px; min-height:38px; }
+    .pmh-row input { flex:1; }
+    .row-remove-btn { border:1px solid #e7b7b7; background:#fff4f4; color:#8f2424; font-size:12px; cursor:pointer; line-height:1.1; padding:5px 8px; flex-shrink:0; border-radius:4px; font-weight:700; }
+    .row-remove-btn:hover { background:#ffe6e6; border-color:#d68f8f; }
+    .add-row-btn { margin-top:8px; padding:3px 12px; font-size:12px; border:1px dashed #4a6fa5; border-radius:4px; background:#f0f5ff; color:#4a6fa5; cursor:pointer; font-weight:600; }
+    .add-row-btn:hover { background:#dde8ff; }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -47,12 +55,80 @@
             </select>
           </span>
         </div>
+        <hr style="border:none;border-top:1px solid #d0e3fa;margin:12px 0 8px;">
+        <div id="extras-notes-list"></div>
+        <button type="button" class="add-row-btn" onclick="addNoteRow('')">+ Add more</button>
       </div>
 
     </div>
   </div>
   <script src="shared.js"></script>
   <script>
+    // ── Additional Notes (dynamic free-text list) ─────────────────────────────
+    function saveNotes() {
+      var rows = Array.from(document.querySelectorAll('#extras-notes-list .pmh-row input')).map(function(el) {
+        return el.value;
+      });
+      var s = getGlobalState();
+      s['extras-notes'] = rows;
+      setGlobalState(s);
+    }
+
+    var noteRowCount = 0;
+
+    function addNoteRow(value) {
+      if (noteRowCount >= 30) return;
+      noteRowCount++;
+
+      var row = document.createElement('div');
+      row.className = 'pmh-row';
+
+      var input = document.createElement('input');
+      input.className = 'long';
+      input.placeholder = 'Add a note…';
+      if (value) input.value = value;
+      input.addEventListener('input', saveNotes);
+      input.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var rows = Array.from(document.querySelectorAll('#extras-notes-list .pmh-row'));
+        var idx = rows.indexOf(row);
+        if (idx < rows.length - 1) {
+          var next = rows[idx + 1].querySelector('input');
+          if (next) next.focus();
+        } else {
+          addNoteRow('');
+          var allRows = document.querySelectorAll('#extras-notes-list .pmh-row');
+          var lastInput = allRows[allRows.length - 1].querySelector('input');
+          if (lastInput) lastInput.focus();
+        }
+      });
+
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'row-remove-btn';
+      rm.textContent = 'Delete';
+      rm.onclick = function() {
+        row.remove();
+        noteRowCount--;
+        if (document.querySelectorAll('#extras-notes-list .pmh-row').length === 0) addNoteRow('');
+        saveNotes();
+      };
+
+      row.appendChild(input);
+      row.appendChild(rm);
+      document.getElementById('extras-notes-list').appendChild(row);
+      saveNotes();
+    }
+
+    function restoreNotes(vals) {
+      var list = document.getElementById('extras-notes-list');
+      list.innerHTML = '';
+      noteRowCount = 0;
+      if (!vals || !vals.length) { addNoteRow(''); return; }
+      vals.forEach(function(v) { addNoteRow(v || ''); });
+    }
+
     function syncBairHugger() {
       var chk = document.getElementById('equip-bairhugger');
       document.getElementById('bair-hugger-wrap').style.display = chk && chk.checked ? 'inline-flex' : 'none';
@@ -67,10 +143,12 @@
       var bhType = document.getElementById('equip-bairhugger-type');
       if (bhType) bhType.addEventListener('change', saveState);
       syncBairHugger();
+      restoreNotes([]);
     }
 
-    pageBoot(boot, function() {
+    pageBoot(boot, function(s) {
       syncBairHugger();
+      restoreNotes(s['extras-notes'] || []);
     });
   </script>
 

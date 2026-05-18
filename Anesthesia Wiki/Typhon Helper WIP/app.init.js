@@ -11,7 +11,7 @@ function buildDayPills(containerId, dateStorageId) {
   for (let offset = 0; offset < 4; offset++) {
     const d = new Date(today);
     d.setDate(today.getDate() - offset);
-    const iso = d.toISOString().split('T')[0];
+    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const dow = DAYS[d.getDay()];
     const label = offset === 0 ? 'Today' : offset === 1 ? 'Yesterday' : dow;
     const shortDow = dow.substring(0, 3);
@@ -65,42 +65,20 @@ function hideStartScreen() {
 
 function initWelcomeScreen() {
   const welcome = document.getElementById('welcome-screen');
-  const continueBtn = document.getElementById('welcome-continue');
   const newCaseBtn = document.getElementById('welcome-new-case');
   const timeLogBtn = document.getElementById('welcome-time-log');
   const evalBtn = document.getElementById('welcome-eval');
   const draftsBtn = document.getElementById('welcome-drafts');
-  if (!welcome || !continueBtn || !newCaseBtn || !timeLogBtn || !draftsBtn) return;
+  if (!welcome || !newCaseBtn || !timeLogBtn || !draftsBtn) return;
+
+  const timeContinueBtn = document.getElementById('welcome-time-continue');
+  const caseContinueBtn = document.getElementById('welcome-case-continue');
+  const evalContinueBtn = document.getElementById('welcome-eval-continue');
 
   function updateContinueButton() {
-    const caseReady = hasCaseProgress();
-    const timeReady = hasTimeProgress();
-    const visible = caseReady || timeReady;
-    continueBtn.style.display = visible ? '' : 'none';
-    if (!visible) return;
-    if (caseReady && timeReady) {
-      continueBtn.textContent = '▶ Continue';
-      return;
-    }
-    continueBtn.textContent = caseReady ? '▶ Continue Case' : '▶ Continue Time Log';
-  }
-
-  function continueWhereLeftOff(btn) {
-    const caseReady = hasCaseProgress();
-    const timeReady = hasTimeProgress();
-    if (!caseReady && !timeReady) return;
-    hideStartScreen();
-
-    const caseTs = caseReady ? progressUpdatedAt('case') : -1;
-    const timeTs = timeReady ? progressUpdatedAt('time') : -1;
-    if (timeTs > caseTs) {
-      goTab('time');
-      restoreTimeProgress();
-    } else {
-      goTab('case');
-      restoreDraft();
-    }
-    btn.blur();
+    if (timeContinueBtn) timeContinueBtn.style.display = hasTimeProgress() ? '' : 'none';
+    if (caseContinueBtn) caseContinueBtn.style.display = hasCaseProgress() ? '' : 'none';
+    if (evalContinueBtn) evalContinueBtn.style.display = (typeof hasEvalProgress === 'function' && hasEvalProgress()) ? '' : 'none';
   }
 
   window.updateContinueButton = updateContinueButton;
@@ -108,25 +86,33 @@ function initWelcomeScreen() {
   const choose = (tabName, btn) => {
     hideStartScreen();
     goTab(tabName);
-    if (tabName === 'saved') {
-      setTimeout(() => {
-        const draftsFolder = document.getElementById('drafts-folder');
-        if (draftsFolder) {
-          draftsFolder.classList.add('open');
-          draftsFolder.scrollIntoView({ block: 'start', behavior: 'smooth' });
-        }
-      }, 50);
-    }
     btn.blur();
   };
 
-  continueBtn.addEventListener('click', () => continueWhereLeftOff(continueBtn));
   newCaseBtn.addEventListener('click', () => choose('case', newCaseBtn));
   timeLogBtn.addEventListener('click', () => choose('time', timeLogBtn));
   if (evalBtn) evalBtn.addEventListener('click', () => choose('eval', evalBtn));
   draftsBtn.addEventListener('click', () => choose('saved', draftsBtn));
-  const browseBtn = document.getElementById('welcome-browse');
-  if (browseBtn) browseBtn.addEventListener('click', () => { hideStartScreen(); browseBtn.blur(); });
+
+  if (timeContinueBtn) timeContinueBtn.addEventListener('click', () => {
+    hideStartScreen(); goTab('time'); restoreTimeProgress(); timeContinueBtn.blur();
+  });
+  if (caseContinueBtn) caseContinueBtn.addEventListener('click', () => {
+    hideStartScreen(); goTab('case'); restoreDraft(); caseContinueBtn.blur();
+  });
+  if (evalContinueBtn) evalContinueBtn.addEventListener('click', () => {
+    hideStartScreen(); goTab('eval');
+    if (typeof restoreEvalProgress === 'function') restoreEvalProgress();
+    evalContinueBtn.blur();
+  });
+
+  const wikiLink = document.getElementById('welcome-wiki-link');
+  if (wikiLink) {
+    const depth = window.location.pathname.split('/').filter(Boolean).length;
+    let base = '';
+    for (let i = 1; i < depth; i++) { base += '../'; }
+    wikiLink.href = base + 'AnesthesiaWiki.html';
+  }
 
   let _authStateResolved = false;
 
@@ -240,6 +226,8 @@ function initCaseMobilePager() {
       titleEl.textContent = getCardTitle(cards[0]);
       prevBtn.disabled = true;
       nextBtn.disabled = false;
+      const planPillD = document.getElementById('case-plan-pill');
+      if (planPillD) planPillD.style.display = _activePlanName ? '' : 'none';
       return;
     }
 
@@ -260,6 +248,9 @@ function initCaseMobilePager() {
     document.body.style.overflowY = lockScroll ? 'hidden' : '';
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const planPill = document.getElementById('case-plan-pill');
+    if (planPill) planPill.style.display = (casePager.index === 0 && _activePlanName) ? '' : 'none';
   };
 
   const stepBy = (delta) => {
@@ -374,7 +365,7 @@ function initEvalMobilePager() {
     prevBtn.disabled = evalPager.index === 0;
     nextBtn.disabled = evalPager.index === stepItems.length - 1;
     pane.classList.toggle('last-step', evalPager.index === stepItems.length - 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (evalPager.index === 0) window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const stepBy = (delta) => {
@@ -389,6 +380,7 @@ function initEvalMobilePager() {
   pane.addEventListener('touchstart', (event) => {
     if (!shouldUseMobilePager()) return;
     if (!event.touches || event.touches.length !== 1) return;
+    if (event.target.closest('#sig-canvas')) return;
     const t = event.touches[0];
     touchStartX = t.clientX;
     touchStartY = t.clientY;
@@ -398,6 +390,7 @@ function initEvalMobilePager() {
     if (!shouldUseMobilePager()) return;
     if (touchStartX == null || touchStartY == null) return;
     if (!event.changedTouches || !event.changedTouches.length) return;
+    if (event.target.closest('#sig-canvas')) { touchStartX = null; touchStartY = null; return; }
 
     const t = event.changedTouches[0];
     const dx = t.clientX - touchStartX;
@@ -599,8 +592,442 @@ function bindProcedureDependencies() {
 }
 
 // ============================================================
-// INIT
+// PLANNED CASES — load from Care Plan Generator Firestore docs
 // ============================================================
+
+// Returns "YYYY-MM-DD" for today in local time.
+function _todayIso() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// Convert CPG's "M/D/YYYY" or "MM/DD/YYYY" to "YYYY-MM-DD".
+function _cpgDateToIso(raw) {
+  if (!raw) return '';
+  const parts = String(raw).split('/');
+  if (parts.length === 3) {
+    const [m, d, y] = parts;
+    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+  // Already ISO or unknown — return as-is
+  return raw;
+}
+
+function _getPlannedCompletions() {
+  try { return JSON.parse(localStorage.getItem('typhon-plan-completions') || '[]'); }
+  catch { return []; }
+}
+
+function _markPlanCompleted(planName) {
+  const comps = _getPlannedCompletions();
+  const today = _todayIso();
+  if (!comps.find(c => c.planName === planName && c.date === today)) {
+    comps.push({ planName, date: today, completedAt: new Date().toISOString() });
+    localStorage.setItem('typhon-plan-completions', JSON.stringify(comps));
+  }
+}
+
+// Track which CPG plan is currently pre-filling the form.
+let _activePlanName = null;
+// Cache today's plans for re-rendering after completion.
+let _todaysPlans = [];
+
+async function loadAndRenderPlannedCases() {
+  const db = getFirestore();
+  if (!db) { console.warn('[plannedCases] Firestore not available'); return; }
+
+  // Collect all userId values to try: Firebase Auth UID + legacy CPG text-ID
+  const uid      = _getAuthUid();
+  let legacyId   = null;
+  try { legacyId = localStorage.getItem('carePlanCloudUserId') || null; } catch {}
+  const userIds  = [...new Set([uid, legacyId].filter(Boolean))];
+  console.log('[plannedCases] userIds to query:', userIds, '| today:', _todayIso());
+  if (userIds.length === 0) { console.warn('[plannedCases] No userId available'); return; }
+
+  const today = _todayIso();
+  const plans = [];
+
+  try {
+    for (const userId of userIds) {
+      const snap = await db.collection('carePlanSavedPlans').where('userId', '==', userId).get();
+      console.log('[plannedCases] userId', userId, '→', snap.size, 'docs');
+      snap.forEach(doc => {
+        const data  = doc.data();
+        const state = data.state || {};
+        const iso   = _cpgDateToIso(state['pat-surg-date'] || '');
+        console.log('[plannedCases] doc', doc.id, '| surgDate raw:', state['pat-surg-date'], '→ iso:', iso);
+        if (iso === today && !plans.find(p => p.name === (data.name || doc.id))) {
+          plans.push({ name: data.name || doc.id, state });
+        }
+      });
+    }
+    _todaysPlans = plans;
+    renderPlannedCases(plans);
+  } catch(e) {
+    console.warn('[loadAndRenderPlannedCases]', e);
+  }
+}
+
+// Pre-fill the Typhon case form from a CPG plan, then navigate to the case tab.
+
+// Infer Typhon anatomical category data-v values from a free-text surgery name.
+function _inferAnatCategories(surgeryName) {
+  const n = (surgeryName || '').toLowerCase();
+  const cats = [];
+
+  if (/craniotomy|craniectomy|intracranial|\bbrain\b|cerebr|ventriculo|vp shunt|deep brain|dbs/.test(n))
+    cats.push('Head - Intracranial');
+
+  if (/tonsil|adenoid|uvulo|pharyn|laryngoscop|panendoscop|\bdental\b|palate|\bmouth\b|\btongue\b/.test(n))
+    cats.push('Head - Oropharyngeal');
+
+  if (/\beye\b|ocular|ophthalm|orbital|cataract|vitrectomy|retina|\bear\b|mastoid|tympan|myringotomy|cochlear|\bsinus\b|nasal|septoplasty|rhinoplasty|facial|parotid|\bscalp\b/.test(n))
+    cats.push('Head - Extracranial');
+
+  if (/thyroid|parathyroid|neck dissection|tracheostom|tracheotom|cervical(?!.*(spine|fusion|disc|vertebr|cord))/.test(n))
+    cats.push('Neck');
+
+  if (/cabg|coronary|cardiac|\bheart\b|\bvalve\b|valvuloplasty|aortic.*(valve|root)|mitral|tricuspid|tavr|lvad|sternotomy|pericardi/.test(n))
+    cats.push('Intrathoracic - Heart');
+
+  if (/lobectomy|pneumonectomy|pulmonary|thoracoscop|\bvats\b|\bpleur|wedge resection|bronchoscop/.test(n))
+    cats.push('Intrathoracic - Lung');
+
+  if (/esophag|mediastin|thymectomy|\bthymus\b|\bdiaphragm\b/.test(n))
+    cats.push('Intrathoracic - Other');
+
+  if (/spin(?:al|e)|laminectomy|discectomy|\bfusion\b|vertebr|\blumbar\b|\bacdf\b|kyphoplasty|vertebroplasty|scoliosis|cervical.*(spine|fusion|disc|vertebr)|anterior.*(spine|cervical|lumbar|thoracic)|posterior.*(spine|cervical|lumbar|thoracic)/.test(n))
+    cats.push('Neuroskeletal');
+
+  if (/vascular|endarterectomy|\bcarotid\b|aortofemoral|\baaa\b|aneurysm|endovascular|angioplasty|av fistula|dialysis access|vein stripping|femoropopliteal|femoral.popliteal|arterial.bypass/.test(n))
+    cats.push('Vascular');
+
+  if (/laparoscop|laparotomy|appendectomy|colectomy|\bcolon\b|\bbowel\b|cholecystectomy|gallbladder|\bliver\b|hepat|pancreat|whipple|splenectomy|\bspleen\b|gastric|gastrectomy|nissen|fundoplication|hysterectomy|oophorectomy|ovarian|\buterine\b|ileum|jejunum|duodenum|cecum|sigmoid|nephrectomy|\bkidney\b|\badrenal\b|retroperitoneal|peritoneal|inguinal hernia|umbilical hernia|ventral hernia|incisional hernia|\brectal\b/.test(n))
+    cats.push('Intra-abdominal');
+
+  if (/perineal|perianal|perirectal|hemorrhoid|anal fistula|rectovaginal|\banal\b|\banus\b|sphincter/.test(n))
+    cats.push('Perineal');
+
+  if (/cesarean|c.section|\bltcs\b/.test(n))
+    cats.push('Cesarean delivery');
+
+  if (/labor.*epidural|epidural.*labor/.test(n))
+    cats.push('Analgesia for labor');
+
+  if (/\bshoulder\b|rotator cuff|\belbow\b|\bwrist\b|\bhand\b|\bfinger\b|\bhip\b|\bknee\b|\bankle\b|\bfoot\b|\btoe\b|tibial|fibular|femoral(?!.*(artery|pop|bypass))|humeral|radial|ulnar|carpal|\bdigit\b|arthroplasty|joint replacement|orif|\bacl\b|meniscus|tendon|ligament/.test(n))
+    cats.push('Extremities');
+
+  if (/\bbreast\b|mastectomy|lumpectomy|chest wall|\brib\b|\bsternum\b/.test(n))
+    cats.push('Extrathoracic');
+
+  return cats;
+}
+
+function prefillFromCPGPlan(planName, planState) {
+  const s = planState || {};
+  resetCase();
+
+  // Date — select the matching day pill
+  const isoDate = _cpgDateToIso(s['pat-surg-date'] || '');
+  if (isoDate) {
+    const pill = document.querySelector(`#day-pills .day-pill[data-iso="${isoDate}"]`);
+    if (pill) {
+      document.querySelectorAll('#day-pills .day-pill').forEach(p => p.classList.remove('on'));
+      pill.classList.add('on');
+    }
+  }
+
+  // Biological sex  (CPG stores 'M'/'F', Typhon uses 'Male'/'Female')
+  const sexMap = { M: 'Male', F: 'Female' };
+  const sex = sexMap[s['pat-gender']] || s['pat-gender'] || '';
+  if (sex) {
+    document.querySelectorAll('#grp-sex .btn-tog').forEach(b => b.classList.toggle('on', b.dataset.v === sex));
+  }
+
+  // Age
+  const age = s['pat-age'];
+  if (age) {
+    const ageEl = document.getElementById('c-age');
+    if (ageEl) ageEl.value = age;
+  }
+
+  // ASA class (CPG: "1"–"6", Typhon data-v: "1"–"6")
+  const asa = s['pat-asa-class'] ? String(s['pat-asa-class']).trim() : '';
+  if (asa) {
+    document.querySelectorAll('#grp-asa .asa-btn').forEach(b => b.classList.toggle('on', b.dataset.v === asa));
+  }
+
+  // Anesthesia type
+  const anesType = (s['anes-type'] || '').toLowerCase().trim();
+  if (anesType === 'general') {
+    const cb = document.getElementById('c-general');
+    if (cb) { cb.checked = true; autoOpen('sec-general', cb); }
+  } else if (anesType === 'mac') {
+    const cb = document.getElementById('c-mac');
+    if (cb) cb.checked = true;
+  } else if (anesType === 'sedation') {
+    const cb = document.getElementById('c-sedation');
+    if (cb) cb.checked = true;
+  } else if (anesType === 'spinal') {
+    const regCb = document.getElementById('c-regional');
+    if (regCb) { regCb.checked = true; autoOpen('sec-regional', regCb); }
+    const spCb = document.getElementById('c-reg-spinal');
+    if (spCb) spCb.checked = true;
+  } else if (anesType === 'epidural') {
+    const regCb = document.getElementById('c-regional');
+    if (regCb) { regCb.checked = true; autoOpen('sec-regional', regCb); }
+    const epCb = document.getElementById('c-reg-epidural');
+    if (epCb) epCb.checked = true;
+  }
+
+  // Anesthesia Start / Finish times — CPG stores as "HH:MM", Typhon uses "HHMM"
+  const toMil = t => (t || '').trim().replace(':', '');
+  const startTime = toMil(s['pat-sched-surg-time']);
+  const finishTime = toMil(s['pat-surg-end-time']);
+  if (startTime) {
+    const asEl = document.getElementById('c-as');
+    if (asEl) asEl.value = startTime;
+  }
+  if (finishTime) {
+    const afEl = document.getElementById('c-af');
+    if (afEl) afEl.value = finishTime;
+  }
+
+  // A-Line — if CPG equipment includes an art line, check both procedure boxes
+  if (s['equip-aline']) {
+    const artActual = document.getElementById('c-art-actual');
+    const artBp     = document.getElementById('c-art-bp');
+    if (artActual) artActual.checked = true;
+    if (artBp)     artBp.checked     = true;
+  }
+
+  // Surgical position — map CPG values to Typhon's 4 supported buttons
+  const posMap = {
+    'Prone':                 'Prone',
+    'Lithotomy':             'Lithotomy',
+    'Lateral Decubitus':     'Lateral',
+    'Sitting / Beach Chair': 'Sitting'
+  };
+  const typhonPos = posMap[(s['pat-position'] || '').trim()];
+  if (typhonPos) {
+    const posBtn = document.querySelector(`#grp-pos .btn-tog[data-v="${typhonPos}"]`);
+    if (posBtn) posBtn.click();
+  }
+
+  // Anatomical category — inferred from surgery name
+  const surgeryName = (s['pat-surgery'] || '').trim();
+  if (surgeryName) {
+    const anatCats = _inferAnatCategories(surgeryName);
+    anatCats.forEach(cat => {
+      const btn = document.querySelector(`#grp-anat .btn-tog[data-v="${cat}"]`);
+      if (btn) btn.click();
+    });
+    updateAnatomicalDetailsVisibility();
+  }
+
+  // Initial Preanesthetic Assessment — always pre-select
+  const assessBtn = document.querySelector('#grp-assess .btn-tog[data-v="initial"]');
+  if (assessBtn) assessBtn.click();
+
+  // Ambulatory / Outpatient — always pre-select
+  const admitBtn = document.querySelector('#grp-admit .btn-tog[data-v="Outpatient"]');
+  if (admitBtn) admitBtn.click();
+
+  // General anesthesia detail checkboxes
+  if (anesType === 'general') {
+    const isLMA  = (s['ind-airway-method'] || '') === 'LMA';
+    const isTIVA = !!s['tiva-box'];
+    const isRSI  = (s['ind-rsi'] || '') === 'Yes';
+
+    const ids = ['c-gen-iv'];                          // IV induction — always
+    if (!isRSI)  ids.push('c-gen-mask-ind');           // mask vent induction — skip for RSI
+    if (isLMA)   ids.push('c-gen-lma');                // LMA airway
+    else         ids.push('c-gen-ett-oral');           // ETT oral — unless LMA
+    if (isTIVA)  ids.push('c-gen-tiva');               // TIVA flag
+    ids.push('c-gen-emerge');                          // emergence — always
+
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.checked = true;
+    });
+  }
+
+  // Medications — map CPG drug selections to Typhon medication checkboxes
+  const _parseDrugList = json => {
+    try {
+      return (JSON.parse(json || '[]') || [])
+        .map(r => typeof r === 'string' ? r : (r.drug || r.name || r.med || ''))
+        .filter(Boolean);
+    } catch (e) { return []; }
+  };
+  const OPIOIDS = new Set([
+    'Fentanyl','Remifentanil','Sufentanil','Alfentanil',
+    'Morphine','Hydromorphone','Dilaudid','Oxycodone','Meperidine','Methadone'
+  ]);
+  const intraopDrugs = _parseDrugList(s['plan-intraop-list']);
+  const postopDrugs  = _parseDrugList(s['plan-postop-list']);
+  const bluntDrug    = (s['ind-blunt-select'] || '').trim();
+
+  const medChecks = {
+    'c-med-inhal':  !!(s['ind-inhalation'] || '').trim(),
+    'c-med-iv-ind': !!(s['ind-agent-select'] || '').trim(),
+    'c-med-nmb':    !!(s['ind-paralytic'] || '').trim(),
+    'c-med-opioid': OPIOIDS.has(bluntDrug) ||
+                    intraopDrugs.some(d => OPIOIDS.has(d)) ||
+                    postopDrugs.some(d => OPIOIDS.has(d)),
+    'c-med-other':  !!(s['ind-anxiolytic-select'] || '').trim() ||
+                    !!(s['ind-sed-drip'] || '').trim() ||
+                    !!s['tiva-box'] ||
+                    (!!bluntDrug && !OPIOIDS.has(bluntDrug))  // e.g. Esmolol, Dexmedetomidine
+  };
+  Object.entries(medChecks).forEach(([id, shouldCheck]) => {
+    if (shouldCheck) {
+      const el = document.getElementById(id);
+      if (el) el.checked = true;
+    }
+  });
+
+  // General anesthesia always triggers Mechanical Ventilation
+  if (anesType === 'general') {
+    const mechVent = document.getElementById('c-mech-vent');
+    if (mechVent) mechVent.checked = true;
+  }
+
+  // IV Starts — always pre-fill 1
+  const ivStartEl = document.getElementById('c-iv-n');
+  if (ivStartEl) ivStartEl.value = '1';
+
+  // Airway method — VL/FI trigger airway procedure checkboxes
+  const airwayMethod = (s['ind-airway-method'] || '').trim();
+  if (airwayMethod === 'VL') {
+    const el = document.getElementById('c-tech-other');
+    if (el) el.checked = true;
+  } else if (airwayMethod === 'FI') {
+    ['c-endo-tt-placement', 'c-endo-airway-assess', 'c-tech-other'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.checked = true;
+    });
+  }
+
+  // Record the active plan so submission can mark it complete
+  _activePlanName = planName;
+
+  // Show plan pill on step 1
+  const _pillLabel = [s['pat-sched-surg-time'], s['pat-initials'], s['pat-surgery']].filter(Boolean).join(' · ') || planName;
+  const _planPill = document.getElementById('case-plan-pill');
+  if (_planPill) { _planPill.textContent = '📋 ' + _pillLabel; _planPill.style.display = ''; }
+
+  syncSelectionRowStates();
+  updateAnatomicalDetailsVisibility();
+
+  // Navigate to case tab and scroll to top of pager
+  goTab('case');
+  if (casePager) { casePager.index = 0; casePager.render(); }
+
+  toast(`Pre-filled from: ${planName}`);
+}
+
+// Auto-fill eval form fields from the day's saved case logs.
+async function prefillEvalFromDayCases() {
+  const evalDate = getSelectedISO('e-day-pills');
+  if (!evalDate) return;
+
+  const items = (await store.get('typhon-items')) || [];
+  const dayCases = items.filter(it => it.type === 'case' && !it.draft && it.date === evalDate);
+  if (!dayCases.length) return;
+
+  // Helper: check a checkbox in a grid by value (idempotent)
+  const checkByValue = (gridId, value) => {
+    document.querySelectorAll(`#${gridId} input[type="checkbox"]`).forEach(cb => {
+      if (cb.value === value) cb.checked = true;
+    });
+  };
+
+  // --- Facility ---
+  const facilitySites = [...new Set(dayCases.map(c => c.clinicalSite).filter(Boolean))];
+  if (facilitySites.length) {
+    const fsel = document.getElementById('e-facility-select');
+    if (fsel) fsel.value = facilitySites[0];
+  }
+
+  // --- Age Ranges ---
+  const AGE_MAP = (c) => {
+    if (c.isNeonate) return 'Neonate (0-1 month)';
+    const age = parseFloat(c.age);
+    if (isNaN(age)) return null;
+    if (age < 2)  return 'Infant (1 month - 24 months)';
+    if (age <= 11) return 'Child (2-12 years)';
+    if (age <= 64) return 'Adult (12-64 years)';
+    return 'Geriatric (65+)';
+  };
+  [...new Set(dayCases.map(AGE_MAP).filter(Boolean))]
+    .forEach(cat => checkByValue('e-age-grid', cat));
+
+  // --- ASA Classes ---
+  dayCases.forEach(c => {
+    const base = (c.asa || '').replace('E', '');
+    if (base) checkByValue('e-asa-grid', `ASA ${base}`);
+    if ((c.asa || '').endsWith('E') || c.traumaEmergency) checkByValue('e-asa-grid', 'Emergent or Trauma');
+  });
+
+  // --- Surgical Cases (anatomical → eval categories) ---
+  const ANAT_MAP = {
+    'Head - Intracranial':  'Intracranial',
+    'Head - Oropharyngeal': 'Oropharyngeal',
+    'Neck':                 'Neck',
+    'Intrathoracic - Heart':'Intrathoracic - Heart',
+    'Intrathoracic - Lung': 'Intrathoracic - Lung',
+    'Neuroskeletal':        'Neuroskeletal',
+    'Vascular':             'Vascular',
+    'Intra-abdominal':      'Abdominal',
+    'Cesarean delivery':    'Obstetric',
+    'Analgesia for labor':  'Obstetric',
+  };
+  dayCases.forEach(c => {
+    (c.anatomical || []).forEach(anat => {
+      checkByValue('e-surg-grid', ANAT_MAP[anat] || 'Other');
+    });
+    const ad = c.anatomicalDetails || {};
+    if (ad.otherECT || ad.otherEBUS || ad.otherColonoscopy || ad.otherEGD) {
+      checkByValue('e-surg-grid', 'EBUS / TEE / EGD / Colonoscopy / ECT');
+    }
+  });
+
+  // --- Q10 comments: skills performed (only if blank) ---
+  const q10El = document.getElementById('e-q10-comments');
+  if (q10El && !q10El.value.trim()) {
+    const skills = new Set();
+    dayCases.forEach(c => {
+      const p  = c.procedures    || {};
+      const gi = c.generalItems  || {};
+      const ri = c.regionalItems || {};
+      if (gi.ettOral || gi.ettNasal || p.endoTrachealTubePlacement) skills.add('Intubation');
+      if (gi.lma || gi.sga)       skills.add('LMA/SGA placement');
+      if (ri.spinal)              skills.add('Spinal');
+      if (ri.epidural)            skills.add('Epidural');
+      if (ri.peripheral)          skills.add('Peripheral nerve block');
+      if (p.artActual)            skills.add('A-line placement');
+      if (p.cvlActual)            skills.add('CVL placement');
+      if (p.otherTechniques)      skills.add('VL / special airway technique');
+    });
+    if (skills.size) q10El.value = [...skills].join(', ');
+  }
+
+  saveEvalProgress();
+}
+
+// Call this whenever a case is successfully saved/submitted.
+// Checks if a plan pre-fill is active and marks it done.
+function maybeCompletePlan() {
+  if (!_activePlanName) return;
+  _markPlanCompleted(_activePlanName);
+  _activePlanName = null;
+  const _planPill = document.getElementById('case-plan-pill');
+  if (_planPill) { _planPill.style.display = 'none'; _planPill.textContent = ''; }
+  renderPlannedCases(_todaysPlans); // re-render to show ✅
+}
+
+
 (async () => {
   // Register BEFORE any awaits so the initial typhon-auth-changed event
   // (dispatched during DOMContentLoaded) is never missed.
@@ -608,6 +1035,7 @@ function bindProcedureDependencies() {
     const refreshed = (await store.get('typhon-items')) || [];
     updateBadge(refreshed);
     if (document.getElementById('pane-saved')?.classList.contains('active')) renderSaved();
+    loadAndRenderPlannedCases();
   });
 
   enforceExtensionScrolling();
@@ -655,6 +1083,22 @@ function bindProcedureDependencies() {
   updateBadge(items);
   // Show draft banner if there is a saved draft case
   if (items.some(i => i.draft && i.type === 'case')) showDraftBanner();
+
+  // Auto-fill eval from day's cases whenever the eval tab is shown
+  const _origGoTab = window.goTab;
+  window.goTab = function(name) {
+    _origGoTab(name);
+    if (name === 'eval') prefillEvalFromDayCases();
+  };
+
+  // Wrap saveCase to mark plan completion when a pre-filled case is saved
+  if (typeof saveCase === 'function') {
+    const _origSaveCase = saveCase;
+    window.saveCase = async function() {
+      await _origSaveCase();
+      maybeCompletePlan();
+    };
+  }
 
   // Extension sync mode: ?sync=1&eid=EXTENSION_ID
   // Called by the extension popup — pushes items from Firestore to the extension's chrome.storage.
