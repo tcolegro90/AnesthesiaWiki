@@ -331,38 +331,36 @@
             <div style="margin-top:8px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
               <div>
                 <label>Positioning</label><br>
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                  <select id="pat-position" style="width:220px;max-width:100%;" onchange="syncPositionOther(); saveState();">
-                    <option value="">Select...</option>
-                    <option>Supine</option>
-                    <option>Prone</option>
-                    <option>Lateral Decubitus</option>
-                    <option>Lithotomy</option>
-                    <option>Trendelenburg</option>
-                    <option>Steep Trendelenburg</option>
-                    <option>Reverse Trendelenburg</option>
-                    <option>Sitting / Beach Chair</option>
-                    <option>Jackknife</option>
-                    <option>Fowler / Semi-Fowler</option>
-                    <option>Knee-Chest</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  <input id="pat-position-other" class="med" style="display:none;width:300px;max-width:100%;" placeholder="Enter positioning" />
-                </div>
-                <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
-                <button type="button" class="add-row-btn" style="margin-top:6px;" onclick="addExtraSurgRow()">+ Add position</button>
+                <select id="pat-position" style="width:220px;max-width:100%;" onchange="syncPositionOther(); saveState();">
+                  <option value="">Select...</option>
+                  <option>Supine</option>
+                  <option>Prone</option>
+                  <option>Lateral Decubitus</option>
+                  <option>Lithotomy</option>
+                  <option>Trendelenburg</option>
+                  <option>Steep Trendelenburg</option>
+                  <option>Reverse Trendelenburg</option>
+                  <option>Sitting / Beach Chair</option>
+                  <option>Jackknife</option>
+                  <option>Fowler / Semi-Fowler</option>
+                  <option>Knee-Chest</option>
+                  <option value="Other">Other</option>
+                </select>
+                <input id="pat-position-other" class="med" style="display:none;margin-top:6px;" placeholder="Enter positioning" />
               </div>
               <div>
                 <label>Arms</label><br>
-                <select id="pat-arms-tucked" class="med" style="width:auto;" onchange="syncArmsTucked(); saveState();">
+                <select id="pat-arms-tucked" class="med" style="width:130px;" onchange="syncArmsTucked(); saveState();">
                   <option value="">Select...</option>
                   <option>Arms tucked</option>
                   <option>Arms out</option>
                   <option>Other</option>
                 </select>
-                <input id="pat-arms-tucked-other" class="med" style="display:none;width:220px;margin-top:6px;" placeholder="Describe arm position" />
+                <input id="pat-arms-tucked-other" class="med" style="display:none;margin-top:6px;" placeholder="Describe arm position" />
               </div>
             </div>
+            <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
+            <button type="button" class="add-row-btn" style="margin-top:6px;" onclick="addExtraSurgRow()">+ Add position</button>
           </div>
         </div>
         <div class="surgery-subrow" style="margin-top:10px;">
