@@ -1,7 +1,7 @@
 (function(global) {
   global.CARE_PLAN_FIREBASE_CONFIG = {
     enabled: true,
-    apiKey: 'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+    apiKey: 'AIzaSyACNII9-q3CoAipRpMTxwE6WLPOQVbbY-E',
     authDomain: 'anesthesia-wiki-saved-files.firebaseapp.com',
     projectId: 'anesthesia-wiki-saved-files',
     storageBucket: 'anesthesia-wiki-saved-files.firebasestorage.app',

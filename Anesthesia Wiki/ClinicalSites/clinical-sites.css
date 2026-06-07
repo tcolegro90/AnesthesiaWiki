@@ -539,7 +539,35 @@
             gap: 8px;
             flex-wrap: wrap;
             padding: 4px 0 6px;
+            position: relative;
         }
+        .pl-suggestions {
+            position: absolute;
+            top: calc(100% - 4px);
+            left: 0;
+            min-width: min(260px, 100%);
+            max-width: 320px;
+            background: #fff;
+            border: 1.5px solid #d28a5f;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.14);
+            z-index: 200;
+            list-style: none;
+            margin: 2px 0 0;
+            padding: 4px 0;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .pl-suggestion-item {
+            padding: 9px 14px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #2f2a24;
+            border-bottom: 1px solid #f0e8e0;
+        }
+        .pl-suggestion-item:last-child { border-bottom: none; }
+        .pl-suggestion-item:hover { background: #fdf0e8; color: #b85c2a; }
         .pl-search-input {
             border: 1px solid #e6ccb7;
             border-radius: 7px;

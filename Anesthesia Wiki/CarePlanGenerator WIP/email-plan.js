@@ -55,11 +55,12 @@
 
       var host = document.createElement('div');
       host.style.position = 'fixed';
-      host.style.left = '-10000px';
+      host.style.left = '0';
       host.style.top = '0';
+      host.style.opacity = '0';
+      host.style.pointerEvents = 'none';
       host.style.background = '#fff';
       host.style.zIndex = '-1';
-      host.style.padding = '0';
 
       var clone = printCard.cloneNode(true);
       clone.id = '';
@@ -77,7 +78,7 @@
             filename: filename,
             margin: [0, 0, 0, 0],
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
+            html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, scrollX: 0, scrollY: 0 },
             jsPDF: { unit: 'in', format: [3.95, 5.5], orientation: 'portrait' }
           })
           .from(clone)

@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surgery</title>
+  <link rel="stylesheet" href="shared.css" />
+<style>
+    .top-demographics-row {
+      margin-bottom: 12px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 12px;
+      gap: 14px;
+      align-items: flex-end;
+    }
+    .surgery-row {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 12px;
+      gap: 14px;
+      align-items: flex-end;
+    }
+    .surgery-subrow {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: 14px;
+      row-gap: 0;
+      align-items: flex-start;
+      width: 100%;
+    }
+    .surgery-top-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 14px;
+      align-items: flex-end;
+      width: 100%;
+    }
+    .conditional-inline {
+      display: none;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .add-row-btn {
+      padding: 3px 12px;
+      font-size: 12px;
+      border: 1px dashed #4a6fa5;
+      border-radius: 4px;
+      background: #f0f5ff;
+      color: #4a6fa5;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .add-row-btn:hover { background: #dde8ff; }
+    .warm-fluids-btn {
+      border: 1px solid #b0c4de;
+      background: #f1f7fd;
+      color: #1f4f73;
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .warm-fluids-btn.is-on {
+      background: #1f6d8f;
+      border-color: #1f6d8f;
+      color: #fff;
+    }
+    .surgery-input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .surgery-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .surgery-input-group input {
+      flex: 1;
+    }
+    .surgery-label-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .jaffe-search-item {
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #3a2a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .jaffe-search-item:hover, .jaffe-search-item.highlighted {
+      background: #fdf0e0;
+    }
+    .jaffe-search-item .jspage {
+      font-size: 10px;
+      color: #9a7a5a;
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .jaffe-badge {
+      display: none;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: 0;
+      font-size: 11px;
+      color: #5a4a3a;
+      font-weight: 600;
+      white-space: normal;
+      cursor: default;
+    }
+    .jaffe-badge:hover {
+      background: none;
+    }
+    .jaffe-badge a {
+      color: #5a4a3a;
+      text-decoration: none;
+    }
+    .jaffe-del-btn {
+      border: 1px solid #e7b7b7;
+      background: #fff4f4;
+      color: #8f2424;
+      font-size: 12px;
+      cursor: pointer;
+      line-height: 1.1;
+      padding: 5px 8px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .jaffe-del-btn:hover { background: #ffe6e6; border-color: #d68f8f; }
+    .surgery-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .surgery-suggestions.show {
+      display: block;
+    }
+    .surgery-suggestion-section {
+      padding: 6px 12px 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      background: #f8f8f8;
+      text-transform: uppercase;
+      border-bottom: 1px solid #ddd;
+    }
+    .surgery-suggestion-page {
+      float: right;
+      font-size: 11px;
+      color: #999;
+      margin-left: 8px;
+    }
+    .surgery-suggestion-item {
+      padding: 0;
+      cursor: default;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+      transition: background 0.15s;
+      display: flex;
+      align-items: stretch;
+    }
+    .surgery-suggestion-item:hover {
+      background: #e3f2fd;
+    }
+    .surgery-suggestion-item.highlighted {
+      background: #bbdefb;
+    }
+    .ssi-name {
+      flex: 1 1 auto;
+      padding: 8px 8px 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .ssi-name:hover { background: #cce8fd; }
+    .ssi-jaffe-btn {
+      flex: 0 0 auto;
+      padding: 0 10px;
+      border-left: 1px solid #e0e8f0;
+      font-size: 11px;
+      color: #5a7ea0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      background: none;
+      border-top: none;
+      border-right: none;
+      border-bottom: none;
+      font-family: inherit;
+    }
+    .ssi-jaffe-btn { font-weight: 500; }
+    .ssi-jaffe-btn:hover { background: #f0e6d2; color: #5a4a3a; }
+    .complications-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .complications-grid label {
+      min-width: 220px;
+    }
+    .guidance-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #2f4f6f;
+      line-height: 1.35;
+    }
+    .guidance-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .antibiotic-plan-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .antibiotic-plan-main {
+      flex: 0 1 220px;
+      min-width: 0;
+    }
+    .antibiotic-plan-small {
+      flex: 1 1 110px;
+      min-width: 100px;
+      max-width: 150px;
+    }
+    @media (max-width: 600px) {
+      .antibiotic-plan-row { gap: 8px; }
+      .antibiotic-plan-main { flex-basis: 100%; max-width: 100%; }
+      .antibiotic-plan-small { flex: 1 1 120px; max-width: none; }
+    }
+    .suggestion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .suggestion-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid #d7e3f0;
+      border-radius: 6px;
+      padding: 6px 8px;
+      background: #f8fbff;
+      font-size: 12px;
+    }
+    .suggestion-item .suggestion-text {
+      color: #254766;
+      line-height: 1.35;
+    }
+    .suggestion-ref {
+      margin-top: 2px;
+      font-size: 11px;
+      color: #456789;
+    }
+    .confidence-badge {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      vertical-align: middle;
+    }
+    .confidence-badge.high {
+      color: #0f5d35;
+      background: #e8f6ee;
+      border-color: #b9e4cb;
+    }
+    .confidence-badge.medium {
+      color: #7a4e00;
+      background: #fff7e7;
+      border-color: #f2dda9;
+    }
+    .confidence-badge.low {
+      color: #5f6782;
+      background: #f2f5fb;
+      border-color: #d6dfee;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>2. Surgery</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Patient</a><a href="2-Surgery.html">2 Surgery</a><a href="3-Labs-Chemistries.html">3 Labs</a><a href="4-PMH.html">4 PMH</a><a href="5-Prescribed-Medications.html">5 Home Meds</a><a href="6-Preop-History.html">6 Preop Hx</a><a href="7-Airway-Exam.html">7 Airway</a><a href="7b-Extras.html">7b Extras</a><a href="8-Anesthetic-Plan.html">8 Anesthetic Plan</a><a href="8b-APFEL-PONV.html">8b APFEL/PONV</a><a href="9-Fluid-Blood-Plan.html">9 Fluid/Blood</a><a href="10-Vent-Settings.html">10 Vent</a>
+    </div>
+    <div class="card">
+      <div class="row surgery-row">
+        <div class="surgery-top-row">
+          <div style="flex:1 1 auto;min-width:120px;">
+            <div class="surgery-label-row">
+              <label>Surgery Type</label>
+            </div>
+            <input type="hidden" id="pat-jaffe-page-override" />
+            <div class="surgery-input-wrapper">
+              <input id="pat-surgery" style="width:100%;" placeholder="ex: Laparoscopic appendectomy" />
+              <div id="surgery-suggestions" class="surgery-suggestions"></div>
+            </div>
+            <div style="margin-top:6px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;">
+              <div id="jaffe-badge" class="jaffe-badge" style="width:100%;"></div>
+              <span id="jaffe-add-btn-wrap" style="display:none;">
+                <button type="button" onclick="addJaffeChapter()" style="background:none;border:none;padding:0;color:#5a7ea0;cursor:pointer;font-size:11px;font-weight:600;line-height:1;">+ Add another chapter</button>
+              </span>
+              <span id="jaffe-search-wrap" style="display:inline-block;width:100%;position:relative;">
+                <input id="jaffe-search-input" type="text" placeholder="Search Jaffe..." autocomplete="off"
+                  style="font-size:11px;padding:2px 5px;border:1px solid #d4a574;border-radius:3px;background:#fdf6ee;color:#5a4a3a;width:100%;box-sizing:border-box;"
+                  oninput="onJaffeSearchInput(this.value)"
+                  onkeydown="onJaffeSearchKey(event)"
+                  onblur="setTimeout(closeJaffeSearch,180)" />
+                <div id="jaffe-search-results" style="display:none;position:absolute;top:100%;left:0;width:100%;background:#fff;border:1px solid #ccc;border-radius:0 0 4px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.12);max-height:180px;overflow-y:auto;z-index:2000;"></div>
+              </span>
+            </div>
+            <div style="margin-top:8px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+              <div>
+                <label>Positioning</label><br>
+                <select id="pat-position" style="width:220px;max-width:100%;" onchange="syncPositionOther(); saveState();">
+                  <option value="">Select...</option>
+                  <option>Supine</option>
+                  <option>Prone</option>
+                  <option>Lateral Decubitus</option>
+                  <option>Lithotomy</option>
+                  <option>Trendelenburg</option>
+                  <option>Steep Trendelenburg</option>
+                  <option>Reverse Trendelenburg</option>
+                  <option>Sitting / Beach Chair</option>
+                  <option>Jackknife</option>
+                  <option>Fowler / Semi-Fowler</option>
+                  <option>Knee-Chest</option>
+                  <option value="Other">Other</option>
+                </select>
+                <input id="pat-position-other" class="med" style="display:none;margin-top:6px;" placeholder="Enter positioning" />
+              </div>
+              <div>
+                <label>Arms</label><br>
+                <select id="pat-arms-tucked" class="med" style="width:130px;" onchange="syncArmsTucked(); saveState();">
+                  <option value="">Select...</option>
+                  <option>Arms tucked</option>
+                  <option>Arms out</option>
+                  <option>Other</option>
+                </select>
+                <input id="pat-arms-tucked-other" class="med" style="display:none;margin-top:6px;" placeholder="Describe arm position" />
+              </div>
+            </div>
+            <div id="extra-surg-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
+            <button type="button" class="add-row-btn" style="margin-top:6px;" onclick="addExtraSurgRow()">+ Add position</button>
+          </div>
+        </div>
+        <div class="surgery-subrow" style="margin-top:10px;">
+          <div>
+            <label style="display:block;margin-bottom:8px;">Insufflation</label>
+            <label><input type="radio" name="pat-insufflation" id="pat-insufflation-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-insufflation" id="pat-insufflation-no" value="No"> No</label>
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:6px;">Intra-op Neuro Monitoring</label>
+            <label style="margin-right:10px;"><input type="radio" name="pat-neuro-monitoring" id="pat-neuro-monitoring-yes" value="Yes" onchange="syncNeuroMonitoring(); saveState();"> Yes</label>
+            <label><input type="radio" name="pat-neuro-monitoring" id="pat-neuro-monitoring-no" value="No" onchange="syncNeuroMonitoring(); saveState();"> No</label>
+          </div>
+          <div id="neuro-type-wrap" style="display:none;">
+            <label style="display:block;margin-bottom:6px;">Monitoring Type</label>
+            <select id="pat-neuro-monitoring-type" class="med" style="width:160px;" onchange="syncNeuroMonitoring(); saveState();">
+              <option value="">Select...</option>
+              <option>SSEP</option>
+              <option>MEP</option>
+              <option>SSEP + MEP</option>
+              <option>RLN monitoring</option>
+              <option>Unknown</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div id="neuro-other-wrap" style="display:none;">
+            <label style="display:block;margin-bottom:6px;">&nbsp;</label>
+            <input type="text" id="pat-neuro-monitoring-other" class="small" style="width:160px;" placeholder="Specify type..." oninput="saveState();">
+          </div>
+          <div>
+            <label>Anticipated Pain</label><br>
+            <select id="pat-anticipated-pain" class="med" style="width:75px;max-width:100%;">
+              <option value="">Select...</option>
+              <option>0</option>
+              <option>1</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
+              <option>7</option>
+              <option>8</option>
+              <option>9</option>
+              <option>10</option>
+            </select>
+          </div>
+          <div>
+            <label>Anticipated EBL</label><br>
+            <select id="pat-anticipated-ebl" class="med" style="width:245px;max-width:100%;">
+              <option value="">Select...</option>
+              <option value="Low">Low (&lt;500 mL)</option>
+              <option value="Medium">Medium (500–1500 mL)</option>
+              <option value="High">High (&gt;1500 mL)</option>
+            </select>
+          </div>
+          <div style="flex-basis:100%;height:0;"></div>
+          <div id="pat-obtain-ts-wrap" class="conditional-inline">
+            <div>
+              <label>Obtain T+S</label><br>
+              <label><input type="radio" name="pat-obtain-ts" id="pat-obtain-ts-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-obtain-ts" id="pat-obtain-ts-no" value="No"> No</label>
+            </div>
+          </div>
+          <div id="pat-blood-room-wrap" class="conditional-inline">
+            <div>
+              <label>Blood in Room</label><br>
+              <label><input type="radio" name="pat-blood-room" id="pat-blood-room-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-blood-room" id="pat-blood-room-no" value="No"> No</label>
+            </div>
+          </div>
+          <div style="flex:1 1 100%;margin-top:10px;">
+            <label style="font-weight:700;">Pressure Points</label>
+            <div class="complications-grid" style="margin-top:4px;">
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-axillary-roll"> Axillary roll</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-occiput"> Occiput</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-eyes"> Eyes</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-ears"> Ears</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-elbows"> Elbows / ulnar groove</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-shoulders"> Shoulders / scapulae</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-sacrum"> Sacrum / coccyx</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-trochanter"> Greater trochanter</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-knees"> Knees</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-fibular-head"> Fibular head / peroneal nerve</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-heels"> Heels</label>
+              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-toes"> Toes / feet</label>
+            </div>
+          </div>
+        </div>
+        <div class="surgery-subrow" style="margin-top:10px;">
+          <div style="flex:1 1 100%;">
+            <label style="font-weight:700;">Anticipated Surgical Complications</label>
+            <div class="complications-grid">
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-aspiration"> Aspiration risk</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-difficult-airway"> Difficult airway</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-laryngospasm"> Laryngospasm</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-bronchospasm"> Bronchospasm</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-hypoxemia"> Hypoxemia / desaturation</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-hypotension"> Hypotension</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-hypertension"> Hypertension</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-arrhythmia"> Arrhythmia</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-myocardial-ischemia"> Myocardial ischemia</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-major-blood-loss"> Major blood loss</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-transfusion"> Transfusion requirement</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-pneumothorax"> Pneumothorax</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-ponv"> PONV</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-emergence-delirium"> Emergence delirium/agitation</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-delayed-emergence"> Delayed emergence</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-awareness"> Awareness risk</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-postop-vent"> Post-op ventilation need</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-pain-control"> Difficult pain control</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-position-injury"> Positioning/nerve injury</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-thromboembolism"> DVT/PE risk</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-anaphylaxis"> Anaphylaxis/allergic reaction</label>
+              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-other"> Other</label>
+              <input id="pat-comp-other-text" class="med" style="display:none;min-width:260px;" placeholder="Other anticipated complication" />
+            </div>
+          </div>
+        </div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div>
+          <label>Surgical Date</label><br>
+          <select id="pat-surg-date-mode" class="med">
+            <option value="Tomorrow">Tomorrow</option>
+            <option value="Today">Today</option>
+            <option value="Monday" id="pat-surg-date-monday-opt">Monday</option>
+            <option value="Other">Other</option>
+          </select>
+          <input id="pat-surg-date-other" type="text" inputmode="numeric" maxlength="10" class="med" style="display:none;margin-top:6px;" placeholder="MM/DD/YYYY" />
+          <input id="pat-surg-date" type="hidden" />
+        </div>
+        <div><label>Surgery Start</label><br><input id="pat-sched-surg-time" class="short-text" placeholder="HH:MM" /></div>
+        <div><label>Surgery End</label><br><input id="pat-surg-end-time" class="short-text" placeholder="HH:MM" /></div>
+        <div><label>Length (minutes)</label><br><input id="pat-surg-length" type="number" step="1" min="0" inputmode="numeric" class="short-text" /></div>
+        <div><label>OR #</label><br><input id="pat-or-number" type="text" class="short-text" /></div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div>
+          <label>ASA Class <button type="button" id="asa-help-btn" aria-label="ASA classification help" onclick="document.getElementById('asa-modal').style.display='flex'" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid #5a7ea0;background:#e8f0fb;color:#1a4f82;font-size:10px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:4px;padding:0;line-height:1;">?</button></label><br>
+          <select id="pat-asa-class" class="small">
+            <option value="">-</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+          </select>
+        </div>
+        <div>
+          <label>Disposition</label><br>
+          <select id="pat-disposition" class="med" style="width:240px;max-width:100%;">
+            <option value="">Select...</option>
+            <option>PACU</option>
+            <option>ICU</option>
+            <option>CVICU</option>
+            <option>NICU</option>
+            <option>PICU</option>
+            <option>Step-Down / PCU</option>
+            <option>Floor / Med-Surg</option>
+            <option>Same Day Surgery (Home)</option>
+            <option>Extended Recovery</option>
+            <option>OR to OR</option>
+          </select>
+        </div>
+        <div>
+          <label>Nerve Stim Location</label><br>
+          <select id="pat-nerve-stim-location" class="med">
+            <option>None</option>
+            <option>Facial</option>
+            <option>Ulner</option>
+            <option>Posterior Tibial</option>
+            <option>Intra-op NM</option>
+          </select>
+        </div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div class="antibiotic-plan-row">
+          <div class="antibiotic-plan-main">
+            <label>Anticipated Antibiotic</label><br>
+            <select id="pat-anticipated-antibiotic" class="med" style="width:100%;max-width:100%;">
+              <option value="">Select...</option>
+              <option>Cefazolin</option>
+              <option>Cefoxitin</option>
+              <option>Cefuroxime</option>
+              <option>Ampicillin-Sulbactam</option>
+              <option>Clindamycin</option>
+              <option>Vancomycin</option>
+              <option>Gentamicin</option>
+              <option>Metronidazole</option>
+              <option>Ciprofloxacin</option>
+              <option>Piperacillin-Tazobactam</option>
+            </select>
+          </div>
+          <div class="antibiotic-plan-small" style="flex: 0 1 140px; min-width: 0; max-width: 145px;">
+            <label>Dose / Unit</label><br>
+            <input id="pat-anticipated-antibiotic-dose" class="short-text" placeholder="e.g. 2 g" style="width:100%;" />
+          </div>
+          <div class="antibiotic-plan-small" style="flex: 0 1 65px; min-width: 0;">
+            <label>Redose (hours)</label><br>
+            <input id="pat-anticipated-antibiotic-redose-hours" type="number" step="0.5" min="0" inputmode="decimal" class="short-text" placeholder="e.g. 4" style="width:100%;" />
+          </div>
+          <div style="align-self:flex-end;padding-bottom:2px;">
+            <div id="pat-abx-max-dose" style="font-size:0.72em;color:#666;display:none;"></div>
+          </div>
+        </div>
+        <div id="abx-row-2" class="antibiotic-plan-row" style="display:none;position:relative;margin-top:2px;">
+          <div class="antibiotic-plan-main">
+            <select id="pat-anticipated-antibiotic-2" class="med" style="width:100%;max-width:100%;">
+              <option value="">Select...</option>
+              <option>Cefazolin</option>
+              <option>Cefoxitin</option>
+              <option>Cefuroxime</option>
+              <option>Ampicillin-Sulbactam</option>
+              <option>Clindamycin</option>
+              <option>Vancomycin</option>
+              <option>Gentamicin</option>
+              <option>Metronidazole</option>
+              <option>Ciprofloxacin</option>
+              <option>Piperacillin-Tazobactam</option>
+            </select>
+          </div>
+          <div class="antibiotic-plan-small" style="flex: 0 1 140px; min-width: 0; max-width: 145px;">
+            <input id="pat-anticipated-antibiotic-dose-2" class="short-text" placeholder="e.g. 2 g" style="width:100%;" />
+          </div>
+          <div class="antibiotic-plan-small" style="flex: 0 1 65px; min-width: 0;">
+            <input id="pat-anticipated-antibiotic-redose-hours-2" type="number" step="0.5" min="0" inputmode="decimal" class="short-text" placeholder="e.g. 4" style="width:100%;" />
+          </div>
+          <div style="align-self:flex-end;padding-bottom:2px;">
+            <div id="pat-abx-max-dose-2" style="font-size:0.72em;color:#666;display:none;"></div>
+          </div>
+          <button type="button" onclick="removeAbxRow2()" style="position:absolute;top:2px;right:2px;background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;padding:0 4px;line-height:1;" title="Remove">×</button>
+        </div>
+        <div id="abx-add-btn-wrap" style="flex-basis:100%;margin-top:6px;">
+          <button type="button" class="add-row-btn" onclick="showAbxRow2()">+ Add Antibiotic</button>
+        </div>
+        <div style="flex:0 0 100%;">
+          <div class="guidance-actions">
+              <a id="pat-antibiotic-reference-link" href="../Antibiotics/Surgical-Antibiotics-SMH.html" target="_blank" rel="noopener noreferrer" class="add-row-btn" style="text-decoration:none;display:inline-block;">Reference: Adult Antibiotics for Surgical Prophylaxis Guide (SMH)</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
+  <script>
+    (function() {
+      var cfg = {
+        apiKey: 'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+        authDomain: 'anesthesia-wiki-saved-files.firebaseapp.com',
+        projectId: 'anesthesia-wiki-saved-files',
+        storageBucket: 'anesthesia-wiki-saved-files.firebasestorage.app'
+      };
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+    })();
+  </script>
+  <script src="shared.js"></script>
+  <script src="jaffe-search.js"></script>
+
+  <script>
+
+    function syncPositionOther() {
+      const isOther = document.getElementById('pat-position').value === 'Other';
+      document.getElementById('pat-position-other').style.display = isOther ? 'inline-block' : 'none';
+      if (!isOther) document.getElementById('pat-position-other').value = '';
+      saveState();
+    }
+
+    function syncNeuroMonitoring() {
+      var isYes = document.getElementById('pat-neuro-monitoring-yes').checked;
+      var typeWrap = document.getElementById('neuro-type-wrap');
+      var otherWrap = document.getElementById('neuro-other-wrap');
+      typeWrap.style.display = isYes ? '' : 'none';
+      if (!isYes) { otherWrap.style.display = 'none'; return; }
+      var type = document.getElementById('pat-neuro-monitoring-type').value;
+      otherWrap.style.display = (type === 'Other') ? '' : 'none';
+    }
+
+    function syncArmsTucked() {
+      var isOther = document.getElementById('pat-arms-tucked').value === 'Other';
+      var otherEl = document.getElementById('pat-arms-tucked-other');
+      otherEl.style.display = isOther ? 'block' : 'none';
+      if (!isOther) { otherEl.value = ''; saveState(); }
+    }
+
+    function syncComplicationsOther() {
+      var showOther = document.getElementById('pat-comp-other').checked;
+      var otherEl = document.getElementById('pat-comp-other-text');
+      otherEl.style.display = showOther ? 'inline-block' : 'none';
+      if (!showOther) otherEl.value = '';
+      saveState();
+    }
+
+    function syncAnticipatedBloodPrep(shouldSave) {
+      var anticipated = document.getElementById('pat-anticipated-ebl').value;
+      var showTS = anticipated === 'Medium' || anticipated === 'High';
+      var showBloodRoom = anticipated === 'High';
+      var tsWrap = document.getElementById('pat-obtain-ts-wrap');
+      var bloodWrap = document.getElementById('pat-blood-room-wrap');
+
+      if (tsWrap) tsWrap.style.display = showTS ? 'flex' : 'none';
+      if (bloodWrap) bloodWrap.style.display = showBloodRoom ? 'flex' : 'none';
+
+      if (!showTS) {
+        document.querySelectorAll('input[name="pat-obtain-ts"]').forEach(function(r) { r.checked = false; });
+      }
+      if (!showBloodRoom) {
+        document.querySelectorAll('input[name="pat-blood-room"]').forEach(function(r) { r.checked = false; });
+      }
+
+      if (shouldSave !== false) saveState();
+    }
+
+    var surgeryTimeSyncInProgress = false;
+
+    function parseClockText(v) {
+      if (!v) return null;
+      var t = String(v).trim().toUpperCase();
+      // Accept military-style HHMM (e.g., 1930) in addition to HH:MM.
+      if (/^\d{3,4}$/.test(t)) {
+        t = t.length === 3 ? ('0' + t) : t;
+        t = t.slice(0, 2) + ':' + t.slice(2);
+      }
+      var m = t.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/);
+      if (!m) return null;
+      var hh = parseInt(m[1], 10);
+      var mm = parseInt(m[2], 10);
+      var mer = m[3] || '';
+      if (isNaN(hh) || isNaN(mm) || mm < 0 || mm > 59) return null;
+      if (mer) {
+        if (hh < 1 || hh > 12) return null;
+        if (mer === 'AM') hh = hh % 12;
+        if (mer === 'PM') hh = (hh % 12) + 12;
+      } else if (hh > 23) {
+        return null;
+      }
+      return (hh * 60) + mm;
+    }
+
+    function formatClockText(totalMinutes) {
+      var m = totalMinutes % 1440;
+      if (m < 0) m += 1440;
+      var hh = Math.floor(m / 60);
+      var mm = m % 60;
+      return String(hh).padStart(2, '0') + String(mm).padStart(2, '0');
+    }
+
+    function syncSurgeryTimeFields(sourceId) {
+      if (surgeryTimeSyncInProgress) return;
+      surgeryTimeSyncInProgress = true;
+
+      var startEl = document.getElementById('pat-sched-surg-time');
+      var endEl = document.getElementById('pat-surg-end-time');
+      var lenEl = document.getElementById('pat-surg-length');
+
+      var start = parseClockText(startEl.value);
+      var end = parseClockText(endEl.value);
+      var lenText = (lenEl.value || '').trim();
+      var len = lenText === '' ? null : parseFloat(lenText);
+      if (len !== null && (!isFinite(len) || len < 0)) len = null;
+
+      var hasStart = start !== null;
+      var hasEnd = end !== null;
+      var hasLen = len !== null;
+
+      if (sourceId === 'pat-surg-length') {
+        if (hasStart && hasLen) {
+          endEl.value = formatClockText(start + len);
+        } else if (hasEnd && hasLen) {
+          startEl.value = formatClockText(end - len);
+        }
+      } else if (sourceId === 'pat-sched-surg-time') {
+        if (hasStart && hasEnd) {
+          var diffFromStart = end - start;
+          if (diffFromStart < 0) diffFromStart += 1440;
+          lenEl.value = String(Math.round(diffFromStart));
+        } else if (hasStart && hasLen) {
+          endEl.value = formatClockText(start + len);
+        }
+      } else if (sourceId === 'pat-surg-end-time') {
+        if (hasStart && hasEnd) {
+          var diffFromEnd = end - start;
+          if (diffFromEnd < 0) diffFromEnd += 1440;
+          lenEl.value = String(Math.round(diffFromEnd));
+        } else if (hasEnd && hasLen) {
+          startEl.value = formatClockText(end - len);
+        }
+      } else if (hasStart && hasEnd && !hasLen) {
+        var diff = end - start;
+        if (diff < 0) diff += 1440;
+        lenEl.value = String(Math.round(diff));
+      } else if (hasStart && hasLen && !hasEnd) {
+        endEl.value = formatClockText(start + len);
+      } else if (hasEnd && hasLen && !hasStart) {
+        startEl.value = formatClockText(end - len);
+      }
+
+      surgeryTimeSyncInProgress = false;
+      saveState();
+    }
+
+    function getTomorrowDateText() {
+      var d = new Date();
+      d.setDate(d.getDate() + 1);
+      return (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+    }
+
+    function formatSurgicalDateValue(raw) {
+      var text = String(raw || '').trim();
+      if (!text) return '';
+
+      var iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (iso) return iso[2] + '/' + iso[3] + '/' + iso[1];
+
+      var digits = text.replace(/\D/g, '').slice(0, 8);
+      if (!digits) return '';
+      if (digits.length <= 2) return digits + (digits.length === 2 ? '/' : '');
+      if (digits.length <= 4) return digits.slice(0, 2) + '/' + digits.slice(2) + (digits.length === 4 ? '/' : '');
+      return digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+    }
+
+    function syncSurgicalDate() {
+      var modeEl = document.getElementById('pat-surg-date-mode');
+      var mondayOpt = document.getElementById('pat-surg-date-monday-opt');
+      // Hide Monday option when today is Monday (would be 7 days away)
+      if (mondayOpt) {
+        var todayDay = new Date().getDay();
+        mondayOpt.style.display = todayDay === 1 ? 'none' : '';
+        if (todayDay === 1 && modeEl.value === 'Monday') modeEl.value = 'Tomorrow';
+      }
+      var otherEl = document.getElementById('pat-surg-date-other');
+      var outEl = document.getElementById('pat-surg-date');
+      var mode = modeEl.value || 'Tomorrow';
+
+      otherEl.style.display = mode === 'Other' ? 'inline-block' : 'none';
+      if (mode === 'Other') {
+        var formatted = formatSurgicalDateValue(otherEl.value || '');
+        if (otherEl.value !== formatted) otherEl.value = formatted;
+        outEl.value = formatted;
+      } else if (mode === 'Today') {
+        var today = new Date();
+        outEl.value = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
+      } else if (mode === 'Monday') {
+        var d = new Date();
+        var day = d.getDay(); // 0=Sun,1=Mon,...,6=Sat
+        var daysUntilMonday = day === 1 ? 7 : (8 - day) % 7;
+        d.setDate(d.getDate() + daysUntilMonday);
+        outEl.value = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+      } else {
+        outEl.value = getTomorrowDateText();
+      }
+      saveState();
+    }
+
+    function isBetaLactamAllergy(allergiesText) {
+      var a = (allergiesText || '').toLowerCase();
+      var noAllergy = a.includes('nkda') || a.includes('no known drug') || a.includes('no drug allergy');
+      if (noAllergy) return false;
+      return (
+        a.includes('penicillin') ||
+        a.includes('pcn') ||
+        a.includes('cef') ||
+        a.includes('ceph') ||
+        a.includes('ancef') ||
+        a.includes('beta-lactam') ||
+        a.includes('beta lactam')
+      );
+    }
+
+    function findMatchedTerms(text, terms) {
+      var t = String(text || '').toLowerCase();
+      return terms.filter(function(term) { return t.indexOf(term) !== -1; });
+    }
+
+    function buildAbxContext(surgeryText) {
+      var surgery = String(surgeryText || '').toLowerCase();
+      var giTerms = ['colon', 'colorectal', 'colectomy', 'rect', 'bowel', 'append', 'perforat', 'abdominal'];
+      var gynTerms = ['hysterectomy', 'cesarean', 'c-section', 'c section', 'myomectomy', 'gynec', 'obstetric', 'd&c', 'd&e'];
+      var uroTerms = ['urolog', 'nephrectomy', 'cystectomy', 'prostate', 'turp', 'ureter', 'kidney'];
+      var cvTerms = ['cabg', 'valve', 'thorac', 'vascular', 'aortic', 'carotid'];
+
+      var giMatches = findMatchedTerms(surgery, giTerms);
+      var gynMatches = findMatchedTerms(surgery, gynTerms);
+      var uroMatches = findMatchedTerms(surgery, uroTerms);
+      var cvMatches = findMatchedTerms(surgery, cvTerms);
+
+      if (giMatches.length) {
+        return {
+          category: 'GI/abdominal procedures',
+          matchedTerms: giMatches,
+          primary: 'Cefoxitin',
+          fallback: 'Clindamycin',
+          rationale: 'Broader anaerobic/GI-oriented prophylaxis is often considered.',
+          referenceCue: 'Procedure-type prophylaxis table (GI/colorectal patterns).',
+          searchHint: 'cefoxitin colorectal redosing'
+        };
+      }
+      if (gynMatches.length) {
+        return {
+          category: 'Gynecologic/obstetric procedures',
+          matchedTerms: gynMatches,
+          primary: 'Cefazolin',
+          fallback: 'Clindamycin',
+          rationale: 'Common gynecologic/obstetric prophylaxis pattern.',
+          referenceCue: 'Procedure-type prophylaxis table (GYN/OB rows).',
+          searchHint: 'cefazolin hysterectomy cesarean redosing'
+        };
+      }
+      if (uroMatches.length) {
+        return {
+          category: 'Urologic procedures',
+          matchedTerms: uroMatches,
+          primary: 'Cefazolin',
+          fallback: 'Gentamicin',
+          rationale: 'Common urologic prophylaxis pattern.',
+          referenceCue: 'Procedure-type prophylaxis table (urology rows).',
+          searchHint: 'cefazolin urology gentamicin redosing'
+        };
+      }
+      if (cvMatches.length) {
+        return {
+          category: 'Cardiothoracic/vascular procedures',
+          matchedTerms: cvMatches,
+          primary: 'Cefazolin',
+          fallback: 'Vancomycin',
+          rationale: 'Some services consider vancomycin for select high-risk cases.',
+          referenceCue: 'Procedure-type prophylaxis table (cardiac/vascular rows).',
+          searchHint: 'cefazolin vancomycin vascular cardiac redosing'
+        };
+      }
+
+      return {
+        category: 'Default clean-procedure pattern',
+        matchedTerms: [],
+        primary: 'Cefazolin',
+        fallback: 'Clindamycin',
+        rationale: 'Common clean-procedure prophylaxis.',
+        referenceCue: 'General prophylaxis + redosing interval table.',
+        searchHint: 'cefazolin prophylaxis redosing'
+      };
+    }
+
+    function getSuggestionConfidence(ctx, betaLactamAllergy, isPrimary) {
+      var terms = (ctx && ctx.matchedTerms) ? ctx.matchedTerms.length : 0;
+      var isDefault = !ctx || ctx.category === 'Default clean-procedure pattern';
+      var score = 0;
+
+      if (!isDefault) score += 2;
+      if (terms >= 2) score += 2;
+      else if (terms === 1) score += 1;
+      if (betaLactamAllergy) score += 1;
+      if (isPrimary) score += 1;
+
+      if (score >= 4) {
+        return { level: 'High', reason: 'Strong keyword/category match.' };
+      }
+      if (score >= 2) {
+        return { level: 'Medium', reason: 'Partial match; verify procedure row and redosing table.' };
+      }
+      return { level: 'Low', reason: 'Default/limited match; verify carefully in the guide.' };
+    }
+
+    function showAbxRow2() {
+      document.getElementById('abx-row-2').style.display = 'flex';
+      document.getElementById('abx-add-btn-wrap').style.display = 'none';
+    }
+
+    function removeAbxRow2() {
+      document.getElementById('abx-row-2').style.display = 'none';
+      document.getElementById('abx-add-btn-wrap').style.display = 'block';
+      document.getElementById('pat-anticipated-antibiotic-2').value = '';
+      document.getElementById('pat-anticipated-antibiotic-dose-2').value = '';
+      document.getElementById('pat-anticipated-antibiotic-redose-hours-2').value = '';
+      var maxEl = document.getElementById('pat-abx-max-dose-2');
+      if (maxEl) { maxEl.textContent = ''; maxEl.style.display = 'none'; }
+      saveState();
+    }
+
+    function restoreAbxRow2() {
+      var sel = document.getElementById('pat-anticipated-antibiotic-2');
+      if (sel && sel.value) showAbxRow2();
+    }
+
+    function getAntibioticSuggestions() {
+      var surgery = (document.getElementById('pat-surgery').value || '').toLowerCase();
+      var allergies = document.getElementById('pat-allergies').value || '';
+      var betaLactamAllergy = isBetaLactamAllergy(allergies);
+      var ctx = buildAbxContext(surgery);
+      var primaryConf = getSuggestionConfidence(ctx, betaLactamAllergy, true);
+      var secondaryConf = getSuggestionConfidence(ctx, betaLactamAllergy, false);
+
+      var suggestions = [];
+      var seen = {};
+      function pushUnique(item) {
+        var key = String((item && item.drug) || '').toLowerCase();
+        if (!key || seen[key]) return;
+        seen[key] = true;
+        suggestions.push(item);
+      }
+      if (betaLactamAllergy) {
+        pushUnique({ drug: ctx.fallback, dose: ctx.fallback === 'Vancomycin' ? '15 mg/kg' : (ctx.fallback === 'Gentamicin' ? '5 mg/kg' : '900 mg'), redoseHours: ctx.fallback === 'Vancomycin' ? 'N/A' : (ctx.fallback === 'Gentamicin' ? 'N/A' : '6'), note: ctx.rationale + ' Beta-lactam allergy terms detected.', reference: ctx.referenceCue, matchLabel: ctx.category, matchTerms: ctx.matchedTerms, searchHint: ctx.searchHint, confidence: primaryConf.level, confidenceReason: primaryConf.reason });
+        pushUnique({ drug: 'Vancomycin', dose: '15 mg/kg', redoseHours: 'N/A', note: 'Consider for MRSA risk or severe beta-lactam allergy scenarios.', reference: 'Alternative regimen row for severe beta-lactam allergy/MRSA considerations.', matchLabel: ctx.category, matchTerms: ctx.matchedTerms, searchHint: 'vancomycin prophylaxis beta-lactam allergy', confidence: secondaryConf.level, confidenceReason: secondaryConf.reason });
+        pushUnique({ drug: 'Gentamicin', dose: '5 mg/kg', redoseHours: 'N/A', note: 'Consider as gram-negative adjunct depending on procedure and local guidance.', reference: 'Alternative/adjunct regimen rows by procedure risk profile.', matchLabel: ctx.category, matchTerms: ctx.matchedTerms, searchHint: 'gentamicin prophylaxis gram negative adjunct', confidence: secondaryConf.level, confidenceReason: secondaryConf.reason });
+        pushUnique({ drug: 'Clindamycin', dose: '900 mg', redoseHours: '6', note: 'Common alternative when beta-lactam cannot be used.', reference: 'Beta-lactam alternative regimen rows and redosing table.', matchLabel: ctx.category, matchTerms: ctx.matchedTerms, searchHint: 'clindamycin prophylaxis 900 mg redosing', confidence: secondaryConf.level, confidenceReason: secondaryConf.reason });
+      } else {
+        pushUnique({ drug: ctx.primary, dose: ctx.primary === 'Cefoxitin' ? '2 g' : '2 g', redoseHours: ctx.primary === 'Cefoxitin' ? '2' : '4', note: ctx.rationale, reference: ctx.referenceCue, matchLabel: ctx.category, matchTerms: ctx.matchedTerms, searchHint: ctx.searchHint, confidence: primaryConf.level, confidenceReason: primaryConf.reason });
+        pushUnique({ drug: 'Cefazolin', dose: '2 g', redoseHours: '4', note: 'Standard option for many clean procedures (3 g if high body weight per protocol).', reference: 'Standard first-line prophylaxis dosing/redosing rows.', matchLabel: ctx.category, matchTerms: ctx.matchedTerms, searchHint: 'cefazolin prophylaxis 2 g 3 g redosing', confidence: secondaryConf.level, confidenceReason: secondaryConf.reason });
+        pushUnique({ drug: ctx.fallback, dose: ctx.fallback === 'Vancomycin' ? '15 mg/kg' : (ctx.fallback === 'Gentamicin' ? '5 mg/kg' : '900 mg'), redoseHours: ctx.fallback === 'Vancomycin' ? 'N/A' : (ctx.fallback === 'Gentamicin' ? 'N/A' : '6'), note: 'Procedure-specific alternative based on context.', reference: 'Alternative regimen rows by procedure type and allergy status.', matchLabel: ctx.category, matchTerms: ctx.matchedTerms, searchHint: ctx.searchHint, confidence: secondaryConf.level, confidenceReason: secondaryConf.reason });
+        pushUnique({ drug: 'Clindamycin', dose: '900 mg', redoseHours: '6', note: 'Common alternative when beta-lactam cannot be used.', reference: 'Beta-lactam alternative regimen rows and redosing table.', matchLabel: ctx.category, matchTerms: ctx.matchedTerms, searchHint: 'clindamycin prophylaxis 900 mg redosing', confidence: secondaryConf.level, confidenceReason: secondaryConf.reason });
+      }
+
+      return suggestions.slice(0, 3);
+    }
+
+    function renderAntibioticGuidance() {
+      var refLink = document.getElementById('pat-antibiotic-reference-link');
+      var surgery = (document.getElementById('pat-surgery').value || '').trim();
+
+      if (!refLink) return;
+      if (!surgery) {
+        refLink.href = '../Antibiotics/Surgical-Antibiotics-SMH.html';
+        return;
+      }
+      refLink.href = '../Antibiotics/Surgical-Antibiotics-SMH.html?focusSearch=' + encodeURIComponent(surgery);
+    }
+
+    const POSITION_OPTS = [
+      'Supine', 'Prone', 'Lateral Decubitus', 'Lithotomy', 'Trendelenburg',
+      'Steep Trendelenburg', 'Reverse Trendelenburg', 'Sitting / Beach Chair',
+      'Jackknife', 'Fowler / Semi-Fowler', 'Knee-Chest', 'Other'
+    ];
+    var extraSurgCount = 0;
+    var _extraSurgLastSaved = null;
+    var _extraSurgDirtyUntil = 0;
+
+    function positionOptions(selected) {
+      return '<option value="">Select...</option>' + POSITION_OPTS.map(function(p) {
+        return '<option' + (p === selected ? ' selected' : '') + '>' + p + '</option>';
+      }).join('');
+    }
+
+    function syncExtraPosOther(sel) {
+      var row = sel.closest('.row');
+      if (!row) return;
+      var inp = row.querySelector('.extra-pos-other');
+      if (!inp) return;
+      inp.style.display = sel.value === 'Other' ? 'inline-block' : 'none';
+      if (sel.value !== 'Other') inp.value = '';
+    }
+
+    function addExtraSurgRow(surg, pos, skipSave, posOther) {
+      if (extraSurgCount >= 30) return;
+      extraSurgCount++;
+      var i = extraSurgCount;
+      var row = document.createElement('div');
+      row.className = 'row';
+      row.id = 'extra-surg-row-' + i;
+      row.style.gap = '8px';
+      row.style.padding = '0';
+      var safeOther = (posOther || '').replace(/"/g, '&quot;');
+      row.innerHTML =
+        '<select id="extra-pos-' + i + '" style="width:220px;max-width:100%;" onchange="syncExtraPosOther(this); saveExtraSurg();">' + positionOptions(pos || '') + '</select>' +
+        '<input class="extra-pos-other" type="text" placeholder="Describe position..." value="' + safeOther + '" oninput="saveExtraSurg();" style="display:' + (pos === 'Other' ? 'inline-block' : 'none') + ';width:200px;max-width:100%;padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:0.95em;font-family:inherit;" />' +
+        '<button type="button" style="background:none;border:none;color:#bbb;font-size:18px;cursor:pointer;padding:0 4px;" onclick="this.closest(\'[id^=extra-surg-row]\').remove();saveExtraSurg();">×</button>';
+      document.getElementById('extra-surg-list').appendChild(row);
+      if (!skipSave) saveExtraSurg();
+    }
+
+    function saveExtraSurg() {
+      var rows = Array.from(document.querySelectorAll('#extra-surg-list .row'));
+      var data = rows.map(function(row) {
+        var sel = row.querySelector('select');
+        var inp = row.querySelector('.extra-pos-other');
+        var pos = sel ? sel.value : '';
+        return { pos: pos, posOther: (inp && pos === 'Other') ? inp.value : '' };
+      });
+      var json = JSON.stringify(data);
+      _extraSurgLastSaved = json;
+      _extraSurgDirtyUntil = Date.now() + 3000;
+      var s = getGlobalState();
+      s['extra-surg-list'] = json;
+      setGlobalState(s);
+    }
+
+    function restoreExtraSurg() {
+      var s = getGlobalState();
+      var json = s['extra-surg-list'] || '[]';
+      // If we recently saved locally, prefer our version over a potentially stale snapshot
+      if (_extraSurgLastSaved !== null && Date.now() < _extraSurgDirtyUntil) {
+        json = _extraSurgLastSaved;
+      }
+      var data = [];
+      try { data = JSON.parse(json) || []; } catch (e) {}
+      document.getElementById('extra-surg-list').innerHTML = '';
+      extraSurgCount = 0;
+      data.forEach(function(item) { addExtraSurgRow(item.surg || '', item.pos || '', true, item.posOther || ''); });
+    }
+
+    function boot() {
+      document.getElementById('pat-position-other').addEventListener('input', saveState);
+      document.querySelectorAll('input[name="pat-pressure-points"]').forEach(function(el) {
+        el.addEventListener('change', saveState);
+      });
+      document.getElementById('pat-surgery').addEventListener('input', renderAntibioticGuidance);
+      document.getElementById('pat-anticipated-pain').addEventListener('change', saveState);
+      document.getElementById('pat-anticipated-ebl').addEventListener('change', function() {
+        syncAnticipatedBloodPrep();
+      });
+      var ABX_DATA = {
+        'Cefazolin':               { redose: 4,  maxDaily: '6 g (<120 kg) / 9 g (≥120 kg)', weightBased: function(wt) { return wt >= 120 ? '3 g IV' : '2 g IV'; } },
+        'Cefoxitin':               { dose: '2 g IV',       redose: 2,  maxDaily: '8 g' },
+        'Cefuroxime':              { dose: '1.5 g IV',     redose: 4,  maxDaily: null },
+        'Cefepime':                { dose: '2 g IV',       redose: 4,  maxDaily: '6 g' },
+        'Ampicillin-Sulbactam':    { dose: '3 g IV',       redose: 2,  maxDaily: '18 g' },
+        'Aztreonam':               { dose: '2 g IV',       redose: 4,  maxDaily: '8 g' },
+        'Clindamycin':             { dose: '900 mg IV',    redose: 6,  maxDaily: '2700 mg' },
+        'Vancomycin':              { redose: 12, maxDaily: '2 g (<80 kg) / 3 g (≥80 kg)', weightBased: function(wt) { return wt >= 80 ? '1.5 g IV over 1.5 h' : '1 g IV over 1 h'; } },
+        'Gentamicin':              { redose: 24, maxDaily: null, weightBased: function(wt) { return wt > 0 ? (wt * 5).toFixed(0) + ' mg IV' : '5 mg/kg IV'; } },
+        'Metronidazole':           { dose: '500 mg IV',    redose: 8,  maxDaily: '1500 mg' },
+        'Ciprofloxacin':           { dose: '400 mg IV',    redose: 8,  maxDaily: '1200 mg' },
+        'Piperacillin-Tazobactam': { dose: '3.375 g IV',   redose: 2,  maxDaily: '13.5 g' },
+        'Ertapenem':               { dose: '1 g IV',       redose: 24, maxDaily: '1 g' }
+      };
+
+      function _fmtMaxDaily(maxDaily) {
+        if (!maxDaily) return '';
+        var parts = maxDaily.split(' / ');
+        if (parts.length < 2) {
+          return '<span style="white-space:nowrap;">Max daily: ' + maxDaily + '</span>';
+        }
+        var rows = parts.map(function(p) {
+          var m = p.match(/^(.+?)\s+(\(.+\))$/);
+          if (m) {
+            return '<tr><td style="text-align:right;padding-right:5px;white-space:nowrap;">' + m[1] +
+                   '</td><td style="white-space:nowrap;">' + m[2] + '</td></tr>';
+          }
+          return '<tr><td colspan="2" style="white-space:nowrap;">' + p + '</td></tr>';
+        });
+        return '<div style="white-space:nowrap;">Max daily:</div>' +
+               '<table style="border-collapse:collapse;line-height:1.4;">' + rows.join('') + '</table>';
+      }
+
+      function autoFillAbx(drug) {
+        var doseEl = document.getElementById('pat-anticipated-antibiotic-dose');
+        var redoseEl = document.getElementById('pat-anticipated-antibiotic-redose-hours');
+        var maxEl = document.getElementById('pat-abx-max-dose');
+        var entry = ABX_DATA[drug];
+        if (!entry) {
+          doseEl.value = ''; redoseEl.value = '';
+          if (maxEl) { maxEl.textContent = ''; maxEl.style.display = 'none'; }
+          return;
+        }
+        var wt = parseFloat(getGlobalState()['pat-weight-kg']) || 0;
+        doseEl.value = entry.weightBased ? entry.weightBased(wt) : (entry.dose || '');
+        redoseEl.value = entry.redose || '';
+        if (maxEl) {
+          if (entry.maxDaily) { maxEl.innerHTML = _fmtMaxDaily(entry.maxDaily); maxEl.style.display = 'block'; }
+          else { maxEl.textContent = ''; maxEl.style.display = 'none'; }
+        }
+      }
+
+      function autoFillAbx2(drug) {
+        var doseEl = document.getElementById('pat-anticipated-antibiotic-dose-2');
+        var redoseEl = document.getElementById('pat-anticipated-antibiotic-redose-hours-2');
+        var maxEl = document.getElementById('pat-abx-max-dose-2');
+        var entry = ABX_DATA[drug];
+        if (!entry) {
+          doseEl.value = ''; redoseEl.value = '';
+          if (maxEl) { maxEl.textContent = ''; maxEl.style.display = 'none'; }
+          return;
+        }
+        var wt = parseFloat(getGlobalState()['pat-weight-kg']) || 0;
+        doseEl.value = entry.weightBased ? entry.weightBased(wt) : (entry.dose || '');
+        redoseEl.value = entry.redose || '';
+        if (maxEl) {
+          if (entry.maxDaily) { maxEl.innerHTML = _fmtMaxDaily(entry.maxDaily); maxEl.style.display = 'block'; }
+          else { maxEl.textContent = ''; maxEl.style.display = 'none'; }
+        }
+      }
+
+      document.getElementById('pat-anticipated-antibiotic').addEventListener('change', function() {
+        autoFillAbx(this.value);
+        saveState();
+      });
+      document.getElementById('pat-anticipated-antibiotic-2').addEventListener('change', function() {
+        autoFillAbx2(this.value);
+        saveState();
+      });
+      document.getElementById('pat-anticipated-antibiotic-dose-2').addEventListener('input', saveState);
+      document.getElementById('pat-anticipated-antibiotic-redose-hours-2').addEventListener('input', saveState);
+      document.getElementById('pat-surg-date-mode').addEventListener('change', syncSurgicalDate);
+      document.getElementById('pat-surg-date-other').addEventListener('input', syncSurgicalDate);
+      document.querySelectorAll('input[name="pat-obtain-ts"], input[name="pat-blood-room"]').forEach(function(el) {
+        el.addEventListener('change', saveState);
+      });
+      document.querySelectorAll('input[name="pat-anticipated-complications"]').forEach(function(el) {
+        el.addEventListener('change', function() {
+          if (el.id === 'pat-comp-other') syncComplicationsOther();
+          else saveState();
+        });
+      });
+      document.getElementById('pat-comp-other-text').addEventListener('input', saveState);
+      ['pat-sched-surg-time', 'pat-surg-end-time', 'pat-surg-length'].forEach(function(id) {
+        document.getElementById(id).addEventListener('input', function() { syncSurgeryTimeFields(id); });
+        document.getElementById(id).addEventListener('change', function() { syncSurgeryTimeFields(id); });
+      });
+      document.getElementById('pat-or-number').addEventListener('input', saveState);
+      document.getElementById('pat-asa-class').addEventListener('change', saveState);
+      document.getElementById('pat-disposition').addEventListener('change', saveState);
+      document.getElementById('pat-nerve-stim-location').addEventListener('change', saveState);
+      document.querySelectorAll('input[name="pat-neuro-monitoring"]').forEach(function(el) { el.addEventListener('change', saveState); });
+      document.getElementById('pat-neuro-monitoring-type').addEventListener('change', saveState);
+      document.getElementById('pat-neuro-monitoring-other').addEventListener('input', saveState);
+      document.querySelectorAll('input[name="pat-insufflation"]').forEach(function(el) { el.addEventListener('change', saveState); });
+      document.getElementById('pat-arms-tucked').addEventListener('change', saveState);
+      document.getElementById('pat-arms-tucked-other').addEventListener('input', saveState);
+
+      if (!document.getElementById('pat-surg-date-mode').value) {
+        document.getElementById('pat-surg-date-mode').value = 'Tomorrow';
+      }
+      syncPositionOther();
+      syncArmsTucked();
+      syncNeuroMonitoring();
+      syncComplicationsOther();
+      renderAntibioticGuidance();
+      syncAnticipatedBloodPrep(false);
+      syncSurgicalDate();
+      syncSurgeryTimeFields();
+      restoreExtraSurg();
+      restoreAbxRow2();
+      // Restore Jaffe badge
+      var savedSurgery = document.getElementById('pat-surgery').value;
+      if (savedSurgery) {
+        var jaffeMatch = JAFFE_SURGERIES.find(function(s) { return s.name.toLowerCase() === savedSurgery.toLowerCase(); });
+        updateJaffeBadge(jaffeMatch ? jaffeMatch.page : null);
+      } else {
+        updateJaffeBadge(null);
+      }
+    }
+
+    pageBoot(boot, function() { restoreExtraSurg(); restoreAbxRow2(); syncAnticipatedBloodPrep(false); syncPositionOther(); syncArmsTucked(); syncComplicationsOther(); syncNeuroMonitoring(); });
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+
+
+<!-- ASA Classification Modal -->
+<div id="asa-modal" style="display:none;position:fixed;inset:0;background:rgba(15,25,40,.5);z-index:99999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:13px;box-shadow:0 20px 48px rgba(0,0,0,.28);width:min(520px,100%);max-height:85vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+    <div style="padding:14px 16px 10px;border-bottom:1px solid #dde6f0;display:flex;align-items:center;justify-content:space-between;background:#f4f8ff;border-radius:13px 13px 0 0;">
+      <span style="font-weight:700;font-size:1rem;color:#1a3a5c;">ASA Physical Status Classifications</span>
+      <button type="button" onclick="document.getElementById('asa-modal').style.display='none'" style="background:none;border:none;font-size:1.3rem;color:#5a7488;cursor:pointer;line-height:1;padding:0 2px;">&times;</button>
+    </div>
+    <div style="padding:14px 16px;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
+        <thead><tr style="background:#eef4ff;"><th style="text-align:left;padding:7px 10px;color:#1a3a5c;border-bottom:2px solid #c8d9ee;">Class</th><th style="text-align:left;padding:7px 10px;color:#1a3a5c;border-bottom:2px solid #c8d9ee;">Description</th></tr></thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#2a5080;white-space:nowrap;">ASA I</td><td style="padding:8px 10px;color:#1d2938;">Normal healthy patient — non-smoker, no or minimal alcohol use.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#2a5080;white-space:nowrap;">ASA II</td><td style="padding:8px 10px;color:#1d2938;">Mild systemic disease — e.g., social drinker, active smoker, pregnancy, obesity (BMI 30–40), well-controlled DM or HTN.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#c97a00;white-space:nowrap;">ASA III</td><td style="padding:8px 10px;color:#1d2938;">Severe systemic disease — e.g., BMI ≥40, poorly controlled DM or HTN, stable angina, h/o MI or CVA &gt;3 months ago, ESRD on dialysis.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#c0420a;white-space:nowrap;">ASA IV</td><td style="padding:8px 10px;color:#1d2938;">Severe systemic disease — constant threat to life. E.g., recent MI or CVA &lt;3 months, unstable angina, severe valve dysfunction, sepsis.</td></tr>
+          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#b32424;white-space:nowrap;">ASA V</td><td style="padding:8px 10px;color:#1d2938;">Moribund — not expected to survive without surgery. E.g., ruptured aneurysm, massive trauma.</td></tr>
+          <tr style="background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#6b3fa0;white-space:nowrap;">ASA VI</td><td style="padding:8px 10px;color:#1d2938;">Brain-dead patient awaiting organ procurement.</td></tr>
+        </tbody>
+      </table>
+      <p style="margin:10px 0 0;font-size:0.78rem;color:#6b7d90;">Append <strong>E</strong> for emergency procedures (e.g., ASA IIE).</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

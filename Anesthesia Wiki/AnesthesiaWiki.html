@@ -8,7 +8,6 @@
       <meta http-equiv="Pragma" content="no-cache">
       <meta http-equiv="Expires" content="0">
       <title>Anesthesia Clinical Tool</title>
-      <link rel="manifest" href="manifest.json">
       <meta name="apple-mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-status-bar-style" content="default">
       <meta name="apple-mobile-web-app-title" content="Anesthesia">
@@ -417,10 +416,38 @@
             display: none;
          }
 
-         @media (max-width: 500px) {
-            header h1 { padding-right: 0; padding-left: 0; font-size: 1.15rem; }
-            header { padding-bottom: 46px; }
-            #header-auth { top: auto; bottom: 10px; right: 50%; transform: translateX(50%); }
+         @media (max-width: 700px) {
+            header {
+               padding: 10px 12px 10px;
+               text-align: center;
+            }
+            header h1 {
+               margin: 0 0 8px 0;
+               padding: 0;
+               font-size: 1.2rem;
+               line-height: 1.05;
+            }
+            #header-auth {
+               position: static;
+               top: auto;
+               right: auto;
+               transform: none;
+               display: flex;
+               align-items: center;
+               justify-content: center;
+               gap: 8px;
+               flex-wrap: wrap;
+               width: 100%;
+            }
+            #header-auth-name,
+            #header-role-badge,
+            #header-role-preview {
+               font-size: 0.88rem;
+            }
+            #header-auth-btn {
+               font-size: 0.95rem;
+               padding: 6px 14px;
+            }
          }
 
       </style>
@@ -456,6 +483,14 @@
                   <span class="tile-icon">📝</span>
                   Care Plan Generator
                </a>
+               <a href="Typhon%20Helper/TyphonCaseHelper.html" class="tile t-teal" data-auth-gated="true">
+                  <span class="tile-icon">⚡</span>
+                  Typhon Case Helper
+               </a>
+               <a href="ClinicalSites/Index.html?v=20260411c" class="tile t-blue" id="tile-clinical-sites" data-auth-gated="true">
+                  <span class="tile-icon">🏥</span>
+                  Clinical Sites
+               </a>
                <a href="http://www.ccanesthesiareview.com/qod/qod.asp" class="tile t-purple" target="_blank">
                   <span class="tile-icon">📓</span>
                   Boards QOTD
@@ -472,17 +507,13 @@
                   <span class="tile-icon">🤝</span>
                   Jenny's PACU Handoff
                </a>
+               <a href="SetupAndHandoffs/PostInduction.html" class="tile t-teal">
+                  <span class="tile-icon">✅</span>
+                  Post-Induction
+               </a>
                <a href="MedicationColors/Index.html" class="tile t-orange">
                   <span class="tile-icon">🎨</span>
                   Medication Sticker Colors
-               </a>
-               <a href="ClinicalSites/Index.html?v=20260411c" class="tile t-blue" id="tile-clinical-sites" data-auth-gated="true">
-                  <span class="tile-icon">🏥</span>
-                  Clinical Sites
-               </a>
-               <a href="Typhon%20Helper/TyphonCaseHelper.html" class="tile t-teal" data-auth-gated="true">
-                  <span class="tile-icon">⚡</span>
-                  Typhon Case Helper
                </a>
             </div>
          </div>
@@ -538,57 +569,73 @@
             <span class="section-toggle">▼</span>
          </div>
          <div id="sec-wip" class="section-body collapsed">
-            <p class="wip-note">Use caution: these pages are works in progress and may be incomplete or change frequently.</p>
             <div class="tile-grid">
-               <a href="PersonalGrowth/Index.html" class="tile wip">
-                  <span class="tile-icon">🌱</span>
-                  Clinical Growth Journal
-                  <span class="tile-sub">Daily goals &amp; session reflections</span>
-               </a>
-               <a href="Meds/Index.html" class="tile wip" id="tile-medications">
-                  <span class="tile-icon">💊</span>
-                  Medications
-                  <span class="tile-sub">Work in progress - use caution</span>
-               </a>
-               <a href="Airway/AirwayManagement.html" class="tile wip">
-                  <span class="tile-icon">🫁</span>
-                  Airway Management
-                  <span class="tile-sub">Work in progress - use caution</span>
-               </a>
-               <a href="Comorbidities/Index.html" class="tile wip">
-                  <span class="tile-icon">🫀</span>
-                  Comorbidities
-                  <span class="tile-sub">Work in progress - use caution</span>
-               </a>
-               <a href="Studies/Index.html?v=20260413b" class="tile wip">
-                  <span class="tile-icon">📚</span>
-                  Research Library
-                  <span class="tile-sub">Work in progress - use caution</span>
-               </a>
-               <a href="Antibiotics/Index.html?v=20260415a" class="tile wip">
-                  <span class="tile-icon">💊</span>
-                  Antibiotics
-                  <span class="tile-sub">Work in progress - use caution</span>
-               </a>
-               <a href="TopDrawerMeds/Index.html" class="tile wip">
-                  <span class="tile-icon">🗂️</span>
-                  Top Drawer Meds
-                  <span class="tile-sub">Work in progress - use caution</span>
-               </a>
                <a href="CarePlanGenerator%20WIP/Combined-Care-Plan.html" class="tile wip">
                   <span class="tile-icon">📋</span>
                   Care Plan Generator (WIP)
-                  <span class="tile-sub">Print layout editor &amp; named templates</span>
                </a>
                <a href="Typhon%20Helper%20WIP/TyphonCaseHelper.html" class="tile wip" data-auth-gated="true">
                   <span class="tile-icon">⚡</span>
                   Typhon Case Helper (WIP)
                </a>
+               <a href="ClinicalSites%20WIP/Index.html" class="tile wip" id="tile-clinical-sites-wip" data-auth-gated="true">
+                  <span class="tile-icon">🏥</span>
+                  Clinical Sites WIP
+               </a>
+               <a href="Typhon%20Helper/TyphonCaseHelperExtension-v1.77.zip" class="tile wip" download>
+                  <span class="tile-icon">⬇️</span>
+                  Typhon Helper Extension
+                  <span class="tile-sub">Download v1.77</span>
+               </a>
 
-
+            </div>
          </div>
-         
-      </div>
+
+         <!-- Back Burner -->
+         <div id="sec-backburner-header" class="section-header" onclick="toggleSection('backburner')">
+            <h2>Back Burner</h2>
+            <div class="section-line"></div>
+            <span class="section-toggle">▼</span>
+         </div>
+         <div id="sec-backburner" class="section-body collapsed">
+            <div class="tile-grid">
+               <a href="Back%20Burner/PersonalGrowth/Index.html" class="tile wip">
+                  <span class="tile-icon">🌱</span>
+                  Clinical Growth Journal
+                  <span class="tile-sub">Daily goals &amp; session reflections</span>
+               </a>
+               <a href="Back%20Burner/Meds/Index.html" class="tile wip" id="tile-medications">
+                  <span class="tile-icon">💊</span>
+                  Medications
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+               <a href="Back%20Burner/Airway/AirwayManagement.html" class="tile wip">
+                  <span class="tile-icon">🫁</span>
+                  Airway Management
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+               <a href="Back%20Burner/Comorbidities/Index.html" class="tile wip">
+                  <span class="tile-icon">🫀</span>
+                  Comorbidities
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+               <a href="Back%20Burner/Studies/Index.html?v=20260413b" class="tile wip">
+                  <span class="tile-icon">📚</span>
+                  Research Library
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+               <a href="Back%20Burner/Antibiotics/Index.html?v=20260415a" class="tile wip">
+                  <span class="tile-icon">💊</span>
+                  Antibiotics
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+               <a href="Back%20Burner/TopDrawerMeds/Index.html" class="tile wip">
+                  <span class="tile-icon">🗂️</span>
+                  Top Drawer Meds
+                  <span class="tile-sub">Work in progress - use caution</span>
+               </a>
+            </div>
+         </div>
 
       <script src="CarePlanGenerator/med-catalog.js"></script>
    <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
@@ -599,7 +646,7 @@
    (function (global) {
      'use strict';
      var FIREBASE_CONFIG = {
-       apiKey:            'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+       apiKey:            'AIzaSyACNII9-q3CoAipRpMTxwE6WLPOQVbbY-E',
        authDomain:        'anesthesia-wiki-saved-files.firebaseapp.com',
        projectId:         'anesthesia-wiki-saved-files',
        storageBucket:     'anesthesia-wiki-saved-files.firebasestorage.app',
@@ -699,7 +746,7 @@
             { name: 'IBW & Ventilation Chart', href: 'Calculators/IBWChart.html' },
             { name: 'BMI Calculator', href: 'Calculators/BMICalculator.html' },
             { name: 'Fluid / ABL Calculator', href: 'Calculators/FluidCalculator.html' },
-            { name: 'Local Anesthetic Max Dose Calculator', href: 'Meds/LocalAnestheticMaxDoseCalculator.html' },
+            { name: 'Local Anesthetic Max Dose Calculator', href: 'Calculators/LocalAnestheticMaxDoseCalculator.html' },
             { name: 'LMA Sizing Guide', href: 'Airway/AirwayManagement.html#lma' },
             // Emergency Algorithms
             { name: 'Anaphylaxis Algorithm', href: 'CrisisAlgorithms/Stanford-Crisis-Version-1.html?topic=anaphylaxis' },

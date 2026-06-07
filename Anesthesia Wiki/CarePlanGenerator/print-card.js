@@ -134,7 +134,7 @@
       setText('pr-header-time', sched);
       setText('pr-header-surgery', surgery);
       setText('pr-name', initials + ' (Sched: ' + sched + ' | Len: ' + len + ')');
-      setText('pr-age-gen', (s['pat-age'] || '_') + ' yrs / ' + (s['pat-gender'] || '_'));
+      setText('pr-age-gen', (s['pat-age'] || '_') + ' yo / ' + (s['pat-gender'] || '_'));
 
       var h = '_';
       var cmVal = parseFloat(s['pat-cm']);
@@ -223,7 +223,13 @@
       }
 
       setOptionalRow('pr-antibiotic-plan-row', 'pr-antibiotic-plan', abxParts.join(' | '));
-      setText('pr-asa-class', s['pat-asa-class'] || '_');
+      var asaVal = s['pat-asa-class'] || '_';
+      setText('pr-asa-class', asaVal);
+      var asaSpan = document.getElementById('pr-asa-class');
+      if (asaSpan) {
+        asaSpan.style.color = (parseInt(asaVal) >= 3) ? '#c41c3b' : '';
+        asaSpan.style.fontWeight = (parseInt(asaVal) >= 3) ? 'bold' : '';
+      }
       var anticipatedEbl = String(s['pat-anticipated-ebl'] || '').trim();
       var needsTS = anticipatedEbl === 'Medium' || anticipatedEbl === 'High';
       var needsBloodRoom = anticipatedEbl === 'High';
@@ -825,6 +831,10 @@
           equipItems[equipItems.length - 1] += ' (' + s['equip-bairhugger-type'] + ')';
         }
       });
+      var extrasNotes = s['extras-notes'];
+      if (Array.isArray(extrasNotes)) {
+        extrasNotes.forEach(function(n) { if (n && n.trim()) equipItems.push(n.trim()); });
+      }
       var equipDiv = document.getElementById('pr-equip-items');
       var equipRow = document.getElementById('pr-row-equipment');
       if (equipDiv) equipDiv.innerHTML = '';
@@ -845,10 +855,7 @@
       setText('pr-fluid-type', s['plan-fluid-type'] || 'None');
       setOptionalRow('pr-warm-fluids-row', 'pr-warm-fluids', String(s['plan-fluid-warm-enabled'] || '').toLowerCase() === 'yes' ? 'Yes' : '');
       setOptionalRow('pr-albumin-row', 'pr-albumin', String(s['plan-fluid-albumin'] || '').toLowerCase() === 'yes' ? 'Yes' : '');
-      setText('pr-fluid-hr1', '_');
-      setText('pr-fluid-hr2', '_');
-      setText('pr-fluid-hr3', '_');
-      setText('pr-fluid-hr4', '_');
+      setText('pr-fluid-hrs', '_');
       var w = parseFloat(s['plan-fluid-weight']) || 0;
       var npo = parseFloat(s['plan-fluid-npo']) || 0;
       var trauma = parseFloat(s['plan-fluid-trauma']) || 0;
@@ -860,10 +867,7 @@
         var hr2 = Math.round(maint + deficit / 4 + traumaLoss);
         var hr3 = Math.round(maint + deficit / 4 + traumaLoss);
         var hr4 = Math.round(maint + traumaLoss);
-        setText('pr-fluid-hr1', hr1 + ' mL');
-        setText('pr-fluid-hr2', hr2 + ' mL');
-        setText('pr-fluid-hr3', hr3 + ' mL');
-        setText('pr-fluid-hr4', hr4 + ' mL');
+        setText('pr-fluid-hrs', hr1 + ' / ' + hr2 + ' / ' + hr3 + ' / ' + hr4 + ' mL');
       }
 
       var tvMin = s['pat-tv-min'] ? String(s['pat-tv-min']) : '';
@@ -921,11 +925,31 @@
       setOptionalRow('pr-vent-rest-row', 'pr-vent-rest', ventRestParts.join(' / '));
 
       // Notes
-      var notesText = String(s['notes-freetext'] || '').trim();
       var notesSection = document.getElementById('pr-notes-section');
       var notesEl = document.getElementById('pr-notes');
-      if (notesSection) notesSection.style.display = notesText ? 'block' : 'none';
-      if (notesEl) notesEl.textContent = notesText;
+      var noteRows = [];
+      try { noteRows = JSON.parse(s['notes-list'] || '[]'); } catch (e) {}
+      // Fallback: legacy freetext
+      if (!noteRows.length && s['notes-freetext']) {
+        noteRows = String(s['notes-freetext']).split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+      }
+      noteRows = noteRows.filter(function(r) { return String(r || '').trim(); });
+      if (notesSection) notesSection.style.display = noteRows.length ? 'block' : 'none';
+      if (notesEl) {
+        notesEl.innerHTML = '';
+        noteRows.forEach(function(note) {
+          var li = document.createElement('div');
+          li.style.cssText = 'display:flex;gap:3px;line-height:1.35;';
+          var bullet = document.createElement('span');
+          bullet.textContent = '\u2022';
+          bullet.style.flexShrink = '0';
+          var txt = document.createElement('span');
+          txt.textContent = note;
+          li.appendChild(bullet);
+          li.appendChild(txt);
+          notesEl.appendChild(li);
+        });
+      }
     }
 
     function buildPrintCardHtml(state) {

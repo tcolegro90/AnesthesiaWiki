@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Top Drawer Meds</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --ink: #16324a;
+      --muted: #5d7387;
+      --line: #d7e2ec;
+      --accent: #1d6fa5;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .back {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      line-height: 1.2;
+    }
+
+    .sub {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+    }
+
+    .mode-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mode-row h2 {
+      margin: 0;
+    }
+
+    .switch-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      user-select: none;
+    }
+
+    .switch {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      display: inline-block;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #d2dfeb;
+      border: 1px solid #bed0df;
+      border-radius: 999px;
+      transition: 0.2s;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      transition: 0.2s;
+    }
+
+    .switch input:checked + .slider {
+      background: #1d6fa5;
+      border-color: #1d6fa5;
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(22px);
+    }
+
+    .mode-note {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .dose-highlight {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fff4cf;
+      border: 1px solid #efd98f;
+      color: #6e4b00;
+      font-weight: 800;
+    }
+
+    .med-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .med-table th,
+    .med-table td {
+      text-align: left;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 0.95rem;
+    }
+
+    .med-table th {
+      background: #ecf3fb;
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #355369;
+    }
+
+    .med-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .pending-chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fff2d9;
+      color: #805a00;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .cta-wrap {
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      text-decoration: none;
+      background: #1567a2;
+      color: #fff;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 10px 16px;
+    }
+
+    .todo-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .note {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.94rem;
+      font-weight: 600;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.55;
+    }
+
+    li { margin: 2px 0; }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .is-hidden {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 1.35rem;
+        text-align: center;
+      }
+
+      .sub {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      
+    </div>
+
+    <h1>Top Drawer Meds</h1>
+    <p class="sub">Quick reference for top drawer stock and pre-drawn syringes</p>
+
+    <div class="grid">
+      <section class="card">
+        <div class="mode-row">
+          <h2 id="drug-mode-title">Drug Concentrations</h2>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <div class="switch-wrap">
+              <span>Drug Concentrations</span>
+              <label class="switch" for="dose-mode-toggle" aria-label="Switch between concentration and dose mode">
+                <input type="checkbox" id="dose-mode-toggle" />
+                <span class="slider"></span>
+              </label>
+              <span>Drug Dose</span>
+            </div>
+            <button id="edit-btn" onclick="toggleEditMode()" style="display:none;background:#1d6fa5;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:0.85rem;font-weight:700;cursor:pointer;">✏️ Edit</button>
+          </div>
+        </div>
+        <p class="mode-note" id="mode-note">Concentration quick reference for top drawer medications.</p>
+
+        <div id="edit-banner" style="display:none;background:#fff8e7;border:1px solid #f0d88a;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:0.85rem;color:#6e4b00;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <span>✏️ Edit mode — changes are saved to your account.</span>
+          <div style="display:flex;gap:8px;">
+            <button onclick="saveEdits()" style="background:#1a7c50;color:#fff;border:none;border-radius:6px;padding:5px 14px;font-weight:700;cursor:pointer;font-size:0.83rem;">💾 Save</button>
+            <button onclick="cancelEditMode()" style="background:#e8eef5;color:#3a4a5a;border:none;border-radius:6px;padding:5px 14px;font-weight:700;cursor:pointer;font-size:0.83rem;">Cancel</button>
+          </div>
+        </div>
+
+        <div id="table-concentration-view">
+          <table class="med-table" id="conc-table">
+            <thead><tr><th>Drug</th><th>Concentration</th><th id="conc-action-col" style="display:none;width:36px;"></th></tr></thead>
+            <tbody id="conc-body"></tbody>
+          </table>
+          <button id="conc-add-btn" onclick="addRow('conc')" style="display:none;margin-top:8px;background:#e8f4ff;color:#1d6fa5;border:1px dashed #7ab8e8;border-radius:7px;padding:5px 14px;font-weight:700;cursor:pointer;font-size:0.85rem;width:100%;">+ Add Drug</button>
+        </div>
+
+        <table class="med-table" style="margin-top:14px;">
+          <thead><tr><th>Pre-drawn Syringes</th><th>Dose</th></tr></thead>
+          <tbody id="predrawn-conc-body"></tbody>
+        </table>
+
+        <div id="table-dose-view" class="is-hidden">
+          <table class="med-table" id="dose-table">
+            <thead><tr><th>Drug</th><th>Common Dose</th><th id="dose-action-col" style="display:none;width:36px;"></th></tr></thead>
+            <tbody id="dose-body"></tbody>
+          </table>
+          <button id="dose-add-btn" onclick="addRow('dose')" style="display:none;margin-top:8px;background:#e8f4ff;color:#1d6fa5;border:1px dashed #7ab8e8;border-radius:7px;padding:5px 14px;font-weight:700;cursor:pointer;font-size:0.85rem;width:100%;">+ Add Drug</button>
+        </div>
+
+        <table class="med-table" style="margin-top:14px;" id="predrawn-dose-table">
+          <thead><tr><th>Pre-drawn Syringes</th><th>Dose</th></tr></thead>
+          <tbody id="predrawn-dose-body"></tbody>
+        </table>
+
+        <div class="cta-wrap">
+          <a class="cta-btn" href="Quiz.html">Play Top Drawer Meds Quiz</a>
+        </div>
+      </section>
+
+
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    (function () {
+      var cfg = {
+        apiKey: 'AIzaSyACNII9-q3CoAipRpMTxwE6WLPOQVbbY-E',
+        authDomain: 'anesthesia-wiki-saved-files.firebaseapp.com',
+        projectId: 'anesthesia-wiki-saved-files',
+        storageBucket: 'anesthesia-wiki-saved-files.firebasestorage.app',
+        messagingSenderId: '493278937716',
+        appId: '1:493278937716:web:6d4055acbb6f5745810721'
+      };
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+    })();
+
+    /* ── Default data ── */
+    var DEFAULT_MEDS = [
+      { drug: 'Propofol',        concentration: '10 mg/1 mL',                              dose: '20–50 mg',                    highlight: true  },
+      { drug: 'Ephedrine',       concentration: '5 mg/mL',                                 dose: '5–10 mg'                      },
+      { drug: 'Epinephrine',     concentration: '10 mcg/mL',                               dose: '5–10 mcg'                     },
+      { drug: 'Phenylephrine',   concentration: '100 mcg/mL',                              dose: '50–100 mcg'                   },
+      { drug: 'Sugammadex',      concentration: '100 mg/mL',                               dose: '2 mg/kg (routine) / 4 mg/kg (deep) / 16 mg/kg (emergency)', highlight: true },
+      { drug: 'Dexamethasone',   concentration: '4 mg/mL',                                 dose: '4–10 mg'                      },
+      { drug: 'Atropine',        concentration: '0.4 mg/mL vial or 0.1 mg/mL syringe',    dose: '0.4–0.6 mg'                   },
+      { drug: 'Hydralazine',     concentration: '20 mg/mL vial, dilute to 2 mg/mL',        dose: '5–10 mg'                      },
+      { drug: 'Furosemide',      concentration: '10 mg/mL',                                dose: '10–20 mg',                    highlight: true  },
+      { drug: 'Verapamil',       concentration: '2.5 mg/mL',                               dose: '2.5–5 mg slow IV'             },
+      { drug: 'Glycopyrrolate',  concentration: '0.2 mg/mL',                               dose: '0.2 mg'                       },
+      { drug: 'Ondansetron',     concentration: '2 mg/mL',                                 dose: '4 mg'                         },
+      { drug: 'Diphenhydramine', concentration: '50 mg/mL',                                dose: '25–50 mg'                     },
+      { drug: 'Vasopressin',     concentration: '20 units/mL vial or 0.2 units/mL syringe',dose: '1–2 units'                   },
+      { drug: 'Etomidate',       concentration: '2 mg/1 mL',                               dose: '0.2–0.4 mg/kg induction'      },
+      { drug: 'Lidocaine',       concentration: '10 mg/mL',                                dose: '40–100 mg',                   highlight: true  },
+      { drug: 'Neostigmine',     concentration: '1 mg/mL',                                 dose: '0.04–0.07 mg/kg'              },
+      { drug: 'Metoprolol',      concentration: '1 mg/mL',                                 dose: '1–5 mg'                       },
+      { drug: 'Esmolol',         concentration: '10 mg/mL',                                dose: '10–30 mg'                     },
+      { drug: 'Succinylcholine', concentration: '20 mg/mL',                                dose: '1–1.5 mg/kg'                  },
+      { drug: 'Rocuronium',      concentration: '10 mg/mL',                                dose: '0.6–1.2 mg/kg'                },
+      { drug: 'Metoclopramide',  concentration: '',                                         dose: '',                            pending: true    },
+      { drug: 'Ketorolac',       concentration: '',                                         dose: '',                            pending: true    },
+      { drug: 'Naloxone',        concentration: '',                                         dose: '',                            pending: true    },
+      { drug: 'Vecuronium',      concentration: '',                                         dose: '',                            pending: true    },
+      { drug: 'Amiodarone',      concentration: '',                                         dose: '',                            pending: true    }
+    ];
+
+    var DEFAULT_PREDRAWN = [
+      { drug: 'Pre-filled Calcium Chloride syringe', dose: '100 mg code dose' },
+      { drug: 'Pre-filled Epinephrine syringe',      dose: '1 mg code dose'   },
+      { drug: 'Pre-filled Lidocaine syringe',        dose: '100 mg code dose' },
+      { drug: 'Sodium Bicarbonate amp',              dose: '50 mEq code dose' }
+    ];
+
+    var _meds = JSON.parse(JSON.stringify(DEFAULT_MEDS));
+    var _predrawn = JSON.parse(JSON.stringify(DEFAULT_PREDRAWN));
+    var _editMode = false;
+    var _currentUser = null;
+    var _db = null;
+
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /* ── Render ── */
+    function renderAll() {
+      renderConc();
+      renderDose();
+      renderPredrawn();
+    }
+
+    function renderConc() {
+      var tbody = document.getElementById('conc-body');
+      var actionCol = document.getElementById('conc-action-col');
+      if (!tbody) return;
+      if (actionCol) actionCol.style.display = _editMode ? '' : 'none';
+      tbody.innerHTML = _meds.map(function (m, i) {
+        if (_editMode) {
+          return '<tr>' +
+            '<td><input value="' + esc(m.drug) + '" oninput="_meds[' + i + '].drug=this.value" style="width:100%;border:1px solid #c8d9ee;border-radius:4px;padding:3px 6px;font-size:0.92rem;font-family:inherit;"></td>' +
+            '<td><input value="' + esc(m.concentration) + '" oninput="_meds[' + i + '].concentration=this.value" style="width:100%;border:1px solid #c8d9ee;border-radius:4px;padding:3px 6px;font-size:0.92rem;font-family:inherit;"></td>' +
+            '<td><button onclick="_meds.splice(' + i + ',1);renderAll();" style="background:none;border:none;color:#c0392b;font-size:1.1rem;cursor:pointer;padding:0 4px;" title="Remove">×</button></td>' +
+            '</tr>';
+        }
+        var label = m.drug + (m.pending ? ' <span class="pending-chip">pending</span>' : '');
+        var val = m.pending ? 'Need concentration' : esc(m.concentration);
+        return '<tr><td>' + label + '</td><td>' + val + '</td></tr>';
+      }).join('');
+      var addBtn = document.getElementById('conc-add-btn');
+      if (addBtn) addBtn.style.display = _editMode ? '' : 'none';
+    }
+
+    function renderDose() {
+      var tbody = document.getElementById('dose-body');
+      var actionCol = document.getElementById('dose-action-col');
+      if (!tbody) return;
+      if (actionCol) actionCol.style.display = _editMode ? '' : 'none';
+      tbody.innerHTML = _meds.map(function (m, i) {
+        if (_editMode) {
+          return '<tr>' +
+            '<td><input value="' + esc(m.drug) + '" oninput="_meds[' + i + '].drug=this.value" style="width:100%;border:1px solid #c8d9ee;border-radius:4px;padding:3px 6px;font-size:0.92rem;font-family:inherit;"></td>' +
+            '<td><input value="' + esc(m.dose) + '" oninput="_meds[' + i + '].dose=this.value" style="width:100%;border:1px solid #c8d9ee;border-radius:4px;padding:3px 6px;font-size:0.92rem;font-family:inherit;"></td>' +
+            '<td><button onclick="_meds.splice(' + i + ',1);renderAll();" style="background:none;border:none;color:#c0392b;font-size:1.1rem;cursor:pointer;padding:0 4px;" title="Remove">×</button></td>' +
+            '</tr>';
+        }
+        var label = m.drug + (m.pending ? ' <span class="pending-chip">pending</span>' : '');
+        var val = m.pending ? 'Need dose' : (m.highlight ? '<span class="dose-highlight">' + esc(m.dose) + '</span>' : esc(m.dose));
+        return '<tr><td>' + label + '</td><td>' + val + '</td></tr>';
+      }).join('');
+      var addBtn = document.getElementById('dose-add-btn');
+      if (addBtn) addBtn.style.display = _editMode ? '' : 'none';
+    }
+
+    function renderPredrawn() {
+      ['predrawn-conc-body', 'predrawn-dose-body'].forEach(function (id) {
+        var tbody = document.getElementById(id);
+        if (!tbody) return;
+        tbody.innerHTML = _predrawn.map(function (p, i) {
+          if (_editMode) {
+            return '<tr>' +
+              '<td><input value="' + esc(p.drug) + '" oninput="_predrawn[' + i + '].drug=this.value" style="width:100%;border:1px solid #c8d9ee;border-radius:4px;padding:3px 6px;font-size:0.92rem;font-family:inherit;"></td>' +
+              '<td><input value="' + esc(p.dose) + '" oninput="_predrawn[' + i + '].dose=this.value" style="width:100%;border:1px solid #c8d9ee;border-radius:4px;padding:3px 6px;font-size:0.92rem;font-family:inherit;"></td>' +
+              '<td><button onclick="_predrawn.splice(' + i + ',1);renderAll();" style="background:none;border:none;color:#c0392b;font-size:1.1rem;cursor:pointer;padding:0 4px;" title="Remove">×</button></td>' +
+              '</tr>';
+          }
+          return '<tr><td>' + esc(p.drug) + '</td><td>' + esc(p.dose) + '</td></tr>';
+        }).join('');
+      });
+    }
+
+    /* ── Add row ── */
+    function addRow(type) {
+      if (type === 'conc' || type === 'dose') {
+        _meds.push({ drug: '', concentration: '', dose: '', pending: false });
+      } else {
+        _predrawn.push({ drug: '', dose: '' });
+      }
+      renderAll();
+    }
+
+    /* ── Edit mode ── */
+    var _medsSnapshot, _predrawnSnapshot;
+
+    function toggleEditMode() {
+      if (!_editMode) {
+        _medsSnapshot = JSON.stringify(_meds);
+        _predrawnSnapshot = JSON.stringify(_predrawn);
+        _editMode = true;
+      }
+      updateEditUI();
+      renderAll();
+    }
+
+    function cancelEditMode() {
+      _meds = JSON.parse(_medsSnapshot);
+      _predrawn = JSON.parse(_predrawnSnapshot);
+      _editMode = false;
+      updateEditUI();
+      renderAll();
+    }
+
+    function updateEditUI() {
+      var btn = document.getElementById('edit-btn');
+      var banner = document.getElementById('edit-banner');
+      if (btn) btn.textContent = _editMode ? '✏️ Editing…' : '✏️ Edit';
+      if (banner) banner.style.display = _editMode ? 'flex' : 'none';
+    }
+
+    /* ── Save ── */
+    function saveEdits() {
+      if (!_db || !_currentUser) { alert('You must be signed in to save.'); return; }
+      var data = { meds: _meds, predrawn: _predrawn, updatedBy: _currentUser.email, updatedAt: new Date().toISOString() };
+      _db.collection('topDrawerMeds').doc('data').set(data)
+        .then(function () {
+          _editMode = false;
+          updateEditUI();
+          renderAll();
+          showToast('✅ Saved!');
+        })
+        .catch(function (e) { alert('Save failed: ' + e.message); });
+    }
+
+    /* ── Load from Firestore ── */
+    function loadFromFirestore() {
+      if (!_db) return;
+      _db.collection('topDrawerMeds').doc('data').get()
+        .then(function (doc) {
+          if (doc.exists && doc.data().meds && doc.data().meds.length) {
+            _meds = doc.data().meds;
+            _predrawn = doc.data().predrawn || _predrawn;
+          }
+          renderAll();
+        })
+        .catch(function () { renderAll(); });
+    }
+
+    /* ── Toast ── */
+    function showToast(msg) {
+      var t = document.createElement('div');
+      t.textContent = msg;
+      t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a7c50;color:#fff;padding:9px 20px;border-radius:999px;font-weight:700;font-size:0.9rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.18);';
+      document.body.appendChild(t);
+      setTimeout(function () { t.remove(); }, 2200);
+    }
+
+    /* ── Mode toggle (concentration vs dose) ── */
+    (function () {
+      var toggle = document.getElementById('dose-mode-toggle');
+      var title = document.getElementById('drug-mode-title');
+      var note = document.getElementById('mode-note');
+      var concView = document.getElementById('table-concentration-view');
+      var doseView = document.getElementById('table-dose-view');
+      var predrawnDose = document.getElementById('predrawn-dose-table');
+
+      function setMode() {
+        var showDose = toggle && toggle.checked;
+        if (title) title.textContent = showDose ? 'Drug Dose' : 'Drug Concentrations';
+        if (note) note.textContent = showDose
+          ? 'Common dose quick guide. Verify exact dose with attending/institutional protocol.'
+          : 'Concentration quick reference for top drawer medications.';
+        if (concView) concView.classList.toggle('is-hidden', showDose);
+        if (doseView) doseView.classList.toggle('is-hidden', !showDose);
+        if (predrawnDose) predrawnDose.classList.toggle('is-hidden', !showDose);
+      }
+
+      if (toggle) toggle.addEventListener('change', setMode);
+      setMode();
+    })();
+
+    /* ── Auth + init ── */
+    firebase.auth().onAuthStateChanged(function (user) {
+      _currentUser = user;
+      var editBtn = document.getElementById('edit-btn');
+      if (editBtn) editBtn.style.display = user ? 'inline-block' : 'none';
+      if (user) {
+        _db = firebase.firestore();
+        loadFromFirestore();
+      } else {
+        renderAll();
+      }
+    });
+  </script>
+
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

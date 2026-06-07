@@ -15,7 +15,7 @@
     try { sessionStartStateJson = localStorage.getItem('carePlanSplitState') || ''; } catch (e) {}
     lastPersistedStateJson = sessionStartStateJson;
     window.__combinedJsLoaded = true;
-
+    function _diag() {}
 
     // ── Custom modal helpers (replace native confirm/alert/prompt to avoid browser dialog suppression) ──
 
@@ -310,9 +310,13 @@
       var mobTopName = document.getElementById('mob-topbar-name');
       if (mobTopName) mobTopName.textContent = '';
 
-      // Clear the notes textarea on the parent page
-      var notesEl = document.getElementById('notes-freetext');
-      if (notesEl) notesEl.value = '';
+      // Clear the notes list on the parent page
+      if (typeof restoreNoteRows === 'function') {
+        if (typeof noteRowCount !== 'undefined') noteRowCount = 0;
+        var nl = document.getElementById('notes-list');
+        if (nl) nl.innerHTML = '';
+        restoreNoteRows();
+      }
 
       // Reload each section iframe with a reset token so it clears its own in-progress state.
       var stamp = Date.now();
@@ -428,11 +432,17 @@
       catch (e) { return {}; }
     }
 
-    var MAX_SAVED_PLANS = 20;
+    var MAX_SAVED_PLANS = 200;
 
     function getSavedPlanNamesSorted(plans) {
       plans = plans || {};
       return Object.keys(plans).sort(function(a, b) {
+        var sa = (plans[a] && plans[a].state && plans[a].state['pat-surg-date']) || '';
+        var sb = (plans[b] && plans[b].state && plans[b].state['pat-surg-date']) || '';
+        var da = sa ? new Date(sa).getTime() : 0;
+        var db = sb ? new Date(sb).getTime() : 0;
+        if (db !== da) return db - da; // newest surgery date first
+        // Tiebreak by when the plan was saved
         var ta = (plans[a] && plans[a].savedAt) ? new Date(plans[a].savedAt).getTime() : 0;
         var tb = (plans[b] && plans[b].savedAt) ? new Date(plans[b].savedAt).getTime() : 0;
         return tb - ta;
@@ -469,15 +479,16 @@
       // Only attempt once per page session. shouldUseCloudPlans() is called from
       // onAuthStateChanged, getSavedPlans(), saveNamedPlan(), etc. — without this guard,
       // every Save/Load/Delete click re-runs the restore logic and can wipe current work.
-      if (checkAndRestoreCloudDraft._done) { return; }
+      _diag('checkAndRestoreCloudDraft: called (done=' + !!checkAndRestoreCloudDraft._done + ')');
+      if (checkAndRestoreCloudDraft._done) { _diag('checkAndRestoreCloudDraft: already done, skip'); return; }
       checkAndRestoreCloudDraft._done = true;
 
       try {
         var draft = await window.carePlanCloudStorage.loadDraft(userId);
-        if (!draft || !draft.savedAt) { return; }
+        if (!draft || !draft.savedAt) { _diag('checkAndRestoreCloudDraft: no cloud draft, done'); return; }
 
         var cloudTime = new Date(draft.savedAt).getTime();
-        if (isNaN(cloudTime)) { return; }
+        if (isNaN(cloudTime)) { _diag('checkAndRestoreCloudDraft: invalid savedAt'); return; }
 
         var currentLocalJson = '';
         try { currentLocalJson = localStorage.getItem('carePlanSplitState') || ''; } catch (e) {}
@@ -485,7 +496,8 @@
         try { localLen = Object.keys(JSON.parse(currentLocalJson || '{}')).length; } catch (e) {}
         try { startLen = Object.keys(JSON.parse(sessionStartStateJson || '{}')).length; } catch (e) {}
         var jsonsMatch = currentLocalJson === sessionStartStateJson;
-        if (!jsonsMatch) { return; }
+        _diag('checkAndRestoreCloudDraft: currentLocal=' + localLen + 'keys, sessionStart=' + startLen + 'keys, match=' + jsonsMatch);
+        if (!jsonsMatch) { _diag('checkAndRestoreCloudDraft: JSON guard BLOCKED restore (user changed data)'); return; }
 
         // Compare to local state timestamp if available.
         var localRaw = currentLocalJson;
@@ -506,7 +518,9 @@
         }
 
         var timeDiff = cloudTime - localTime;
+        _diag('checkAndRestoreCloudDraft: cloudTime=' + new Date(cloudTime).toLocaleTimeString() + ' localTime=' + new Date(localTime).toLocaleTimeString() + ' diff=' + Math.round(timeDiff / 1000) + 's');
         if (cloudTime > localTime + 10000) {
+          _diag('checkAndRestoreCloudDraft: RESTORING CLOUD DRAFT (cloud is newer by ' + Math.round(timeDiff / 1000) + 's)');
           // Cloud draft is meaningfully newer — restore it.
           var nextState = draft.state || {};
           suspendIncomingStateUntil = Date.now() + 2000;
@@ -527,8 +541,9 @@
             setStorageStatus('Restored your recent work (' + timeStr + ').', 'ok');
           }
         } else {
+          _diag('checkAndRestoreCloudDraft: cloud NOT newer enough, no restore');
         }
-      } catch (e) { }
+      } catch (e) { _diag('checkAndRestoreCloudDraft: ERROR ' + e); }
     }
 
     async function getSavedPlans() {
@@ -548,6 +563,7 @@
 
     function syncFramesFromState() {
       // Reload each section iframe so it requests latest snapshot from parent.
+      _diag('syncFramesFromState: CALLED - reloading all iframes');
       var stamp = Date.now();
       document.querySelectorAll('iframe').forEach(function(frame) {
         var src = frame.getAttribute('src') || '';
@@ -561,12 +577,14 @@
       // No need to actively call saveState (causes CORS errors)
 
       var s = (mirroredState && Object.keys(mirroredState).length) ? mirroredState : getState();
-      var defaultName = [
+      var _nameParts = [
         s['pat-initials'] || 'Patient',
         s['pat-surg-date'] || 'NoDate',
-        s['pat-sched-surg-time'] || 'NoTime',
-        s['pat-surgery'] || 'NoSurgery'
-      ].join(' | ');
+        s['pat-sched-surg-time'] || 'NoTime'
+      ];
+      if (s['pat-surg-end-time']) _nameParts.push(s['pat-surg-end-time']);
+      _nameParts.push(s['pat-surgery'] || 'NoSurgery');
+      var defaultName = _nameParts.join(' | ');
       var name = await showPromptModal('Save plan as:', defaultName);
       if (!name) return;
       name = name.trim();
@@ -608,9 +626,9 @@
 
       setLocalSavedPlans(plans);
       if (savedToCloud) {
-        showTopbarFlash('Saved to cloud: ' + name);
+        showTopbarFlash('Saved to cloud');
       } else if (cloudEnabled) {
-        showTopbarFlash('Saved locally: ' + name + ' (cloud not confirmed)');
+        showTopbarFlash('Saved locally (cloud not confirmed)');
       } else {
         showTopbarFlash('Saved locally: ' + name + ' (log in to sync)');
       }
@@ -640,9 +658,8 @@
       mirroredState = nextState;
       stateRevision += 1;
       try { localStorage.setItem('carePlanSplitState', JSON.stringify(nextState)); } catch (e) {}
-      // Restore notes textarea on the parent page when loading a plan
-      var notesEl = document.getElementById('notes-freetext');
-      if (notesEl) notesEl.value = nextState['notes-freetext'] || '';
+      // Restore notes list on the parent page when loading a plan
+      if (typeof restoreNoteRows === 'function') restoreNoteRows();
       syncFramesFromState();
       fitAll();
       showTopbarFlash('Loaded: ' + selected);
@@ -744,11 +761,16 @@
     })();
 
     // Expose internals needed by the phone-share feature
-    Object.defineProperty(window, 'mirroredState', {
-      get: function() { return mirroredState; },
-      set: function(v) { mirroredState = v; },
-      configurable: true
-    });
+    // var mirroredState is already a non-configurable global var, so defineProperty
+    // will throw if we try to change its configurable attribute. Suppress the error.
+    try {
+      Object.defineProperty(window, 'mirroredState', {
+        get: function() { return mirroredState; },
+        set: function(v) { mirroredState = v; },
+        configurable: true
+      });
+    } catch(e) {}
     window.openPreview = function() { openPreview(); };
     window.buildPrintCard = function(state) { buildPrintCard(state || {}); };
+
 

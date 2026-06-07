@@ -1,4 +1,11 @@
-
+function _cpIframeDiag(msg) {
+  try {
+    if (window.parent && window.parent !== window) {
+      var page = (window.location.pathname || '').split('/').pop() || '?';
+      window.parent.postMessage({ type: 'cpIframeDiag', msg: msg, page: page }, '*');
+    }
+  } catch (e) {}
+}
 
 function initAutoSave() {
   const controls = document.querySelectorAll('input, select, textarea');
@@ -179,6 +186,7 @@ function setGlobalState(state) {
 
   var count = 0;
   try { count = Object.keys(state || {}).length; } catch (e) {}
+  _cpIframeDiag('setGlobalState(' + count + 'k) inLiveUpdate=' + !!window.__carePlanInLiveUpdate);
 
   try {
     localStorage.setItem('carePlanSplitState', JSON.stringify(state || {}));
@@ -212,6 +220,7 @@ function restoreState() {
   const state = getGlobalState();
   var count = 0;
   try { count = Object.keys(state).length; } catch(e) {}
+  _cpIframeDiag('restoreState(' + count + 'k)');
   document.querySelectorAll('input, select, textarea').forEach(el => {
     if (!el.id && !el.name) return;
     const key = (el.type === 'radio')
@@ -406,7 +415,7 @@ function pageBoot(extraInit, onExternalUpdate) {
       // Explicitly uncheck all checkboxes / clear all inputs so DOM is blank
       // regardless of any snapshot or timing edge-cases.
       try {
-        document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function(el) { el.checked = false; });
+        document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function(el) { el.checked = el.defaultChecked; });
         document.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), textarea').forEach(function(el) { el.value = ''; });
         document.querySelectorAll('select').forEach(function(el) { el.selectedIndex = 0; });
       } catch (eDom) {}
@@ -437,6 +446,7 @@ function pageBoot(extraInit, onExternalUpdate) {
   function finalizeBoot() {
     if (booted) return;
     booted = true;
+    _cpIframeDiag('finalizeBoot');
     restoreState();
     applyMobileKeyboardHints();
     initSelectTypeaheadNavigation();
@@ -541,6 +551,7 @@ function pageBoot(extraInit, onExternalUpdate) {
       var luActive = document.activeElement;
       var luInteracting = luActive && (luActive.tagName === 'INPUT' || luActive.tagName === 'TEXTAREA' || luActive.tagName === 'SELECT');
       if (luInteracting) {
+        _cpIframeDiag('liveUpdate skipped (user interacting)');
       } else {
         // Lightweight update: just trigger recalculation callbacks, no restoreState.
         // Guard against the feedback loop: any saveState/setGlobalState calls inside
@@ -568,6 +579,7 @@ function pageBoot(extraInit, onExternalUpdate) {
         lastSnapshotRevision = rev;
         var snapCount = 0;
         try { snapCount = Object.keys(e.data.state || {}).length; } catch (er) {}
+        _cpIframeDiag('snapshot rev=' + rev + ' (' + snapCount + 'k) booted=' + booted);
         try {
           localStorage.setItem('carePlanSplitState', JSON.stringify(e.data.state || {}));
         } catch (err) {}
@@ -587,6 +599,7 @@ function pageBoot(extraInit, onExternalUpdate) {
               try { onExternalUpdate(); } finally { window.__carePlanInLiveUpdate = false; }
             }
           } else {
+            _cpIframeDiag('snapshot skipped (user interacting)');
           }
         }
       }

@@ -252,7 +252,7 @@
     if (!authUser) {
       return {
         tone: 'warn',
-        message: 'Sign in to access your care plans from any device. Without signing in, plans are only available on this device.'
+        message: ''
       };
     }
 

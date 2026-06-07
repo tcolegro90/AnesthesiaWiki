@@ -763,6 +763,7 @@ function fillEvalSJFPanel(item) {
             setTimeout(() => {
               if (_fillGeneration !== myGeneration) return; // still stale-check before filling
               fillSJFSurvey(item);
+              rememberLastFilledEval(item);
               showTyphonToast('Daily Eval SJF filled ✓ — review and submit');
               chrome.storage.local.remove('typhon-pending-sjf-fill');
             }, 300);
@@ -1544,6 +1545,111 @@ function rememberLastFilledCase(data) {
   try { chrome.storage.local.set({ 'typhon-last-filled-case': payload }); } catch (e) {}
 }
 
+function rememberLastFilledEval(data) {
+  if (!data || data.type !== 'eval') return;
+  const payload = {
+    id: data.id || '',
+    type: 'eval',
+    date: data.date || '',
+    preceptorName: data.preceptorName || '',
+    recordedAt: Date.now()
+  };
+  window.__typhonLastFilledEval = payload;
+  try { chrome.storage.local.set({ 'typhon-last-filled-eval': payload }); } catch (e) {}
+}
+
+function markLastFilledEvalSubmitted(onDone) {
+  const finish = function(ok, msg) {
+    if (typeof onDone === 'function') onDone(ok, msg || '');
+  };
+
+  try {
+    chrome.storage.local.get(['typhon-items', 'typhon-last-filled-eval'], (data) => {
+      const items = (data['typhon-items'] || []).slice();
+      const last = data['typhon-last-filled-eval'] || window.__typhonLastFilledEval || null;
+      if (!items.length || !last) {
+        finish(false, 'No matching pending eval found.');
+        return;
+      }
+
+      let idx = -1;
+      if (last.id) {
+        idx = items.findIndex(i => i && i.type === 'eval' && !i.submitted && String(i.id || '') === String(last.id));
+      }
+
+      // Fallback: match by date + preceptor name
+      if (idx < 0) {
+        idx = items.findIndex(i => i && i.type === 'eval' && !i.submitted &&
+          String(i.date || '') === String(last.date || '') &&
+          String(i.preceptorName || '') === String(last.preceptorName || '')
+        );
+      }
+
+      // Final fallback: most-recent pending eval on same date
+      if (idx < 0 && last.date) {
+        for (let j = items.length - 1; j >= 0; j--) {
+          const it = items[j];
+          if (it && it.type === 'eval' && !it.submitted && String(it.date || '') === String(last.date || '')) {
+            idx = j;
+            break;
+          }
+        }
+      }
+
+      if (idx < 0) {
+        finish(false, 'No matching pending eval found.');
+        return;
+      }
+
+      items[idx].submitted = true;
+      chrome.storage.local.set({ 'typhon-items': items }, () => {
+        if (chrome.runtime && chrome.runtime.lastError) {
+          finish(false, 'Could not update Typhon Helper storage.');
+          return;
+        }
+        chrome.runtime.sendMessage({ action: 'syncSubmittedToFirestore', items: items });
+        const floatEl = document.getElementById('typhon-helper-float');
+        if (floatEl) floatEl.remove();
+        finish(true, 'Marked eval submitted in Typhon Helper.');
+      });
+    });
+  } catch (e) {
+    finish(false, 'Unable to update Typhon Helper status.');
+  }
+}
+
+function installEvalSubmitPrompt() {
+  if (window.__typhonEvalSubmitPromptInstalled) return;
+  window.__typhonEvalSubmitPromptInstalled = true;
+
+  document.addEventListener('click', function(event) {
+    if (getPageType() !== 'eval') return;
+
+    const el = event.target && event.target.closest
+      ? event.target.closest('input[type="submit"], input[type="button"], button, a')
+      : null;
+    if (!el) return;
+
+    const text = (el.value || el.textContent || '').toLowerCase().trim();
+    if (!text) return;
+    if (text.includes('cancel')) return;
+    if (!(text.includes('save data') || text === 'save' || text.includes('submit'))) return;
+
+    const now = Date.now();
+    if (window.__typhonEvalSubmitPromptAt && now - window.__typhonEvalSubmitPromptAt < 1200) return;
+    window.__typhonEvalSubmitPromptAt = now;
+
+    const ok = window.confirm('Mark this eval as Submitted in Typhon Helper?');
+    if (!ok) return;
+
+    markLastFilledEvalSubmitted(function(marked, msg) {
+      if (!marked) {
+        try { window.alert(msg || 'Could not mark as submitted.'); } catch (e) {}
+      }
+    });
+  }, true);
+}
+
 function markLastFilledCaseSubmitted(onDone) {
   const finish = function(ok, msg) {
     if (typeof onDone === 'function') onDone(ok, msg || '');
@@ -1905,6 +2011,7 @@ function injectFloatingFillButton() {
         }
         clearInterval(timer);
         fillSJFSurvey(item);
+        rememberLastFilledEval(item);
         showTyphonToast('Daily Eval SJF filled ✓ — review and submit');
         chrome.storage.local.remove('typhon-pending-sjf-fill');
       }, 200);
@@ -2113,6 +2220,7 @@ if (document.readyState === 'loading') {
     injectFloatingFillButton();
     installCaseSubmitPrompt();
     installTimeLogSubmitPrompt();
+    installEvalSubmitPrompt();
   });
 } else {
   // Small delay so Typhon's own JS finishes rendering the form
@@ -2120,6 +2228,7 @@ if (document.readyState === 'loading') {
     injectFloatingFillButton();
     installCaseSubmitPrompt();
     installTimeLogSubmitPrompt();
+    installEvalSubmitPrompt();
   }, 600);
 }
 

@@ -334,6 +334,21 @@
       'Cialis': 'Tadalafil',
       'Levitra': 'Vardenafil',
       'Fosrenol': 'Lanthanum Carbonate',
+      'Mounjaro': 'Tirzepatide',
+      'Zepbound': 'Tirzepatide',
+      'Wegovy': 'Semaglutide',
+      'Rybelsus': 'Semaglutide',
+      'Adderall': 'Amphetamine',
+      'Vyvanse': 'Lisdexamfetamine',
+      'Belsomra': 'Suvorexant',
+      'Halcion': 'Triazolam',
+      'Tysabri': 'Natalizumab',
+      'Simponi': 'Golimumab',
+      'Keytruda': 'Pembrolizumab',
+      'Actigall': 'Ursodiol',
+      'Mucinex': 'Guaifenesin',
+      'Neoral': 'Cyclosporine',
+      'Sandimmune': 'Cyclosporine',
       'Vitamin D': 'Vitamin D3'
     };
 
@@ -384,6 +399,13 @@
 
       const exact = medAliasLookup.get(normalizeMedKey(raw));
       if (exact) return exact;
+
+      // Try stripping trailing dose (e.g. "Aspirin 81mg" → "Aspirin", kept as-is in the field)
+      var doseStripped = raw.replace(/\s+\d[\d./]*\s*(mg|mcg|ml|g|iu|mEq|mmol|units?|tabs?|caps?|%)?([\s+].*)?$/i, '').trim();
+      if (doseStripped && doseStripped !== raw) {
+        var doseExact = medAliasLookup.get(normalizeMedKey(doseStripped));
+        if (doseExact) return doseExact;
+      }
 
       const q = normalizeMedKey(raw);
       if (!q) return '';
@@ -897,10 +919,19 @@
       // Resolve brand name / fuzzy match before saving
       var input = document.getElementById('med-input-' + i);
       if (input && input.value.trim()) {
-        var resolved = resolveMedication(input.value.trim());
+        var typed = input.value.trim();
+        var resolved = resolveMedication(typed);
         if (resolved) {
-          input.value = resolved;
-          input.setAttribute('list', 'home-med-suggestions');
+          // Only substitute for a true brand→generic swap.
+          // If the typed text already starts with the resolved name (e.g. "Aspirin 81mg"),
+          // it's just a dose suffix — leave the text alone so the user keeps what they typed.
+          var isSameDrug = typed.toLowerCase() === resolved.toLowerCase() ||
+            (typed.toLowerCase().indexOf(resolved.toLowerCase()) === 0 &&
+             !/[a-z]/i.test(typed[resolved.length]));
+          if (!isSameDrug) {
+            input.value = resolved;
+            input.setAttribute('list', 'home-med-suggestions');
+          }
         }
         markMedUnknown(input);
       }

@@ -16,7 +16,7 @@ function populateMedicationCatalogSelects() {
   fillSelectFromList('ind-agent-select', c.inductionAgents || [], s['ind-agent-select'] || '');
   fillSelectFromList('ind-paralytic', c.paralytics || [], s['ind-paralytic'] || '');
   fillSelectFromList('ind-inhalation', c.inhaledAnesthetics || [], s['ind-inhalation'] || '');
-  fillSelectFromList('ind-blunt-select', ['Fentanyl', 'Esmolol', 'Dexmedetomidine'], s['ind-blunt-select'] || '');
+  fillSelectFromList('ind-blunt-select', ['Fentanyl', 'Esmolol', 'Remifentanil', 'Dexmedetomidine'], s['ind-blunt-select'] || '');
 }
 
 function toggleLmaSize() {
@@ -33,7 +33,11 @@ function toggleLmaSize() {
 function toggleGeneralOptions() {
   const t = document.getElementById('anes-type').value;
   document.getElementById('general-options').style.display = t === 'General' ? 'block' : 'none';
+  var rmWrap = document.getElementById('routine-meds-wrap');
+  if (rmWrap) rmWrap.style.display = t === 'General' ? 'block' : 'none';
   document.getElementById('tiva-wrap').style.display = t === 'General' ? 'block' : 'none';
+  var spinalOpts = document.getElementById('spinal-options');
+  if (spinalOpts) spinalOpts.style.display = t === 'Spinal' ? 'block' : 'none';
   var macOpts = document.getElementById('mac-options');
   if (macOpts) macOpts.style.display = t === 'MAC' ? 'block' : 'none';
   var painSecs = document.getElementById('plan-pain-sections');
@@ -187,7 +191,7 @@ function painRowDoseSpec(type, drug) {
       'Acetaminophen IV':            { min: 650,   max: 1000, unit: 'mg',          perKg: false },
       'Ketorolac':                   { min: 15,    max: 30,   unit: 'mg',          perKg: false },
       'Celecoxib':                   { min: 200,   max: 400,  unit: 'mg',          perKg: false },
-      'Dexmedetomidine (bolus)':     { min: 0.5,   max: 1,    unit: 'mcg/kg',      perKg: true  },
+      'Dexmedetomidine (bolus)':     { min: 0.5,   max: 1,    unit: 'mcg',         perKg: true  },
       'Dexmedetomidine (infusion)':  { min: 0.2,   max: 1,    unit: 'mcg/kg/hr',   perKg: false },
       'Lidocaine infusion':          { min: 1,     max: 2,    unit: 'mg/kg/hr',    perKg: false },
       'Magnesium sulfate':           { min: 30,    max: 50,   unit: 'mg',          perKg: true  },
@@ -216,12 +220,12 @@ function painRowDoseSpec(type, drug) {
       'Dexamethasone':       { min: 4,    max: 10,   unit: 'mg',        perKg: false }
     },
     sedation_bolus: {
-      'Propofol':        { min: 25,  max: 75,  unit: 'mcg/kg/min', perKg: false },
-      'Ketamine':        { min: 0.1, max: 0.5, unit: 'mg/kg/hr',   perKg: false },
-      'Dexmedetomidine': { min: 0.2, max: 1.5, unit: 'mcg/kg/hr',  perKg: false }
+      'Propofol':        { min: 0.5, max: 2.0, unit: 'mg/kg',   perKg: false },
+      'Ketamine':        { min: 0.1, max: 0.5, unit: 'mg/kg',   perKg: false },
+      'Dexmedetomidine': { min: 0.5, max: 1.0, unit: 'mcg/kg',  perKg: false }
     },
     sedation_drips: {
-      'Propofol Drip':        { min: 25,  max: 75,  unit: 'mcg/kg/min', perKg: false },
+      'Propofol Drip':        { min: 50,  max: 150, unit: 'mcg/kg/min', perKg: false },
       'Ketamine Drip':        { min: 0.1, max: 0.5, unit: 'mg/kg/hr',   perKg: false },
       'Dexmedetomidine Drip': { min: 0.2, max: 1.5, unit: 'mcg/kg/hr',  perKg: false }
     },
@@ -674,7 +678,7 @@ function stateRadioValue(state, name) {
 
 function triggerCrossConditions() {
   var s = getGlobalState();
-  var fastedNo = !s['pat-fasted::Yes'];
+  var fastedNo = !!s['pat-fasted::No'];
   var overrideEl = document.getElementById('rsi-override');
   var rsiNoEl = document.getElementById('ind-rsi-no');
   var rsiYesEl2 = document.getElementById('ind-rsi-yes');
@@ -692,7 +696,7 @@ function triggerCrossConditions() {
 
 function highlightAbnormalRSI() {
   const s = getGlobalState();
-  const fastedNo = !s['pat-fasted::Yes'];
+  const fastedNo = !!s['pat-fasted::No'];
   const rsiNo = !document.getElementById('ind-rsi-yes').checked;
   const rsiRow = document.getElementById('row-ind-rsi');
   if (rsiRow && fastedNo && rsiNo) {
@@ -706,7 +710,7 @@ function highlightAbnormalRSI() {
 
 function applyCrossConditions() {
   const s = getGlobalState();
-  const fastedNo = !s['pat-fasted::Yes'];
+  const fastedNo = !!s['pat-fasted::No'];
   const mhYes = !!s['hx-mh::Yes'];
   const pseudoYes = !!s['hx-pseudo::Yes'];
   const kVal = parseFloat(s['pat-k']);
@@ -842,10 +846,10 @@ function boot() {
   document.querySelectorAll('input[name="ind-rsi"]').forEach(function(el) { el.addEventListener('change', onAnyPlanInput); });
   document.getElementById('ind-blunt-select').addEventListener('change', function() { updatePlanDoseRange('blunt','ind-blunt-select','ind-blunt-dose','ind-blunt-range'); onAnyPlanInput(); });
   document.getElementById('ind-blunt-dose').addEventListener('input', function() { validateDoseInput(this); saveState(); });
-  document.getElementById('ind-agent-select').addEventListener('change', function() { updatePlanDoseRange('induction','ind-agent-select','ind-agent-dose','ind-agent-range'); toggleVesicant(); onAnyPlanInput(); });
-  document.getElementById('ind-agent-dose').addEventListener('input', function() { validateDoseInput(this); saveState(); });
-  document.getElementById('ind-paralytic').addEventListener('change', function() { updatePlanDoseRange('paralytic','ind-paralytic','ind-paralytic-dose','ind-paralytic-range'); onAnyPlanInput(); });
-  document.getElementById('ind-paralytic-dose').addEventListener('input', function() { validateDoseInput(this); saveState(); });
+  document.getElementById('ind-agent-select').addEventListener('change', function() { updatePlanDoseRange('induction','ind-agent-select','ind-agent-dose','ind-agent-range'); toggleVesicant(); var n = document.getElementById('ind-agent-rationale'); if (n) { n.textContent = ''; n.style.display = 'none'; } onAnyPlanInput(); });
+  document.getElementById('ind-agent-dose').addEventListener('input', function() { validateDoseInput(this); var n = document.getElementById('ind-agent-rationale'); if (n) { n.textContent = ''; n.style.display = 'none'; } saveState(); });
+  document.getElementById('ind-paralytic').addEventListener('change', function() { updatePlanDoseRange('paralytic','ind-paralytic','ind-paralytic-dose','ind-paralytic-range'); var n = document.getElementById('ind-paralytic-rationale'); if (n) { n.textContent = ''; n.style.display = 'none'; } onAnyPlanInput(); });
+  document.getElementById('ind-paralytic-dose').addEventListener('input', function() { validateDoseInput(this); var n = document.getElementById('ind-paralytic-rationale'); if (n) { n.textContent = ''; n.style.display = 'none'; } saveState(); });
   document.getElementById('ind-inhalation').addEventListener('change', onAnyPlanInput);
   document.getElementById('vesicant-prop').addEventListener('change', function() {
     var doseEl = document.getElementById('vesicant-dose');
@@ -886,6 +890,7 @@ function boot() {
   applyCrossConditions();
   enforceTivaInhalationRule();
   updateMacVisibility();
+  if (typeof onInhAgent1Change === 'function') onInhAgent1Change();
 }
 
 pageBoot(boot, function() {
@@ -905,6 +910,9 @@ pageBoot(boot, function() {
   updateMacAnxiolyticRange();
   updateMacVisibility();
   updateNeuroMonitorBanner();
+  if (typeof onInhAgent1Change === 'function') onInhAgent1Change();
+  var _rmWarn = document.getElementById('routine-meds-warn');
+  if (_rmWarn) _rmWarn.style.display = 'none';
 });
 
 // Called by shared.js whenever a fresh state snapshot arrives from the parent.

@@ -185,6 +185,12 @@ const JAFFE_SURGERIES = [
   // 7.8 Pancreatic Surgery
   { name: "Operative drainage for pancreatitis", page: 1282 },
   { name: "Drainage of pancreatic pseudocyst", page: 1285 },
+  // 7.11 Endocrine Surgery
+  { name: "Excision of thyroglossal duct cyst", page: 1368 },
+  { name: "Thyroidectomy", page: 1372 },
+  { name: "Parathyroidectomy", page: 1385 },
+  { name: "Adrenalectomy", page: 1395 },
+  { name: "Pheochromocytoma resection (anesthetic considerations)", page: 1408 },
   // 8.1 Gynecologic Oncology
   { name: "Staging laparotomy for ovarian/fallopian tube/peritoneal cancer", page: 1544 },
   { name: "Cytoreductive/second look laparotomy", page: 1554 },
@@ -790,6 +796,8 @@ function addJaffeChapter() {
     });
     if (pinPages.length) { ov.value = pinPages.join(','); saveState(); }
   }
+  var addBtnWrap = document.getElementById('jaffe-add-btn-wrap');
+  if (addBtnWrap) addBtnWrap.style.display = 'none';
   var searchWrap = document.getElementById('jaffe-search-wrap');
   if (searchWrap) {
     searchWrap.style.display = 'inline-block';
@@ -817,21 +825,26 @@ function updateJaffeBadge(page) {
   if (pages.length) {
     badge.innerHTML =
       pages.map(function(p) {
-        return `<span style="display:inline-flex;align-items:center;gap:0;margin-right:16px;padding-right:16px;border-right:1px solid #d4a574;">` +
-          `<button type="button" onclick="removeJaffePage(${p})" title="Remove" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#b08060;color:white;border:none;cursor:pointer;font-size:14px;font-weight:900;line-height:1;margin-right:5px;padding:0;">&times;</button>` +
-          `<button type="button" onclick="openJaffePage(${p})" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;">📖 Jaffe 6th Ed p.${p}</button>` +
+        return `<span style="display:flex;align-items:center;gap:6px;width:100%;background:#fdf6ee;border:1px solid #d4a574;border-radius:3px;padding:3px 6px;box-sizing:border-box;">` +
+          `<button type="button" onclick="openJaffePage(${p})" style="flex:1;text-align:left;background:none;border:none;padding:0;font:inherit;color:#5a4a3a;cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;">📖 Jaffe 6th Ed p.${p}</button>` +
+          `<button type="button" class="jaffe-del-btn" onclick="removeJaffePage(${p})" title="Remove">Delete</button>` +
           `</span>`;
-      }).join('') +
-      `<button type="button" onclick="addJaffeChapter()" title="Add another chapter" style="background:none;border:none;padding:0;color:#5a7ea0;cursor:pointer;font-size:11px;font-weight:600;line-height:1;margin-left:8px;">+ Add</button>`;
-    badge.style.display = 'inline-flex';
-    badge.style.alignItems = 'center';
-    badge.style.flexWrap = 'wrap';
+      }).join('');
+    badge.style.display = 'flex';
+    badge.style.flexDirection = 'column';
+    badge.style.alignItems = 'flex-start';
+    badge.style.width = '100%';
+    badge.style.gap = '4px';
     badge.onclick = null;
+    var addBtnWrap = document.getElementById('jaffe-add-btn-wrap');
+    if (addBtnWrap) addBtnWrap.style.display = '';
     if (searchWrap) searchWrap.style.display = 'none';
   } else {
     badge.innerHTML = '';
     badge.style.display = 'none';
     badge.onclick = null;
+    var addBtnWrapElse = document.getElementById('jaffe-add-btn-wrap');
+    if (addBtnWrapElse) addBtnWrapElse.style.display = 'none';
     if (searchWrap) { searchWrap.style.display = 'inline-block'; }
   }
 }

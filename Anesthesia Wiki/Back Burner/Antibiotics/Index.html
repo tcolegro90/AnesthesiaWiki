@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Antibiotics</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --line: #d3dce8;
+      --text: #1d2938;
+      --muted: #5a6a7e;
+      --accent: #1a4f82;
+      --accent-soft: #e8f0fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at 15% 0%, #ffffff 0%, var(--bg) 48%, #eaeff8 100%);
+      color: var(--text);
+      padding: 70px 16px 38px;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4fc 0%, #ffffff 72%);
+      border: 1px solid #c8d9ee;
+      border-left: 6px solid var(--accent);
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 10px 26px rgba(26, 55, 100, 0.09);
+    }
+
+    .hero h1 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1.7rem;
+      text-align: center;
+    }
+
+    .section {
+      margin-top: 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(30, 48, 80, 0.06);
+    }
+
+    .section h2 {
+      margin: 0 0 12px;
+      font-size: 0.98rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #2a5080;
+    }
+
+    .tile-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tile {
+      display: block;
+      text-decoration: none;
+      border: 1px solid #ccd8e8;
+      border-top: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 14px 13px;
+      color: var(--text);
+      background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .tile:hover {
+      transform: translateY(-1px);
+      background: var(--accent-soft);
+      box-shadow: 0 8px 16px rgba(26, 79, 130, 0.14);
+    }
+
+    .tile-grid .tile:nth-child(1) {
+      border-top-color: #1a4f82;
+      background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
+    }
+
+    .tile-grid .tile:nth-child(1):hover {
+      background: #e8f0fa;
+    }
+
+    .tile-grid .tile:nth-child(2) {
+      border-top-color: #2e6ea6;
+      background: linear-gradient(180deg, #ffffff 0%, #f6f9fd 100%);
+    }
+
+    .tile-grid .tile:nth-child(2):hover {
+      background: #ebf2fb;
+    }
+
+    .tile-grid .tile:nth-child(3) {
+      border-top-color: #3b5f8a;
+      background: linear-gradient(180deg, #ffffff 0%, #f5f7fc 100%);
+    }
+
+    .tile-grid .tile:nth-child(3):hover {
+      background: #eaeef8;
+    }
+
+    .tile .label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.94rem;
+      margin-bottom: 4px;
+    }
+
+    .tile .sub {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .tile.placeholder {
+      border-top-color: #8aaac8;
+      background: #fcfcfe;
+      cursor: default;
+    }
+
+    .tile.placeholder:hover {
+      transform: none;
+      background: #fcfcfe;
+      box-shadow: none;
+    }
+
+    @media (max-width: 700px) {
+      body { padding-top: 16px; }
+      .hero { padding: 14px; }
+      .hero h1 { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>Antibiotics</h1>
+    </section>
+
+    <section class="section">
+      <h2>Reference Library</h2>
+      <div class="tile-grid">
+        <a class="tile" href="Surgical-Antibiotics-SMH.html">
+          <span class="label">Surgical Antibiotics Prophylaxis</span>
+          <span class="sub">Adult ABX prophylaxis for SMH</span>
+        </a>
+        <div class="tile placeholder" aria-disabled="true">
+          <span class="label">Reference Placeholder 2</span>
+          <span class="sub">Coming soon.</span>
+        </div>
+        <div class="tile placeholder" aria-disabled="true">
+          <span class="label">Reference Placeholder 3</span>
+          <span class="sub">Coming soon.</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    var APP_VERSION = '20260415a';
+
+    (function ensureVersionedPage() {
+      if (window.location.protocol === 'file:') return;
+      var currentUrl = new URL(window.location.href);
+      if (currentUrl.searchParams.get('v') === APP_VERSION) return;
+      currentUrl.searchParams.set('v', APP_VERSION);
+      window.location.replace(currentUrl.toString());
+    })();
+
+    document.querySelectorAll('a[href]').forEach(function (link) {
+      var href = link.getAttribute('href');
+      if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      var hashIndex = href.indexOf('#');
+      var hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
+      var base = hashIndex >= 0 ? href.slice(0, hashIndex) : href;
+      var queryIndex = base.indexOf('?');
+      var path = queryIndex >= 0 ? base.slice(0, queryIndex) : base;
+      if (!path.endsWith('.html')) return;
+      var resolved = new URL(base, window.location.href);
+      resolved.searchParams.set('v', APP_VERSION);
+      var query = resolved.searchParams.toString();
+      link.setAttribute('href', path + (query ? '?' + query : '') + hash);
+    });
+
+    window.addEventListener('pageshow', function (event) {
+      var navigationEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+      if (event.persisted || (navigationEntry && navigationEntry.type === 'back_forward')) {
+        window.location.reload();
+      }
+    });
+  </script>
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active { transform: translateY(0); }
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split('/').filter(Boolean).length;
+  var base = '';
+  for (var i = 1; i < depth; i++) { base += '../'; }
+  var a = document.createElement('a');
+  a.className = 'global-home-btn';
+  a.href = base + 'AnesthesiaWiki.html';
+  a.textContent = 'Home';
+  a.setAttribute('aria-label', 'Go to Home');
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

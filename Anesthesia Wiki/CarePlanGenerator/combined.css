@@ -575,3 +575,12 @@
 #cp-side-nav a{display:block;padding:7px 10px;border-radius:5px;font-size:.82em;color:#4f6073;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .15s,color .15s;line-height:1.4;}
 #cp-side-nav a:hover{background:#eef5ff;color:#114a8d;}
 @media(max-width:1211px){#cp-side-nav{display:none;}}
+
+/* Notes section row list */
+.notes-list { display:flex; flex-direction:column; gap:8px; }
+.notes-row { display:flex; align-items:center; gap:8px; }
+.notes-row input { flex:1; padding:7px 9px; border:1px solid #c9d7e8; border-radius:4px; font-size:1em; font-family:inherit; }
+.notes-add-btn { margin-top:8px; padding:3px 12px; font-size:12px; border:1px dashed #4a6fa5; border-radius:4px; background:#f0f5ff; color:#4a6fa5; cursor:pointer; font-weight:600; }
+.notes-add-btn:hover { background:#dde8ff; }
+.notes-del-btn { border:1px solid #e7b7b7; background:#fff4f4; color:#8f2424; font-size:12px; cursor:pointer; padding:5px 8px; flex-shrink:0; border-radius:4px; font-weight:700; }
+.notes-del-btn:hover { background:#ffe6e6; border-color:#d68f8f; }

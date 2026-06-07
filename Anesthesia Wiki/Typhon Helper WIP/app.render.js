@@ -136,7 +136,9 @@ function restoreSavedUiState(rootEl, state) {
 
 async function renderSaved(options = {}) {
   const preserveUi = !!options.preserveUi;
-  const items = (await store.get('typhon-items')) || [];
+  const items = Array.isArray(options.itemsOverride)
+    ? options.itemsOverride
+    : ((await store.get('typhon-items')) || []);
   updateBadge(items);  // keep badge in sync with real stored state
   const el = document.getElementById('saved-list');
   const savedUiState = preserveUi ? captureSavedUiState(el) : null;
@@ -374,18 +376,25 @@ async function markAllSubmitted() {
   const unsubmitted = items.filter(i => !i.submitted && !i.draft);
   if (!unsubmitted.length) { toast('Nothing to mark — all already submitted'); return; }
   unsubmitted.forEach(i => { i.submitted = true; });
-  await store.set('typhon-items', items);
+  const writeResult = await store.set('typhon-items', items);
   updateBadge(items);
-  await renderSaved({ preserveUi: true });
+  await renderSaved({ preserveUi: true, itemsOverride: items });
+  if (!writeResult?.cloud && _getAuthUid()) {
+    toast('Marked submitted locally. Cloud sync failed.');
+    return;
+  }
   toast(`Marked ${unsubmitted.length} item${unsubmitted.length !== 1 ? 's' : ''} as submitted`);
 }
 
 async function toggleSubmit(i) {
   const items = (await store.get('typhon-items')) || [];
   items[i].submitted = !items[i].submitted;
-  await store.set('typhon-items', items);
+  const writeResult = await store.set('typhon-items', items);
   updateBadge(items);
-  await renderSaved({ preserveUi: true });
+  await renderSaved({ preserveUi: true, itemsOverride: items });
+  if (!writeResult?.cloud && _getAuthUid()) {
+    toast('Status updated locally. Cloud sync failed.');
+  }
 }
 
 async function deleteItem(i) {
@@ -439,50 +448,152 @@ function copyTimelog(i) {
 // ============================================================
 // PLANNED CASES (from Care Plan Generator)
 // ============================================================
+function _timeToMins(t) {
+  if (!t) return Infinity;
+  const parts = t.split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1] || '0', 10);
+  return isNaN(h) ? Infinity : h * 60 + (isNaN(m) ? 0 : m);
+}
+
 function renderPlannedCases(plans) {
   const section = document.getElementById('planned-cases-section');
   const list    = document.getElementById('planned-cases-list');
   if (!section || !list) return;
   if (!plans || plans.length === 0) {
-    section.style.display = 'none';
-    _updatePlannedSidebarSummary(plans || []);
+    section.style.display = 'block';
+    list.innerHTML = '<div style="color:#aaa;font-size:0.82em;padding:5px 2px;font-style:italic;">No cases planned from Care Plan Generator today</div>';
+    _updatePlannedSidebarSummary([]);
     return;
   }
+  const wasCollapsed = section.classList.contains('collapsed');
   section.style.display = 'block';
+  if (wasCollapsed) section.classList.add('collapsed');
   list.innerHTML = '';
 
   const today        = _todayIso();
   const completions  = _getPlannedCompletions();
 
-  plans.forEach(plan => {
+  const sorted = [...plans].sort((a, b) => {
+    return _timeToMins((a.state || {})['pat-sched-surg-time']) - _timeToMins((b.state || {})['pat-sched-surg-time']);
+  });
+
+  sorted.forEach(plan => {
     const s    = plan.state || {};
     const done = completions.some(c => c.planName === plan.name && c.date === today);
 
-    const time      = s['pat-sched-surg-time'] || '';
+    const startTime = s['pat-sched-surg-time'] || '';
+    const stopTime  = s['pat-surg-end-time']   || '';
     const initials  = s['pat-initials'] || '';
-    const surgery   = s['pat-surgery'] || '';
+    const surgery   = s['pat-surgery'] || plan.name;
     const anesType  = s['anes-type']   || '';
-    const label     = [time, initials, surgery].filter(Boolean).join(' · ') || plan.name;
+    const label     = [startTime, stopTime, initials].filter(Boolean).join(' · ') || plan.name;
 
     const card = document.createElement('div');
     card.className = 'planned-case-card' + (done ? ' planned-done' : '');
+    card.style.cursor = 'pointer';
 
     card.innerHTML = `
-      <span class="planned-case-icon">${done ? '✅' : '📋'}</span>
       <div class="planned-case-body">
         <div class="planned-case-label">${label}</div>
-        <div class="planned-case-name">${plan.name}</div>
+        <div class="planned-case-name">${surgery}</div>
       </div>
-      ${anesType ? `<span class="planned-case-chip">${anesType}</span>` : ''}
+      ${done ? '<span class="planned-case-logged-chip">✓ Logged</span>' : (anesType ? `<span class="planned-case-chip">${anesType}</span>` : '')}
     `;
 
-    if (!done) {
+    if (done) {
+      card.onclick = () => goTab('saved');
+      _attachSwipeToUnlog(card, plan.name);
+    } else {
       card.onclick = () => prefillFromCPGPlan(plan.name, plan.state);
     }
     list.appendChild(card);
   });
 
-  _updatePlannedSidebarSummary(plans);
+  _updatePlannedSidebarSummary(sorted);
+}
+
+// Attaches an iOS-style swipe-left gesture to a logged planned-case card.
+// Swiping left reveals a red "Un-log" button; tapping it removes the
+// completion entry and re-renders the list so the case becomes clickable again.
+function _attachSwipeToUnlog(card, planName) {
+  const BTN_W          = 68;   // width of revealed Un-log button (px)
+  const SNAP_THRESHOLD = 50;   // px of drag to trigger open/close snap
+  let startX = 0, isOpen = false, active = false;
+
+  // Wrap existing card content in a sliding inner div
+  const inner = document.createElement('div');
+  inner.className = 'planned-swipe-inner';
+  while (card.firstChild) inner.appendChild(card.firstChild);
+  // Transfer card padding to inner so inner covers the full card width,
+  // keeping the Un-log button hidden behind it until swiped
+  card.style.padding = '0';
+  card.style.position = 'relative';
+  card.style.overflow = 'hidden';
+  card.appendChild(inner);
+
+  // Un-log button — sits at the right edge, revealed by sliding inner left
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'planned-unlog-btn';
+  btn.textContent = 'Un-log';
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    _unmarkPlanCompleted(planName);
+    renderPlannedCases(_todaysPlans);
+  });
+  card.appendChild(btn);
+
+  // Touch-driven swipe (primary mobile path)
+  inner.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    active = true;
+    inner.style.transition = 'none';
+  }, { passive: true });
+
+  inner.addEventListener('touchmove', e => {
+    if (!active) return;
+    const dx = e.touches[0].clientX - startX;
+    const base = isOpen ? -BTN_W : 0;
+    const pos  = Math.max(-BTN_W, Math.min(0, base + dx));
+    if (dx < -5) e.preventDefault(); // suppress page-scroll only when swiping left
+    inner.style.transform = `translateX(${pos}px)`;
+  }, { passive: false });
+
+  inner.addEventListener('touchend', e => {
+    if (!active) return;
+    active = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    inner.style.transition = 'transform 0.22s ease';
+    if (!isOpen && dx < -SNAP_THRESHOLD) {
+      inner.style.transform = `translateX(-${BTN_W}px)`;
+      isOpen = true;
+    } else if (isOpen && dx > SNAP_THRESHOLD) {
+      inner.style.transform = 'translateX(0)';
+      isOpen = false;
+    } else {
+      inner.style.transform = isOpen ? `translateX(-${BTN_W}px)` : 'translateX(0)';
+    }
+  }, { passive: true });
+
+  // Tapping the inner while open snaps it closed instead of triggering card.onclick
+  inner.addEventListener('click', e => {
+    if (isOpen) {
+      e.stopImmediatePropagation();
+      inner.style.transition = 'transform 0.22s ease';
+      inner.style.transform = 'translateX(0)';
+      isOpen = false;
+    }
+  });
+
+  // Close when tapping anywhere outside the card
+  document.addEventListener('touchstart', e => {
+    if (isOpen && !card.contains(e.target)) {
+      inner.style.transition = 'transform 0.22s ease';
+      inner.style.transform = 'translateX(0)';
+      isOpen = false;
+    }
+  }, { passive: true });
 }
 
 function _updatePlannedSidebarSummary(plans) {
@@ -500,18 +611,26 @@ function _updatePlannedSidebarSummary(plans) {
   const completions = _getPlannedCompletions();
   itemsEl.innerHTML = '';
 
-  plans.forEach(plan => {
+  const sorted = [...plans].sort((a, b) => {
+    return _timeToMins((a.state || {})['pat-sched-surg-time']) - _timeToMins((b.state || {})['pat-sched-surg-time']);
+  });
+
+  sorted.forEach(plan => {
     const s    = plan.state || {};
     const done = completions.some(c => c.planName === plan.name && c.date === today);
-    const time      = s['pat-sched-surg-time'] || '';
+    const startTime = s['pat-sched-surg-time'] || '';
+    const stopTime  = s['pat-surg-end-time']   || '';
     const initials  = s['pat-initials'] || '';
     const surgery   = s['pat-surgery'] || plan.name;
-    const label     = [time, initials, surgery].filter(Boolean).join(' · ');
+    const label     = [startTime, stopTime, initials].filter(Boolean).join(' · ') || plan.name;
 
     const row = document.createElement('div');
     row.className = 'drawer-planned-item' + (done ? ' planned-item-done' : '');
+    row.style.cursor = 'pointer';
     row.textContent = (done ? '✅ ' : '') + label;
-    if (!done) {
+    if (done) {
+      row.onclick = () => { closeDrawer(); goTab('saved'); };
+    } else {
       row.onclick = () => { closeDrawer(); prefillFromCPGPlan(plan.name, plan.state); };
     }
     itemsEl.appendChild(row);

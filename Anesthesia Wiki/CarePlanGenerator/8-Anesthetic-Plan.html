@@ -123,8 +123,12 @@
       <a href="1-Patient-Demographics.html">1 Patient</a><a href="2-Surgery.html">2 Surgery</a><a href="3-Labs-Chemistries.html">3 Labs</a><a href="4-PMH.html">4 PMH</a><a href="5-Prescribed-Medications.html">5 Home Meds</a><a href="6-Preop-History.html">6 Preop Hx</a><a href="7-Airway-Exam.html">7 Airway</a><a href="7b-Extras.html">7b Extras</a><a href="8-Anesthetic-Plan.html">8 Anesthetic Plan</a><a href="8b-APFEL-PONV.html">8b APFEL/PONV</a><a href="9-Fluid-Blood-Plan.html">9 Fluid/Blood</a><a href="10-Vent-Settings.html">10 Vent</a>
     </div>
 
-    <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+    <div class="card" style="display:flex;flex-direction:column;gap:12px;position:relative;">
   <style>.card label { font-weight: 700; }</style>
+      <div id="routine-meds-wrap" style="display:none;position:absolute;top:12px;right:12px;z-index:2;text-align:right;">
+        <button type="button" onclick="applyRoutineMeds()" style="padding:5px 14px;border-radius:6px;border:1px solid #b08060;background:#fdf6ee;color:#5a3e28;font-size:0.85rem;font-weight:600;cursor:pointer;">Routine meds</button>
+        <span id="routine-meds-warn" style="display:none;margin-left:10px;color:#c0392b;font-size:0.8rem;font-weight:600;">Please enter patient weight</span>
+      </div>
 
       <div id="neuro-monitor-banner"><span>&#9888;</span>This surgery is booked for neuro monitoring &mdash; use caution with anesthetic type and paralytic.</div>
 
@@ -133,6 +137,10 @@
         <div id="tiva-wrap" style="display:none;"><label><input type="checkbox" id="tiva-box" onchange="toggleTivaReason(); onAnyPlanInput();"> TIVA</label></div>
         <div id="tiva-reason-wrap" style="display:none;"><label>TIVA reason</label><br><select id="tiva-reason" class="med" onchange="toggleTivaOther(); onAnyPlanInput();"><option value="">Reason...</option><option>MH history</option><option>PONV</option><option>Neuromonitoring</option><option>Other</option></select> <input id="tiva-other" class="med" style="display:none;" placeholder="Specify"></div>
         <div id="mh-banner" style="display:none;"><span style="color:#dc3545;font-size:1.3em;font-weight:900;letter-spacing:1px;">&#9888; MALIGNANT HYPERTHERMIA</span></div>
+      </div>
+
+      <div id="spinal-options" style="display:none;" class="row" style="padding-left:0;">
+        <div><label>Medication Volume</label><br><select id="spinal-volume" class="med" onchange="onAnyPlanInput();"><option value="">Volume</option><option>1.0 mL</option><option>1.1 mL</option><option>1.2 mL</option><option>1.3 mL</option><option>1.4 mL</option></select></div>
       </div>
 
       <div id="wip-banner"><span>&#9888;</span>This section is still a work in progress.</div>
@@ -210,6 +218,7 @@
               <input id="ind-agent-dose" class="small" placeholder="Dose" />
               <span id="ind-agent-range" class="muted"></span>
             </div>
+            <div id="ind-agent-rationale" style="color:#2a7a2a;font-size:0.8rem;margin-top:2px;display:none;"></div>
             <!-- Vesicant pain (propofol only) -->
             <div id="row-vesicant" style="display:none;margin-top:6px;">
               <label>Vesicant Pain</label><br>
@@ -230,6 +239,7 @@
               <input id="ind-paralytic-dose" class="small" placeholder="Dose" />
               <span id="ind-paralytic-range" class="muted"></span>
             </div>
+            <div id="ind-paralytic-rationale" style="color:#2a7a2a;font-size:0.8rem;margin-top:2px;display:none;"></div>
             <div id="sux-warning" class="muted" style="display:none;color:#b32424;font-weight:700;">Contraindication alert</div>
           </div>
           <!-- Inhalation Agent(s) with MAC + % bidirectional -->
@@ -368,16 +378,6 @@
       <!-- Shared pain management sections (General + MAC) -->
       <div id="plan-pain-sections" style="display:none;">
         <div class="grid" style="margin-top:12px;">
-          <div style="grid-column:1/-1;">
-            <label>Pain Management</label>
-            <div id="intraop-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
-            <button type="button" class="add-row-btn" onclick="addPainRow('intraop')">+ Add</button>
-          </div>
-          <div style="grid-column:1/-1;">
-            <label>Post-op Pain Management</label>
-            <div id="postop-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
-            <button type="button" class="add-row-btn" onclick="addPainRow('postop')">+ Add</button>
-          </div>
           <div id="sedation-bolus-section" style="grid-column:1/-1;display:none;">
             <label>Sedation (Bolus)</label>
             <div id="sedation_bolus-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
@@ -388,6 +388,16 @@
             <div id="sedation_drips-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
             <button type="button" class="add-row-btn" onclick="addPainRow('sedation_drips')">+ Add</button>
           </div>
+          <div style="grid-column:1/-1;">
+            <label>Pain Management</label>
+            <div id="intraop-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
+            <button type="button" class="add-row-btn" onclick="addPainRow('intraop')">+ Add</button>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label>Post-op Pain Management</label>
+            <div id="postop-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;"></div>
+            <button type="button" class="add-row-btn" onclick="addPainRow('postop')">+ Add</button>
+          </div>
         </div>
       </div>
 
@@ -395,7 +405,7 @@
   </div>
   <script src="med-catalog.js"></script>
   <script src="shared.js"></script>
-  <script src="plan.js"></script>
+  <script src="plan.js?v=3.004"></script>
 
   <!-- ─── Inhalation gas MAC ↔ % bidirectional logic ──────────────── -->
   <script>
@@ -674,6 +684,121 @@
     document.getElementById('ind-sed-drip').addEventListener('change', function() { syncSedDripUi(); saveState(); });
 
   })();
+  </script>
+
+  <script>
+  function applyRoutineMeds() {
+    var warn = document.getElementById('routine-meds-warn');
+    var wt = parseFloat((getGlobalState() || {})['pat-weight-kg']) || 0;
+    if (!wt) {
+      if (warn) warn.style.display = 'inline';
+      return;
+    }
+    if (warn) warn.style.display = 'none';
+
+    // Ensure General anesthesia type
+    var anesType = document.getElementById('anes-type');
+    if (anesType && anesType.value !== 'General') {
+      anesType.value = 'General';
+      toggleGeneralOptions();
+    }
+
+    // --- Reset existing values ---
+    // Anxiolytic: No
+    var anxNo = document.getElementById('ind-anxiolytic-no');
+    if (anxNo) { anxNo.checked = true; toggleAnxiolytic(); }
+    // Clear blunt adrenergic
+    var bluntSelR = document.getElementById('ind-blunt-select');
+    if (bluntSelR) bluntSelR.value = '';
+    var bluntDoseR = document.getElementById('ind-blunt-dose');
+    if (bluntDoseR) bluntDoseR.value = '';
+    // Clear induction agent
+    var agentSelR = document.getElementById('ind-agent-select');
+    if (agentSelR) agentSelR.value = '';
+    var agentDoseR = document.getElementById('ind-agent-dose');
+    if (agentDoseR) agentDoseR.value = '';
+    // Clear paralytic
+    var paralSelR = document.getElementById('ind-paralytic');
+    if (paralSelR) paralSelR.value = '';
+    var paralDoseR = document.getElementById('ind-paralytic-dose');
+    if (paralDoseR) paralDoseR.value = '';
+    // Clear inhalation
+    var inhSelR = document.getElementById('ind-inhalation');
+    if (inhSelR) { inhSelR.value = ''; onInhAgent1Change(); }
+    // Clear intraop pain rows
+    var intraopContainer = document.getElementById('intraop-rows');
+    if (intraopContainer) intraopContainer.innerHTML = '';
+    PAIN_COUNTS['intraop'] = 0;
+
+    // --- Fill in routine values ---
+    // 1. Anxiolytic: Midazolam 2 mg
+    var anxYes = document.getElementById('ind-anxiolytic-yes');
+    if (anxYes) { anxYes.checked = true; toggleAnxiolytic(); }
+    var anxSel = document.getElementById('ind-anxiolytic-select');
+    if (anxSel) anxSel.value = 'Midazolam';
+    var anxDose = document.getElementById('ind-anxiolytic-dose');
+    if (anxDose) anxDose.value = '2';
+
+    // 2. Blunt adrenergic response: Fentanyl 100 mcg
+    var bluntSel = document.getElementById('ind-blunt-select');
+    if (bluntSel) bluntSel.value = 'Fentanyl';
+    var bluntDose = document.getElementById('ind-blunt-dose');
+    if (bluntDose) bluntDose.value = '100';
+
+    // 3. Induction: Propofol @ 2 mg/kg rounded down to nearest 10 mg
+    var agentSel = document.getElementById('ind-agent-select');
+    if (agentSel) { agentSel.value = 'Propofol'; agentSel.dispatchEvent(new Event('change')); }
+    var agentDose = document.getElementById('ind-agent-dose');
+    if (agentDose) agentDose.value = String(Math.floor(wt * 2 / 10) * 10);
+
+    // 4. Paralytic: Rocuronium @ 0.9 mg/kg rounded down to nearest 10 mg
+    var paralSel = document.getElementById('ind-paralytic');
+    if (paralSel) paralSel.value = 'Rocuronium';
+    var paralDose = document.getElementById('ind-paralytic-dose');
+    if (paralDose) paralDose.value = String(Math.floor(wt * 0.9 / 10) * 10);
+
+    // 6. Sevoflurane at 1 MAC (percentage set directly — bypass getAgeFactor to avoid stale state)
+    var inhSel = document.getElementById('ind-inhalation');
+    if (inhSel) { inhSel.value = 'Sevoflurane'; onInhAgent1Change(); }
+    var macSel = document.getElementById('ind-mac-plan');
+    if (macSel) macSel.value = '1.0';
+    var pctEl1 = document.getElementById('inh-pct-1');
+    if (pctEl1) pctEl1.value = '2.0';
+    var ageNote = document.getElementById('inh-age-note');
+    if (ageNote) ageNote.style.display = 'none';
+
+    // 7. Intraop pain: Fentanyl 50 mcg
+    addPainRow('intraop', 'Fentanyl', '50');
+
+    // Update dose range hints for all three drug groups
+    if (typeof updatePlanDoseRange === 'function') {
+      updatePlanDoseRange('blunt',     'ind-blunt-select',  'ind-blunt-dose',     'ind-blunt-range');
+      updatePlanDoseRange('induction', 'ind-agent-select',  'ind-agent-dose',     'ind-agent-range');
+      updatePlanDoseRange('paralytic', 'ind-paralytic',     'ind-paralytic-dose', 'ind-paralytic-range');
+    }
+
+    // Dose rationale notes for Propofol and Rocuronium
+    var rawAgent = Math.round(wt * 2 * 10) / 10;
+    var roundedAgent = Math.floor(wt * 2 / 10) * 10;
+    var agentNote = document.getElementById('ind-agent-rationale');
+    if (agentNote) {
+      var agentText = '2 mg/kg × ' + wt + ' kg = ' + rawAgent + ' mg';
+      if (rawAgent !== roundedAgent) agentText += ' → rounded down to ' + roundedAgent + ' mg';
+      agentNote.textContent = agentText;
+      agentNote.style.display = 'block';
+    }
+    var rawParal = Math.round(wt * 0.9 * 10) / 10;
+    var roundedParal = Math.floor(wt * 0.9 / 10) * 10;
+    var paralNote = document.getElementById('ind-paralytic-rationale');
+    if (paralNote) {
+      var paralText = '0.9 mg/kg × ' + wt + ' kg = ' + rawParal + ' mg';
+      if (rawParal !== roundedParal) paralText += ' → rounded down to ' + roundedParal + ' mg';
+      paralNote.textContent = paralText;
+      paralNote.style.display = 'block';
+    }
+
+    saveState();
+  }
   </script>
 
 <style>

@@ -122,22 +122,6 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeMobDrawer();
 });
 
-// Desktop top bar collapse toggle
-function toggleDeskTopbar() {
-  var body = document.getElementById('desk-topbar-body');
-  var btn  = document.getElementById('desk-topbar-toggle');
-  if (!body) return;
-  var collapsed = body.classList.toggle('dtb-collapsed');
-  try { localStorage.setItem('deskTopbarCollapsed', collapsed ? '1' : '0'); } catch(e) {}
-}
-// Restore desk topbar collapsed state on load
-(function() {
-  if (localStorage.getItem('deskTopbarCollapsed') !== '1') return;
-  var body = document.getElementById('desk-topbar-body');
-  var btn  = document.getElementById('desk-topbar-toggle');
-  if (body) body.classList.add('dtb-collapsed');
-})();
-
 // On load: if ?phoneview=1 is present, restore state from hash and open phone preview
 (function() {
   if (!/[?&]phoneview=1/.test(location.search)) return;

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Combined Care Plan (All 8 Sections)</title>
-  <link rel="stylesheet" href="combined.css">
+  <link rel="stylesheet" href="combined.css?v=3.006">
 </head>
 <body>
 <!-- Auth gate: covers the entire app until sign-in is confirmed -->
@@ -30,10 +30,11 @@
       <div class="print-grid" id="print-grid-inner">
         <div class="print-section" id="ps-patient">
           <h3>Patient Details</h3>
-          <div class="print-row" id="pr-row-age-gen"><span>Age / Gender:</span><span id="pr-age-gen">_</span></div>
+          <div id="pr-row-age-gen" style="text-align:right;font-weight:600;">
+            <span id="pr-age-gen">_</span> / ASA Class <span id="pr-asa-class">_</span>
+          </div>
           <div class="print-row" id="pr-row-ht-wt"><span></span><span><span id="pr-height">_</span><span style="margin:0 2px;">/</span><span id="pr-weight">_</span><span style="margin:0 2px;">/</span><span id="pr-bmi">_</span></span></div>
           <div class="print-row" id="pr-row-allergies"><span>Allergies:</span><span id="pr-allergies">_</span></div>
-          <div class="print-row" id="pr-row-asa"><span>ASA Class:</span><span id="pr-asa-class">_</span></div>
           <div class="print-row" id="pr-row-pmh"><span>PMH:</span><span id="pr-pmh">_</span></div>
           <div class="print-row" id="pr-past-surg-row" style="display:none;"><span>PSH:</span><span id="pr-past-surg">_</span></div>
           <div class="print-row" id="pr-prior-anesthetic-row" style="display:none;"><span>Prior Anes:</span><span id="pr-prior-anesthetic">_</span></div>
@@ -137,8 +138,8 @@
           <h3>Preop &amp; Airway</h3>
           <div class="print-row" id="pr-row-position"><span>Positioning:</span><span id="pr-position">_</span></div>
           <div class="print-row" id="pr-pressure-points-row" style="display:none;"><span>Pressure Pts:</span><span id="pr-pressure-points">_</span></div>
-          <div class="print-row" id="pr-antibiotic-plan-row" style="display:none;"><span>Antibiotic:</span><span id="pr-antibiotic-plan">_</span></div>
           <div class="print-row" id="pr-row-nerve-stim"><span>Nerve Stim:</span><span id="pr-nerve-stim">_</span></div>
+          <div class="print-row" id="pr-antibiotic-plan-row" style="display:none;"><span>Antibiotic:</span><span id="pr-antibiotic-plan">_</span></div>
           <div class="print-row" id="pr-interpreter-alert-row" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span id="pr-interpreter-alert-text">_</span></div>
           <div class="print-row" id="pr-neuro-monitoring-row" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>Intra-op Neuro Monitoring</span></div>
           <div class="print-row" id="pr-blood-room-row" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span>Have Blood in Room</span></div>
@@ -172,7 +173,7 @@
           <div id="pr-neuro-monitor-row" style="display:none;color:#c41c3b;font-weight:bold;font-size:6pt;text-align:center;border:1px solid #c41c3b;border-radius:2px;padding:1px 2px;margin-bottom:2px;">&#9888; This surgery is booked for neuro monitoring — use caution with anesthetic type and paralytic.</div>
           <div class="print-row" id="pr-row-anes-type"><span>Type:</span><span id="pr-anes-type">_</span></div>
           <div class="print-row" id="pr-tiva-row" style="display:none;"><span>TIVA Reason:</span><span id="pr-tiva-reason">_</span></div>
-          <div id="pr-row-ga-details" style="margin-top: 6px; border-top: 1px dotted #ccc; padding-top: 4px;">
+          <div id="pr-row-ga-details" style="margin-top: 2px; border-top: 1px dotted #ccc; padding-top: 2px;">
             <div class="print-row"><span id="pr-airway-label">Airway:</span><span id="pr-airway">_</span></div>
             <div class="print-row"><span>Extubation:</span><span id="pr-extubation">_</span></div>
             <div class="print-row"><span>Anxiolytic:</span><span id="pr-anx">_</span></div>
@@ -199,10 +200,7 @@
             <div class="print-row"><span>Type:</span><span id="pr-fluid-type">_</span></div>
             <div class="print-row" id="pr-warm-fluids-row" style="display:none;"><span>Warm Fluids:</span><span id="pr-warm-fluids">_</span></div>
             <div class="print-row" id="pr-albumin-row" style="display:none;"><span>Albumin:</span><span id="pr-albumin">_</span></div>
-            <div class="print-row"><span>Hr 1:</span><span id="pr-fluid-hr1">_</span></div>
-            <div class="print-row"><span>Hr 2:</span><span id="pr-fluid-hr2">_</span></div>
-            <div class="print-row"><span>Hr 3:</span><span id="pr-fluid-hr3">_</span></div>
-            <div class="print-row"><span>Hr 4+:</span><span id="pr-fluid-hr4">_</span></div>
+            <div class="print-row"><span>mL/hr 1–4+:</span><span id="pr-fluid-hrs">_</span></div>
             <div class="print-row"><span>EBV / ABL:</span><span id="pr-ebv-abl">_</span></div>
             <div class="print-row" id="pr-anticipated-ebl-row" style="display:none;"><span>Anticip EBL:</span><span id="pr-anticipated-ebl" style="white-space:nowrap;">_</span></div>
           </div>
@@ -212,7 +210,7 @@
           </div>
           <div id="pr-notes-section" style="display:none;margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
             <div style="font-size:6.2pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#444;margin-bottom:2px;">Notes</div>
-            <div id="pr-notes" style="font-size:6.4pt;line-height:1.35;white-space:pre-wrap;word-break:break-word;"></div>
+            <div id="pr-notes" style="font-size:6.4pt;line-height:1.35;word-break:break-word;"></div>
           </div>
         </div>
         </div>
@@ -267,6 +265,7 @@
       <div id="desk-topbar-top">
         <div id="desk-topbar-title-wrap">
           <span id="desk-topbar-title">Anesthetic Care Plan</span>
+          <span style="font-size:0.72rem;font-weight:400;color:#8aa0b8;margin-left:6px;vertical-align:middle;">v3.006 — WIP</span>
           <span id="desk-topbar-patient"></span>
           <span id="topbar-flash" style="display:none;"></span>
         </div>
@@ -274,7 +273,6 @@
           <span id="header-auth-name" style="font-size:0.85rem;font-weight:600;color:#355271;"></span>
           <button type="button" id="cloud-login-btn" class="action-btn" style="display:none;font-size:0.8rem;padding:5px 10px;" onclick="applyCloudLogin()">Sign In</button>
           <button type="button" id="cloud-logout-btn" class="action-btn" style="display:none;font-size:0.8rem;padding:5px 10px;" onclick="clearCloudLogin()">Sign Out</button>
-          <button type="button" id="desk-topbar-toggle" onclick="toggleDeskTopbar()" title="Settings / collapse menu">&#9881;</button>
         </div>
       </div>
       <div id="desk-topbar-body">
@@ -300,7 +298,7 @@
     </div>
 
     <div id="sec-1" class="section"><h2>Patient</h2><iframe id="frame-1" src="1-Patient-Demographics.html" title="Section 1"></iframe></div>
-    <div id="sec-2" class="section"><h2>Surgery</h2><iframe id="frame-2" src="2-Surgery.html" title="Section 2"></iframe></div>
+    <div id="sec-2" class="section"><h2>Surgery</h2><iframe id="frame-2" src="2-Surgery.html?v=3.006" title="Section 2"></iframe></div>
     <div id="sec-3" class="section"><h2>Past Medical History</h2><iframe id="frame-3" src="4-PMH.html" title="Section 3"></iframe></div>
     <div id="sec-4" class="section"><h2>Home Meds</h2><iframe id="frame-4" src="5-Prescribed-Medications.html" title="Section 4"></iframe></div>
     <div id="sec-5" class="section"><h2>Labs</h2><iframe id="frame-5" src="3-Labs-Chemistries.html" title="Section 2"></iframe></div>
@@ -313,7 +311,8 @@
     <div id="sec-10" class="section"><h2>Vent Settings</h2><iframe id="frame-10" src="10-Vent-Settings.html" title="Section 9"></iframe></div>
     <div class="section" style="margin-top:16px;">
       <h2 style="margin-bottom:8px;">Notes</h2>
-      <textarea id="notes-freetext" placeholder="Add your own notes here..." style="width:100%;min-height:100px;resize:vertical;font-family:inherit;font-size:0.92rem;padding:10px;border:1px solid #c9d6e3;border-radius:8px;background:#fafcff;color:#1d2938;line-height:1.5;box-sizing:border-box;"></textarea>
+      <div id="notes-list" class="notes-list"></div>
+      <button type="button" class="notes-add-btn" onclick="addNoteRow()">+ Add more</button>
     </div>
     <div class="top-actions" style="margin-top:20px;margin-bottom:20px;">
       <button type="button" class="action-btn" onclick="printOrEmailSavedPlans()">&#128196; Print / Email Plans</button>
@@ -328,89 +327,101 @@
   <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="firebase-care-plans.js"></script>
+  <script src="firebase-config.js?v=3.001"></script>
+  <script src="firebase-care-plans.js?v=3.001"></script>
+  <script src="../shared-auth.js"></script>
   <script>
-    // Inline Firebase Auth init — replaces ../shared-auth.js which 404s on this server.
-    // Uses the same project config as AnesthesiaWiki.html so auth state is shared across pages.
+    // Wire auth gate visibility
     (function() {
-      var FIREBASE_CONFIG = {
-        apiKey:            'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
-        authDomain:        'anesthesia-wiki-saved-files.firebaseapp.com',
-        projectId:         'anesthesia-wiki-saved-files',
-        storageBucket:     'anesthesia-wiki-saved-files.firebasestorage.app',
-        messagingSenderId: '493278937716',
-        appId:             '1:493278937716:web:6d4055acbb6f5745810721'
-      };
-      if (!window.firebase) return;
-      if (!window.firebase.apps || !window.firebase.apps.length) {
-        window.firebase.initializeApp(FIREBASE_CONFIG);
+      function wireGate() {
+        if (!window.AnesthesiaAuth) return;
+        window.AnesthesiaAuth.onAuthChange(function(user) {
+          var gate = document.getElementById('auth-gate');
+          if (gate) gate.style.display = user ? 'none' : 'flex';
+        });
       }
-      var _popupInProgress = false;
-      window.AnesthesiaAuth = {
-        showLogin: function() {
-          if (_popupInProgress) return;
-          _popupInProgress = true;
-          var gateMsg = document.getElementById('auth-gate-msg');
-          if (gateMsg) gateMsg.textContent = 'Opening Google sign-in…';
-          var provider = new window.firebase.auth.GoogleAuthProvider();
-          provider.setCustomParameters({ prompt: 'select_account' });
-          window.firebase.auth().signInWithPopup(provider).then(function() {
-            _popupInProgress = false;
-          }).catch(function(e) {
-            _popupInProgress = false;
-            if (gateMsg) gateMsg.textContent = '';
-            if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
-              alert(e.message || 'Google sign-in failed. Make sure pop-ups are allowed.');
-            }
-          });
-        },
-        signOut: function() {
-          try { return window.firebase.auth().signOut(); } catch(e) { return Promise.resolve(); }
-        },
-        onAuthChange: function(cb) {
-          try { window.firebase.auth().onAuthStateChanged(cb); } catch(e) {}
-        },
-        getUser: function() {
-          try { return window.firebase.auth().currentUser; } catch(e) { return null; }
-        }
-      };
-
-      // Wire auth gate visibility
-      window.firebase.auth().onAuthStateChanged(function(user) {
-        var gate = document.getElementById('auth-gate');
-        if (user) {
-          if (gate) gate.style.display = 'none';
-        } else {
-          if (gate) gate.style.display = 'flex';
-        }
-      });
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', wireGate);
+      } else {
+        wireGate();
+      }
     })();
   </script>
-  <script src="combined.js"></script>
-  <script src="print-card.js"></script>
-  <script src="email-plan.js"></script>
-  <script src="print-preview.js"></script>
+  <script src="combined.js?v=3.006"></script>
+  <script src="print-card.js?v=3.001"></script>
+  <script src="email-plan.js?v=3.006"></script>
+  <script src="print-preview.js?v=3.006"></script>
   <script>
-    (function initNotes() {
-      var ta = document.getElementById('notes-freetext');
-      if (!ta) return;
-      // Load persisted value
-      try {
-        var saved = JSON.parse(localStorage.getItem('carePlanSplitState') || '{}');
-        if (saved && saved['notes-freetext']) ta.value = saved['notes-freetext'];
-      } catch (e) {}
-      // Save on input
-      ta.addEventListener('input', function() {
-        try {
-          var state = JSON.parse(localStorage.getItem('carePlanSplitState') || '{}') || {};
-          state['notes-freetext'] = ta.value;
-          localStorage.setItem('carePlanSplitState', JSON.stringify(state));
-          // Mirror into parent mirroredState so buildPrintCard picks it up live
-          if (typeof mirroredState !== 'undefined') mirroredState['notes-freetext'] = ta.value;
-        } catch (e) {}
+    var noteRowCount = 0;
+
+    function addNoteRow(value) {
+      if (noteRowCount >= 50) return;
+      noteRowCount++;
+      var row = document.createElement('div');
+      row.className = 'notes-row';
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Note';
+      if (value) input.value = value;
+      input.addEventListener('input', saveNoteRows);
+      input.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var rows = Array.from(document.querySelectorAll('#notes-list .notes-row'));
+        var idx = rows.indexOf(row);
+        if (idx < rows.length - 1) {
+          rows[idx + 1].querySelector('input').focus();
+        } else {
+          addNoteRow('');
+          var all = document.querySelectorAll('#notes-list .notes-row');
+          all[all.length - 1].querySelector('input').focus();
+        }
       });
-    })();
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'notes-del-btn';
+      rm.textContent = 'Delete';
+      rm.onclick = function() {
+        row.remove();
+        noteRowCount--;
+        if (document.querySelectorAll('#notes-list .notes-row').length === 0) addNoteRow('');
+        saveNoteRows();
+      };
+      row.appendChild(input);
+      row.appendChild(rm);
+      document.getElementById('notes-list').appendChild(row);
+      saveNoteRows();
+    }
+
+    function saveNoteRows() {
+      try {
+        var rows = Array.from(document.querySelectorAll('#notes-list .notes-row input')).map(function(el) { return el.value || ''; });
+        var state = JSON.parse(localStorage.getItem('carePlanSplitState') || '{}') || {};
+        state['notes-list'] = JSON.stringify(rows);
+        localStorage.setItem('carePlanSplitState', JSON.stringify(state));
+        if (typeof mirroredState !== 'undefined') mirroredState['notes-list'] = JSON.stringify(rows);
+      } catch (e) {}
+    }
+
+    function restoreNoteRows() {
+      var list = document.getElementById('notes-list');
+      if (!list) return;
+      list.innerHTML = '';
+      noteRowCount = 0;
+      try {
+        var state = JSON.parse(localStorage.getItem('carePlanSplitState') || '{}') || {};
+        var rows = [];
+        if (state['notes-list']) {
+          rows = JSON.parse(state['notes-list']);
+        } else if (state['notes-freetext']) {
+          rows = state['notes-freetext'].split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+        }
+        if (!Array.isArray(rows) || !rows.length) rows = [''];
+        rows.forEach(function(item) { addNoteRow(item || ''); });
+      } catch (e) { addNoteRow(''); }
+    }
+
+    restoreNoteRows();
   </script>
 
 <script>
@@ -519,6 +530,6 @@
   }
 })();
 </script>
-<script src="phone-share.js"></script>
+<script src="phone-share.js?v=3.001"></script>
 </body>
 </html>

@@ -32,7 +32,7 @@ function getFirestore() {
         storageBucket: cfg.storageBucket,
         messagingSenderId: cfg.messagingSenderId,
         appId: cfg.appId
-      }, 'typhon');
+      }); // No name → default app, shares auth state with wiki/care-plan pages
       console.log('[getFirestore] Initialized new Firebase app');
     }
     _db = firebase.firestore(app);
@@ -124,8 +124,32 @@ var store = {
             if (snap.exists) {
               const data = snap.data()[key] ?? null;
               console.log(`[store.get] Firestore returned:`, data ? 'data found' : 'null');
-              // Cache it in chrome.storage for next time
+              // Cache it in chrome.storage for next time, but first check if the
+              // extension has marked any items submitted locally that Firestore doesn't know about.
               if (data !== null) {
+                if (key === 'typhon-items' && Array.isArray(data)) {
+                  const local = await new Promise(r => chrome.storage.local.get(key, d => r(d[key] ?? null)));
+                  if (Array.isArray(local) && local.length) {
+                    const localSubmittedIds = new Set(
+                      local.filter(item => item && item.submitted && item.id).map(item => item.id)
+                    );
+                    if (localSubmittedIds.size) {
+                      let changed = false;
+                      const merged = data.map(item => {
+                        if (!item || item.submitted || !item.id) return item;
+                        if (localSubmittedIds.has(item.id)) { changed = true; return Object.assign({}, item, { submitted: true }); }
+                        return item;
+                      });
+                      if (changed) {
+                        console.log('[store.get] Writing back locally-submitted flags to Firestore');
+                        db.collection(_colName).doc(uid).set({ [key]: merged }, { merge: true })
+                          .catch(e => console.warn('[store.get] Write-back failed:', e));
+                      }
+                      chrome.storage.local.set({ [key]: merged });
+                      return merged;
+                    }
+                  }
+                }
                 chrome.storage.local.set({ [key]: data });
                 return data;
               }
@@ -147,13 +171,43 @@ var store = {
       console.log(`[store.get] No value in Firestore or chrome.storage for "${key}"`);
       return null;
     }
-    // 2. Firestore — UID-scoped when signed in, 'default' as anonymous fallback
+    // 2. Firestore — UID-scoped when signed in only (no anonymous fallback)
     const db = getFirestore();
-    if (db) {
+    const uid = _getAuthUid();
+    if (db && uid) {
       try {
-        const docId = _getAuthUid() || 'default';
-        const snap = await db.collection(_colName).doc(docId).get();
-        if (snap.exists) return snap.data()[key] ?? null;
+        const snap = await db.collection(_colName).doc(uid).get();
+        if (snap.exists) {
+          const data = snap.data()[key] ?? null;
+
+          // Preserve local submitted flags if cloud data is briefly stale.
+          if (key === 'typhon-items' && Array.isArray(data)) {
+            let local = null;
+            try { local = JSON.parse(localStorage.getItem(key)); } catch {}
+
+            if (Array.isArray(local) && local.length) {
+              const localSubmittedIds = new Set(
+                local
+                  .filter(item => item && item.submitted && item.id)
+                  .map(item => item.id)
+              );
+
+              if (localSubmittedIds.size) {
+                const merged = data.map(item => {
+                  if (!item || item.submitted || !item.id) return item;
+                  return localSubmittedIds.has(item.id)
+                    ? Object.assign({}, item, { submitted: true })
+                    : item;
+                });
+
+                try { localStorage.setItem(key, JSON.stringify(merged)); } catch {}
+                return merged;
+              }
+            }
+          }
+
+          return data;
+        }
         return null;
       } catch (e) { console.warn('Firestore get failed, using localStorage', e); }
     }
@@ -178,13 +232,13 @@ var store = {
       }
       return { local: true, cloud: false, mode: 'chrome' };
     }
-    // 2. Firestore — UID-scoped
+    // 2. Firestore — UID-scoped when signed in only (no anonymous fallback)
     const db = getFirestore();
-    if (db) {
+    const uid = _getAuthUid();
+    if (db && uid) {
       try {
-        const docId = _getAuthUid() || 'default';
-        console.log(`[store.set] Writing to Firestore: ${_colName}/${docId}`);
-        await db.collection(_colName).doc(docId).set({ [key]: val }, { merge: true });
+        console.log(`[store.set] Writing to Firestore: ${_colName}/${uid}`);
+        await db.collection(_colName).doc(uid).set({ [key]: val }, { merge: true });
         console.log(`[store.set] Firestore write succeeded`);
         localStorage.setItem(key, JSON.stringify(val));
         return { local: true, cloud: true, mode: 'firestore' };
@@ -202,87 +256,3 @@ var store = {
   }
 };
 
-// ============================================================
-// SIGN-IN SYNC — merge local items to Firestore on auth
-// ============================================================
-// Called once when the user becomes signed in. If Firestore is
-// empty (new device / first login) we push local items up.
-// If Firestore already has items we merge in any local-only ones
-// using date+type as a dedup key, then write the merged set back.
-async function syncOnSignIn() {
-  const uid = _getAuthUid();
-  if (!uid) return;
-  const db = getFirestore();
-  if (!db) return;
-
-  try {
-    // Read local items
-    let localItems = [];
-    try { localItems = JSON.parse(localStorage.getItem('typhon-items')) || []; } catch {}
-
-    // Read cloud items
-    const snap = await db.collection(_colName).doc(uid).get();
-    const cloudItems = snap.exists ? (snap.data()['typhon-items'] || []) : [];
-
-    if (!localItems.length && !cloudItems.length) return;
-
-    // If cloud has data and local is empty/same, just cache cloud locally — nothing to push.
-    if (!localItems.length) {
-      localStorage.setItem('typhon-items', JSON.stringify(cloudItems));
-      console.log('[syncOnSignIn] Loaded', cloudItems.length, 'items from cloud');
-      return;
-    }
-
-    // Merge: use (date + type + biologicalSex) as a loose dedup key.
-    function itemKey(i) { return [i.date, i.type, i.biologicalSex, i.clockIn1, i.preceptorName].join('|'); }
-    const cloudKeys = new Set(cloudItems.map(itemKey));
-    const localOnly = localItems.filter(i => !cloudKeys.has(itemKey(i)));
-    if (!localOnly.length) {
-      // Nothing new locally — update local cache with cloud data
-      localStorage.setItem('typhon-items', JSON.stringify(cloudItems));
-      console.log('[syncOnSignIn] Cloud up-to-date, loaded', cloudItems.length, 'items');
-      return;
-    }
-
-    // Combine: cloud items first (they're authoritative), then local-only extras
-    const merged = [...cloudItems, ...localOnly];
-    await db.collection(_colName).doc(uid).set({ 'typhon-items': merged }, { merge: true });
-    localStorage.setItem('typhon-items', JSON.stringify(merged));
-    console.log('[syncOnSignIn] Pushed', localOnly.length, 'local-only item(s) to cloud. Total:', merged.length);
-    hideCloudSyncWarning();
-  } catch (e) {
-    console.warn('[syncOnSignIn] Merge failed:', e.message);
-  }
-}
-
-// Retry cloud sync when the tab becomes visible (covers "saved offline, came back online").
-(function() {
-  var _needsCloudRetry = false;
-  var _retrying = false;
-
-  window.markNeedsCloudRetry = function() { _needsCloudRetry = true; };
-
-  document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState !== 'visible') return;
-    if (!_needsCloudRetry || _retrying) return;
-    const uid = _getAuthUid();
-    if (!uid) return;
-    const db = getFirestore();
-    if (!db) return;
-    _retrying = true;
-    let items = null;
-    try { items = JSON.parse(localStorage.getItem('typhon-items')); } catch {}
-    if (!items || !items.length) { _retrying = false; return; }
-    db.collection(_colName).doc(uid).set({ 'typhon-items': items }, { merge: true })
-      .then(function() {
-        _needsCloudRetry = false;
-        _retrying = false;
-        hideCloudSyncWarning();
-        console.log('[cloudRetry] Retry succeeded — items synced to cloud');
-      })
-      .catch(function(e) {
-        _retrying = false;
-        console.warn('[cloudRetry] Retry failed:', e.message);
-      });
-  });
-})();

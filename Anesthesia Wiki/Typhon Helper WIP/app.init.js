@@ -72,12 +72,65 @@ function initWelcomeScreen() {
   if (!welcome || !newCaseBtn || !timeLogBtn || !draftsBtn) return;
 
   const timeContinueBtn = document.getElementById('welcome-time-continue');
+  const timeClockInHint = document.getElementById('welcome-time-clockin');
   const caseContinueBtn = document.getElementById('welcome-case-continue');
+  const caseHint = document.getElementById('welcome-case-hint');
   const evalContinueBtn = document.getElementById('welcome-eval-continue');
 
   function updateContinueButton() {
-    if (timeContinueBtn) timeContinueBtn.style.display = hasTimeProgress() ? '' : 'none';
-    if (caseContinueBtn) caseContinueBtn.style.display = hasCaseProgress() ? '' : 'none';
+    const timeReady = hasTimeProgress();
+    if (timeContinueBtn) timeContinueBtn.style.display = timeReady ? '' : 'none';
+    if (timeClockInHint) {
+      if (timeReady) {
+        try {
+          const t = JSON.parse(localStorage.getItem('typhon-time-progress') || '{}');
+          const fmt = s => {
+            if (!s) return null;
+            const clean = s.replace(':', '');
+            if (clean.length < 3) return s;
+            const h = parseInt(clean.slice(0, -2), 10);
+            const m = clean.slice(-2);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const h12 = h % 12 || 12;
+            return `${h12}:${m} ${ampm}`;
+          };
+          const inFmt = fmt(t.clockIn1);
+          const outFmt = fmt(t.clockOut1);
+          const parts = [inFmt ? 'Start: ' + inFmt : null, outFmt ? 'End: ' + outFmt : null].filter(Boolean);
+          timeClockInHint.textContent = parts.length ? 'In Progress: ' + parts.join('  ·  ') : '';
+          timeClockInHint.style.display = parts.length ? '' : 'none';
+        } catch { timeClockInHint.style.display = 'none'; }
+      } else {
+        timeClockInHint.style.display = 'none';
+      }
+    }
+    const caseReady = hasCaseProgress();
+    if (caseContinueBtn) caseContinueBtn.style.display = caseReady ? '' : 'none';
+    if (caseHint) {
+      if (caseReady) {
+        try {
+          const c = JSON.parse(localStorage.getItem('typhon-draft') || '{}');
+          const fmtT = s => {
+            if (!s) return null;
+            const clean = s.replace(':', '');
+            if (clean.length < 3) return s;
+            const h = parseInt(clean.slice(0, -2), 10);
+            const m = clean.slice(-2);
+            return (h % 12 || 12) + ':' + m + ' ' + (h >= 12 ? 'PM' : 'AM');
+          };
+          const parts = [
+            c.anesStart ? 'Start: ' + fmtT(c.anesStart) : null,
+            c.anesFinish ? 'End: ' + fmtT(c.anesFinish) : null,
+            c.age ? 'Age: ' + c.age : null,
+            (c.anatomical && c.anatomical.length) ? c.anatomical.join(', ') : null
+          ].filter(Boolean);
+          caseHint.textContent = parts.length ? 'In Progress: ' + parts.join('  ·  ') : '';
+          caseHint.style.display = parts.length ? '' : 'none';
+        } catch { caseHint.style.display = 'none'; }
+      } else {
+        caseHint.style.display = 'none';
+      }
+    }
     if (evalContinueBtn) evalContinueBtn.style.display = (typeof hasEvalProgress === 'function' && hasEvalProgress()) ? '' : 'none';
   }
 
@@ -89,8 +142,18 @@ function initWelcomeScreen() {
     btn.blur();
   };
 
-  newCaseBtn.addEventListener('click', () => choose('case', newCaseBtn));
-  timeLogBtn.addEventListener('click', () => choose('time', timeLogBtn));
+  newCaseBtn.addEventListener('click', () => {
+    hideStartScreen();
+    goTab('case');
+    if (hasCaseProgress()) restoreDraft();
+    newCaseBtn.blur();
+  });
+  timeLogBtn.addEventListener('click', () => {
+    hideStartScreen();
+    goTab('time');
+    if (hasTimeProgress()) restoreTimeProgress();
+    timeLogBtn.blur();
+  });
   if (evalBtn) evalBtn.addEventListener('click', () => choose('eval', evalBtn));
   draftsBtn.addEventListener('click', () => choose('saved', draftsBtn));
 
@@ -99,6 +162,9 @@ function initWelcomeScreen() {
   });
   if (caseContinueBtn) caseContinueBtn.addEventListener('click', () => {
     hideStartScreen(); goTab('case'); restoreDraft(); caseContinueBtn.blur();
+  });
+  if (caseHint) caseHint.addEventListener('click', () => {
+    hideStartScreen(); goTab('case'); restoreDraft();
   });
   if (evalContinueBtn) evalContinueBtn.addEventListener('click', () => {
     hideStartScreen(); goTab('eval');
@@ -123,20 +189,26 @@ function initWelcomeScreen() {
     const gateSignin = document.getElementById('auth-gate-signin');
 
     if (!_authStateResolved) {
-      // Firebase hasn't resolved yet — keep loading gate visible
-      if (gate) gate.style.display = 'flex';
-      hideStartScreen();
+      // Firebase hasn't resolved yet — keep loading gate visible if it exists,
+      // otherwise leave start screen showing so tabs don't flash
+      if (gate) {
+        gate.style.display = 'flex';
+        hideStartScreen();
+      }
       return;
     }
 
     if (!user) {
-      // Auth resolved — not signed in: show sign-in gate
-      hideStartScreen();
+      // Auth resolved — not signed in: show sign-in gate if one exists.
+      // If no gate overlay is present (e.g. TyphonCaseHelper.html), keep the
+      // start screen visible — don't expose a blank case pane with no sign-in UI.
       if (gate) {
+        hideStartScreen();
         gate.style.display = 'flex';
         if (gateLoad)   gateLoad.style.display   = 'none';
         if (gateSignin) gateSignin.style.display = '';
       }
+      // else: leave start screen in place — AnesthesiaAuth will trigger sign-in
     } else {
       // Signed in — hide gate and show welcome
       if (gate) gate.style.display = 'none';
@@ -240,10 +312,13 @@ function initCaseMobilePager() {
     nextBtn.disabled = casePager.index === cards.length - 1;
     pane.classList.toggle('last-step', casePager.index === cards.length - 1);
 
-    // Lock vertical scroll on all steps except step 8 (index 7 — Anesthesia Type),
-    // which may have more content that requires scrolling.
+    // Lock vertical scroll on all steps except:
+    //   step 8 (index 7 — Anesthesia Type) — always scrollable
+    //   step 7 (index 6 — Anatomical Category) — scrollable when a cascading dropdown is open
     const SCROLL_STEP = 7; // 0-indexed (step 8 of 10)
-    const lockScroll = casePager.index !== SCROLL_STEP;
+    const ANAT_STEP = 6;   // 0-indexed (step 7 of 10)
+    const anatDropdownOpen = casePager.index === ANAT_STEP && !!document.querySelector('.anat-dropdown.open');
+    const lockScroll = casePager.index !== SCROLL_STEP && !anatDropdownOpen;
     document.documentElement.style.overflowY = lockScroll ? 'hidden' : '';
     document.body.style.overflowY = lockScroll ? 'hidden' : '';
 
@@ -425,7 +500,7 @@ function bindUiEvents() {
     });
   });
 
-  document.getElementById('btn-save-case')?.addEventListener('click', saveCase);
+  document.getElementById('btn-save-case')?.addEventListener('click', () => window.saveCase());
   document.getElementById('btn-draft-case')?.addEventListener('click', saveDraftCase);
   document.getElementById('btn-save-time')?.addEventListener('click', saveTimeLog);
   document.getElementById('btn-clear-time')?.addEventListener('click', () => {
@@ -625,16 +700,67 @@ function _markPlanCompleted(planName) {
     comps.push({ planName, date: today, completedAt: new Date().toISOString() });
     localStorage.setItem('typhon-plan-completions', JSON.stringify(comps));
   }
+  // Always attempt cloud write — re-read localStorage so we get the full
+  // current list even if the entry already existed from a prior null-auth call.
+  _pushCompletionsToCloud();
+}
+
+function _unmarkPlanCompleted(planName) {
+  const today = _todayIso();
+  const updated = _getPlannedCompletions().filter(c => !(c.planName === planName && c.date === today));
+  localStorage.setItem('typhon-plan-completions', JSON.stringify(updated));
+  _pushCompletionsToCloud();
+}
+
+// Write the full localStorage completion list to Firestore.
+// If auth isn't ready yet, queues one retry on the next typhon-auth-changed.
+function _pushCompletionsToCloud() {
+  const uid = _getAuthUid();
+  if (!uid) {
+    // Auth not ready — retry exactly once when it resolves.
+    window.addEventListener('typhon-auth-changed', () => {
+      const latestComps = _getPlannedCompletions();
+      if (!latestComps.length) return;
+      store.set('typhon-plan-completions', latestComps)
+        .then(r => {
+          console.log(`[sync] _pushCompletionsToCloud (deferred): cloud=${r && r.cloud}`, r);
+          if (!r || !r.cloud) toast(`⚠️ Sync: completion NOT saved to cloud (deferred). UID: ${_getAuthUid() || 'none'}`);
+        })
+        .catch(e => {
+          console.error('[sync] _pushCompletionsToCloud deferred write failed', e);
+          toast(`⚠️ Sync error: ${e.message || e}`);
+        });
+    }, { once: true });
+    console.log('[sync] _pushCompletionsToCloud: auth not ready, queued for next auth-changed');
+    return;
+  }
+  const latestComps = _getPlannedCompletions();
+  store.set('typhon-plan-completions', latestComps)
+    .then(r => {
+      const status = r && r.cloud ? `☁️ saved to cloud` : `⚠️ local only (no cloud)`;
+      console.log(`[sync] _pushCompletionsToCloud: UID:${uid} — ${status}`, r);
+      if (!r || !r.cloud) toast(`⚠️ Sync: completion NOT saved to cloud. UID: ${uid}`);
+    })
+    .catch(e => {
+      console.error('[sync] _pushCompletionsToCloud write failed', e);
+      toast(`⚠️ Sync error: ${e.message || e}`);
+    });
 }
 
 // Track which CPG plan is currently pre-filling the form.
+// Exposed on window so app.save.js can tag the saved case.
 let _activePlanName = null;
+Object.defineProperty(window, '_activePlanName', {
+  get() { return _activePlanName; },
+  set(v) { _activePlanName = v; },
+  configurable: true
+});
 // Cache today's plans for re-rendering after completion.
 let _todaysPlans = [];
 
 async function loadAndRenderPlannedCases() {
   const db = getFirestore();
-  if (!db) { console.warn('[plannedCases] Firestore not available'); return; }
+  if (!db) { console.warn('[plannedCases] Firestore not available'); renderPlannedCases([]); return; }
 
   // Collect all userId values to try: Firebase Auth UID + legacy CPG text-ID
   const uid      = _getAuthUid();
@@ -642,7 +768,7 @@ async function loadAndRenderPlannedCases() {
   try { legacyId = localStorage.getItem('carePlanCloudUserId') || null; } catch {}
   const userIds  = [...new Set([uid, legacyId].filter(Boolean))];
   console.log('[plannedCases] userIds to query:', userIds, '| today:', _todayIso());
-  if (userIds.length === 0) { console.warn('[plannedCases] No userId available'); return; }
+  if (userIds.length === 0) { console.warn('[plannedCases] No userId available'); renderPlannedCases([]); return; }
 
   const today = _todayIso();
   const plans = [];
@@ -662,9 +788,21 @@ async function loadAndRenderPlannedCases() {
       });
     }
     _todaysPlans = plans;
+
+    // Seed completions from Firestore-synced saved items (so other devices see ✓ Logged)
+    try {
+      const savedItems = (await store.get('typhon-items')) || [];
+      savedItems.forEach(item => {
+        if (item.type === 'case' && item.cpgPlanName && item.date === today) {
+          _markPlanCompleted(item.cpgPlanName);
+        }
+      });
+    } catch(e) { console.warn('[plannedCases] cloud completions seed failed', e); }
+
     renderPlannedCases(plans);
   } catch(e) {
     console.warn('[loadAndRenderPlannedCases]', e);
+    renderPlannedCases([]);
   }
 }
 
@@ -719,6 +857,9 @@ function _inferAnatCategories(surgeryName) {
 
   if (/\bbreast\b|mastectomy|lumpectomy|chest wall|\brib\b|\bsternum\b/.test(n))
     cats.push('Extrathoracic');
+
+  if (/\bect\b|electroconvulsive|\bebus\b|colonoscopy|\begd\b|esophagogastroduodenoscop/.test(n))
+    cats.push('Other');
 
   return cats;
 }
@@ -820,9 +961,20 @@ function prefillFromCPGPlan(planName, planState) {
     const anatCats = _inferAnatCategories(surgeryName);
     anatCats.forEach(cat => {
       const btn = document.querySelector(`#grp-anat .btn-tog[data-v="${cat}"]`);
-      if (btn) btn.click();
+      if (btn) btn.classList.add('on');
     });
     updateAnatomicalDetailsVisibility();
+    // Other — tick the matching detail checkbox
+    const sn = surgeryName.toLowerCase();
+    const otherDetails = [
+      { pattern: /\bect\b|electroconvulsive/,          id: 'c-anat-other-ect'        },
+      { pattern: /\bebus\b/,                           id: 'c-anat-other-ebus'       },
+      { pattern: /colonoscopy/,                        id: 'c-anat-other-colonoscopy' },
+      { pattern: /\begd\b|esophagogastroduodenoscop/,  id: 'c-anat-other-egd'        },
+    ];
+    otherDetails.forEach(({ pattern, id }) => {
+      if (pattern.test(sn)) { const el = document.getElementById(id); if (el) el.checked = true; }
+    });
   }
 
   // Initial Preanesthetic Assessment — always pre-select
@@ -836,15 +988,18 @@ function prefillFromCPGPlan(planName, planState) {
   // General anesthesia detail checkboxes
   if (anesType === 'general') {
     const isLMA  = (s['ind-airway-method'] || '') === 'LMA';
+    const _aw    = (s['ind-airway-method'] || '').toUpperCase();
+    const isBMV  = _aw === 'BMV' || _aw === 'BVM';  // CPG may store either spelling
     const isTIVA = !!s['tiva-box'];
     const isRSI  = (s['ind-rsi'] || '') === 'Yes';
 
     const ids = ['c-gen-iv'];                          // IV induction — always
     if (!isRSI)  ids.push('c-gen-mask-ind');           // mask vent induction — skip for RSI
-    if (isLMA)   ids.push('c-gen-lma');                // LMA airway
-    else         ids.push('c-gen-ett-oral');           // ETT oral — unless LMA
+    if (isLMA)        ids.push('c-gen-lma');           // LMA airway
+    else if (isBMV)   ids.push('c-gen-mask-maint');    // BMV: mask maintenance, no ETT
+    else              ids.push('c-gen-ett-oral');      // ETT oral — default
     if (isTIVA)  ids.push('c-gen-tiva');               // TIVA flag
-    ids.push('c-gen-emerge');                          // emergence — always
+    if (!isBMV)  ids.push('c-gen-emerge');             // emergence — skip for BMV (mask airway)
 
     ids.forEach(id => {
       const el = document.getElementById(id);
@@ -887,22 +1042,25 @@ function prefillFromCPGPlan(planName, planState) {
     }
   });
 
-  // General anesthesia always triggers Mechanical Ventilation
-  if (anesType === 'general') {
+  // General anesthesia triggers Mechanical Ventilation — except BMV/BVM (mask airway, no intubation/device)
+  const _awUp = (s['ind-airway-method'] || '').toUpperCase();
+  if (anesType === 'general' && _awUp !== 'BMV' && _awUp !== 'BVM') {
     const mechVent = document.getElementById('c-mech-vent');
     if (mechVent) mechVent.checked = true;
   }
 
-  // IV Starts — always pre-fill 1
+  // IV Starts — only count an IV start when CPG explicitly has a 2nd PIV selected.
   const ivStartEl = document.getElementById('c-iv-n');
-  if (ivStartEl) ivStartEl.value = '1';
+  if (ivStartEl) ivStartEl.value = s['equip-2piv'] ? '1' : '';
 
   // Airway method — VL/FI trigger airway procedure checkboxes
+  // Exception: ECT/EBUS/colonoscopy/EGD don't use intubation — skip c-tech-other even if plan data has stale VL
   const airwayMethod = (s['ind-airway-method'] || '').trim();
-  if (airwayMethod === 'VL') {
+  const _isNoIntubProc = /\bect\b|electroconvulsive|\bebus\b|colonoscopy|\begd\b|esophagogastroduodenoscop/.test((s['pat-surgery'] || '').toLowerCase());
+  if (airwayMethod === 'VL' && !_isNoIntubProc) {
     const el = document.getElementById('c-tech-other');
     if (el) el.checked = true;
-  } else if (airwayMethod === 'FI') {
+  } else if (airwayMethod === 'FI' && !_isNoIntubProc) {
     ['c-endo-tt-placement', 'c-endo-airway-assess', 'c-tech-other'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.checked = true;
@@ -921,6 +1079,7 @@ function prefillFromCPGPlan(planName, planState) {
   updateAnatomicalDetailsVisibility();
 
   // Navigate to case tab and scroll to top of pager
+  hideStartScreen();
   goTab('case');
   if (casePager) { casePager.index = 0; casePager.render(); }
 
@@ -1034,12 +1193,79 @@ function maybeCompletePlan() {
   window.addEventListener('typhon-auth-changed', async () => {
     const refreshed = (await store.get('typhon-items')) || [];
     updateBadge(refreshed);
+    if (refreshed.some(i => i.draft && i.type === 'case')) showDraftBanner();
     if (document.getElementById('pane-saved')?.classList.contains('active')) renderSaved();
+
+    // Seed completions from Firestore BEFORE rendering planned cases
+    // so ✓ Logged appears correctly on any device
+    try {
+      const uid = _getAuthUid();
+      const cloudComps = await store.get('typhon-plan-completions').catch(() => null);
+      console.log(`[sync] auth-changed: fetched typhon-plan-completions for UID:${uid}`, cloudComps);
+      const localComps = _getPlannedCompletions();
+      const today = _todayIso();
+      // Merge cloud → local
+      let addedFromCloud = 0;
+      if (Array.isArray(cloudComps) && cloudComps.length) {
+        cloudComps.forEach(c => {
+          if (c.planName && c.date === today && !localComps.find(l => l.planName === c.planName && l.date === c.date)) {
+            localComps.push(c);
+            addedFromCloud++;
+          }
+        });
+        if (addedFromCloud > 0) {
+          localStorage.setItem('typhon-plan-completions', JSON.stringify(localComps));
+          console.log(`[sync] seeded ${addedFromCloud} completion(s) from cloud into localStorage`);
+        }
+      }
+      // Merge local → cloud: if local has entries cloud doesn't, push them up
+      const cloudArr = Array.isArray(cloudComps) ? cloudComps : [];
+      const localOnlyCount = localComps.filter(l =>
+        !cloudArr.find(c => c.planName === l.planName && c.date === l.date)
+      ).length;
+      if (localOnlyCount > 0 && uid) {
+        console.log(`[sync] auth-changed: ${localOnlyCount} local completion(s) not in cloud — pushing up`);
+        store.set('typhon-plan-completions', localComps)
+          .then(r => console.log('[sync] local→cloud push result:', r))
+          .catch(e => console.warn('[sync] local→cloud push failed', e));
+      }
+      if (uid) toast('☁️ Cloud sync complete');
+    } catch(e) { console.warn('[auth] completions cloud merge failed', e); }
+
+    // Now render — completions are already in localStorage
+    // Show syncing placeholder while Firestore fetch runs
+    const _pcSection = document.getElementById('planned-cases-section');
+    const _pcList = document.getElementById('planned-cases-list');
+    if (_pcSection && _pcList) {
+      _pcSection.style.display = 'block';
+      _pcList.innerHTML = '<div style="color:#888;font-size:0.85em;padding:6px 2px;">&#9729;&#xFE0F; Syncing…</div>';
+    }
     loadAndRenderPlannedCases();
+
+    // Seed localStorage from Firestore for cross-device in-progress drafts
+    // Always pull from Firestore — it is the authoritative source across devices.
+    // Local data may be stale from a different browser/device session.
+    const cloudDraft = await store.get('typhon-draft').catch(() => null);
+    if (cloudDraft && typeof cloudDraft === 'object' &&
+        (cloudDraft.biologicalSex || cloudDraft.anesStart || (cloudDraft.anatomical||[]).length || cloudDraft.age)) {
+      localStorage.setItem('typhon-draft', JSON.stringify(cloudDraft));
+      localStorage.setItem('typhon-case-progress-updated', String(Date.now()));
+    }
+    const cloudTime = await store.get('typhon-time-progress').catch(() => null);
+    if (cloudTime && typeof cloudTime === 'object' && (cloudTime.clockIn1 || cloudTime.clockOut1 || cloudTime.notes)) {
+      localStorage.setItem('typhon-time-progress', JSON.stringify(cloudTime));
+      localStorage.setItem('typhon-time-progress-updated', String(Date.now()));
+    }
+    updateContinueButton();
   });
 
   enforceExtensionScrolling();
   initWelcomeScreen();
+
+  // Show build version stamp
+  const buildEl = document.getElementById('build-version');
+  if (buildEl) buildEl.textContent = `v${(window.TYPHON_FIREBASE_CONFIG || {}).buildVersion || 'unknown'}`;
+
   bindUiEvents();
   bindProcedureDependencies();
   enhanceNumericInputs();
@@ -1099,6 +1325,25 @@ function maybeCompletePlan() {
       maybeCompletePlan();
     };
   }
+
+  // When returning to this tab/browser, refresh Saved from cloud-backed storage
+  // so updates made in another browser session appear promptly.
+  let _savedRefreshInFlight = false;
+  const refreshSavedOnForeground = async () => {
+    if (_savedRefreshInFlight) return;
+    if (!document.getElementById('pane-saved')?.classList.contains('active')) return;
+    _savedRefreshInFlight = true;
+    try {
+      await renderSaved({ preserveUi: true });
+    } finally {
+      _savedRefreshInFlight = false;
+    }
+  };
+
+  window.addEventListener('focus', refreshSavedOnForeground);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshSavedOnForeground();
+  });
 
   // Extension sync mode: ?sync=1&eid=EXTENSION_ID
   // Called by the extension popup — pushes items from Firestore to the extension's chrome.storage.

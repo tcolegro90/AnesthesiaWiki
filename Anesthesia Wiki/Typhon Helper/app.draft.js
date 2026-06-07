@@ -1,35 +1,55 @@
 // ============================================================
 // DRAFT AUTOSAVE
 // ============================================================
+let _draftCloudTimer = null;
+let _timeCloudTimer  = null;
+let _evalCloudTimer  = null;
+
 function saveDraft() {
   try {
-    localStorage.setItem('typhon-draft', JSON.stringify(readCase()));
+    const data = readCase();
+    localStorage.setItem('typhon-draft', JSON.stringify(data));
     localStorage.setItem('typhon-case-progress-updated', String(Date.now()));
+    // Debounced cloud write — 3 s after last keystroke
+    clearTimeout(_draftCloudTimer);
+    _draftCloudTimer = setTimeout(() => store.set('typhon-draft', data).catch(() => {}), 3000);
   } catch(e) {}
 }
-function clearDraft() {
+function clearDraft(opts = {}) {
+  clearTimeout(_draftCloudTimer);
   localStorage.removeItem('typhon-draft');
   localStorage.removeItem('typhon-case-progress-updated');
+  if (opts.clearCloud) store.set('typhon-draft', null).catch(() => {});
 }
 function saveTimeProgress() {
   try {
-    localStorage.setItem('typhon-time-progress', JSON.stringify(readTimeLog()));
+    const data = readTimeLog();
+    localStorage.setItem('typhon-time-progress', JSON.stringify(data));
     localStorage.setItem('typhon-time-progress-updated', String(Date.now()));
+    clearTimeout(_timeCloudTimer);
+    _timeCloudTimer = setTimeout(() => store.set('typhon-time-progress', data).catch(() => {}), 3000);
   } catch(e) {}
 }
-function clearTimeProgress() {
+function clearTimeProgress(opts = {}) {
+  clearTimeout(_timeCloudTimer);
   localStorage.removeItem('typhon-time-progress');
   localStorage.removeItem('typhon-time-progress-updated');
+  if (opts.clearCloud) store.set('typhon-time-progress', null).catch(() => {});
 }
 function saveEvalProgress() {
   try {
-    localStorage.setItem('typhon-eval-progress', JSON.stringify(readEval()));
+    const data = readEval();
+    localStorage.setItem('typhon-eval-progress', JSON.stringify(data));
     localStorage.setItem('typhon-eval-progress-updated', String(Date.now()));
+    clearTimeout(_evalCloudTimer);
+    _evalCloudTimer = setTimeout(() => store.set('typhon-eval-progress', data).catch(() => {}), 3000);
   } catch(e) {}
 }
-function clearEvalProgress() {
+function clearEvalProgress(opts = {}) {
+  clearTimeout(_evalCloudTimer);
   localStorage.removeItem('typhon-eval-progress');
   localStorage.removeItem('typhon-eval-progress-updated');
+  if (opts.clearCloud) store.set('typhon-eval-progress', null).catch(() => {});
 }
 function hasEvalProgress() {
   try {
@@ -57,7 +77,7 @@ function hasTimeProgress() {
     if (!raw) return false;
     const t = JSON.parse(raw);
     if (!t || typeof t !== 'object') return false;
-    return !!(t.date || t.clockIn1 || t.clockOut1 || t.notes);
+    return !!(t.clockIn1 || t.clockOut1);
   } catch {
     return false;
   }
@@ -68,9 +88,17 @@ function progressUpdatedAt(kind) {
   const n = Number(raw || 0);
   return Number.isFinite(n) ? n : 0;
 }
-function restoreTimeProgress() {
+async function restoreTimeProgress() {
   try {
-    const raw = localStorage.getItem('typhon-time-progress');
+    let raw = localStorage.getItem('typhon-time-progress');
+    if (!raw) {
+      const cloud = await store.get('typhon-time-progress').catch(() => null);
+      if (cloud && typeof cloud === 'object' && (cloud.clockIn1 || cloud.clockOut1 || cloud.notes)) {
+        raw = JSON.stringify(cloud);
+        localStorage.setItem('typhon-time-progress', raw);
+        localStorage.setItem('typhon-time-progress-updated', String(Date.now()));
+      }
+    }
     if (!raw) return false;
     const t = JSON.parse(raw);
     if (!t || typeof t !== 'object') return false;
@@ -85,9 +113,18 @@ function restoreTimeProgress() {
     return false;
   }
 }
-function restoreDraft() {
+async function restoreDraft() {
   try {
-    const raw = localStorage.getItem('typhon-draft');
+    let raw = localStorage.getItem('typhon-draft');
+    if (!raw) {
+      const cloud = await store.get('typhon-draft').catch(() => null);
+      if (cloud && typeof cloud === 'object' &&
+          (cloud.biologicalSex || cloud.anesStart || (cloud.anatomical||[]).length || cloud.age)) {
+        raw = JSON.stringify(cloud);
+        localStorage.setItem('typhon-draft', raw);
+        localStorage.setItem('typhon-case-progress-updated', String(Date.now()));
+      }
+    }
     if (!raw) return;
     const d = JSON.parse(raw);
     if (!d || typeof d !== 'object') return;
@@ -187,6 +224,27 @@ function restoreTimeLogDraftFromItem(draft) {
   document.getElementById('t-notes').value = draft.notes || '';
   toast('Draft restored — your previous time log was not lost');
 }
+
+// Flush any pending debounced cloud writes when the page becomes hidden
+// (user switches apps on mobile, locks screen, or switches tabs).
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'hidden') return;
+  if (_draftCloudTimer) {
+    clearTimeout(_draftCloudTimer);
+    _draftCloudTimer = null;
+    try { const d = JSON.parse(localStorage.getItem('typhon-draft')); if (d) store.set('typhon-draft', d).catch(() => {}); } catch {}
+  }
+  if (_timeCloudTimer) {
+    clearTimeout(_timeCloudTimer);
+    _timeCloudTimer = null;
+    try { const t = JSON.parse(localStorage.getItem('typhon-time-progress')); if (t) store.set('typhon-time-progress', t).catch(() => {}); } catch {}
+  }
+  if (_evalCloudTimer) {
+    clearTimeout(_evalCloudTimer);
+    _evalCloudTimer = null;
+    try { const e = JSON.parse(localStorage.getItem('typhon-eval-progress')); if (e) store.set('typhon-eval-progress', e).catch(() => {}); } catch {}
+  }
+});
 
 function restoreEvalDraftFromItem(draft) {
   if (!draft || draft.type !== 'eval') return;

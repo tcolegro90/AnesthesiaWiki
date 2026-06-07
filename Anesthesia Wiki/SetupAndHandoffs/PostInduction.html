@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post-Induction (BADTOP)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f7f9fc; min-height: 100vh; padding: 30px 20px; }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 24px; font-size: 1.4em; }
+        .section { max-width: 480px; margin: 0 auto; }
+        .item { display: flex; align-items: center; background: white; border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; border-left: 4px solid #3b82f6; box-shadow: 0 1px 3px rgba(0,0,0,0.07); cursor: pointer; transition: border-color 0.2s; }
+        .item input { width: 18px; height: 18px; margin-right: 14px; accent-color: #22c55e; cursor: pointer; flex-shrink: 0; }
+        .item label { font-size: 1.05em; color: #374151; cursor: pointer; transition: color 0.2s; }
+        .item:has(input:checked) { border-left-color: #22c55e; opacity: 0.6; }
+        .item:has(input:checked) label { text-decoration: line-through; color: #9ca3af; }
+        .top-nav { position: fixed; top: 10px; left: 10px; z-index: 9999; }
+        .top-nav a { text-decoration: none; font-size: 0.9em; color: #3b82f6; background: white; padding: 4px 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        @media (max-width: 700px) { .top-nav { display: none; } body { padding: 16px 12px; } }
+    </style>
+</head>
+<body>
+
+<div class="top-nav">
+    <a href="../AnesthesiaWiki.html">← Wiki</a>
+</div>
+
+<h1>Post-Induction (BADTOP)</h1>
+
+<div class="section">
+    <div class="item"><input type="checkbox" id="i1"><label for="i1">Bair Hugger</label></div>
+    <div class="item"><input type="checkbox" id="i2"><label for="i2">Antibiotic</label></div>
+    <div class="item"><input type="checkbox" id="i3"><label for="i3">Dexamethasone</label></div>
+    <div class="item"><input type="checkbox" id="i4"><label for="i4">Temperature Probe</label></div>
+    <div class="item"><input type="checkbox" id="i5"><label for="i5">OG Tube</label></div>
+    <div class="item"><input type="checkbox" id="i6"><label for="i6">Paralysis</label></div>
+</div>
+
+</body>
+</html>

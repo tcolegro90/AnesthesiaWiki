@@ -85,17 +85,30 @@
     /* PLANNED CASES */
     #planned-cases-section { display: none; margin: 14px 0; text-align: left; }
     #case-plan-pill { display: none; margin-bottom: 10px; padding: 7px 11px; background: #e8f5f0; border: 1px solid #b0e0d6; border-radius: 8px; font-size: 0.82em; color: #1a4f3a; font-weight: 600; }
-    #planned-cases-header { font-size: 0.78em; font-weight: 700; color: #0d6e6e; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 7px; }
+    #planned-cases-header { display: flex; align-items: center; justify-content: space-between; font-size: 0.78em; font-weight: 700; color: #0d6e6e; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 7px; cursor: pointer; user-select: none; -webkit-user-select: none; }
+    #planned-cases-chevron { font-size: 0.95em; transition: transform 0.2s; }
+    #planned-cases-section.collapsed #planned-cases-chevron { transform: rotate(-90deg); }
+    #planned-cases-list { max-height: 260px; overflow-y: auto; }
+    #planned-cases-section.collapsed #planned-cases-list { display: none; }
     .planned-case-card { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border-radius: 11px; border: 1.5px solid #b0e0d6; background: linear-gradient(135deg, #f0faf7, #e8f5f0); margin-bottom: 7px; cursor: pointer; transition: background 0.15s; }
     .planned-case-card:active { background: #d8ede8; }
-    .planned-case-card.planned-done { background: #f5f5f5; border-color: #ddd; cursor: default; opacity: 0.65; }
+    .planned-case-card.planned-done { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-color: #4ade80; }
     .planned-case-icon { font-size: 1.15em; flex-shrink: 0; }
     .planned-case-body { flex: 1; min-width: 0; }
     .planned-case-label { font-size: 0.88em; font-weight: 600; color: #1a4f3a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .planned-case-card.planned-done .planned-case-label { color: #888; }
+    .planned-case-card.planned-done .planned-case-label { color: #166534; }
     .planned-case-name { font-size: 0.75em; color: #5a7a6e; margin-top: 1px; }
     .planned-case-chip { font-size: 0.72em; background: #0d6e6e22; color: #0d6e6e; border-radius: 5px; padding: 1px 6px; flex-shrink: 0; font-weight: 700; }
     .planned-case-card.planned-done .planned-case-chip { background: #ddd; color: #999; }
+    .planned-case-logged-chip { font-size: 0.72em; background: #16a34a; color: #fff; border-radius: 5px; padding: 1px 7px; flex-shrink: 0; font-weight: 700; }
+    /* Swipe-to-un-log */
+    .planned-swipe-inner { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 13px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); will-change: transform; box-sizing: border-box; position: relative; z-index: 1; }
+    .planned-unlog-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #dc2626; color: #fff; border: none; font-size: 0.72em; font-weight: 700; padding: 2px 8px; border-radius: 5px; cursor: pointer; white-space: nowrap; }
+    .planned-unlog-btn:active { background: #b91c1c; }
+    /* Desktop: always show Un-log button — inner stops short of the button area */
+    @media (min-width: 821px) {
+      .planned-swipe-inner { width: calc(100% - 68px); }
+    }
 
     /* STICKY WRAP — keeps header and tabs as one flush sticky unit */
     .sticky-header-wrap { position: sticky; top: 0; z-index: 100; }
@@ -148,9 +161,14 @@
     /* Two-option rows: always fill full width side by side */
     #grp-sex, #grp-admit, #grp-preceptor, #e-arrived { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     #grp-sex .btn-tog, #grp-admit .btn-tog, #grp-preceptor .btn-tog, #e-arrived .btn-tog { text-align: center; padding: 28px 8px; }
+    #grp-admit .btn-tog { position: relative; }
+    #grp-admit .btn-tog .coa-tt { position: absolute; top: 6px; right: 6px; }
     /* Single-button full-width rows */
     #grp-urgency, #grp-neonate { display: grid; grid-template-columns: 1fr; gap: 8px; }
     #grp-urgency .btn-tog, #grp-neonate .btn-tog { text-align: center; padding: 28px 8px; width: 100%; }
+    /* Anatomical: single column */
+    #grp-anat .coa-row { flex: 1 1 100%; }
+    #grp-anat .coa-row .btn-tog { flex: 1; text-align: center; }
     /* Position: 4 buttons → single row */
     #grp-pos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
     #grp-pos .btn-tog { text-align: center; padding: 28px 4px; }
@@ -232,8 +250,7 @@
     }
 
     /* CHECKBOXES */
-    .chk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    #sec-general .chk-grid { grid-auto-flow: column; grid-template-rows: repeat(6, auto); }
+    .chk-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
     .chk-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; }
     .chk-item:hover { background: #f4f6f8; }
     .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); color: white; border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
@@ -263,6 +280,7 @@
     #card-anes-type .chk-item.selected span { color: white; }
     #card-medications .chk-item span { font-size: 0.86em; font-weight: 600; }
     #card-medications .chk-grid { grid-template-columns: 1fr; gap: 8px; }
+    #card-procedures .chk-grid, #card-procedures-2 .chk-grid { grid-template-columns: 1fr; }
     #card-medications .chk-item { border-color: #dde3ec; background: #f8faf9; padding: 26px 13px; border-radius: 10px; }
     #card-medications .chk-item.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
     #card-medications .chk-item.selected span { color: white; }
@@ -274,7 +292,7 @@
     #e-facility-grid .chk-item.selected span, #e-age-grid .chk-item.selected span, #e-asa-grid .chk-item.selected span, #e-surg-grid .chk-item.selected span { color: white; }
 
     /* COUNT ROWS */
-    .count-row { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-radius: 7px; border: 1.5px solid transparent; transition: all 0.15s; }
+    .count-row { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 10px 8px; border-radius: 7px; border: 1.5px solid transparent; transition: all 0.15s; max-width: 460px; margin: 0 auto; }
     .count-row:hover { background: #f4f6f8; }
     .count-row.selected { background: linear-gradient(135deg, #0d6e6e, #1e8f5b); border-color: #0d6e6e; box-shadow: 0 3px 10px rgba(13,110,110,0.28); }
     .count-label { flex: 1; font-size: 0.83em; color: #4a5568; }
@@ -283,12 +301,17 @@
     .count-step-btn { background: #edf2f7; border: 1px solid #dde3ec; border-radius: 5px; width: 50px; height: 50px; font-size: 1.35em; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #4a5568; line-height: 1; padding: 0; }
     .count-step-btn:hover { background: #e2e8f0; }
     .count-row.selected .count-step-btn { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); color: white; }
-    .count-input { width: 58px; padding: 5px 8px; border: 1.5px solid #dde3ec; border-radius: 6px; font-size: 0.85em; text-align: center; }
+    #card-procedure-counts .count-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; justify-content: unset; align-items: center; width: 100%; max-width: none; margin: 0; box-sizing: border-box; }
+    #card-procedure-counts .count-label { flex: unset; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    #card-procedure-counts .count-step-btn { width: 44px; height: 44px; font-size: 1.15em; }
+    #card-procedure-counts .count-input { width: 64px; height: 44px; font-size: 1.1em; }
+    .count-input { width: 80px; height: 50px; padding: 5px 8px; border: 1.5px solid #dde3ec; border-radius: 6px; font-size: 1.2em; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+    .count-input::-webkit-outer-spin-button, .count-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .compact-input-8 { flex: 0 0 8ch !important; width: 8ch !important; text-align: center; }
-    .compact-age { width: 80px !important; min-width: unset !important; max-width: unset !important; height: 80px; text-align: center; font-size: 1.8em; padding: 0; box-sizing: border-box; display: block; margin: 0 auto; }
+    .compact-age { width: 80px !important; min-width: unset !important; max-width: unset !important; height: 80px; text-align: center; font-size: 1.8em; padding: 0; box-sizing: border-box; flex-shrink: 0; }
 
     /* TIME GRID */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .two-col { display: grid; grid-template-columns: 1fr; gap: 12px; }
 
     /* BUTTONS */
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 22px; border-radius: 10px; font-weight: 700; font-size: 0.93em; cursor: pointer; border: none; transition: all 0.2s; }
@@ -384,8 +407,8 @@
       background: #ffffff;
       border: 1.5px solid #dde3ec;
       border-radius: 12px;
-      padding: 8px;
-      margin-bottom: 12px;
+      padding: 5px 6px;
+      margin-bottom: 8px;
       box-shadow: 0 1px 6px rgba(0,0,0,0.08);
     }
     .step-meta {
@@ -393,13 +416,13 @@
       min-width: 0;
     }
     .step-count {
-      font-size: 0.78em;
+      font-size: 0.75em;
       font-weight: 700;
       color: #7f8c8d;
       letter-spacing: 0.3px;
     }
     .step-title {
-      font-size: 0.84em;
+      font-size: 0.82em;
       font-weight: 700;
       color: #2c3e50;
       white-space: nowrap;
@@ -407,15 +430,15 @@
       text-overflow: ellipsis;
     }
     .step-nav {
-      min-height: 50px;
-      min-width: 88px;
+      min-height: 40px;
+      min-width: 80px;
       border-radius: 10px;
       border: 1.5px solid #d6dde6;
       background: #f8faf9;
       font-size: 1.0em;
       font-weight: 700;
       color: #2c3e50;
-      padding: 0 12px;
+      padding: 0 10px;
       cursor: pointer;
     }
     .step-nav:disabled {
@@ -430,7 +453,7 @@
       .day-pills { grid-template-columns: repeat(4, 1fr); gap: 5px; }
       .day-pill { padding: 10px 2px; }
       #sec-general .chk-grid { grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(6, auto); }
-      #grp-anat .btn-tog { flex: 1 1 calc(50% - 7px); }
+      #grp-anat .coa-row { flex: 1 1 calc(50% - 7px); }
       .h1-full { display: none; }
       .h1-short { display: inline; }
       #e-surg-grid { grid-template-columns: 1fr 1fr; gap: 5px; }
@@ -509,7 +532,8 @@
       .btn-group { gap: 9px; }
       .btn-tog { padding: 10px 14px; }
       .asa-btn { width: 52px; }
-      #grp-anat .btn-tog { flex: 1 1 calc(50% - 9px); padding: 16px 8px; }
+      #grp-anat .coa-row { flex: 1 1 calc(50% - 9px); }
+      #grp-anat .coa-row .btn-tog { padding: 16px 8px; }
 
       /* Page 2 compact layout so all clinical inputs fit better on one screen. */
       #card-clinical { padding: 16px; }
@@ -648,33 +672,80 @@
     #drawer-planned-section { display: none; }
     .drawer-planned-header { padding: 6px 22px 5px 52px; font-size: 0.73em; font-weight: 700; color: #0d6e6e; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #f4f4f4; }
     .drawer-planned-item { padding: 7px 14px 7px 60px; font-size: 0.81em; color: #1a4f3a; cursor: pointer; border-bottom: 1px solid #f4f4f4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .drawer-planned-item.planned-item-done { color: #999; cursor: default; }
+    .drawer-planned-item.planned-item-done { color: #16a34a; font-weight: 600; }
     .drawer-planned-item:not(.planned-item-done):active { background: #e8f5f0; }
+
+    /* ── COA REFERENCE TOOLTIPS (desktop only) ─────────────────── */
+    .coa-row { display: flex; align-items: center; gap: 5px; }
+    .coa-row > .chk-item { flex: 1; min-width: 0; }
+    .coa-row > .btn-tog { flex: 1; min-width: 0; width: auto !important; }
+    #grp-assess .coa-row > .btn-tog { width: auto; flex: 1; }
+    .coa-tt { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
+    .coa-btn {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #e2f0ee; border: 1.5px solid #a0c8c0;
+      color: #0d6e6e; font-size: 0.64rem; font-weight: 800;
+      cursor: pointer; display: inline-flex;
+      align-items: center; justify-content: center;
+      line-height: 1; user-select: none; -webkit-user-select: none;
+      transition: background 0.15s, color 0.15s; flex-shrink: 0; padding: 0;
+    }
+    .coa-btn:hover { background: #0d6e6e; color: white; border-color: #0d6e6e; }
+    .coa-bubble {
+      display: none; position: absolute;
+      bottom: calc(100% + 8px); right: 0;
+      background: #1e2d3a; color: white; border-radius: 10px;
+      padding: 10px 13px; font-size: 0.78rem; line-height: 1.5;
+      width: 260px; box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      z-index: 600; pointer-events: none; white-space: normal;
+      font-weight: 400; text-align: left;
+    }
+    .coa-bubble::after {
+      content: ''; position: absolute;
+      top: 100%; right: 5px;
+      border: 6px solid transparent; border-top-color: #1e2d3a;
+    }
+    .coa-tt:hover .coa-bubble { display: block; }
+    .coa-cite { font-size: 0.68rem; color: #8fb5c8; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 5px; }
+    @media (max-width: 820px) { .coa-btn { display: none !important; } }
 
   </style>
 </head>
-<body>
+<body class="show-start-screen">
 
 
 
 <div id="welcome-screen" aria-modal="true" role="dialog" aria-label="Welcome to Typhon Case Helper">
   <div class="welcome-box">
     <div class="welcome-title">Typhon Case Helper</div>
-    <div class="welcome-sub">Choose where to start.</div>
     <div id="planned-cases-section">
-      <div id="planned-cases-header">Today's Planned Cases</div>
+      <div id="planned-cases-header" onclick="togglePlannedCases()">
+        <span>Today's Planned Cases</span>
+        <span id="planned-cases-chevron">&#9660;</span>
+      </div>
       <div id="planned-cases-list"></div>
     </div>
     <div class="welcome-choice-list">
       <button id="welcome-time-log" class="welcome-choice-btn" type="button">⏱ Time Log</button>
       <button id="welcome-time-continue" class="welcome-continue-sub" type="button" style="display:none">▶ Continue Time Log</button>
+      <div id="welcome-time-clockin" style="display:none;font-size:0.8em;color:#0d6e6e;text-align:center;margin-top:-2px;margin-bottom:6px;background:#e6f7f5;border:1px solid #b2dfdb;border-radius:20px;padding:3px 14px;display:none;width:fit-content;margin-left:auto;margin-right:auto;"></div>
       <button id="welcome-new-case" class="welcome-choice-btn" type="button">📋 Case Log</button>
       <button id="welcome-case-continue" class="welcome-continue-sub" type="button" style="display:none">▶ Continue Case</button>
+      <div id="welcome-case-hint" style="display:none;font-size:0.8em;color:#0d6e6e;text-align:center;margin-top:-2px;margin-bottom:6px;background:#e6f7f5;border:1px solid #b2dfdb;border-radius:20px;padding:3px 14px;width:fit-content;margin-left:auto;margin-right:auto;cursor:pointer;"></div>
       <button id="welcome-eval" class="welcome-choice-btn" type="button">📝 Daily Eval</button>
       <button id="welcome-eval-continue" class="welcome-continue-sub" type="button" style="display:none">▶ Continue Eval</button>
       <button id="welcome-drafts" class="welcome-choice-btn secondary" type="button">📁 Saved / Drafts</button>
       <div style="height:24px;"></div>
       <a id="welcome-wiki-link" class="welcome-choice-btn" href="#" style="display:block;text-align:center;text-decoration:none;">🏠 Anesthesia Wiki</a>
+      <div id="welcome-signin-banner" style="display:none;margin-top:14px;background:#fff3e0;border:1px solid #ffcc80;border-radius:10px;padding:10px 14px;text-align:center;">
+        <div style="font-size:0.82em;color:#8a4b08;font-weight:700;">⚠️ Not signed in</div>
+        <div style="font-size:0.78em;color:#8a4b08;margin-top:3px;">Data saves on this device only. Sign in to sync across all your devices.</div>
+        <button onclick="window.AnesthesiaAuth && window.AnesthesiaAuth.showLogin()" style="margin-top:8px;background:#0d6e6e;color:white;border:none;border-radius:8px;padding:7px 20px;font-size:0.82em;font-weight:700;cursor:pointer;">Sign In</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+        <div id="welcome-user-name" style="display:none;font-size:0.78em;font-weight:600;color:#0d6e6e;"></div>
+        <div style="font-size:0.72rem;font-weight:600;color:#8aa0b8;letter-spacing:0.04em;margin-left:auto;">v1.005</div>
+      </div>
     </div>
   </div>
 </div>
@@ -750,8 +821,9 @@
 
 <!-- HAMBURGER NAV BAR -->
 <div id="hamburger-bar">
-  <button id="hamburger-btn" onclick="openDrawer()" aria-label="Open navigation menu">☰</button>
-  <span id="current-tab-label">📋 Case Log</span>
+  <button id="home-btn" onclick="showStartScreen()" aria-label="Home" title="Home" style="background:none;border:none;font-size:1em;padding:10px 10px;cursor:pointer;color:#0d6e6e;line-height:1;display:flex;align-items:center;gap:4px;font-weight:600;">🏠 Home</button>
+  <span id="current-tab-label">Case Log Entry</span>
+  <span style="font-size:0.7rem;font-weight:400;color:#8aa0b8;margin-left:auto;padding-right:6px;">v1.005</span>
   <div class="tab-account" id="tab-acct" title="Account">⚙︎</div>
 </div>
 
@@ -770,7 +842,10 @@
     <div class="acct-handle"></div>
     <div class="acct-name" id="acct-drawer-name">Not signed in</div>
     <div class="acct-email" id="acct-drawer-email"></div>
+    <div id="acct-uid-display" style="font-size:0.7em;color:#888;word-break:break-all;margin-bottom:8px;"></div>
     <button id="acct-action-btn">Log in for full access</button>
+    <button id="acct-sync-check-btn" onclick="runSyncDiagnostic()" style="width:100%;margin-top:10px;padding:10px;border-radius:10px;font-size:0.82em;font-weight:600;cursor:pointer;background:#f0f0f0;color:#333;border:1px solid #ccc;">🔍 Sync Diagnostics</button>
+    <div id="acct-sync-result" style="font-size:0.72em;margin-top:10px;color:#333;line-height:1.5;background:#f8f8f8;border-radius:8px;padding:8px;display:none;"></div>
   </div>
 </div>
 </div><!-- end .sticky-header-wrap -->
@@ -785,10 +860,12 @@
     <span class="drawer-icon">⏰</span> Time Log
   </div>
   <div id="drawer-time-continue" class="drawer-continue" onclick="drawerNav('time')">Continue</div>
+  <div id="drawer-time-clockin" style="display:none;font-size:0.75em;color:#0d6e6e;padding:2px 22px 6px 52px;"></div>
   <div class="drawer-item active" data-drawer-tab="case" onclick="drawerNav('case')">
-    <span class="drawer-icon">📋</span> Case Log
+    Case Log
   </div>
   <div id="drawer-case-continue" class="drawer-continue" onclick="drawerNav('case')">Continue</div>
+  <div id="drawer-case-hint" style="display:none;font-size:0.75em;color:#0d6e6e;padding:2px 22px 6px 52px;"></div>
   <div id="drawer-planned-section" style="margin-top:8px;">
     <div class="drawer-planned-header">📅 Care Plans</div>
     <div id="drawer-planned-items"></div>
@@ -905,14 +982,17 @@
 
     <div class="field">
       <div class="btn-group" id="grp-admit">
-        <div class="btn-tog" data-v="Outpatient" onclick="pick(this,'grp-admit')">Ambulatory / Outpatient</div>
-        <div class="btn-tog" data-v="Inpatient" onclick="pick(this,'grp-admit')">Inpatient</div>
+        <div class="btn-tog" data-v="Outpatient" onclick="pick(this,'grp-admit')">Ambulatory / Outpatient<div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Patient is discharged on the same day as surgery. Includes same-day surgery centers and outpatient ORs. In Typhon, log the Admit Status as <strong>Outpatient</strong> or <strong>Ambulatory</strong>.</div></div></div>
+        <div class="btn-tog" data-v="Inpatient" onclick="pick(this,'grp-admit')">Inpatient<div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Patient is admitted to the hospital or is already an inpatient at the time of the case. Includes overnight stays, trauma, critical care, and OB cases. In Typhon, log the Admit Status as <strong>Inpatient</strong> or <strong>Observation</strong>.</div></div></div>
       </div>
     </div>
 
     <div class="two-col">
       <div class="field">
-        <input type="number" id="c-age" class="compact-age" min="0" max="120" placeholder="Age">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <label for="c-age" style="font-size:0.85em;font-weight:600;color:#4a5568;white-space:nowrap;">Age</label>
+          <input type="number" id="c-age" class="compact-age" min="0" max="120" placeholder="Age">
+        </div>
       </div>
       <div class="field">
         <div class="btn-group" id="grp-preceptor">
@@ -935,14 +1015,20 @@
     </div>
 
     <div class="field">
-      <div class="btn-group" id="grp-urgency">
-        <div class="btn-tog wide" data-v="Emergency">Trauma / Emergency</div>
+      <div style="display:flex; align-items:center; gap:5px;">
+        <div class="btn-group" id="grp-urgency" style="flex:1">
+          <div class="btn-tog wide" data-v="Emergency">Trauma / Emergency</div>
+        </div>
+        <div class="coa-tt" style="align-self:stretch; display:flex; align-items:center;"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">A case with urgency/threat to well-being, fewer resources than normal hours, or limited assessment time. Declared by the surgeon/proceduralist.<div class="coa-cite">COA Guidelines — Emergency Cases (min. 30)</div></div></div>
       </div>
     </div>
 
     <div class="field">
-      <div class="btn-group" id="grp-neonate">
-        <div class="btn-tog wide" data-v="yes">&lt; 4 weeks (Neonate)</div>
+      <div style="display:flex; align-items:center; gap:5px;">
+        <div class="btn-group" id="grp-neonate" style="flex:1">
+          <div class="btn-tog wide" data-v="yes">&lt; 4 weeks (Neonate)</div>
+        </div>
+        <div class="coa-tt" style="align-self:stretch; display:flex; align-items:center;"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Patient less than 4 weeks (28 days) old at the time of the procedure.<div class="coa-cite">COA Guidelines — Neonatal Cases (min. 10)</div></div></div>
       </div>
     </div>
 
@@ -950,9 +1036,18 @@
 
   <div class="card" data-step-title="Patient Assessment">
     <div class="btn-group" id="grp-assess">
-      <div class="btn-tog wide" data-v="initial">Initial Preanesthetic Assessment</div>
-      <div class="btn-tog wide" data-v="post">Postanesthetic Assessment</div>
-      <div class="btn-tog wide" data-v="actual">H&amp;P - Actual</div>
+      <div class="coa-row">
+        <div class="btn-tog wide" data-v="initial">Initial Preanesthetic Assessment</div>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Complete preoperative patient assessment performed prior to anesthesia.<div class="coa-cite">COA Guidelines — Preanesthetic Assessment (min. 100)</div></div></div>
+      </div>
+      <div class="coa-row">
+        <div class="btn-tog wide" data-v="post">Postanesthetic Assessment</div>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Patient assessment performed in the recovery period following anesthesia.<div class="coa-cite">COA Guidelines — Postanesthetic Assessment (min. 100)</div></div></div>
+      </div>
+      <div class="coa-row">
+        <div class="btn-tog wide" data-v="actual">H&amp;P - Actual</div>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">A complete history and physical examination performed by the student (not observation or review only).<div class="coa-cite">COA Guidelines — H&amp;P Actual (min. 40)</div></div></div>
+      </div>
     </div>
 
     <div class="field" style="margin-top:12px;">
@@ -970,38 +1065,80 @@
     <input type="checkbox" id="c-cvl-actual" style="display:none" aria-hidden="true">
     <div class="proc-heading">Arterial Line</div>
     <div class="chk-grid">
-      <label class="chk-item"><input type="checkbox" id="c-art-actual"><span>Arterial Puncture / A-Line Insertion</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-art-bp"><span>Intra-arterial BP Monitoring</span></label>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-art-actual"><span>Arterial Puncture / A-Line Insertion</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Actual arterial catheter insertions. A successful blood gas puncture counts. An unsuccessful attempt does NOT count. No simulation allowed.<div class="coa-cite">COA Guidelines — Arterial Puncture (min. 30 actual)</div></div></div>
+      </div>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-art-bp"><span>Intra-arterial BP Monitoring</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Any case where an arterial catheter is used to monitor waveforms/BP. Includes FloTrac, VolumeView, LiDCO, and similar technologies.<div class="coa-cite">COA Guidelines — Intra-arterial BP Monitoring (min. 30)</div></div></div>
+      </div>
     </div>
     <div class="proc-heading" style="margin-top:10px;">CVC</div>
     <div class="chk-grid">
-      <label class="chk-item"><input type="checkbox" id="c-cvl-picc"><span>Central Line Insertion PICC</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-cvl-nonpicc"><span>Central Line Insertion Non-PICC</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-cvl-monitor"><span>CVC Monitoring</span></label>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-cvl-picc"><span>Central Line Insertion PICC</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">&#9888;&#65039; PICC insertion does NOT meet the Central Venous Catheter Insertion minimum. PICC lines are tracked separately.<div class="coa-cite">COA Guidelines — CVC Insertion</div></div></div>
+      </div>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-cvl-nonpicc"><span>Central Line Insertion Non-PICC</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Placement of a CVC (excluding PICC). Introducer placement qualifies. If you also float a PA cath, count both separately.<div class="coa-cite">COA Guidelines — CVC Insertion (min. 10 actual)</div></div></div>
+      </div>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-cvl-monitor"><span>CVC Monitoring</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Monitoring through a central venous catheter for hemodynamic data. Counted each time a CVL is used for monitoring.<div class="coa-cite">COA Guidelines — CVC Monitoring</div></div></div>
+      </div>
     </div>
     <div class="proc-heading" style="margin-top:10px;">PA Cath</div>
     <div class="chk-grid">
-      <label class="chk-item"><input type="checkbox" id="c-pa-placement"><span>PA Catheter Placement</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-pa-monitor"><span>PA Catheter Monitoring</span></label>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-pa-placement"><span>PA Catheter Placement</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Pulmonary artery catheter placement. The CVC insertion used to float the PA cath also counts as a separate CVL insertion.<div class="coa-cite">COA Guidelines — PA Catheter (min. 3)</div></div></div>
+      </div>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-pa-monitor"><span>PA Catheter Monitoring</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Cases where a pulmonary artery catheter is in use for hemodynamic monitoring.<div class="coa-cite">COA Guidelines — PA Catheter Monitoring</div></div></div>
+      </div>
     </div>
   </div>
 
   <div class="card" id="card-procedures-2" data-step-title="Procedures II">
     <div class="proc-heading">Airway and Other Techniques</div>
     <div class="chk-grid">
-      <label class="chk-item"><input type="checkbox" id="c-endo-tt-placement"><span>Endoscopic Tracheal Tube Placement</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-endo-airway-assess"><span>Endoscopic - Airway Assessment</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-tech-other"><span>Other Techniques</span></label>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-endo-tt-placement"><span>Endoscopic Tracheal Tube Placement</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Placement of a tracheal tube using a flexible endoscope (fiberoptic or videoscope). Simulation may partially count toward the minimum.<div class="coa-cite">COA Guidelines — Endoscopic Techniques (min. 5 total)</div></div></div>
+      </div>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-endo-airway-assess"><span>Endoscopic - Airway Assessment</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Airway assessment via flexible endoscopic bronchoscopy. &#9888;&#65039; Assessment via an already in-situ ETT does NOT count toward the 5 required endoscopic techniques.<div class="coa-cite">COA Guidelines — Endoscopic Techniques</div></div></div>
+      </div>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-tech-other"><span>Other Techniques</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Additional special techniques beyond standard airway management. Contributes to total endoscopic and special technique counts.<div class="coa-cite">COA Guidelines — Special Techniques</div></div></div>
+      </div>
     </div>
     <div class="proc-heading" style="margin-top:10px;">Monitoring and Support</div>
     <div class="chk-grid">
-      <label class="chk-item"><input type="checkbox" id="c-hemo"><span>Advanced Minimally- and Non-invasive Hemodynamic Monitoring</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-mech-vent"><span>Mechanical Ventilation</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-cxr"><span>Assessment of Chest X-Ray</span></label>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-hemo"><span>Advanced Minimally- and Non-invasive Hemodynamic Monitoring</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Non- or minimally-invasive hemodynamic monitoring (e.g., non-invasive cardiac output, stroke volume monitoring, pulse pressure variation).<div class="coa-cite">COA Guidelines — Hemodynamic Monitoring</div></div></div>
+      </div>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-mech-vent"><span>Mechanical Ventilation</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Cases where the student manages mechanical ventilation (initiation, management, and/or weaning).<div class="coa-cite">COA Guidelines — Mechanical Ventilation (min. 30)</div></div></div>
+      </div>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-cxr"><span>Assessment of Chest X-Ray</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Reading and interpreting a chest X-ray as part of patient care (pre-, intra-, or post-operative).<div class="coa-cite">COA Guidelines — CXR Assessment (min. 30)</div></div></div>
+      </div>
     </div>
     <div class="proc-heading" style="margin-top:10px;">Pain</div>
     <div>
-      <label class="chk-item"><input type="checkbox" id="c-pain"><span>Pain Management Encounter</span></label>
+      <div class="coa-row">
+        <label class="chk-item"><input type="checkbox" id="c-pain"><span>Pain Management Encounter</span></label>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">One-on-one intervention for acute or chronic pain. Must include patient assessment before the action. &#9888;&#65039; A primary spinal/epidural anesthetic does NOT count.<div class="coa-cite">COA Guidelines — Pain Management Encounters (min. 15)</div></div></div>
+      </div>
     </div>
   </div>
 
@@ -1009,6 +1146,7 @@
     <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 2px;">
       <div class="count-row">
         <span class="count-label">IV Starts</span>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Successful peripheral IV catheter insertions. No simulation allowed.<div class="coa-cite">COA Guidelines — IV Starts (min. 40 actual)</div></div></div>
         <div class="count-stepper">
           <button type="button" class="count-step-btn" data-count-adjust="-1" data-target="c-iv-n">▼</button>
           <input type="number" class="count-input" id="c-iv-n" min="0" max="99" value="">
@@ -1017,6 +1155,7 @@
       </div>
       <div class="count-row">
         <span class="count-label">POCUS – Actual</span>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Point-of-care ultrasound performed by the student (cardiac, lung, abdominal, etc.).<div class="coa-cite">COA Guidelines — POCUS</div></div></div>
         <div class="count-stepper">
           <button type="button" class="count-step-btn" data-count-adjust="-1" data-target="c-pocus-a-n">▼</button>
           <input type="number" class="count-input" id="c-pocus-a-n" min="0" max="99" value="">
@@ -1025,6 +1164,7 @@
       </div>
       <div class="count-row">
         <span class="count-label">US Regional – Actual</span>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Ultrasound-guided regional anesthesia techniques performed by the student.<div class="coa-cite">COA Guidelines — US-Guided Regional (min. 10 actual)</div></div></div>
         <div class="count-stepper">
           <button type="button" class="count-step-btn" data-count-adjust="-1" data-target="c-usr-a-n">▼</button>
           <input type="number" class="count-input" id="c-usr-a-n" min="0" max="99" value="">
@@ -1033,6 +1173,7 @@
       </div>
       <div class="count-row">
         <span class="count-label">US Vascular – Actual</span>
+        <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Ultrasound-guided vascular access (arterial or venous) performed by the student.<div class="coa-cite">COA Guidelines — US-Guided Vascular (min. 10 actual)</div></div></div>
         <div class="count-stepper">
           <button type="button" class="count-step-btn" data-count-adjust="-1" data-target="c-usv-a-n">▼</button>
           <input type="number" class="count-input" id="c-usv-a-n" min="0" max="99" value="">
@@ -1044,22 +1185,22 @@
 
   <div class="card" id="card-anatomical" data-step-title="Anatomical Category">
     <div class="btn-group" id="grp-anat">
-      <div class="btn-tog" data-v="Intra-abdominal" onclick="multi(this,'grp-anat')">Intra-abdominal</div>
-      <div class="btn-tog" data-v="Extrathoracic" onclick="multi(this,'grp-anat')">Extrathoracic</div>
-      <div class="btn-tog" data-v="Extremities" onclick="multi(this,'grp-anat')">Extremities</div>
-      <div class="btn-tog" data-v="Perineal" onclick="multi(this,'grp-anat')">Perineal</div>
-      <div class="btn-tog" data-v="Head - Extracranial" onclick="multi(this,'grp-anat')">Head (Extracranial)</div>
-      <div class="btn-tog" data-v="Head - Intracranial" onclick="multi(this,'grp-anat')">Head (Intracranial)</div>
-      <div class="btn-tog" data-v="Head - Oropharyngeal" onclick="multi(this,'grp-anat')">Oropharyngeal</div>
-      <div class="btn-tog" data-v="Intrathoracic - Heart" onclick="multi(this,'grp-anat')">Heart</div>
-      <div class="btn-tog" data-v="Intrathoracic - Lung" onclick="multi(this,'grp-anat')">Lung</div>
-      <div class="btn-tog" data-v="Intrathoracic - Other" onclick="multi(this,'grp-anat')">Intrathoracic Other</div>
-      <div class="btn-tog" data-v="Neck" onclick="multi(this,'grp-anat')">Neck</div>
-      <div class="btn-tog" data-v="Neuroskeletal" onclick="multi(this,'grp-anat')">Neuroskeletal</div>
-      <div class="btn-tog" data-v="Vascular" onclick="multi(this,'grp-anat')">Vascular</div>
-      <div class="btn-tog" data-v="Other" onclick="multi(this,'grp-anat')">Other</div>
-      <div class="btn-tog" data-v="Cesarean delivery" onclick="multi(this,'grp-anat')">C-Section</div>
-      <div class="btn-tog" data-v="Analgesia for labor" onclick="multi(this,'grp-anat')">Labor Analgesia</div>
+      <div class="coa-row"><div class="btn-tog" data-v="Intra-abdominal" onclick="multi(this,'grp-anat')">Intra-abdominal</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Procedures involving abdominal organs — bowel, stomach, liver, gallbladder, spleen, kidneys, pancreas (e.g., colectomy, cholecystectomy, nephrectomy, Whipple).<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Extrathoracic" onclick="multi(this,'grp-anat')">Extrathoracic</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Procedures on the external chest wall or breast. Does NOT include intrathoracic procedures.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Extremities" onclick="multi(this,'grp-anat')">Extremities</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Upper and lower extremity procedures — joint replacements, fracture repairs, soft tissue surgery. Frequently managed with regional anesthesia.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Perineal" onclick="multi(this,'grp-anat')">Perineal</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Procedures on the perineum, rectum, anus, or external genitalia — hemorrhoidectomy, sphincteroplasty, perineal prostatectomy.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Head - Extracranial" onclick="multi(this,'grp-anat')">Head (Extracranial)</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">ENT, ophthalmologic, or maxillofacial procedures not involving the cranial vault — tympanoplasty, rhinoplasty, orbital surgery, salivary gland.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Head - Intracranial" onclick="multi(this,'grp-anat')">Head (Intracranial)</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Neurosurgical procedures involving the cranium — craniotomy, VP shunt, cerebral aneurysm clipping. Requires ICP management. Specify open vs. closed in the dropdown.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Head - Oropharyngeal" onclick="multi(this,'grp-anat')">Oropharyngeal</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Mouth, pharynx, larynx, and upper airway procedures — tonsillectomy, adenoidectomy, laryngoscopy, panendoscopy. &#9888;&#65039; Shared airway common.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Intrathoracic - Heart" onclick="multi(this,'grp-anat')">Heart</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Cardiac surgical procedures. Use the dropdown to specify open-heart with bypass, open-heart without bypass, or closed-heart. COA requires cardiac case experience.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Intrathoracic - Lung" onclick="multi(this,'grp-anat')">Lung</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Pulmonary procedures — lobectomy, pneumonectomy, VATS, surgical bronchoscopy. &#9888;&#65039; Often requires one-lung ventilation.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Intrathoracic - Other" onclick="multi(this,'grp-anat')">Intrathoracic Other</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Intrathoracic procedures not primarily involving the heart or lungs — esophagectomy, mediastinoscopy, thoracic aortic surgery.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Neck" onclick="multi(this,'grp-anat')">Neck</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Procedures on neck structures — carotid endarterectomy, thyroidectomy, parathyroidectomy, anterior cervical spine surgery. &#9888;&#65039; Airway and cerebrovascular considerations.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Neuroskeletal" onclick="multi(this,'grp-anat')">Neuroskeletal</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Spinal and orthopedic procedures — laminectomy, spinal fusion, hip/knee arthroplasty, discectomy.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Vascular" onclick="multi(this,'grp-anat')">Vascular</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Major vascular procedures — aortic aneurysm repair (open or EVAR), peripheral arterial bypass, AV fistula creation. &#9888;&#65039; High hemodynamic instability risk.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Other" onclick="multi(this,'grp-anat')">Other</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Procedures not fitting other anatomical categories — ECT, EBUS, GI endoscopy. Use the detail dropdown to specify the procedure type.<div class="coa-cite">COA — Anatomical Category</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Cesarean delivery" onclick="multi(this,'grp-anat')">C-Section</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Cesarean delivery. Counts toward obstetric anesthesia case experience. COA requires obstetric cases as part of clinical distribution.<div class="coa-cite">COA — Obstetric Anesthesia</div></div></div></div>
+      <div class="coa-row"><div class="btn-tog" data-v="Analgesia for labor" onclick="multi(this,'grp-anat')">Labor Analgesia</div><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Epidural or intrathecal analgesia for labor. Counts toward obstetric experience. &#9888;&#65039; Does NOT count toward total case numbers in Typhon.<div class="coa-cite">COA — Obstetric Anesthesia</div></div></div></div>
       <div class="anat-dropdown" id="anat-dd-head-intra">
         <div class="anat-dropdown-title">Head - Intracranial details</div>
         <div class="chk-grid">
@@ -1098,18 +1239,18 @@
       </div>
       <div class="sec-body">
         <div class="chk-grid">
-          <label class="chk-item"><input type="checkbox" id="c-gen-minimal"><span>Minimal / No Assistance</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-iv"><span>IV Induction</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-inhal"><span>Inhalation Induction</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-mask-ind"><span>Mask Vent – Induction</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-mask-maint"><span>Mask Vent – Maintenance</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-mask-resus"><span>Mask Vent – Resuscitation</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-lma"><span>LMA (Laryngeal Mask)</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-sga"><span>Other Supraglottic</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-ett-oral"><span>ETT – Oral</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-ett-nasal"><span>ETT – Nasal</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-tiva"><span>TIVA</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-gen-emerge"><span>Emergence</span></label>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-minimal"><span>Minimal / No Assistance</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">You provided general anesthesia with no or minimal CRNA/physician supervision. COA requires documented cases across varying levels of supervision.<div class="coa-cite">COA Guidelines — Supervision Levels</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-iv"><span>IV Induction</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">General anesthesia initiated with an IV agent (propofol, ketamine, etomidate, etc.). Most common induction technique in adult patients.<div class="coa-cite">COA Guidelines — General Anesthesia</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-inhal"><span>Inhalation Induction</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Gas induction without IV access — common in pediatrics, needle-phobic patients, or difficult IV access. &#9888;&#65039; Airway not secured until deeper anesthetic plane.<div class="coa-cite">COA Guidelines — Pediatric &amp; Special Techniques</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-mask-ind"><span>Mask Vent – Induction</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Bag-mask ventilation during the induction phase before placement of an airway device. Count separately from mask maintenance.<div class="coa-cite">COA Guidelines — Mask Ventilation</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-mask-maint"><span>Mask Vent – Maintenance</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Entire maintenance phase delivered via mask airway — no LMA or ETT placed. Count separately from induction mask ventilation.<div class="coa-cite">COA Guidelines — Mask Ventilation</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-mask-resus"><span>Mask Vent – Resuscitation</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Emergency bag-mask ventilation during a resuscitation or rescue event. Distinct from routine induction/maintenance mask use.<div class="coa-cite">COA Guidelines — Crisis Management</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-lma"><span>LMA (Laryngeal Mask)</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Supraglottic airway device used for maintenance. COA requires supraglottic airway experience as part of airway management competency.<div class="coa-cite">COA Guidelines — Supraglottic Airways</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-sga"><span>Other Supraglottic</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Other SGA devices — i-gel, King LT, Combitube, etc. Counts toward supraglottic airway experience alongside LMA cases.<div class="coa-cite">COA Guidelines — Supraglottic Airways</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-ett-oral"><span>ETT – Oral</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Orotracheal intubation. COA minimum 35 intubations (oral + nasal combined). No simulation allowed toward the minimum.<div class="coa-cite">COA Guidelines — Endotracheal Intubation (min. 35)</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-ett-nasal"><span>ETT – Nasal</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Nasotracheal intubation. Counts toward the 35-intubation minimum (combined oral + nasal). Requires nasal preparation and special technique considerations.<div class="coa-cite">COA Guidelines — Endotracheal Intubation (min. 35)</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-tiva"><span>TIVA</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Total intravenous anesthesia — no volatile agent used. Typically propofol infusion ± opioid ± ketamine. Used for PONV-sensitive patients and TIVA-only settings (e.g., MRI).<div class="coa-cite">COA Guidelines — IV Anesthetic Techniques</div></div></div></div>
+          <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-gen-emerge"><span>Emergence</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">You were responsible for managing emergence from anesthesia, including extubation and transition to recovery. COA requires documented emergence management.<div class="coa-cite">COA Guidelines — Emergence Management</div></div></div></div>
         </div>
       </div>
     </div>
@@ -1123,17 +1264,32 @@
       </div>
       <div class="sec-body">
         <div class="chk-grid">
-          <label class="chk-item"><input type="checkbox" id="c-reg-spinal"><span>Spinal</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-reg-epidural"><span>Epidural</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-reg-peripheral"><span>Peripheral Nerve Block</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-reg-other"><span>Other Regional</span></label>
-          <label class="chk-item"><input type="checkbox" id="c-reg-mgmt"><span>Management</span></label>
+          <div class="coa-row">
+            <label class="chk-item"><input type="checkbox" id="c-reg-spinal"><span>Spinal</span></label>
+            <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Intrathecal injection. CSE counts as BOTH spinal AND epidural. Simulation allowed for part but not all required techniques.<div class="coa-cite">COA Guidelines — Spinal (min. 10)</div></div></div>
+          </div>
+          <div class="coa-row">
+            <label class="chk-item"><input type="checkbox" id="c-reg-epidural"><span>Epidural</span></label>
+            <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Epidural catheter or single-shot injection. CSE counts as BOTH epidural AND spinal. Can be for anesthesia or pain management.<div class="coa-cite">COA Guidelines — Epidural (min. 10)</div></div></div>
+          </div>
+          <div class="coa-row">
+            <label class="chk-item"><input type="checkbox" id="c-reg-peripheral"><span>Peripheral Nerve Block</span></label>
+            <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Upper/lower extremity or truncal blocks (TAP, rectus sheath, head/neck). No simulation for meeting the minimum requirement.<div class="coa-cite">COA Guidelines — Peripheral Block (min. 10)</div></div></div>
+          </div>
+          <div class="coa-row">
+            <label class="chk-item"><input type="checkbox" id="c-reg-other"><span>Other Regional</span></label>
+            <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">After meeting minimums for spinal, epidural, and peripheral, the remaining 5 required regional techniques can be any combination.<div class="coa-cite">COA Guidelines — Additional Regional (5 remaining)</div></div></div>
+          </div>
+          <div class="coa-row">
+            <label class="chk-item"><input type="checkbox" id="c-reg-mgmt"><span>Management</span></label>
+            <div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Managing an existing regional technique without performing the initial placement — e.g., topping up an in-situ epidural, adjusting a nerve block infusion. Counts toward regional experience.<div class="coa-cite">COA Guidelines — Regional Techniques</div></div></div>
+          </div>
         </div>
         <div class="field" style="margin-top:10px;">
           <label>Peripheral Sub-options</label>
           <div class="chk-grid">
-            <label class="chk-item"><input type="checkbox" id="c-reg-peripheral-upper"><span>Upper</span></label>
-            <label class="chk-item"><input type="checkbox" id="c-reg-peripheral-lower"><span>Lower</span></label>
+            <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-reg-peripheral-upper"><span>Upper</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Upper extremity peripheral nerve block — brachial plexus (interscalene, supraclavicular, infraclavicular, axillary) or distal UE blocks.<div class="coa-cite">COA Guidelines — Peripheral Block (Upper)</div></div></div></div>
+            <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-reg-peripheral-lower"><span>Lower</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Lower extremity peripheral nerve block — femoral, popliteal sciatic, adductor canal, iPACK, ankle block, or truncal (TAP, rectus sheath, QL).<div class="coa-cite">COA Guidelines — Peripheral Block (Lower)</div></div></div></div>
           </div>
         </div>
       </div>
@@ -1144,6 +1300,7 @@
       <div class="sec-header">
         <input type="checkbox" id="c-mac" onclick="event.stopPropagation()">
         <span class="sec-label">Monitored Anesthesia Care (MAC)</span>
+        <div class="coa-tt" style="margin-left:auto"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Anesthesia provider present throughout, providing sedation and/or analgesia. Patient maintains protective airway reflexes. &#9888;&#65039; Must be prepared to convert to general anesthesia if conditions change.<div class="coa-cite">COA Guidelines — MAC</div></div></div>
       </div>
     </div>
 
@@ -1152,18 +1309,19 @@
       <div class="sec-header">
         <input type="checkbox" id="c-sedation" onclick="event.stopPropagation()">
         <span class="sec-label">Moderate / Deep Sedation</span>
+        <div class="coa-tt" style="margin-left:auto"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Moderate: patient responds purposefully to verbal commands. Deep: not easily aroused but responds to stimulation. Provider monitors and manages airway, breathing, and circulation throughout.<div class="coa-cite">COA Guidelines — Sedation</div></div></div>
       </div>
     </div>
   </div>
 
   <div class="card" id="card-medications" data-step-title="Medications">
     <div class="chk-grid">
-      <label class="chk-item"><input type="checkbox" id="c-med-none"><span>No Medications</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-med-inhal"><span>Inhalation Agents</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-med-iv-ind"><span>IV Induction Agents</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-med-nmb"><span>Muscle Relaxants</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-med-opioid"><span>IV Opioids</span></label>
-      <label class="chk-item"><input type="checkbox" id="c-med-other"><span>IV Agent – Other</span></label>
+      <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-med-none"><span>No Medications</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Case administered without any pharmacological anesthetic agents — supplemental O&#8322; and positioning only. Rare; typically a pure MAC or sedation-free case.<div class="coa-cite">COA Guidelines — Medications</div></div></div></div>
+      <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-med-inhal"><span>Inhalation Agents</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Volatile anesthetic agents — sevoflurane, desflurane, isoflurane — or nitrous oxide. Used for inhalation maintenance in most GETA cases.<div class="coa-cite">COA Guidelines — Inhalation Agents</div></div></div></div>
+      <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-med-iv-ind"><span>IV Induction Agents</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">IV induction agents — propofol, ketamine, etomidate, midazolam, barbiturates. Document the primary induction agent(s) used.<div class="coa-cite">COA Guidelines — IV Anesthetic Agents</div></div></div></div>
+      <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-med-nmb"><span>Muscle Relaxants</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Neuromuscular blocking agents (NMBAs) — succinylcholine, rocuronium, vecuronium, cisatracurium. &#9888;&#65039; Document reversal agent used (neostigmine, sugammadex).<div class="coa-cite">COA Guidelines — Neuromuscular Blockade</div></div></div></div>
+      <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-med-opioid"><span>IV Opioids</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">IV opioid analgesics — fentanyl, morphine, hydromorphone, remifentanil, sufentanil, meperidine. Check all that were administered perioperatively.<div class="coa-cite">COA Guidelines — Opioid Analgesics</div></div></div></div>
+      <div class="coa-row"><label class="chk-item"><input type="checkbox" id="c-med-other"><span>IV Agent – Other</span></label><div class="coa-tt"><button class="coa-btn" type="button" onclick="event.stopPropagation()">?</button><div class="coa-bubble">Other IV agents — dexmedetomidine, ketamine (sub-anesthetic dose), systemic lidocaine, vasoactives, benzodiazepines, antiemetics.<div class="coa-cite">COA Guidelines — Adjunct Agents</div></div></div></div>
     </div>
     <div style="margin-top:18px;text-align:center;">
       <button type="button" id="btn-med-select-all" onclick="medToggleAll()" style="background:none;border:none;color:#0d6e6e;font-size:0.84em;font-weight:700;cursor:pointer;text-decoration:underline;padding:4px 8px;">Select All</button>
@@ -1493,46 +1651,20 @@
 <script src="vendor/firebase-app-compat.js"></script>
 <script src="vendor/firebase-firestore-compat.js"></script>
 <script src="vendor/firebase-auth-compat.js"></script>
-<script src="typhon-firebase.js"></script>
-<script src="app.store.js"></script>
-<script src="app.utils.js"></script>
-<script src="app.ui.js"></script>
-<script src="app.forms.js"></script>
-<script src="app.sig.js"></script>
-<script src="app.draft.js"></script>
-<script src="app.save.js"></script>
-<script src="app.render.js"></script>
-<script src="app.share.js"></script>
-<script src="app.data.js"></script>
-<script src="app.init.js"></script>
+<script src="typhon-firebase.js?v=1.005"></script>
+<script src="app.store.js?v=1.005"></script>
+<script src="app.utils.js?v=1.005"></script>
+<script src="app.ui.js?v=1.005"></script>
+<script src="app.forms.js?v=1.005"></script>
+<script src="app.sig.js?v=1.005"></script>
+<script src="app.draft.js?v=1.005"></script>
+<script src="app.save.js?v=1.005"></script>
+<script src="app.render.js?v=1.005"></script>
+<script src="app.share.js?v=1.005"></script>
+<script src="app.data.js?v=1.005"></script>
+<script src="app.init.js?v=1.005"></script>
+<script src="../shared-auth.js"></script>
 <script>
-/* ── Google-only Firebase Auth (Typhon Helper) ── */
-(function (global) {
-  'use strict';
-  var FIREBASE_CONFIG = {
-    apiKey:            'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
-    authDomain:        'anesthesia-wiki-saved-files.firebaseapp.com',
-    projectId:         'anesthesia-wiki-saved-files',
-    storageBucket:     'anesthesia-wiki-saved-files.firebasestorage.app',
-    messagingSenderId: '493278937716',
-    appId:             '1:493278937716:web:6d4055acbb6f5745810721'
-  };
-  var _auth=null,_user=null,_authReady=false,_popupInProgress=false,_pendingCallbacks=[],_changeListeners=[];
-  function getOrCreateApp(){if(!global.firebase)return null;if(global.firebase.apps&&global.firebase.apps.length)return global.firebase.apps[0];try{return global.firebase.initializeApp(FIREBASE_CONFIG);}catch(e){return null;}}
-  function tryInitAuth(){if(_auth)return true;var app=getOrCreateApp();if(!app||!global.firebase.auth)return false;_auth=global.firebase.auth(app);_auth.onAuthStateChanged(handleAuthChange);return true;}
-  function ensureInit(){if(!tryInitAuth()){var a=0,p=setInterval(function(){a++;if(tryInitAuth()||a>80)clearInterval(p);},100);}}
-  function handleAuthChange(user){_user=user;_authReady=true;_popupInProgress=false;if(user){var cbs=_pendingCallbacks.slice();_pendingCallbacks=[];cbs.forEach(function(cb){try{cb(user);}catch(e){}});}else{if(_pendingCallbacks.length>0)doGoogleSignIn();}_changeListeners.forEach(function(cb){try{cb(user);}catch(e){}});}
-  function doGoogleSignIn(){if(_popupInProgress)return;if(!_auth){ensureInit();return;}_popupInProgress=true;var provider=new global.firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});_auth.signInWithPopup(provider).catch(function(e){_popupInProgress=false;if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request'){alert(e.message||'Google sign-in failed. Ensure pop-ups are allowed.');}});}
-  global.AnesthesiaAuth={
-    requireAuth:function(onAuthed){ensureInit();if(_authReady&&_user){try{onAuthed(_user);}catch(e){}return;}_pendingCallbacks.push(onAuthed);if(_authReady&&!_user)doGoogleSignIn();},
-    getUser:function(){return _user;},
-    signOut:function(){return _auth?_auth.signOut():Promise.resolve();},
-    onAuthChange:function(callback){_changeListeners.push(callback);if(_authReady){try{callback(_user);}catch(e){}}},
-    showLogin:function(){ensureInit();doGoogleSignIn();}
-  };
-  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ensureInit);}else{ensureInit();}
-})(window);
-
 (function () {
   function dispatchAuthChanged() {
     window.dispatchEvent(new Event('typhon-auth-changed'));
@@ -1544,16 +1676,30 @@
     var drawerEmail = document.getElementById('acct-drawer-email');
     var acctBtn     = document.getElementById('acct-action-btn');
     var tabAcct     = document.getElementById('tab-acct');
+    var uidDisplay  = document.getElementById('acct-uid-display');
     if (user) {
       if (drawerName)  drawerName.textContent  = user.displayName || user.email.split('@')[0];
       if (drawerEmail) drawerEmail.textContent = user.email || '';
       if (acctBtn)     acctBtn.textContent     = 'Sign Out';
       if (tabAcct)     tabAcct.classList.add('auth-signed-in');
+      if (uidDisplay)  uidDisplay.textContent  = 'UID: ' + user.uid;
     } else {
       if (drawerName)  drawerName.textContent  = 'Not signed in';
       if (drawerEmail) drawerEmail.textContent = '';
       if (acctBtn)     acctBtn.textContent     = 'Log in for full access';
       if (tabAcct)     tabAcct.classList.remove('auth-signed-in');
+      if (uidDisplay)  uidDisplay.textContent  = 'UID: not signed in';
+    }
+    var signinBanner = document.getElementById('welcome-signin-banner');
+    if (signinBanner) signinBanner.style.display = user ? 'none' : 'block';
+    var welcomeUserName = document.getElementById('welcome-user-name');
+    if (welcomeUserName) {
+      if (user) {
+        welcomeUserName.textContent = user.displayName || user.email.split('@')[0];
+        welcomeUserName.style.display = 'block';
+      } else {
+        welcomeUserName.style.display = 'none';
+      }
     }
   }
 
@@ -1561,6 +1707,56 @@
   function closeAcctDrawer() { document.getElementById('acct-overlay').classList.remove('open'); }
   window.openAcctDrawer  = openAcctDrawer;
   window.closeAcctDrawer = closeAcctDrawer;
+
+  async function runSyncDiagnostic() {
+    var el = document.getElementById('acct-sync-result');
+    if (!el) return;
+    el.style.display = 'block';
+    el.textContent = '⏳ Running diagnostics…';
+    try {
+      var uid = typeof _getAuthUid === 'function' ? _getAuthUid() : 'fn not found';
+      var lines = ['Build: ' + ((window.TYPHON_FIREBASE_CONFIG || {}).buildVersion || 'unknown')];
+      lines.push('UID: ' + (uid || 'NOT SIGNED IN'));
+
+      // Check typhon-plan-completions in cloud
+      var cloudComps = await store.get('typhon-plan-completions').catch(e => 'ERROR: ' + e.message);
+      if (typeof cloudComps === 'string') {
+        lines.push('Cloud completions: ' + cloudComps);
+      } else if (Array.isArray(cloudComps)) {
+        lines.push('Cloud completions: ' + cloudComps.length + ' total');
+        cloudComps.forEach(function(c) { lines.push('  • ' + c.planName + ' (' + c.date + ')'); });
+      } else {
+        lines.push('Cloud completions: null / not found');
+      }
+
+      // Check typhon-plan-completions in localStorage
+      var localComps = JSON.parse(localStorage.getItem('typhon-plan-completions') || '[]');
+      lines.push('Local completions: ' + localComps.length + ' total');
+
+      // Check typhon-items count in cloud
+      var cloudItems = await store.get('typhon-items').catch(e => 'ERROR: ' + e.message);
+      if (typeof cloudItems === 'string') {
+        lines.push('Cloud items: ' + cloudItems);
+      } else {
+        lines.push('Cloud items: ' + (Array.isArray(cloudItems) ? cloudItems.length : 'null'));
+      }
+
+      el.innerHTML = lines.map(function(l) {
+        var color = l.includes('ERROR') || l.includes('NOT SIGNED') ? '#c0392b' :
+                    l.includes('null') || l.includes('0 total') ? '#e67e22' : '#27ae60';
+        return '<span style="color:' + color + '">' + l + '</span>';
+      }).join('<br>');
+    } catch(e) {
+      el.textContent = 'Diagnostic error: ' + e.message;
+    }
+  }
+  window.runSyncDiagnostic = runSyncDiagnostic;
+
+  function togglePlannedCases() {
+    var section = document.getElementById('planned-cases-section');
+    if (section) section.classList.toggle('collapsed');
+  }
+  window.togglePlannedCases = togglePlannedCases;
 
   document.addEventListener('DOMContentLoaded', function () {
     var tabAcct = document.getElementById('tab-acct');
@@ -1603,7 +1799,7 @@
 <script>
 // ===== HAMBURGER DRAWER =====
 var drawerLabels = {
-  case:  '📋 Case Log',
+  case:  'Case Log Entry',
   time:  '⏰ Time Log',
   saved: '📁 Saved',
   eval:  '📝 Daily Eval'
@@ -1614,8 +1810,56 @@ function openDrawer() {
   document.getElementById('nav-drawer').classList.add('open');
   var caseEl = document.getElementById('drawer-case-continue');
   var timeEl = document.getElementById('drawer-time-continue');
-  if (caseEl) caseEl.style.display = (typeof hasCaseProgress === 'function' && hasCaseProgress()) ? 'block' : 'none';
-  if (timeEl) timeEl.style.display = (typeof hasTimeProgress === 'function' && hasTimeProgress()) ? 'block' : 'none';
+  var caseHasProgress = (typeof hasCaseProgress === 'function' && hasCaseProgress());
+  if (caseEl) caseEl.style.display = caseHasProgress ? 'block' : 'none';
+  var caseHintEl = document.getElementById('drawer-case-hint');
+  if (caseHintEl) {
+    if (caseHasProgress) {
+      try {
+        var cd = JSON.parse(localStorage.getItem('typhon-draft') || '{}');
+        var fmtC = function(s) {
+          if (!s) return null;
+          var clean = s.replace(':', '');
+          if (clean.length < 3) return s;
+          var h = parseInt(clean.slice(0, -2), 10);
+          var m = clean.slice(-2);
+          return (h % 12 || 12) + ':' + m + ' ' + (h >= 12 ? 'PM' : 'AM');
+        };
+        var cp = [
+          cd.anesStart ? 'Start: ' + fmtC(cd.anesStart) : null,
+          cd.anesFinish ? 'End: ' + fmtC(cd.anesFinish) : null,
+          cd.age ? 'Age: ' + cd.age : null
+        ].filter(Boolean);
+        caseHintEl.textContent = cp.length ? 'In Progress: ' + cp.join('  ·  ') : '';
+        caseHintEl.style.display = cp.length ? 'block' : 'none';
+      } catch(e) { caseHintEl.style.display = 'none'; }
+    } else {
+      caseHintEl.style.display = 'none';
+    }
+  }
+  var timeHasProgress = (typeof hasTimeProgress === 'function' && hasTimeProgress());
+  if (timeEl) timeEl.style.display = timeHasProgress ? 'block' : 'none';
+  var timeHintEl = document.getElementById('drawer-time-clockin');
+  if (timeHintEl) {
+    if (timeHasProgress) {
+      try {
+        var t = JSON.parse(localStorage.getItem('typhon-time-progress') || '{}');
+        var fmt = function(s) {
+          if (!s) return null;
+          var clean = s.replace(':', '');
+          if (clean.length < 3) return s;
+          var h = parseInt(clean.slice(0, -2), 10);
+          var m = clean.slice(-2);
+          return (h % 12 || 12) + ':' + m + ' ' + (h >= 12 ? 'PM' : 'AM');
+        };
+        var parts = [t.clockIn1 ? 'Start: ' + fmt(t.clockIn1) : null, t.clockOut1 ? 'End: ' + fmt(t.clockOut1) : null].filter(Boolean);
+        timeHintEl.textContent = parts.length ? 'In Progress: ' + parts.join('  ·  ') : '';
+        timeHintEl.style.display = parts.length ? 'block' : 'none';
+      } catch(e) { timeHintEl.style.display = 'none'; }
+    } else {
+      timeHintEl.style.display = 'none';
+    }
+  }
 }
 
 function closeDrawer() {
@@ -1626,6 +1870,12 @@ function closeDrawer() {
 function drawerNav(name) {
   // Switch pane
   goTab(name);
+  if (name === 'time' && typeof hasTimeProgress === 'function' && hasTimeProgress()) {
+    if (typeof restoreTimeProgress === 'function') restoreTimeProgress();
+  }
+  if (name === 'case' && typeof hasCaseProgress === 'function' && hasCaseProgress()) {
+    if (typeof restoreDraft === 'function') restoreDraft();
+  }
   // Update navbar label
   var lbl = document.getElementById('current-tab-label');
   if (lbl) lbl.textContent = drawerLabels[name] || name;

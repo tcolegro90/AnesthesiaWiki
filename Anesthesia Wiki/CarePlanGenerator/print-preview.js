@@ -181,25 +181,56 @@
       style.id = 'saved-plan-picker-style';
       style.textContent = [
         '.spp-overlay{position:fixed;inset:0;background:rgba(18,24,33,.45);z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;}',
-        '.spp-dialog{width:min(680px,100%);max-width:calc(100vw - 36px);max-height:min(84vh,760px);display:flex;flex-direction:column;background:#fff;border:1px solid #c9d3e0;border-radius:12px;box-shadow:0 20px 45px rgba(0,0,0,.25);overflow:hidden;}',
-        '.spp-head{padding:14px 16px;border-bottom:1px solid #e5ebf4;background:#f7faff;}',
-        '.spp-title{font-size:1rem;font-weight:700;color:#1b2a41;margin:0;}',
-        '.spp-sub{font-size:.86rem;color:#516277;margin-top:3px;}',
-        '.spp-count{font-weight:700;color:#0b5cab;}',
-        '.spp-list{padding:10px 12px;overflow-y:auto;overflow-x:hidden;display:grid;grid-template-columns:1fr;gap:7px;flex:1;min-height:0;}',
-        '.spp-option{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #d9e2ef;border-radius:9px;background:#fff;cursor:pointer;user-select:none;overflow:hidden;min-width:0;}',
-        '.spp-option:hover{background:#f7fbff;border-color:#b9cde7;}',
-        '.spp-check{position:absolute;opacity:0;pointer-events:none;}',
-        '.spp-bubble{width:18px;height:18px;border-radius:999px;border:2px solid #87a4c7;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;font-size:10px;font-weight:700;line-height:1;color:#fff;}',
-        '.spp-check:checked + .spp-bubble{border-color:#0b5cab;background:#0b5cab;}',
-        '.spp-label{display:flex;gap:8px;align-items:center;min-width:0;flex:1;}',
-        '.spp-index{font-weight:700;color:#29466f;min-width:22px;text-align:right;}',
-        '.spp-name{font-size:.92rem;color:#172638;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}',
-        '.spp-meta{font-size:.78rem;color:#7b8797;white-space:nowrap;margin-left:auto;}',
+        '.spp-dialog{width:min(760px,100%);max-width:calc(100vw - 36px);max-height:min(84vh,760px);display:flex;flex-direction:column;background:#fffdf8;border:1px solid #e8dece;border-radius:14px;box-shadow:0 20px 45px rgba(0,0,0,.25);overflow:hidden;}',
+        '.spp-head{padding:14px 16px 12px;background:linear-gradient(135deg,#c06030 0%,#d97840 100%);}',
+        '.spp-title{font-size:.97rem;font-weight:700;color:#fff;margin:0;}',
+        '.spp-sub{font-size:.78rem;color:#fdd9bc;margin-top:3px;}',
+        '.spp-count{font-weight:700;color:#fff;}',
+        '.spp-search-wrap{position:relative;margin:10px 8px 4px;}',
+        '.spp-search-wrap input{width:100%;border:1.5px solid #e8d8c5;border-radius:9px;padding:8px 12px 8px 30px;font-size:.83rem;color:#3d2a18;background:#fff8f0;outline:none;box-sizing:border-box;}',
+        '.spp-search-wrap input:focus{border-color:#c06030;}',
+        '.spp-search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#c8926a;font-size:.82rem;pointer-events:none;}',
+        '.spp-list{padding:2px 6px 10px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:3px;flex:1;min-height:0;}',
+        '.spp-date-hdr{display:flex;align-items:center;gap:7px;padding:2px 4px 4px;cursor:pointer;user-select:none;}',
+        '.spp-date-hdr-label{font-size:.72rem;font-weight:700;color:#b06040;text-transform:uppercase;letter-spacing:.05em;}',
+        '.spp-date-hdr-line{flex:1;height:1px;background:#ecd8c5;}',
+        '.spp-date-hdr-count{font-size:.68rem;color:#c8a080;}',
+        '.spp-date-hdr-chev{font-size:.65rem;color:#c8906a;transition:transform .15s;display:inline-block;}',
+        '.spp-date-hdr.spp-collapsed .spp-date-hdr-chev{transform:rotate(-90deg);}',
+        '.spp-option{display:flex;align-items:center;gap:6px;padding:9px 8px;border:1.5px solid #eeddd0;border-radius:10px;background:#fff;cursor:pointer;user-select:none;overflow:hidden;min-width:0;}',
+        '.spp-option:hover{background:#fff4ea;border-color:#d09060;}',
         '.spp-option[data-disabled="1"]{opacity:.55;cursor:not-allowed;background:#f7f8fa;}',
-        '.spp-foot{display:flex;justify-content:flex-end;gap:9px;padding:12px 14px;border-top:1px solid #e5ebf4;background:#fbfdff;}',
-        '.spp-btn{padding:8px 12px;border-radius:8px;border:1px solid #b9c8da;background:#fff;color:#1f3550;font-weight:600;cursor:pointer;}',
-        '.spp-btn.spp-primary{border-color:#0b5cab;background:#0b5cab;color:#fff;}',
+        '.spp-check{position:absolute;opacity:0;pointer-events:none;}',
+        '.spp-bubble{width:16px;height:16px;border-radius:50%;border:2px solid #d09060;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;font-size:9px;font-weight:700;line-height:1;color:#fff;}',
+        '.spp-check:checked + .spp-bubble{border-color:#c06030;background:#c06030;}',
+        '.spp-inittime{display:flex;align-items:center;gap:3px;flex-shrink:0;}',
+        '.spp-initials{font-size:.82rem;font-weight:700;color:#3d1a08;}',
+        '.spp-timepill{font-size:.78rem;color:#a06840;background:#fdeedd;border-radius:5px;padding:1px 5px;white-space:nowrap;}',
+        '.spp-surgname{font-size:.82rem;color:#3d1a08;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+        '.spp-savedat{font-size:.72rem;color:#b08060;margin-left:auto;flex-shrink:0;white-space:nowrap;padding-left:6px;}',
+        '.spp-updatedat{font-size:.68rem;color:#c8a080;flex-shrink:0;white-space:nowrap;padding-left:4px;font-style:italic;}',
+        '.spp-option .spp-savedat{margin-left:auto;}',
+        '.spp-option .spp-updatedat{margin-left:0;}',
+        '.spp-archive-header{display:flex;align-items:center;gap:6px;padding:7px 8px;background:#fff0e0;border:1px solid #e8d0b8;border-radius:9px;cursor:pointer;user-select:none;font-size:.77rem;font-weight:700;color:#7a3a10;margin-top:6px;}',
+        '.spp-archive-header:hover{background:#ffe8d0;}',
+        '.spp-archive-chevron{display:inline-block;transition:transform .15s;}',
+        '.spp-archive-header.spp-collapsed .spp-archive-chevron{transform:rotate(-90deg);}',
+        '.spp-archive-count{color:#c8906a;font-weight:400;margin-left:auto;font-size:.72rem;}',
+        '.spp-month-header{display:flex;align-items:center;gap:6px;padding:6px 8px;background:#fff0e2;border:1px solid #e4c8a8;border-radius:9px;cursor:pointer;user-select:none;margin-top:5px;}',
+        '.spp-month-header:hover{background:#ffe4c8;}',
+        '.spp-month-chevron{display:inline-block;transition:transform .15s;font-size:.68rem;color:#c8906a;}',
+        '.spp-month-header.spp-collapsed .spp-month-chevron{transform:rotate(-90deg);}',
+        '.spp-month-label{font-size:.78rem;font-weight:700;color:#6a2a08;}',
+        '.spp-month-count{color:#c8906a;font-weight:400;margin-left:auto;font-size:.72rem;}',
+        '.spp-folder-header{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;user-select:none;margin-top:3px;margin-left:12px;}',
+        '.spp-folder-chevron{font-size:.65rem;color:#c8906a;transition:transform .15s;display:inline-block;}',
+        '.spp-folder-header.spp-collapsed .spp-folder-chevron{transform:rotate(-90deg);}',
+        '.spp-folder-header-line{flex:1;height:1px;background:#ecd8c5;}',
+        '.spp-folder-label{font-size:.7rem;font-weight:700;color:#b06040;text-transform:uppercase;letter-spacing:.04em;}',
+        '.spp-folder-count{font-size:.68rem;color:#c8a080;}',
+        '.spp-foot{display:flex;justify-content:flex-end;gap:9px;padding:11px 12px;border-top:1px solid #ede0d0;background:#fffaf4;}',
+        '.spp-btn{padding:7px 14px;border-radius:9px;border:1.5px solid #e0c8a8;background:#fff;color:#5a3010;font-weight:600;cursor:pointer;font-size:.83rem;}',
+        '.spp-btn.spp-primary{border-color:#c06030;background:#c06030;color:#fff;}',
         '.spp-btn:disabled{opacity:.5;cursor:not-allowed;}'
       ].join('');
       document.head.appendChild(style);
@@ -248,38 +279,267 @@
         }
         dialog.appendChild(head);
 
+        // Search bar
+        var _searchWrap = document.createElement('div');
+        _searchWrap.className = 'spp-search-wrap';
+        _searchWrap.innerHTML = '<span class="spp-search-icon">\uD83D\uDD0D</span><input type="text" class="spp-search-input" placeholder="Search surgery, initials\u2026" autocomplete="off">';
+        dialog.appendChild(_searchWrap);
+
         var list = document.createElement('div');
         list.className = 'spp-list';
         dialog.appendChild(list);
 
-        names.forEach(function(name, i) {
+        // Parse plan name format: "Initials | Date | StartTime [| EndTime] | Surgery"
+        function _parsePlanName(n) {
+          var p = n.split(' | ');
+          var hasFive = p.length >= 5;
+          var startTime = p[2] ? p[2].trim() : '';
+          var endTime   = hasFive && p[3] ? p[3].trim() : '';
+          return {
+            initials: p[0] ? p[0].trim() : n,
+            date:     p[1] ? p[1].trim() : '',
+            time:     startTime + (endTime ? '\u2013' + endTime : ''),
+            surgery:  hasFive ? (p[4] ? p[4].trim() : '') : (p[3] ? p[3].trim() : (p[1] || n))
+          };
+        }
+
+        // Build a plan row element
+        function _makeRow(name, isArchive, folderKey) {
+          var parsed = _parsePlanName(name);
+          var checked = selectedOrder.indexOf(name) !== -1;
+          var _planEntry = opts.plans && opts.plans[name];
+          // Surgery date: prefer state field, fall back to plan name date part
+          var _surgDateRaw = (_planEntry && _planEntry.state && _planEntry.state['pat-surg-date'])
+            ? String(_planEntry.state['pat-surg-date']).trim() : parsed.date;
+          var _surgDateD = _surgDateRaw ? new Date(_surgDateRaw) : null;
+          var _surgDateStr = (_surgDateD && !isNaN(_surgDateD.getTime()))
+            ? _surgDateD.toLocaleDateString([], { month: 'numeric', day: 'numeric', year: 'numeric' })
+            : _surgDateRaw;
+          // Save/update timestamp shown as secondary label
+          var _savedAtD = (_planEntry && _planEntry.savedAt) ? new Date(_planEntry.savedAt) : null;
+          var _updatedStr = (_savedAtD && !isNaN(_savedAtD.getTime()))
+            ? 'Saved ' + _savedAtD.toLocaleDateString([], { month: 'numeric', day: 'numeric' }) + ' ' + _savedAtD.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+            : '';
           var row = document.createElement('label');
           row.className = 'spp-option';
           row.setAttribute('data-name', name);
+          if (isArchive) {
+            row.setAttribute('data-archive', '1');
+            if (folderKey) row.setAttribute('data-folder-key', folderKey);
+          }
+          row.innerHTML =
+            '<input type="checkbox" class="spp-check"' + (checked ? ' checked' : '') + '>' +
+            '<span class="spp-bubble"></span>' +
+            '<span class="spp-inittime">' +
+              '<span class="spp-initials"></span>' +
+              (parsed.time ? '<span class="spp-timepill"></span>' : '') +
+            '</span>' +
+            '<span class="spp-surgname"></span>' +
+            (_surgDateStr ? '<span class="spp-savedat"></span>' : '') +
+            (_updatedStr ? '<span class="spp-updatedat"></span>' : '');
+          row.querySelector('.spp-initials').textContent = parsed.initials;
+          var tp = row.querySelector('.spp-timepill');
+          if (tp) tp.textContent = parsed.time;
+          row.querySelector('.spp-surgname').textContent = parsed.surgery || name;
+          var sd = row.querySelector('.spp-savedat');
+          if (sd) sd.textContent = _surgDateStr;
+          var ud = row.querySelector('.spp-updatedat');
+          if (ud) ud.textContent = _updatedStr;
+          return row;
+        }
 
-          var savedAt = (opts.plans && opts.plans[name] && opts.plans[name].savedAt) ? String(opts.plans[name].savedAt) : '';
-          var savedLabel = '';
-          if (savedAt) {
-            var dt = new Date(savedAt);
-            if (!isNaN(dt.getTime())) {
-              var now = new Date();
-              var isToday = dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth() && dt.getDate() === now.getDate();
-              var dateStr = isToday ? 'Today' : dt.toLocaleDateString();
-              var timeStr = dt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-              savedLabel = dateStr + ' ' + timeStr;
+        // Group plans by surgery date: today, upcoming (future dates), archive (past)
+        var _now = new Date();
+        var _todayMidnight = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate());
+        var _todayStr = _todayMidnight.toDateString();
+        var _yesterdayStr = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() - 1).toDateString();
+        var _todayNames = [], _futureGroups = {}, _monthGroups = {};
+
+        function _parseSurgDate(name) {
+          var surgDate = (opts.plans && opts.plans[name] && opts.plans[name].state && opts.plans[name].state['pat-surg-date'])
+            ? String(opts.plans[name].state['pat-surg-date']).trim() : '';
+          var d = null;
+          if (surgDate) {
+            // Stored as M/D/YYYY by syncSurgicalDate
+            var slashParts = surgDate.split('/');
+            if (slashParts.length === 3) {
+              d = new Date(+slashParts[2], +slashParts[0] - 1, +slashParts[1]);
+            } else {
+              // Fallback for YYYY-MM-DD
+              var dashParts = surgDate.split('-');
+              if (dashParts.length === 3) d = new Date(+dashParts[0], +dashParts[1] - 1, +dashParts[2]);
             }
           }
+          if (!d || isNaN(d.getTime())) {
+            var sa = (opts.plans && opts.plans[name] && opts.plans[name].savedAt) ? String(opts.plans[name].savedAt) : '';
+            d = sa ? new Date(sa) : null;
+          }
+          return (d && !isNaN(d.getTime())) ? d : null;
+        }
 
-          var checked = selectedOrder.indexOf(name) !== -1;
-          row.innerHTML =
-            '<input type="checkbox" class="spp-check" ' + (checked ? 'checked' : '') + '>' +
-            '<span class="spp-bubble"></span>' +
-            '<span class="spp-label"><span class="spp-index">' + (i + 1) + '.</span><span class="spp-name"></span><span class="spp-meta"></span></span>';
-          row.querySelector('.spp-name').textContent = name;
-          var meta = row.querySelector('.spp-meta');
-          if (meta) meta.textContent = savedLabel;
-          list.appendChild(row);
+        names.forEach(function(name) {
+          var d = _parseSurgDate(name);
+          var dtStr = d ? d.toDateString() : 'Unknown';
+          if (dtStr === _todayStr) { _todayNames.push(name); return; }
+          if (d && d >= _todayMidnight) {
+            // Future date — group by date string
+            if (!_futureGroups[dtStr]) _futureGroups[dtStr] = { date: d, names: [] };
+            _futureGroups[dtStr].names.push(name);
+            return;
+          }
+          // Past date or unknown — goes to archive
+          var monthKey = d
+            ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+            : '0000-00';
+          if (!_monthGroups[monthKey]) _monthGroups[monthKey] = { dates: {} };
+          if (!_monthGroups[monthKey].dates[dtStr]) _monthGroups[monthKey].dates[dtStr] = [];
+          _monthGroups[monthKey].dates[dtStr].push(name);
         });
+
+        var _archiveMonthKeys = Object.keys(_monthGroups).sort(function(a, b) { return b.localeCompare(a); });
+        var _archiveTotal = _archiveMonthKeys.reduce(function(sum, mk) {
+          return sum + Object.keys(_monthGroups[mk].dates).reduce(function(s, dk) { return s + _monthGroups[mk].dates[dk].length; }, 0);
+        }, 0);
+
+        // Render upcoming groups (tomorrow, Monday, etc.) sorted chronologically — future first
+        var _tomorrowMidnight = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() + 1);
+        var _futureDateStrs = Object.keys(_futureGroups).sort(function(a, b) {
+          return _futureGroups[b].date - _futureGroups[a].date;
+        });
+        _futureDateStrs.forEach(function(dtStr) {
+          var grp = _futureGroups[dtStr];
+          var isTomorrow = grp.date.toDateString() === _tomorrowMidnight.toDateString();
+          var lbl = isTomorrow
+            ? 'Tomorrow \u2014 ' + grp.date.toLocaleDateString([], { month: 'short', day: 'numeric' })
+            : grp.date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+          var hdr = document.createElement('div');
+          hdr.className = 'spp-date-hdr';
+          hdr.innerHTML =
+            '<span class="spp-date-hdr-chev">\u25BC</span>' +
+            '<span class="spp-date-hdr-label">' + escapeHtml(lbl) + '</span>' +
+            '<span class="spp-date-hdr-line"></span>' +
+            '<span class="spp-date-hdr-count">' + grp.names.length + ' plan' + (grp.names.length !== 1 ? 's' : '') + '</span>';
+          var rows = [];
+          hdr.addEventListener('click', function() {
+            var coll = hdr.classList.toggle('spp-collapsed');
+            rows.forEach(function(r) { r.style.display = coll ? 'none' : ''; });
+          });
+          list.appendChild(hdr);
+          grp.names.forEach(function(name) {
+            var row = _makeRow(name, false, null);
+            rows.push(row);
+            list.appendChild(row);
+          });
+        });
+
+        // Render today group (after future)
+        var _todayHdr = null, _todayRows = [];
+        if (_todayNames.length) {
+          var _todayLabel = 'Today \u2014 ' + _now.toLocaleDateString([], { month: 'short', day: 'numeric' });
+          _todayHdr = document.createElement('div');
+          _todayHdr.className = 'spp-date-hdr';
+          _todayHdr.innerHTML =
+            '<span class="spp-date-hdr-chev">\u25BC</span>' +
+            '<span class="spp-date-hdr-label">' + escapeHtml(_todayLabel) + '</span>' +
+            '<span class="spp-date-hdr-line"></span>' +
+            '<span class="spp-date-hdr-count">' + _todayNames.length + ' plan' + (_todayNames.length !== 1 ? 's' : '') + '</span>';
+          _todayHdr.addEventListener('click', function() {
+            var coll = _todayHdr.classList.toggle('spp-collapsed');
+            _todayRows.forEach(function(r) { r.style.display = coll ? 'none' : ''; });
+          });
+          list.appendChild(_todayHdr);
+          _todayNames.forEach(function(name) {
+            var row = _makeRow(name, false, null);
+            _todayRows.push(row);
+            list.appendChild(row);
+          });
+        }
+
+        // Render archive: month → date → rows (all collapsed by default)
+        var _archiveHdr = null, _archiveRows = [], _archiveFolderHdrs = [], _archiveMonthHdrs = [];
+        if (_archiveMonthKeys.length) {
+          _archiveHdr = document.createElement('div');
+          _archiveHdr.className = 'spp-archive-header spp-collapsed';
+          _archiveHdr.innerHTML =
+            '<span class="spp-archive-chevron">\u25BC</span>' +
+            '<span>\uD83D\uDCC1 Archive</span>' +
+            '<span class="spp-archive-count">' + _archiveTotal + ' plan' + (_archiveTotal !== 1 ? 's' : '') + '</span>';
+          list.appendChild(_archiveHdr);
+
+          _archiveMonthKeys.forEach(function(mk) {
+            var mDate = new Date(mk + '-02');
+            var mLabel = mDate.toLocaleDateString([], { month: 'long', year: 'numeric' });
+            var mTotal = Object.keys(_monthGroups[mk].dates).reduce(function(s, dk) { return s + _monthGroups[mk].dates[dk].length; }, 0);
+            var mhdr = document.createElement('div');
+            mhdr.className = 'spp-month-header spp-collapsed';
+            mhdr.setAttribute('data-month-key', mk);
+            mhdr.style.display = 'none';
+            mhdr.innerHTML =
+              '<span class="spp-month-chevron">\u25BC</span>' +
+              '<span class="spp-month-label">\uD83D\uDCC5 ' + escapeHtml(mLabel) + '</span>' +
+              '<span class="spp-month-count">' + mTotal + ' plan' + (mTotal !== 1 ? 's' : '') + '</span>';
+            _archiveMonthHdrs.push(mhdr);
+            list.appendChild(mhdr);
+
+            var dateKeys = Object.keys(_monthGroups[mk].dates).sort(function(a, b) { return new Date(b) - new Date(a); });
+            dateKeys.forEach(function(dtStr) {
+              var dt = new Date(dtStr);
+              var isYest = dtStr === _yesterdayStr;
+              var lbl = isYest
+                ? 'Yesterday \u2014 ' + dt.toLocaleDateString([], { month: 'short', day: 'numeric' })
+                : dt.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+              var fhdr = document.createElement('div');
+              fhdr.className = 'spp-folder-header spp-collapsed';
+              fhdr.setAttribute('data-folder-key', dtStr);
+              fhdr.setAttribute('data-month-key', mk);
+              fhdr.style.display = 'none';
+              fhdr.innerHTML =
+                '<span class="spp-folder-chevron">\u25BC</span>' +
+                '<span class="spp-folder-label">' + escapeHtml(lbl) + '</span>' +
+                '<span class="spp-folder-header-line"></span>' +
+                '<span class="spp-folder-count">' + _monthGroups[mk].dates[dtStr].length + '</span>';
+              fhdr.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var coll = fhdr.classList.toggle('spp-collapsed');
+                list.querySelectorAll('.spp-option[data-folder-key="' + CSS.escape(dtStr) + '"]').forEach(function(r) {
+                  r.style.display = coll ? 'none' : '';
+                });
+              });
+              list.appendChild(fhdr);
+              _archiveFolderHdrs.push(fhdr);
+              _monthGroups[mk].dates[dtStr].forEach(function(name) {
+                var row = _makeRow(name, true, dtStr);
+                row.style.display = 'none';
+                _archiveRows.push(row);
+                list.appendChild(row);
+              });
+            });
+
+            mhdr.addEventListener('click', function(e) {
+              e.stopPropagation();
+              var coll = mhdr.classList.toggle('spp-collapsed');
+              list.querySelectorAll('.spp-folder-header[data-month-key="' + CSS.escape(mk) + '"]').forEach(function(h) {
+                h.style.display = coll ? 'none' : '';
+                if (coll) { h.classList.add('spp-collapsed'); }
+              });
+              if (coll) {
+                Object.keys(_monthGroups[mk].dates).forEach(function(dtStr) {
+                  list.querySelectorAll('.spp-option[data-folder-key="' + CSS.escape(dtStr) + '"]').forEach(function(r) { r.style.display = 'none'; });
+                });
+              }
+            });
+          });
+
+          _archiveHdr.addEventListener('click', function() {
+            var coll = _archiveHdr.classList.toggle('spp-collapsed');
+            _archiveMonthHdrs.forEach(function(h) { h.style.display = coll ? 'none' : ''; });
+            if (coll) {
+              _archiveMonthHdrs.forEach(function(h) { h.classList.add('spp-collapsed'); });
+              _archiveFolderHdrs.forEach(function(h) { h.style.display = 'none'; h.classList.add('spp-collapsed'); });
+              _archiveRows.forEach(function(r) { r.style.display = 'none'; });
+            }
+          });
+        }
 
         var foot = document.createElement('div');
         foot.className = 'spp-foot';
@@ -383,6 +643,44 @@
         });
 
         document.body.appendChild(overlay);
+
+        // Search filter
+        var _searchInput = dialog.querySelector('.spp-search-input');
+        if (_searchInput) {
+          _searchInput.addEventListener('input', function() {
+            var q = _searchInput.value.trim().toLowerCase();
+            if (!q) {
+              // Restore grouped view
+              if (_todayHdr) _todayHdr.style.display = '';
+              _todayRows.forEach(function(r) {
+                r.style.display = (_todayHdr && _todayHdr.classList.contains('spp-collapsed')) ? 'none' : '';
+              });
+              if (_tomorrowHdr) _tomorrowHdr.style.display = '';
+              _tomorrowRows.forEach(function(r) {
+                r.style.display = (_tomorrowHdr && _tomorrowHdr.classList.contains('spp-collapsed')) ? 'none' : '';
+              });
+              if (_archiveHdr) {
+                _archiveHdr.style.display = '';
+                var archColl = _archiveHdr.classList.contains('spp-collapsed');
+                _archiveMonthHdrs.forEach(function(h) { h.style.display = archColl ? 'none' : ''; });
+                _archiveFolderHdrs.forEach(function(h) { h.style.display = 'none'; });
+                _archiveRows.forEach(function(r) { r.style.display = 'none'; });
+              }
+            } else {
+              // Search mode: hide group headers, show/hide rows by match
+              if (_todayHdr) _todayHdr.style.display = 'none';
+              if (_tomorrowHdr) _tomorrowHdr.style.display = 'none';
+              if (_archiveHdr) _archiveHdr.style.display = 'none';
+              _archiveMonthHdrs.forEach(function(h) { h.style.display = 'none'; });
+              _archiveFolderHdrs.forEach(function(h) { h.style.display = 'none'; });
+              list.querySelectorAll('.spp-option').forEach(function(row) {
+                var nm = (row.getAttribute('data-name') || '').toLowerCase();
+                row.style.display = nm.indexOf(q) !== -1 ? '' : 'none';
+              });
+            }
+          });
+        }
+
         document.addEventListener('keydown', onKeyDown, true);
         refreshState();
       });
@@ -655,7 +953,7 @@
         var normalize = function(d) { return d.replace(/\b0(\d)/g, '$1'); };
         return normalize(surgDate) === normalize(tmrStr);
       });
-      var defaults = tmrDefaults.length ? tmrDefaults.slice(0, 1) : names.slice(0, 1);
+      var defaults = [];
       var selected = await showSavedPlanPicker(names, defaults, {
         maxSelection: maxSelectable,
         title: 'Select up to ' + maxSelectable + ' saved plans',

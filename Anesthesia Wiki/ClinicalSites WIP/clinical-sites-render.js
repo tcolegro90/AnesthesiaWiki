@@ -656,9 +656,11 @@ function renderPersonListSection(site, field) {
                 selectHtml += '<option value="' + person.idx + '"' + (person.idx === selIdx ? ' selected' : '') + '>' + escHtml(label) + '</option>';
             });
             selectHtml += '</select>';
+            var _activeSearch = isSingleEditPersonField(field.key)
+                && String(getPersonListViewState(site.id, field.key).searchQuery || '').trim();
             if (field.key === 'surgeon' && !isRowEditOpen) {
                 viewHtml += '<div class="surgeon-select-inline">' + selectHtml + '<button type="button" class="row-action-btn small mobile-inline-add" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add Surgeon</button></div>';
-            } else {
+            } else if (!_activeSearch) {
                 viewHtml += selectHtml;
             }
             if (sel && (field.key === 'preceptor' || field.key === 'anesthesiologist')) {

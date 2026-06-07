@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Header Option Preview</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #e5e9ef; margin: 0; padding: 20px; }
+  .label { font-size: 0.78rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.08em; margin: 24px 0 6px; }
+  .phone { width: 390px; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.22); background: #f3f7fb; }
+
+  /* ── shared base header styles ── */
+  .hdr { background: #1f2a37; box-shadow: 0 2px 8px rgba(0,0,0,0.25); position: relative; }
+  .hdr h1 { margin: 0; font-size: 1.5rem; color: #fff; letter-spacing: 0.04em; }
+  .hdr .auth { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; }
+  .hdr .auth-name { color: rgba(255,255,255,0.9); white-space: nowrap; }
+  .hdr .auth-role { color: rgba(255,255,255,0.9); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+  .hdr .auth-btn { border: 1.5px solid rgba(255,255,255,0.55); background: rgba(255,255,255,0.12); color: #fff; font-weight: 700; font-size: 0.78rem; border-radius: 999px; padding: 5px 13px; white-space: nowrap; font-family: inherit; }
+
+  /* ── CURRENT (broken) ── */
+  .opt-current .hdr { padding: 18px 20px 14px; text-align: center; }
+  .opt-current .hdr h1 { padding-right: 160px; padding-left: 160px; }
+  .opt-current .hdr .auth { position: absolute; top: 50%; right: 12px; transform: translateY(-50%); }
+
+  /* ── OPTION 1 ── */
+  .opt1 .hdr { padding: 10px 12px 10px; text-align: center; }
+  .opt1 .hdr h1 { margin: 0 0 8px 0; padding: 0; font-size: 1.2rem; line-height: 1.05; }
+  .opt1 .hdr .auth { position: static; transform: none; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .opt1 .hdr .auth-name, .opt1 .hdr .auth-role { font-size: 0.88rem; }
+  .opt1 .hdr .auth-btn { font-size: 0.95rem; padding: 6px 14px; }
+
+  /* ── OPTION 2 ── */
+  .opt2 .hdr { padding: 10px 12px 46px; text-align: center; }
+  .opt2 .hdr h1 { margin: 0; padding: 0; font-size: 1.2rem; line-height: 1.05; }
+  .opt2 .hdr .auth { position: absolute; top: auto; bottom: 8px; right: 50%; transform: translateX(50%); flex-wrap: wrap; max-width: calc(100% - 20px); }
+  .opt2 .hdr .auth-name { display: none; }
+  .opt2 .hdr .auth-btn { font-size: 0.9rem; padding: 5px 12px; }
+
+  /* ── OPTION 3 ── */
+  .opt3 .hdr { padding: 10px 10px 8px; text-align: left; }
+  .opt3 .hdr h1 { margin: 0; padding: 0 112px 0 0; font-size: 1.2rem; line-height: 1.05; }
+  .opt3 .hdr .auth { position: absolute; top: 10px; right: 10px; transform: none; gap: 0; }
+  .opt3 .hdr .auth-name, .opt3 .hdr .auth-role { display: none; }
+  .opt3 .hdr .auth-btn { font-size: 0.86rem; padding: 5px 10px; }
+
+  /* tiles teaser */
+  .tiles { padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tile { background: #fff; border-radius: 10px; border-top: 4px solid #d4920a; padding: 14px 10px; text-align: center; font-size: 0.78rem; font-weight: 600; color: #1f2a37; }
+  .tile .ti { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+  .tile.teal { border-color: #0e7490; }
+  .tile.blue { border-color: #114a8d; }
+  .tile.purple { border-color: #6c3483; }
+</style>
+</head>
+<body>
+
+<div class="label" style="text-align:center;">Current (overlapping — broken)</div>
+<div class="phone opt-current">
+  <div class="hdr">
+    <h1>Anesthesia Clinical Tool</h1>
+    <div class="auth">
+      <span class="auth-name">Trevor Colegrove</span>
+      <span class="auth-role">Admin</span>
+      <button class="auth-btn">Sign Out</button>
+    </div>
+  </div>
+  <div class="tiles">
+    <div class="tile"><span class="ti">📝</span>Care Plan Generator</div>
+    <div class="tile teal"><span class="ti">⚡</span>Typhon Case Helper</div>
+    <div class="tile blue"><span class="ti">🏥</span>Clinical Sites</div>
+    <div class="tile purple"><span class="ti">📓</span>Boards QOTD</div>
+  </div>
+</div>
+
+<div class="label" style="text-align:center;">Option 1 — Two rows (title + auth row)</div>
+<div class="phone opt1">
+  <div class="hdr">
+    <h1>Anesthesia Clinical Tool</h1>
+    <div class="auth">
+      <span class="auth-name">Trevor Colegrove</span>
+      <span class="auth-role">Admin</span>
+      <button class="auth-btn">Sign Out</button>
+    </div>
+  </div>
+  <div class="tiles">
+    <div class="tile"><span class="ti">📝</span>Care Plan Generator</div>
+    <div class="tile teal"><span class="ti">⚡</span>Typhon Case Helper</div>
+    <div class="tile blue"><span class="ti">🏥</span>Clinical Sites</div>
+    <div class="tile purple"><span class="ti">📓</span>Boards QOTD</div>
+  </div>
+</div>
+
+<div class="label" style="text-align:center;">Option 2 — Title centered, auth pinned below</div>
+<div class="phone opt2">
+  <div class="hdr">
+    <h1>Anesthesia Clinical Tool</h1>
+    <div class="auth">
+      <span class="auth-name">Trevor Colegrove</span>
+      <span class="auth-role">Admin</span>
+      <button class="auth-btn">Sign Out</button>
+    </div>
+  </div>
+  <div class="tiles">
+    <div class="tile"><span class="ti">📝</span>Care Plan Generator</div>
+    <div class="tile teal"><span class="ti">⚡</span>Typhon Case Helper</div>
+    <div class="tile blue"><span class="ti">🏥</span>Clinical Sites</div>
+    <div class="tile purple"><span class="ti">📓</span>Boards QOTD</div>
+  </div>
+</div>
+
+<div class="label" style="text-align:center;">Option 3 — Compact, Sign Out chip only</div>
+<div class="phone opt3">
+  <div class="hdr">
+    <h1>Anesthesia Clinical Tool</h1>
+    <div class="auth">
+      <span class="auth-name">Trevor Colegrove</span>
+      <span class="auth-role">Admin</span>
+      <button class="auth-btn">Sign Out</button>
+    </div>
+  </div>
+  <div class="tiles">
+    <div class="tile"><span class="ti">📝</span>Care Plan Generator</div>
+    <div class="tile teal"><span class="ti">⚡</span>Typhon Case Helper</div>
+    <div class="tile blue"><span class="ti">🏥</span>Clinical Sites</div>
+    <div class="tile purple"><span class="ti">📓</span>Boards QOTD</div>
+  </div>
+</div>
+
+</body>
+</html>

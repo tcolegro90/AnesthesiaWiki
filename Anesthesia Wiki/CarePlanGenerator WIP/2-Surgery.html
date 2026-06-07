@@ -106,24 +106,36 @@
     }
     .jaffe-badge {
       display: none;
-      padding: 2px 6px;
-      background: #f0e6d2;
-      border: 1px solid #d4a574;
-      border-radius: 3px;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: 0;
       font-size: 11px;
       color: #5a4a3a;
       font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: background 0.2s;
+      white-space: normal;
+      cursor: default;
     }
     .jaffe-badge:hover {
-      background: #e8dac4;
+      background: none;
     }
     .jaffe-badge a {
       color: #5a4a3a;
       text-decoration: none;
     }
+    .jaffe-del-btn {
+      border: 1px solid #e7b7b7;
+      background: #fff4f4;
+      color: #8f2424;
+      font-size: 12px;
+      cursor: pointer;
+      line-height: 1.1;
+      padding: 5px 8px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .jaffe-del-btn:hover { background: #ffe6e6; border-color: #d68f8f; }
     .surgery-suggestions {
       position: absolute;
       top: 100%;
@@ -307,6 +319,114 @@
     </div>
     <div class="card">
       <div class="row surgery-row">
+        <div>
+          <label>Surgical Date</label><br>
+          <select id="pat-surg-date-mode" class="med">
+            <option value="Tomorrow">Tomorrow</option>
+            <option value="Today">Today</option>
+            <option value="Monday" id="pat-surg-date-monday-opt">Monday</option>
+            <option value="Other">Other</option>
+          </select>
+          <input id="pat-surg-date-other" type="text" inputmode="numeric" maxlength="10" class="med" style="display:none;margin-top:6px;" placeholder="MM/DD/YYYY" />
+          <input id="pat-surg-date" type="hidden" />
+        </div>
+        <div><label>Surgery Start</label><br><input id="pat-sched-surg-time" class="short-text" placeholder="HH:MM" /></div>
+        <div><label>Surgery End</label><br><input id="pat-surg-end-time" class="short-text" placeholder="HH:MM" /></div>
+        <div><label>Length (minutes)</label><br><input id="pat-surg-length" type="number" step="1" min="0" inputmode="numeric" class="short-text" /></div>
+        <div><label>OR #</label><br><input id="pat-or-number" type="text" class="short-text" /></div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div>
+          <label>Disposition</label><br>
+          <select id="pat-disposition" class="med" style="width:240px;max-width:100%;">
+            <option value="">Select...</option>
+            <option>PACU</option>
+            <option>ICU</option>
+            <option>CVICU</option>
+            <option>NICU</option>
+            <option>PICU</option>
+            <option>Step-Down / PCU</option>
+            <option>Floor / Med-Surg</option>
+            <option>Same Day Surgery (Home)</option>
+            <option>Extended Recovery</option>
+            <option>OR to OR</option>
+          </select>
+        </div>
+        <div>
+          <label>Nerve Stim Location</label><br>
+          <select id="pat-nerve-stim-location" class="med">
+            <option>None</option>
+            <option>Facial</option>
+            <option>Ulner</option>
+            <option>Posterior Tibial</option>
+            <option>Intra-op NM</option>
+          </select>
+        </div>
+        <div style="flex-basis:100%;height:0;"></div>
+        <div class="antibiotic-plan-row">
+          <div class="antibiotic-plan-main">
+            <label>Anticipated Antibiotic</label><br>
+            <select id="pat-anticipated-antibiotic" class="med" style="width:100%;max-width:100%;">
+              <option value="">Select...</option>
+              <option>Cefazolin</option>
+              <option>Cefoxitin</option>
+              <option>Cefuroxime</option>
+              <option>Ampicillin-Sulbactam</option>
+              <option>Clindamycin</option>
+              <option>Vancomycin</option>
+              <option>Gentamicin</option>
+              <option>Metronidazole</option>
+              <option>Ciprofloxacin</option>
+              <option>Piperacillin-Tazobactam</option>
+            </select>
+          </div>
+          <div class="antibiotic-plan-small" style="flex: 0 1 140px; min-width: 0; max-width: 145px;">
+            <label>Dose / Unit</label><br>
+            <input id="pat-anticipated-antibiotic-dose" class="short-text" placeholder="e.g. 2 g" style="width:100%;" />
+          </div>
+          <div class="antibiotic-plan-small" style="flex: 0 1 65px; min-width: 0;">
+            <label>Redose (hours)</label><br>
+            <input id="pat-anticipated-antibiotic-redose-hours" type="number" step="0.5" min="0" inputmode="decimal" class="short-text" placeholder="e.g. 4" style="width:100%;" />
+          </div>
+          <div style="align-self:flex-end;padding-bottom:2px;">
+            <div id="pat-abx-max-dose" style="font-size:0.72em;color:#666;display:none;"></div>
+          </div>
+        </div>
+        <div id="abx-row-2" class="antibiotic-plan-row" style="display:none;position:relative;margin-top:2px;">
+          <div class="antibiotic-plan-main">
+            <select id="pat-anticipated-antibiotic-2" class="med" style="width:100%;max-width:100%;">
+              <option value="">Select...</option>
+              <option>Cefazolin</option>
+              <option>Cefoxitin</option>
+              <option>Cefuroxime</option>
+              <option>Ampicillin-Sulbactam</option>
+              <option>Clindamycin</option>
+              <option>Vancomycin</option>
+              <option>Gentamicin</option>
+              <option>Metronidazole</option>
+              <option>Ciprofloxacin</option>
+              <option>Piperacillin-Tazobactam</option>
+            </select>
+          </div>
+          <div class="antibiotic-plan-small" style="flex: 0 1 140px; min-width: 0; max-width: 145px;">
+            <input id="pat-anticipated-antibiotic-dose-2" class="short-text" placeholder="e.g. 2 g" style="width:100%;" />
+          </div>
+          <div class="antibiotic-plan-small" style="flex: 0 1 65px; min-width: 0;">
+            <input id="pat-anticipated-antibiotic-redose-hours-2" type="number" step="0.5" min="0" inputmode="decimal" class="short-text" placeholder="e.g. 4" style="width:100%;" />
+          </div>
+          <div style="align-self:flex-end;padding-bottom:2px;">
+            <div id="pat-abx-max-dose-2" style="font-size:0.72em;color:#666;display:none;"></div>
+          </div>
+          <button type="button" onclick="removeAbxRow2()" style="position:absolute;top:2px;right:2px;background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;padding:0 4px;line-height:1;" title="Remove">×</button>
+        </div>
+        <div id="abx-add-btn-wrap" style="flex-basis:100%;margin-top:6px;">
+          <button type="button" class="add-row-btn" onclick="showAbxRow2()">+ Add Antibiotic</button>
+        </div>
+        <div style="flex:0 0 100%;">
+          <div class="guidance-actions">
+              <a id="pat-antibiotic-reference-link" href="../Antibiotics/Surgical-Antibiotics-SMH.html" target="_blank" rel="noopener noreferrer" class="add-row-btn" style="text-decoration:none;display:inline-block;">Reference: Adult Antibiotics for Surgical Prophylaxis Guide (SMH)</a>
+          </div>
+        </div>
+        <div style="flex-basis:100%;height:0;"></div>
         <div class="surgery-top-row">
           <div style="flex:1 1 auto;min-width:120px;">
             <div class="surgery-label-row">
@@ -317,15 +437,18 @@
               <input id="pat-surgery" style="width:100%;" placeholder="ex: Laparoscopic appendectomy" />
               <div id="surgery-suggestions" class="surgery-suggestions"></div>
             </div>
-            <div style="margin-top:6px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-              <div id="jaffe-badge" class="jaffe-badge"></div>
-              <span id="jaffe-search-wrap" style="display:none;position:relative;">
+            <div style="margin-top:6px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;">
+              <div id="jaffe-badge" class="jaffe-badge" style="width:100%;"></div>
+              <span id="jaffe-add-btn-wrap" style="display:none;">
+                <button type="button" onclick="addJaffeChapter()" style="background:none;border:none;padding:0;color:#5a7ea0;cursor:pointer;font-size:11px;font-weight:600;line-height:1;">+ Add another chapter</button>
+              </span>
+              <span id="jaffe-search-wrap" style="display:inline-block;width:100%;position:relative;">
                 <input id="jaffe-search-input" type="text" placeholder="Search Jaffe..." autocomplete="off"
-                  style="font-size:11px;padding:2px 5px;border:1px solid #d4a574;border-radius:3px;background:#fdf6ee;color:#5a4a3a;width:220px;"
+                  style="font-size:11px;padding:2px 5px;border:1px solid #d4a574;border-radius:3px;background:#fdf6ee;color:#5a4a3a;width:100%;box-sizing:border-box;"
                   oninput="onJaffeSearchInput(this.value)"
                   onkeydown="onJaffeSearchKey(event)"
                   onblur="setTimeout(closeJaffeSearch,180)" />
-                <div id="jaffe-search-results" style="display:none;position:absolute;top:100%;left:0;min-width:220px;background:#fff;border:1px solid #ccc;border-radius:0 0 4px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.12);max-height:180px;overflow-y:auto;z-index:2000;"></div>
+                <div id="jaffe-search-results" style="display:none;position:absolute;top:100%;left:0;width:100%;background:#fff;border:1px solid #ccc;border-radius:0 0 4px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.12);max-height:180px;overflow-y:auto;z-index:2000;"></div>
               </span>
             </div>
             <div style="margin-top:8px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
@@ -350,7 +473,7 @@
               </div>
               <div>
                 <label>Arms</label><br>
-                <select id="pat-arms-tucked" class="med" style="width:130px;" onchange="syncArmsTucked(); saveState();">
+                <select id="pat-arms-tucked" class="med" style="width:200px;max-width:100%;" onchange="syncArmsTucked(); saveState();">
                   <option value="">Select...</option>
                   <option>Arms tucked</option>
                   <option>Arms out</option>
@@ -476,126 +599,7 @@
             </div>
           </div>
         </div>
-        <div style="flex-basis:100%;height:0;"></div>
-        <div>
-          <label>Surgical Date</label><br>
-          <select id="pat-surg-date-mode" class="med">
-            <option value="Tomorrow">Tomorrow</option>
-            <option value="Today">Today</option>
-            <option value="Monday" id="pat-surg-date-monday-opt">Monday</option>
-            <option value="Other">Other</option>
-          </select>
-          <input id="pat-surg-date-other" type="text" inputmode="numeric" maxlength="10" class="med" style="display:none;margin-top:6px;" placeholder="MM/DD/YYYY" />
-          <input id="pat-surg-date" type="hidden" />
-        </div>
-        <div><label>Surgery Start</label><br><input id="pat-sched-surg-time" class="short-text" placeholder="HH:MM" /></div>
-        <div><label>Surgery End</label><br><input id="pat-surg-end-time" class="short-text" placeholder="HH:MM" /></div>
-        <div><label>Length (minutes)</label><br><input id="pat-surg-length" type="number" step="1" min="0" inputmode="numeric" class="short-text" /></div>
-        <div><label>OR #</label><br><input id="pat-or-number" type="text" class="short-text" /></div>
-        <div style="flex-basis:100%;height:0;"></div>
-        <div>
-          <label>ASA Class <button type="button" id="asa-help-btn" aria-label="ASA classification help" onclick="document.getElementById('asa-modal').style.display='flex'" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid #5a7ea0;background:#e8f0fb;color:#1a4f82;font-size:10px;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:4px;padding:0;line-height:1;">?</button></label><br>
-          <select id="pat-asa-class" class="small">
-            <option value="">-</option>
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
-            <option>6</option>
-          </select>
-        </div>
-        <div>
-          <label>Disposition</label><br>
-          <select id="pat-disposition" class="med" style="width:240px;max-width:100%;">
-            <option value="">Select...</option>
-            <option>PACU</option>
-            <option>ICU</option>
-            <option>CVICU</option>
-            <option>NICU</option>
-            <option>PICU</option>
-            <option>Step-Down / PCU</option>
-            <option>Floor / Med-Surg</option>
-            <option>Same Day Surgery (Home)</option>
-            <option>Extended Recovery</option>
-            <option>OR to OR</option>
-          </select>
-        </div>
-        <div>
-          <label>Nerve Stim Location</label><br>
-          <select id="pat-nerve-stim-location" class="med">
-            <option>None</option>
-            <option>Facial</option>
-            <option>Ulner</option>
-            <option>Posterior Tibial</option>
-            <option>Intra-op NM</option>
-          </select>
-        </div>
-        <div style="flex-basis:100%;height:0;"></div>
-        <div class="antibiotic-plan-row">
-          <div class="antibiotic-plan-main">
-            <label>Anticipated Antibiotic</label><br>
-            <select id="pat-anticipated-antibiotic" class="med" style="width:100%;max-width:100%;">
-              <option value="">Select...</option>
-              <option>Cefazolin</option>
-              <option>Cefoxitin</option>
-              <option>Cefuroxime</option>
-              <option>Ampicillin-Sulbactam</option>
-              <option>Clindamycin</option>
-              <option>Vancomycin</option>
-              <option>Gentamicin</option>
-              <option>Metronidazole</option>
-              <option>Ciprofloxacin</option>
-              <option>Piperacillin-Tazobactam</option>
-            </select>
-          </div>
-          <div class="antibiotic-plan-small" style="flex: 0 1 140px; min-width: 0; max-width: 145px;">
-            <label>Dose / Unit</label><br>
-            <input id="pat-anticipated-antibiotic-dose" class="short-text" placeholder="e.g. 2 g" style="width:100%;" />
-          </div>
-          <div class="antibiotic-plan-small" style="flex: 0 1 65px; min-width: 0;">
-            <label>Redose (hours)</label><br>
-            <input id="pat-anticipated-antibiotic-redose-hours" type="number" step="0.5" min="0" inputmode="decimal" class="short-text" placeholder="e.g. 4" style="width:100%;" />
-          </div>
-          <div style="align-self:flex-end;padding-bottom:2px;">
-            <div id="pat-abx-max-dose" style="font-size:0.72em;color:#666;display:none;"></div>
-          </div>
-        </div>
-        <div id="abx-row-2" class="antibiotic-plan-row" style="display:none;position:relative;margin-top:2px;">
-          <div class="antibiotic-plan-main">
-            <select id="pat-anticipated-antibiotic-2" class="med" style="width:100%;max-width:100%;">
-              <option value="">Select...</option>
-              <option>Cefazolin</option>
-              <option>Cefoxitin</option>
-              <option>Cefuroxime</option>
-              <option>Ampicillin-Sulbactam</option>
-              <option>Clindamycin</option>
-              <option>Vancomycin</option>
-              <option>Gentamicin</option>
-              <option>Metronidazole</option>
-              <option>Ciprofloxacin</option>
-              <option>Piperacillin-Tazobactam</option>
-            </select>
-          </div>
-          <div class="antibiotic-plan-small" style="flex: 0 1 140px; min-width: 0; max-width: 145px;">
-            <input id="pat-anticipated-antibiotic-dose-2" class="short-text" placeholder="e.g. 2 g" style="width:100%;" />
-          </div>
-          <div class="antibiotic-plan-small" style="flex: 0 1 65px; min-width: 0;">
-            <input id="pat-anticipated-antibiotic-redose-hours-2" type="number" step="0.5" min="0" inputmode="decimal" class="short-text" placeholder="e.g. 4" style="width:100%;" />
-          </div>
-          <div style="align-self:flex-end;padding-bottom:2px;">
-            <div id="pat-abx-max-dose-2" style="font-size:0.72em;color:#666;display:none;"></div>
-          </div>
-          <button type="button" onclick="removeAbxRow2()" style="position:absolute;top:2px;right:2px;background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;padding:0 4px;line-height:1;" title="Remove">×</button>
-        </div>
-        <div id="abx-add-btn-wrap" style="flex-basis:100%;margin-top:6px;">
-          <button type="button" class="add-row-btn" onclick="showAbxRow2()">+ Add Antibiotic</button>
-        </div>
-        <div style="flex:0 0 100%;">
-          <div class="guidance-actions">
-              <a id="pat-antibiotic-reference-link" href="../Antibiotics/Surgical-Antibiotics-SMH.html" target="_blank" rel="noopener noreferrer" class="add-row-btn" style="text-decoration:none;display:inline-block;">Reference: Adult Antibiotics for Surgical Prophylaxis Guide (SMH)</a>
-          </div>
-        </div>
+
       </div>
 
     </div>
@@ -606,7 +610,7 @@
   <script>
     (function() {
       var cfg = {
-        apiKey: 'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+        apiKey: 'AIzaSyACNII9-q3CoAipRpMTxwE6WLPOQVbbY-E',
         authDomain: 'anesthesia-wiki-saved-files.firebaseapp.com',
         projectId: 'anesthesia-wiki-saved-files',
         storageBucket: 'anesthesia-wiki-saved-files.firebasestorage.app'
@@ -1165,7 +1169,6 @@
         document.getElementById(id).addEventListener('change', function() { syncSurgeryTimeFields(id); });
       });
       document.getElementById('pat-or-number').addEventListener('input', saveState);
-      document.getElementById('pat-asa-class').addEventListener('change', saveState);
       document.getElementById('pat-disposition').addEventListener('change', saveState);
       document.getElementById('pat-nerve-stim-location').addEventListener('change', saveState);
       document.querySelectorAll('input[name="pat-neuro-monitoring"]').forEach(function(el) { el.addEventListener('change', saveState); });
@@ -1242,29 +1245,6 @@
 </script>
 
 
-<!-- ASA Classification Modal -->
-<div id="asa-modal" style="display:none;position:fixed;inset:0;background:rgba(15,25,40,.5);z-index:99999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:#fff;border-radius:13px;box-shadow:0 20px 48px rgba(0,0,0,.28);width:min(520px,100%);max-height:85vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
-    <div style="padding:14px 16px 10px;border-bottom:1px solid #dde6f0;display:flex;align-items:center;justify-content:space-between;background:#f4f8ff;border-radius:13px 13px 0 0;">
-      <span style="font-weight:700;font-size:1rem;color:#1a3a5c;">ASA Physical Status Classifications</span>
-      <button type="button" onclick="document.getElementById('asa-modal').style.display='none'" style="background:none;border:none;font-size:1.3rem;color:#5a7488;cursor:pointer;line-height:1;padding:0 2px;">&times;</button>
-    </div>
-    <div style="padding:14px 16px;">
-      <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
-        <thead><tr style="background:#eef4ff;"><th style="text-align:left;padding:7px 10px;color:#1a3a5c;border-bottom:2px solid #c8d9ee;">Class</th><th style="text-align:left;padding:7px 10px;color:#1a3a5c;border-bottom:2px solid #c8d9ee;">Description</th></tr></thead>
-        <tbody>
-          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#2a5080;white-space:nowrap;">ASA I</td><td style="padding:8px 10px;color:#1d2938;">Normal healthy patient — non-smoker, no or minimal alcohol use.</td></tr>
-          <tr style="border-bottom:1px solid #e8eef6;background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#2a5080;white-space:nowrap;">ASA II</td><td style="padding:8px 10px;color:#1d2938;">Mild systemic disease — e.g., social drinker, active smoker, pregnancy, obesity (BMI 30–40), well-controlled DM or HTN.</td></tr>
-          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#c97a00;white-space:nowrap;">ASA III</td><td style="padding:8px 10px;color:#1d2938;">Severe systemic disease — e.g., BMI ≥40, poorly controlled DM or HTN, stable angina, h/o MI or CVA &gt;3 months ago, ESRD on dialysis.</td></tr>
-          <tr style="border-bottom:1px solid #e8eef6;background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#c0420a;white-space:nowrap;">ASA IV</td><td style="padding:8px 10px;color:#1d2938;">Severe systemic disease — constant threat to life. E.g., recent MI or CVA &lt;3 months, unstable angina, severe valve dysfunction, sepsis.</td></tr>
-          <tr style="border-bottom:1px solid #e8eef6;"><td style="padding:8px 10px;font-weight:700;color:#b32424;white-space:nowrap;">ASA V</td><td style="padding:8px 10px;color:#1d2938;">Moribund — not expected to survive without surgery. E.g., ruptured aneurysm, massive trauma.</td></tr>
-          <tr style="background:#f9fbff;"><td style="padding:8px 10px;font-weight:700;color:#6b3fa0;white-space:nowrap;">ASA VI</td><td style="padding:8px 10px;color:#1d2938;">Brain-dead patient awaiting organ procurement.</td></tr>
-        </tbody>
-      </table>
-      <p style="margin:10px 0 0;font-size:0.78rem;color:#6b7d90;">Append <strong>E</strong> for emergency procedures (e.g., ASA IIE).</p>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>

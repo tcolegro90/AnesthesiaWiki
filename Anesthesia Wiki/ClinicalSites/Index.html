@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinical Sites</title>
-    <link rel="stylesheet" href="clinical-sites.css?v=20260413i">
+    <link rel="stylesheet" href="clinical-sites.css?v=3.001">
 </head>
 <body>
 <div class="top-nav">
@@ -13,7 +13,7 @@
 </div>
 
 <header>
-    <h1>🏥 Clinical Sites</h1>
+    <h1>🏥 Clinical Sites WIP <span style="font-size:0.55em;font-weight:400;color:#8aa0b8;vertical-align:middle;">v3.001 — WIP</span></h1>
     <div id="header-auth">
         <span id="header-auth-name"></span>
         <button type="button" id="header-auth-btn">Log in for full access</button>
@@ -26,39 +26,12 @@
 
 <div class="container" id="sites-container"></div>
 
-<script src="clinical-sites-data-utils.js?v=20260413i"></script>
+<script src="clinical-sites-data-utils.js?v=3.001"></script>
 <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
-<script src="clinical-sites-firebase-config.js?v=20260413i"></script>
-<script>
-// Inline Firebase Auth (Google-only) — ../shared-auth.js 404s on the server.
-(function (global) {
-  'use strict';
-  var FIREBASE_CONFIG = {
-    apiKey:            'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
-    authDomain:        'anesthesia-wiki-saved-files.firebaseapp.com',
-    projectId:         'anesthesia-wiki-saved-files',
-    storageBucket:     'anesthesia-wiki-saved-files.firebasestorage.app',
-    messagingSenderId: '493278937716',
-    appId:             '1:493278937716:web:6d4055acbb6f5745810721'
-  };
-  var _auth=null,_user=null,_authReady=false,_pendingCallbacks=[],_changeListeners=[];
-  function getOrCreateApp(){if(!global.firebase)return null;if(global.firebase.apps&&global.firebase.apps.length)return global.firebase.apps[0];try{return global.firebase.initializeApp(FIREBASE_CONFIG);}catch(e){return null;}}
-  function tryInitAuth(){if(_auth)return true;var app=getOrCreateApp();if(!app||!global.firebase.auth)return false;_auth=global.firebase.auth(app);_auth.onAuthStateChanged(handleAuthChange);return true;}
-  function ensureInit(){if(!tryInitAuth()){var a=0,p=setInterval(function(){a++;if(tryInitAuth()||a>80)clearInterval(p);},100);}}
-  function handleAuthChange(user){_user=user;_authReady=true;if(user){var cbs=_pendingCallbacks.slice();_pendingCallbacks=[];cbs.forEach(function(cb){try{cb(user);}catch(e){}});}else{if(_pendingCallbacks.length>0)doGoogleSignIn();}_changeListeners.forEach(function(cb){try{cb(user);}catch(e){}});}
-  function doGoogleSignIn(){if(!_auth){ensureInit();return;}var provider=new global.firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});_auth.signInWithPopup(provider).catch(function(e){if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request'){alert(e.message||'Google sign-in failed. Ensure pop-ups are allowed.');}});}
-  global.AnesthesiaAuth={
-    requireAuth:function(onAuthed){ensureInit();if(_authReady&&_user){try{onAuthed(_user);}catch(e){}return;}_pendingCallbacks.push(onAuthed);if(_authReady&&!_user)doGoogleSignIn();},
-    getUser:function(){return _user;},
-    signOut:function(){return _auth?_auth.signOut():Promise.resolve();},
-    onAuthChange:function(callback){_changeListeners.push(callback);if(_authReady){try{callback(_user);}catch(e){}}},
-    showLogin:function(){ensureInit();doGoogleSignIn();}
-  };
-  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ensureInit);}else{ensureInit();}
-})(window);
-</script>
+<script src="clinical-sites-firebase-config.js?v=3.001"></script>
+<script src="../shared-auth.js"></script>
 <script>
 (function () {
   function updateAuthUI(user) {
@@ -84,10 +57,10 @@
   });
 })();
 </script>
-<script src="clinical-sites-cloud.js?v=20260413i"></script>
-<script src="clinical-sites-storage.js?v=20260413i"></script>
-<script src="clinical-sites-render.js?v=20260413i"></script>
-<script src="clinical-sites-actions.js?v=20260413i"></script>
+<script src="clinical-sites-cloud.js?v=3.001"></script>
+<script src="clinical-sites-storage.js?v=3.001"></script>
+<script src="clinical-sites-render.js?v=3.001"></script>
+<script src="clinical-sites-actions.js?v=3.001"></script>
 
 <style>
 .global-home-btn {

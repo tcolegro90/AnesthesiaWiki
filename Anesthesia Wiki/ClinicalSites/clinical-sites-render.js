@@ -317,23 +317,30 @@ function getVisiblePeople(siteId, fieldKey, people) {
     });
 }
 
-function renderPersonListControls(siteId, fieldKey) {
+function renderPersonListControls(siteId, fieldKey, suggestions) {
     if (!isSearchEnabledPersonField(fieldKey)) return '';
     var state = getPersonListViewState(siteId, fieldKey);
     var searchId = 'pl-search-' + siteId + '-' + fieldKey;
+    var query = String(state.searchQuery || '').trim();
 
-    return '<div class="person-list-controls">'
-        + '<input id="' + escAttr(searchId) + '" class="pl-search-input" type="text" placeholder="Search names" value="' + escAttr(state.searchQuery || '') + '" oninput="setPersonListSearch(\'' + siteId + '\',\'' + fieldKey + '\', this.value)">'
-        + '</div>';
+    var html = '<div class="person-list-controls">'
+        + '<input id="' + escAttr(searchId) + '" class="pl-search-input" type="text" placeholder="Search names" value="' + escAttr(state.searchQuery || '') + '" oninput="setPersonListSearch(\'' + siteId + '\',\'' + fieldKey + '\', this.value)">';
+
+    if (query && suggestions && suggestions.length > 0) {
+        html += '<ul class="pl-suggestions">';
+        suggestions.forEach(function(person) {
+            var label = getPersonSortLabel(person);
+            html += '<li class="pl-suggestion-item" onclick="setSelectedContact(\'' + siteId + '\',\'' + fieldKey + '\',' + person.idx + ')">' + escHtml(label) + '</li>';
+        });
+        html += '</ul>';
+    }
+
+    html += '</div>';
+    return html;
 }
 
 function getPersonSelectAttributes(siteId, fieldKey, optionCount) {
-    if (!isSearchEnabledPersonField(fieldKey)) return '';
-    var state = getPersonListViewState(siteId, fieldKey);
-    var hasSearch = Boolean(String(state.searchQuery || '').trim());
-    if (!hasSearch || optionCount <= 1) return '';
-    var size = Math.min(8, optionCount);
-    return ' size="' + size + '" class="compact-select compact-select-open"';
+    return '';
 }
 
 function setPersonListSearch(siteId, fieldKey, query) {
@@ -512,7 +519,7 @@ function renderPersonListSection(site, field) {
             var selectedEditPerson = sortedEditPeople.find(function(person) { return person.idx === selectedEditIdx; }) || allPeople[0];
 
             var editHtmlSingle = '<td class="label-cell">' + escHtml(field.label) + '</td><td colspan="3" style="padding:8px 10px 8px 0">';
-            editHtmlSingle += renderPersonListControls(site.id, field.key);
+            editHtmlSingle += renderPersonListControls(site.id, field.key, sortedEditPeople);
             if (sortedEditPeople.length > 0) {
                 editHtmlSingle += '<div class="pl-select-row">';
                 var editSelectAttrs = getPersonSelectAttributes(site.id, field.key, sortedEditPeople.length);
@@ -623,7 +630,7 @@ function renderPersonListSection(site, field) {
                 }
                 viewHtml += '<td class="name-cell" colspan="2">';
                 if (isSingleEditPersonField(field.key)) {
-                    viewHtml += renderPersonListControls(site.id, field.key);
+                    viewHtml += renderPersonListControls(site.id, field.key, people);
                 }
                 viewHtml += '<span class="value-empty">' + escHtml(emptyMsg) + '</span></td><td class="action-cell">';
                 if (field.key === 'surgeon') {
@@ -639,7 +646,7 @@ function renderPersonListSection(site, field) {
             }
             viewHtml += '<td class="name-cell" style="padding:4px 0">';
             if (isSingleEditPersonField(field.key)) {
-                viewHtml += renderPersonListControls(site.id, field.key);
+                viewHtml += renderPersonListControls(site.id, field.key, people);
             }
             var viewSelectAttrs = getPersonSelectAttributes(site.id, field.key, people.length + 1);
             var selectHtml = '<select' + (viewSelectAttrs || ' class="compact-select"') + ' onchange="setSelectedContact(\'' + site.id + '\',\'' + field.key + '\',this.value)">';
@@ -649,9 +656,11 @@ function renderPersonListSection(site, field) {
                 selectHtml += '<option value="' + person.idx + '"' + (person.idx === selIdx ? ' selected' : '') + '>' + escHtml(label) + '</option>';
             });
             selectHtml += '</select>';
+            var _activeSearch = isSingleEditPersonField(field.key)
+                && String(getPersonListViewState(site.id, field.key).searchQuery || '').trim();
             if (field.key === 'surgeon' && !isRowEditOpen) {
                 viewHtml += '<div class="surgeon-select-inline">' + selectHtml + '<button type="button" class="row-action-btn small mobile-inline-add" onclick="addPersonEntry(\'' + site.id + '\',\'' + field.key + '\')">Add Surgeon</button></div>';
-            } else {
+            } else if (!_activeSearch) {
                 viewHtml += selectHtml;
             }
             if (sel && (field.key === 'preceptor' || field.key === 'anesthesiologist')) {

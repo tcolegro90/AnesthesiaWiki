@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Typhon Case Helper",
-  "version": "1.49",
+  "name": "Typhon Case Helper WIP",
+  "version": "1.79",
   "description": "Fast, friendly case log and time log entry for Typhon NAST — St. John Fisher CRNA",
   "permissions": ["storage", "activeTab", "scripting", "tabs", "webNavigation", "identity"],
   "oauth2": {
@@ -26,7 +26,8 @@
     "*://typhongroup.net/*",
     "*://*.typhongroup.net/*",
     "https://firestore.googleapis.com/*",
-    "https://securetoken.googleapis.com/*"
+    "https://securetoken.googleapis.com/*",
+    "https://identitytoolkit.googleapis.com/*"
   ],
   "action": {
     "default_popup": "popup.html",

@@ -16,7 +16,7 @@ window.__sharedAuthStart = true;
 
   // ── Firebase config (same project used by Care Plan, Typhon, Clinical Sites)
   var FIREBASE_CONFIG = {
-    apiKey:            'AIzaSyC64NnAB0rH9Ne5gFINhaFSbqkJ4ygYZfY',
+    apiKey:            'AIzaSyACNII9-q3CoAipRpMTxwE6WLPOQVbbY-E',
     authDomain:        'anesthesia-wiki-saved-files.firebaseapp.com',
     projectId:         'anesthesia-wiki-saved-files',
     storageBucket:     'anesthesia-wiki-saved-files.firebasestorage.app',
@@ -65,6 +65,22 @@ window.__sharedAuthStart = true;
   function handleAuthChange(user) {
     _user      = user;
     _authReady = true;
+
+    // Auto-register new users in userRoles so they appear in the admin panel
+    if (user && user.email && global.firebase && global.firebase.firestore) {
+      try {
+        var _rdb = global.firebase.firestore();
+        _rdb.collection('userRoles').doc(user.email).get().then(function (doc) {
+          if (!doc.exists) {
+            _rdb.collection('userRoles').doc(user.email).set({
+              role: 'non-student',
+              displayName: user.displayName || '',
+              registeredAt: new Date().toISOString()
+            }).catch(function () {});
+          }
+        }).catch(function () {});
+      } catch (e) {}
+    }
 
     if (user) {
       var cbs = _pendingCallbacks.slice();
