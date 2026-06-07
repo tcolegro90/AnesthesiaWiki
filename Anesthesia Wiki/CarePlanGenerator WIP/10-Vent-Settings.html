@@ -128,8 +128,14 @@
       if (tv   && s['vent-tv'])   tv.value   = s['vent-tv'];
       if (fio2 && s['vent-fio2']) fio2.value = s['vent-fio2'];
 
+      var appliedDefaults = false;
+      if (mode && !mode.value) { mode.value = 'Volume Control (VC-CMV)'; appliedDefaults = true; }
+      if (fio2 && !fio2.value) { fio2.value = '50'; appliedDefaults = true; }
+      if (tv && !tv.value && ibw > 0) { tv.value = String(Math.round(ibw * 8)); appliedDefaults = true; }
       if (ie   && !ie.value)   ie.value   = '1:2';
       if (peep && !peep.value) peep.value = '5';
+
+      if (appliedDefaults) saveState();
     }
 
     function onVentTvInput() {

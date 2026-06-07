@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usage Report - Admin</title>
+  <style>
+    :root {
+      --primary: #1f2a37;
+      --blue: #114a8d;
+      --green: #1a7c50;
+      --red: #b32424;
+      --bg: #f3f7fb;
+      --line: #dbe5f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--primary);
+      padding-bottom: 56px;
+    }
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    #header-auth {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+    }
+    #header-auth-name { color: rgba(255,255,255,0.9); font-weight: 600; }
+    #header-auth-btn {
+      border: 1.5px solid rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.78rem;
+      border-radius: 999px;
+      padding: 5px 14px;
+      cursor: pointer;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 18px 20px 0;
+      text-decoration: none;
+      color: var(--blue);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .container {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+    #loading-msg {
+      text-align: center;
+      color: #7a8fa6;
+      margin-top: 60px;
+      font-size: 0.92rem;
+    }
+    #access-denied {
+      display: none;
+      max-width: 520px;
+      margin: 64px auto;
+      text-align: center;
+      padding: 32px;
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+    }
+    #access-denied h2 { margin-top: 0; color: var(--red); }
+    #panel { display: none; }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #0d3a72; }
+
+    .note {
+      color: #65788d;
+      font-size: 0.82rem;
+    }
+
+    .status {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .status.ok { display: block; background: #e8f8f0; border: 1px solid #a3d9b8; color: #1a7c50; }
+    .status.warn { display: block; background: #fff8e6; border: 1px solid #f3d58b; color: #8a5a00; }
+    .status.err { display: block; background: #fff5f5; border: 1px solid #f5c6c6; color: #b32424; }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 0.98rem;
+    }
+
+    .metric-note {
+      margin-top: 8px;
+      color: #6b7f93;
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .kpi-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .kpi {
+      border: 1px solid #e8eef6;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfdff;
+    }
+    .kpi .label { font-size: 0.74rem; color: #6b7f93; text-transform: uppercase; letter-spacing: 0.04em; }
+    .kpi .val { margin-top: 4px; font-size: 1.1rem; font-weight: 800; color: #1f2a37; }
+
+    .split {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .list-block h3 {
+      margin: 0 0 8px;
+      font-size: 0.9rem;
+      color: #2a3c52;
+    }
+    .meta {
+      color: #6b7f93;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+    }
+    ol {
+      margin: 0;
+      padding-left: 18px;
+      max-height: 340px;
+      overflow: auto;
+    }
+    li { padding: 2px 0; font-size: 0.86rem; }
+
+    .role-wrap {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .role-card {
+      border: 1px solid #e8eef6;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfdff;
+    }
+    .role-title {
+      margin: 0 0 8px;
+      font-size: 0.86rem;
+      color: #2a3c52;
+      font-weight: 800;
+      text-transform: capitalize;
+    }
+    .role-list {
+      margin: 0;
+      padding-left: 18px;
+      max-height: 220px;
+      overflow: auto;
+    }
+    .role-list li {
+      font-size: 0.83rem;
+      line-height: 1.35;
+      padding: 3px 0;
+    }
+
+    .daily-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      margin-top: 4px;
+    }
+    .daily-table thead tr {
+      background: #f0f5fb;
+      border-bottom: 2px solid var(--line);
+    }
+    .daily-table th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 700;
+      color: #4a5e72;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .daily-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #edf2f8;
+    }
+    .daily-table tr:last-child td { border-bottom: none; }
+    .daily-table tr:hover td { background: #f8fbff; }
+    .daily-table .today { background: #f0f8ff; font-weight: 700; }
+    .daily-table .zero { color: #c0ccd8; }
+
+    @media (max-width: 980px) {
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .split { grid-template-columns: 1fr; }
+      .role-wrap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Admin Usage Report</h1>
+    <div id="header-auth">
+      <span id="header-auth-name"></span>
+      <button id="header-auth-btn" type="button">Log in</button>
+    </div>
+  </header>
+
+  <a class="back-link" href="Index.html">&larr; Back to Admin Home</a>
+  <div style="display:inline-block;margin:4px 20px 0;padding:3px 10px;background:#fff4c2;border:1px solid #e8c84a;border-radius:6px;font-size:0.78rem;font-weight:700;color:#7a5c00;">WIP Report</div>
+
+  <div id="loading-msg">Checking admin access...</div>
+
+  <div id="access-denied">
+    <h2>Access Restricted</h2>
+    <p>This page is only available to Admin users.</p>
+    <a href="../AnesthesiaWiki.html" style="color:#114a8d;font-weight:700;">&larr; Back to Home</a>
+  </div>
+
+  <div id="panel">
+    <div class="container">
+      <div id="status" class="status"></div>
+
+      <div class="controls">
+        <button class="btn btn-primary" id="btn-refresh" type="button">Refresh Report</button>
+        <span class="note" id="run-meta">Not run yet.</span>
+      </div>
+
+      <div class="card">
+        <h2>All-Time Usage</h2>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="label">CPG Users</div><div class="val" id="kpi-all-cpg-users">0</div></div>
+          <div class="kpi"><div class="label">CPG Plans</div><div class="val" id="kpi-all-cpg-plans">0</div></div>
+          <div class="kpi"><div class="label">Clinical Preceptors Updated</div><div class="val" id="kpi-all-clinical">0</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Last 30 Days Usage</h2>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="label">CPG Users</div><div class="val" id="kpi-30-cpg-users">0</div></div>
+          <div class="kpi"><div class="label">CPG Plans</div><div class="val" id="kpi-30-cpg-plans">0</div></div>
+          <div class="kpi"><div class="label">Clinical Preceptors Updated</div><div class="val" id="kpi-30-clinical">0</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Last 7 Days Usage</h2>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="label">CPG Users</div><div class="val" id="kpi-7-cpg-users">0</div></div>
+          <div class="kpi"><div class="label">CPG Plans</div><div class="val" id="kpi-7-cpg-plans">0</div></div>
+          <div class="kpi"><div class="label">Clinical Preceptors Updated</div><div class="val" id="kpi-7-clinical">0</div></div>
+        </div>
+        <div class="metric-note" id="usage-metric-note">
+          Clinical preceptor count comes from non-empty preceptor fields in the Clinical Sites shared snapshot. Last 30 / Last 7 shows that count only when the latest shared save is within the selected window.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Daily Breakdown — Last 7 Days</h2>
+        <div class="meta" id="daily-meta">Per-day counts from CPG saved plans &amp; drafts.</div>
+        <div style="overflow-x:auto;">
+          <table class="daily-table" id="daily-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>CPG Plans</th>
+                <th>CPG Users (who)</th>
+              </tr>
+            </thead>
+            <tbody id="daily-body">
+              <tr><td colspan="3" style="text-align:center;color:#7a8fa6;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="card list-block">
+          <h3>PMH Typed Entries (Top 100)</h3>
+          <div class="meta" id="pmh-meta">All-time unique: 0 | Last 30 unique: 0</div>
+          <ol id="pmh-list"></ol>
+        </div>
+
+        <div class="card list-block">
+          <h3>Home Meds Not In Database (Top 100)</h3>
+          <div class="meta" id="med-meta">All-time unique: 0 | Last 30 unique: 0</div>
+          <ol id="med-list"></ol>
+        </div>
+      </div>
+
+      <div class="card list-block">
+        <h3>Past Surgeries (Top 120)</h3>
+        <div class="meta" id="psh-meta">All-time unique: 0 | Last 30 unique: 0</div>
+        <ol id="psh-list"></ol>
+      </div>
+
+      <div class="card list-block">
+        <h3>Users By Role (Last Access)</h3>
+        <div class="meta" id="roles-meta">Users: 0</div>
+        <div class="role-wrap" id="role-sections"></div>
+      </div>
+
+      <div class="card list-block">
+        <h3>Clinical Sites Snapshot</h3>
+        <div class="meta" id="clinical-snapshot-meta">Not available</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="label">Last Shared Save</div><div class="val" id="clinical-last-save">-</div></div>
+          <div class="kpi"><div class="label">Updated Preceptor Rows</div><div class="val" id="clinical-preceptor-rows">0</div></div>
+          <div class="kpi"><div class="label">Unique Clinical Sites</div><div class="val" id="clinical-unique-sites">0</div></div>
+        </div>
+      </div>
+
+      <div class="card list-block">
+        <h3>Clinical Sites — Last 10 Shared Saves</h3>
+        <div class="meta" id="save-history-meta">Loading...</div>
+        <div style="overflow-x:auto;">
+          <table class="daily-table" id="save-history-table">
+            <thead>
+              <tr>
+                <th style="min-width:160px;">Saved At</th>
+                <th style="min-width:180px;">Saved By</th>
+                <th>Preceptors / People on File</th>
+              </tr>
+            </thead>
+            <tbody id="save-history-body">
+              <tr><td colspan="3" style="text-align:center;color:#7a8fa6;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    (function () {
+      var cfg = {
+        apiKey: 'AIzaSyACNII9-q3CoAipRpMTxwE6WLPOQVbbY-E',
+        authDomain: 'anesthesia-wiki-saved-files.firebaseapp.com',
+        projectId: 'anesthesia-wiki-saved-files',
+        storageBucket: 'anesthesia-wiki-saved-files.firebasestorage.app',
+        messagingSenderId: '493278937716',
+        appId: '1:493278937716:web:6d4055acbb6f5745810721'
+      };
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+    })();
+
+    var db = firebase.firestore();
+    var knownMeds = null;
+
+    function setStatus(msg, kind) {
+      var el = document.getElementById('status');
+      el.className = 'status ' + (kind || 'ok');
+      el.textContent = msg;
+    }
+
+    function fmt(n) {
+      return Number(n || 0).toLocaleString('en-US');
+    }
+
+    function norm(s) {
+      return String(s || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function key(s) {
+      return norm(s).toLowerCase();
+    }
+
+    function parseJsonishArray(v) {
+      if (Array.isArray(v)) return v;
+      if (typeof v !== 'string') return [];
+      var t = v.trim();
+      if (!t) return [];
+      try {
+        var p = JSON.parse(t);
+        if (Array.isArray(p)) return p;
+      } catch (e) {}
+      if (t.indexOf('\n') !== -1) return t.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+      return [t];
+    }
+
+    function addCount(map, v) {
+      var term = norm(v);
+      if (!term) return;
+      map.set(term, (map.get(term) || 0) + 1);
+    }
+
+    function sortCounts(map, limit) {
+      var rows = Array.from(map.entries());
+      rows.sort(function (a, b) {
+        if (b[1] !== a[1]) return b[1] - a[1];
+        return a[0].localeCompare(b[0]);
+      });
+      return rows.slice(0, limit);
+    }
+
+    function toDate(v) {
+      if (!v) return null;
+      if (typeof v === 'string') {
+        var d = new Date(v);
+        return isNaN(d.getTime()) ? null : d;
+      }
+      if (v && typeof v.toDate === 'function') {
+        try { return v.toDate(); } catch (e) { return null; }
+      }
+      return null;
+    }
+
+    function isLast30(d) {
+      if (!d) return false;
+      return (Date.now() - d.getTime()) <= (30 * 24 * 60 * 60 * 1000);
+    }
+
+    function isLast7(d) {
+      if (!d) return false;
+      return (Date.now() - d.getTime()) <= (7 * 24 * 60 * 60 * 1000);
+    }
+
+    function dayKey(d) {
+      if (!d) return null;
+      return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+    }
+
+    function renderDailyTable(plansByDay, usersByDay, userDisplayMap) {
+      var tbody = document.getElementById('daily-body');
+      tbody.innerHTML = '';
+      var todayKey = dayKey(new Date());
+      userDisplayMap = userDisplayMap || {};
+
+      for (var i = 6; i >= 0; i--) {
+        var d = new Date();
+        d.setDate(d.getDate() - i);
+        var k = dayKey(d);
+        var label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' :
+          d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+        var plans = plansByDay[k] || 0;
+        var userSet = usersByDay[k] || new Set();
+        var users = userSet.size;
+        var isToday = (k === todayKey);
+        var isEmpty = plans === 0 && users === 0;
+
+        var tr = document.createElement('tr');
+        if (isToday) tr.className = 'today';
+
+        var tdDate = document.createElement('td');
+        tdDate.textContent = label;
+        tdDate.style.whiteSpace = 'nowrap';
+        tr.appendChild(tdDate);
+
+        var tdPlans = document.createElement('td');
+        tdPlans.textContent = plans;
+        if (isEmpty) tdPlans.className = 'zero';
+        tr.appendChild(tdPlans);
+
+        var tdUsers = document.createElement('td');
+        if (isEmpty) {
+          tdUsers.textContent = '0';
+          tdUsers.className = 'zero';
+        } else {
+          var names = [];
+          userSet.forEach(function(uid) {
+            names.push(userDisplayMap[uid] || uid);
+          });
+          names.sort();
+          tdUsers.style.fontSize = '0.85em';
+          tdUsers.style.lineHeight = '1.5';
+          tdUsers.style.whiteSpace = 'pre-wrap';
+          tdUsers.textContent = names.join('\n');
+        }
+        tr.appendChild(tdUsers);
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderSaveHistory(entries) {
+      var tbody = document.getElementById('save-history-body');
+      var meta = document.getElementById('save-history-meta');
+      if (!entries || !entries.length) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#7a8fa6;">No save history yet — history is recorded on future saves.</td></tr>';
+        meta.textContent = 'No entries found.';
+        return;
+      }
+      meta.textContent = 'Showing last ' + entries.length + ' shared save' + (entries.length === 1 ? '' : 's') + '.';
+      tbody.innerHTML = '';
+      entries.forEach(function(entry) {
+        var ts = entry.savedAt ? new Date(entry.savedAt) : null;
+        var dateStr = ts ? ts.toLocaleString() : '—';
+        var byStr = entry.savedByName || entry.savedBy || '(unknown)';
+
+        // Build people summary
+        var siteLines = [];
+        if (Array.isArray(entry.sites)) {
+          entry.sites.forEach(function(s) {
+            var parts = [];
+            if (s.crnas && s.crnas.length) parts.push('CRNAs: ' + s.crnas.join(', '));
+            if (s.mdas && s.mdas.length) parts.push('MDAs: ' + s.mdas.join(', '));
+            if (s.surgeons && s.surgeons.length) parts.push('Surgeons: ' + s.surgeons.join(', '));
+            if (parts.length) siteLines.push(s.site + ' — ' + parts.join(' | '));
+          });
+        }
+        var detailStr = siteLines.length ? siteLines.join('\n') : '(no preceptor data logged)';
+
+        var tr = document.createElement('tr');
+        var tdDate = document.createElement('td');
+        tdDate.textContent = dateStr;
+        tdDate.style.whiteSpace = 'nowrap';
+        tr.appendChild(tdDate);
+
+        var tdBy = document.createElement('td');
+        tdBy.textContent = byStr;
+        tdBy.style.whiteSpace = 'nowrap';
+        tr.appendChild(tdBy);
+
+        var tdDetail = document.createElement('td');
+        tdDetail.style.whiteSpace = 'pre-wrap';
+        tdDetail.style.fontSize = '0.85em';
+        tdDetail.style.lineHeight = '1.5';
+        tdDetail.textContent = detailStr;
+        tr.appendChild(tdDetail);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function setMetricValue(id, value) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = value;
+    }
+
+    function hasNonEmptyValue(v) {
+      if (v === null || v === undefined) return false;
+      if (typeof v === 'string') return norm(v) !== '';
+      if (typeof v === 'number') return true;
+      if (typeof v === 'boolean') return v;
+      if (Array.isArray(v)) return v.some(hasNonEmptyValue);
+      if (typeof v === 'object') {
+        return Object.keys(v).some(function (k) { return hasNonEmptyValue(v[k]); });
+      }
+      return false;
+    }
+
+    function countUpdatedPreceptors(clinicalDoc) {
+      if (!clinicalDoc || typeof clinicalDoc !== 'object') return 0;
+      var appData = clinicalDoc.appData;
+      if (!appData || typeof appData !== 'object') return 0;
+
+      var slots = new Set();
+      Object.keys(appData).forEach(function (rawKey) {
+        if (rawKey.indexOf('__preceptor__') === -1) return;
+        if (!hasNonEmptyValue(appData[rawKey])) return;
+
+        var parts = String(rawKey).split('__');
+        if (parts.length < 4) return;
+        if (parts[1] !== 'preceptor') return;
+
+        var last = parts[parts.length - 1];
+        if (!/^\d+$/.test(last)) return;
+
+        var site = parts[0] || 'unknown-site';
+        slots.add(site + '__' + last);
+      });
+
+      return slots.size;
+    }
+
+    function getClinicalUpdatedSiteCount(clinicalDoc) {
+      if (!clinicalDoc || typeof clinicalDoc !== 'object') return 0;
+      var appData = clinicalDoc.appData;
+      if (!appData || typeof appData !== 'object') return 0;
+
+      var sites = new Set();
+      Object.keys(appData).forEach(function (rawKey) {
+        if (rawKey.indexOf('__preceptor__') === -1) return;
+        if (!hasNonEmptyValue(appData[rawKey])) return;
+
+        var parts = String(rawKey).split('__');
+        if (parts.length < 4) return;
+        if (parts[1] !== 'preceptor') return;
+
+        var last = parts[parts.length - 1];
+        if (!/^\d+$/.test(last)) return;
+
+        var site = parts[0] || '';
+        if (!site) return;
+        sites.add(site);
+      });
+
+      return sites.size;
+    }
+
+    async function loadKnownMeds() {
+      if (knownMeds) return knownMeds;
+
+      async function fetchText(url) {
+        var res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + url);
+        return res.text();
+      }
+
+      var text = '';
+      try {
+        text = await fetchText('../CarePlanGenerator/med-catalog.js');
+      } catch (e1) {
+        text = await fetchText('../CarePlanGenerator WIP/med-catalog.js');
+      }
+
+      var match = text.match(/var\s+homeMeds\s*=\s*\[(.|\n|\r)*?\];/);
+      var meds = new Set();
+      if (match) {
+        var rx = /'([^']+)'/g;
+        var m;
+        while ((m = rx.exec(match[0])) !== null) {
+          meds.add(key(m[1]));
+        }
+      }
+      knownMeds = meds;
+      return knownMeds;
+    }
+
+    async function getCollectionSafe(name, unavailable) {
+      try {
+        var snap = await db.collection(name).get();
+        var out = [];
+        snap.forEach(function (d) { out.push(d.data() || {}); });
+        return out;
+      } catch (e) {
+        unavailable.push(name);
+        return [];
+      }
+    }
+
+    async function getCollectionDocsSafe(name, unavailable) {
+      try {
+        var snap = await db.collection(name).get();
+        var out = [];
+        snap.forEach(function (d) {
+          out.push({ id: d.id, data: d.data() || {} });
+        });
+        return out;
+      } catch (e) {
+        unavailable.push(name);
+        return [];
+      }
+    }
+
+    function renderTopList(listId, rows) {
+      var el = document.getElementById(listId);
+      el.innerHTML = '';
+      if (!rows.length) {
+        var li = document.createElement('li');
+        li.textContent = 'None';
+        el.appendChild(li);
+        return;
+      }
+      rows.forEach(function (r) {
+        var li = document.createElement('li');
+        li.textContent = r[0] + ' (' + r[1] + ')';
+        el.appendChild(li);
+      });
+    }
+
+    function fmtDate(d) {
+      if (!d) return 'No data yet';
+      return d.toLocaleString();
+    }
+
+    function pickRoleLastAccess(roleData) {
+      return toDate(roleData.lastAccessAt) ||
+        toDate(roleData.lastSeenAt) ||
+        toDate(roleData.lastLoginAt) ||
+        toDate(roleData.lastSignInAt) ||
+        toDate(roleData.updatedAt) ||
+        toDate(roleData.createdAt) ||
+        toDate(roleData.registeredAt);
+    }
+
+    function upsertLatest(map, userKey, ts) {
+      if (!userKey || !ts) return;
+      var prev = map.get(userKey);
+      if (!prev || ts.getTime() > prev.getTime()) map.set(userKey, ts);
+    }
+
+    function renderUsersByRole(roleEntries, cpgActivityByUser) {
+      var host = document.getElementById('role-sections');
+      var meta = document.getElementById('roles-meta');
+      host.innerHTML = '';
+
+      if (!roleEntries.length) {
+        meta.textContent = 'Users: 0';
+        var empty = document.createElement('div');
+        empty.className = 'note';
+        empty.textContent = 'No role data available.';
+        host.appendChild(empty);
+        return;
+      }
+
+      var groups = new Map();
+      roleEntries.forEach(function (row) {
+        var roleData = row.data || {};
+        var role = norm(roleData.role || 'non-student').toLowerCase() || 'non-student';
+        var email = row.id || 'unknown-user';
+        var roleTs = pickRoleLastAccess(roleData);
+        var cpgTs = cpgActivityByUser.get(email) || null;
+        var lastAccess = roleTs;
+        if ((!lastAccess) || (cpgTs && cpgTs.getTime() > lastAccess.getTime())) lastAccess = cpgTs;
+
+        if (!groups.has(role)) groups.set(role, []);
+        groups.get(role).push({
+          email: email,
+          displayName: norm(roleData.displayName || ''),
+          lastAccess: lastAccess
+        });
+      });
+
+      var roleNames = Array.from(groups.keys()).sort();
+      var totalUsers = 0;
+      roleNames.forEach(function (role) {
+        var users = groups.get(role);
+        users.sort(function (a, b) {
+          var at = a.lastAccess ? a.lastAccess.getTime() : -1;
+          var bt = b.lastAccess ? b.lastAccess.getTime() : -1;
+          if (bt !== at) return bt - at;
+          return a.email.localeCompare(b.email);
+        });
+
+        totalUsers += users.length;
+
+        var card = document.createElement('div');
+        card.className = 'role-card';
+
+        var title = document.createElement('div');
+        title.className = 'role-title';
+        title.textContent = role + ' (' + users.length + ')';
+        card.appendChild(title);
+
+        var list = document.createElement('ol');
+        list.className = 'role-list';
+
+        users.forEach(function (u) {
+          var li = document.createElement('li');
+          var name = u.displayName ? (u.displayName + ' - ' + u.email) : u.email;
+          li.textContent = name + ' | Last access: ' + fmtDate(u.lastAccess);
+          list.appendChild(li);
+        });
+
+        card.appendChild(list);
+        host.appendChild(card);
+      });
+
+      meta.textContent = 'Users: ' + fmt(totalUsers) + ' | Roles: ' + fmt(roleNames.length);
+    }
+
+    async function runReport() {
+      var btn = document.getElementById('btn-refresh');
+      btn.disabled = true;
+      btn.textContent = 'Refreshing...';
+
+      try {
+        var meds = await loadKnownMeds();
+        var unavailable = [];
+
+        var plans = await getCollectionSafe('carePlanSavedPlans', unavailable);
+        var drafts = await getCollectionSafe('carePlanDrafts', unavailable);
+        var clinical = await getCollectionSafe('clinicalSites', unavailable);
+        var roleDocs = await getCollectionDocsSafe('userRoles', unavailable);
+
+        // Fetch save history (last 10, ordered by savedAt desc)
+        var saveHistoryDocs = [];
+        try {
+          var histSnap = await db.collection('clinicalSitesSaveHistory')
+            .orderBy('savedAt', 'desc').limit(10).get();
+          histSnap.forEach(function(d) { saveHistoryDocs.push(d.data()); });
+        } catch (e) {
+          // ignore if missing or permission error
+        }
+
+        var pmhAll = new Map();
+        var pmh30 = new Map();
+        var medAll = new Map();
+        var med30 = new Map();
+        var pshAll = new Map();
+        var psh30 = new Map();
+
+        var allCpgUsers = new Set();
+        var cpgLastSeenByUser = new Map();
+        var last30CpgUsers = new Set();
+        var last7CpgUsers = new Set();
+        var allPlans = 0;
+        var last30Plans = 0;
+        var last7Plans = 0;
+        var plansByDay = {};
+        var usersByDay = {};
+
+        plans.forEach(function (doc) {
+          var userId = String(doc.userId || '').trim() || 'unknown-user';
+          var ts = toDate(doc.savedAt);
+          var in30 = isLast30(ts);
+          var state = doc.state || {};
+
+          allPlans += 1;
+          allCpgUsers.add(userId);
+          upsertLatest(cpgLastSeenByUser, userId, ts);
+          if (ts && isLast7(ts)) {
+            var dk = dayKey(ts);
+            if (dk) {
+              plansByDay[dk] = (plansByDay[dk] || 0) + 1;
+              if (!usersByDay[dk]) usersByDay[dk] = new Set();
+              usersByDay[dk].add(userId);
+            }
+          }
+          if (in30) {
+            last30Plans += 1;
+            last30CpgUsers.add(userId);
+          }
+          if (isLast7(ts)) {
+            last7Plans += 1;
+            last7CpgUsers.add(userId);
+          }
+
+          var pmh = parseJsonishArray(state['pmh-list']);
+          pmh.forEach(function (x) {
+            var t = norm(x);
+            if (!t || key(t) === 'smoker') return;
+            addCount(pmhAll, t);
+            if (in30) addCount(pmh30, t);
+          });
+
+          var psh = parseJsonishArray(state['pmh-surgical-history']);
+          psh.forEach(function (x) {
+            var t = norm(x);
+            if (!t) return;
+            addCount(pshAll, t);
+            if (in30) addCount(psh30, t);
+          });
+
+          var medRows = parseJsonishArray(state['med-list']);
+          medRows.forEach(function (row) {
+            var value = '';
+            if (typeof row === 'string') {
+              value = norm(row);
+            } else if (row && typeof row === 'object') {
+              var med = norm(row.med || '');
+              var other = norm(row.other || '');
+              value = med === 'Other' ? other : med;
+            }
+            if (!value) return;
+            if (meds.has(key(value))) return;
+            addCount(medAll, value);
+            if (in30) addCount(med30, value);
+          });
+        });
+
+        drafts.forEach(function (doc) {
+          var userId = String(doc.userId || '').trim() || 'unknown-user';
+          var ts = toDate(doc.savedAt);
+          allCpgUsers.add(userId);
+          upsertLatest(cpgLastSeenByUser, userId, ts);
+          if (isLast30(ts)) last30CpgUsers.add(userId);
+          if (isLast7(ts)) last7CpgUsers.add(userId);
+        });
+
+        // Build email → display name lookup for daily table
+        var userDisplayMap = {};
+        roleDocs.forEach(function(row) {
+          var email = row.id || '';
+          var dn = norm((row.data && row.data.displayName) || '');
+          if (email) userDisplayMap[email] = dn || email;
+        });
+
+        renderUsersByRole(roleDocs, cpgLastSeenByUser);
+        renderDailyTable(plansByDay, usersByDay, userDisplayMap);
+
+        var clinicalUnavailable = unavailable.indexOf('clinicalSites') !== -1;
+
+        var clinicalDoc = clinical.length ? clinical[0] : null;
+        var clinicalLatest = clinicalDoc ? toDate(clinicalDoc.savedAt || clinicalDoc.updatedAt || clinicalDoc.timestamp) : null;
+        var clinicalAll = countUpdatedPreceptors(clinicalDoc);
+        var clinical30 = isLast30(clinicalLatest) ? clinicalAll : 0;
+        var clinical7 = isLast7(clinicalLatest) ? clinicalAll : 0;
+        var clinicalSitesUpdated = getClinicalUpdatedSiteCount(clinicalDoc);
+
+        setMetricValue('kpi-all-cpg-users', fmt(allCpgUsers.size));
+        setMetricValue('kpi-all-cpg-plans', fmt(allPlans));
+        setMetricValue('kpi-30-cpg-users', fmt(last30CpgUsers.size));
+        setMetricValue('kpi-30-cpg-plans', fmt(last30Plans));
+        setMetricValue('kpi-7-cpg-users', fmt(last7CpgUsers.size));
+        setMetricValue('kpi-7-cpg-plans', fmt(last7Plans));
+
+        setMetricValue('kpi-all-clinical', clinicalUnavailable ? 'N/A' : fmt(clinicalAll));
+        setMetricValue('kpi-30-clinical', clinicalUnavailable ? 'N/A' : fmt(clinical30));
+        setMetricValue('kpi-7-clinical', clinicalUnavailable ? 'N/A' : fmt(clinical7));
+
+        setMetricValue('clinical-last-save', clinicalUnavailable ? 'N/A' : (clinicalLatest ? clinicalLatest.toLocaleString() : 'None'));
+        setMetricValue('clinical-preceptor-rows', clinicalUnavailable ? 'N/A' : fmt(clinicalAll));
+        setMetricValue('clinical-unique-sites', clinicalUnavailable ? 'N/A' : fmt(clinicalSitesUpdated));
+        document.getElementById('clinical-snapshot-meta').textContent = clinicalUnavailable
+          ? 'Clinical Sites data unavailable.'
+          : ('Snapshot source: clinicalSites/shared | Last save: ' + (clinicalLatest ? clinicalLatest.toLocaleString() : 'none'));
+
+        renderSaveHistory(saveHistoryDocs);
+
+        document.getElementById('pmh-meta').textContent = 'All-time unique: ' + fmt(pmhAll.size) + ' | Last 30 unique: ' + fmt(pmh30.size);
+        document.getElementById('med-meta').textContent = 'All-time unique: ' + fmt(medAll.size) + ' | Last 30 unique: ' + fmt(med30.size);
+        document.getElementById('psh-meta').textContent = 'All-time unique: ' + fmt(pshAll.size) + ' | Last 30 unique: ' + fmt(psh30.size);
+
+        renderTopList('pmh-list', sortCounts(pmhAll, 100));
+        renderTopList('med-list', sortCounts(medAll, 100));
+        renderTopList('psh-list', sortCounts(pshAll, 120));
+
+        var metaParts = [
+          'Last run: ' + new Date().toLocaleString(),
+          'CPG plans scanned: ' + fmt(allPlans)
+        ];
+        if (!clinicalUnavailable) {
+          metaParts.push('Clinical preceptors updated: ' + fmt(clinicalAll));
+          metaParts.push('Clinical latest save: ' + (clinicalLatest ? clinicalLatest.toLocaleString() : 'none'));
+        }
+        if (unavailable.length) {
+          setStatus('Report generated with gaps. Unavailable collections: ' + unavailable.join(', '), 'warn');
+          metaParts.push('Unavailable: ' + unavailable.join(', '));
+        } else {
+          setStatus('Report generated successfully.', 'ok');
+        }
+        document.getElementById('run-meta').textContent = metaParts.join(' | ');
+      } catch (e) {
+        setStatus('Failed to generate report: ' + (e.message || String(e)), 'err');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Refresh Report';
+      }
+    }
+
+    function checkAccessAndLoad(user) {
+      db.collection('userRoles').doc(user.email).get()
+        .then(function (doc) {
+          var role = doc.exists ? doc.data().role : 'non-student';
+          document.getElementById('loading-msg').style.display = 'none';
+          if (role === 'admin') {
+            document.getElementById('panel').style.display = 'block';
+            runReport();
+          } else {
+            document.getElementById('access-denied').style.display = 'block';
+          }
+        })
+        .catch(function () {
+          document.getElementById('loading-msg').style.display = 'none';
+          document.getElementById('access-denied').style.display = 'block';
+        });
+    }
+
+    firebase.auth().onAuthStateChanged(function (user) {
+      var nameEl = document.getElementById('header-auth-name');
+      var btn = document.getElementById('header-auth-btn');
+
+      if (user) {
+        if (nameEl) nameEl.textContent = user.displayName || user.email;
+        if (btn) {
+          btn.textContent = 'Sign Out';
+          btn.onclick = function () { firebase.auth().signOut(); };
+        }
+        checkAccessAndLoad(user);
+      } else {
+        if (nameEl) nameEl.textContent = '';
+        if (btn) {
+          btn.textContent = 'Log in';
+          btn.onclick = function () { firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); };
+        }
+        document.getElementById('loading-msg').style.display = 'none';
+        document.getElementById('access-denied').style.display = 'block';
+      }
+    });
+
+    document.getElementById('btn-refresh').addEventListener('click', runReport);
+  </script>
+</body>
+</html>

@@ -645,13 +645,14 @@ function updateMacAnxiolyticRange() {
 
 function toggleVesicant() {
   const agent = document.getElementById('ind-agent-select').value;
-  const show = agent === 'Propofol' || agent === 'Etomidate';
+  const paralytic = document.getElementById('ind-paralytic').value;
+  const vesicantAgents = ['Propofol', 'Etomidate', 'Methohexital'];
+  const show = vesicantAgents.includes(agent) || paralytic === 'Succinylcholine';
   document.getElementById('row-vesicant').style.display = show ? 'block' : 'none';
   if (show) {
     var sel = document.getElementById('vesicant-prop');
     var doseEl = document.getElementById('vesicant-dose');
-    // Default lidocaine for Propofol/Etomidate, None for others
-    var defaultLidocaine = (agent === 'Propofol' || agent === 'Etomidate');
+    var defaultLidocaine = vesicantAgents.includes(agent) || paralytic === 'Succinylcholine';
     if (!sel.dataset.userSet) {
       sel.value = defaultLidocaine ? 'lidocaine' : '0';
       if (defaultLidocaine && doseEl && !doseEl.value) doseEl.value = '50';
@@ -742,9 +743,12 @@ function applyCrossConditions() {
     (!isNaN(mp) && mp > 2) || (!isNaN(tmd) && tmd < 3) ||
     (!isNaN(gap) && gap < 3) || (mand === '2' || mand === '3') ||
     (atl === 'Limited Mobility');
+  // ECT, EBUS, colonoscopy, EGD — no tracheal intubation planned, never auto-force VL
+  var _sn = (s['pat-surgery'] || '').toLowerCase();
+  var isNoIntubationProc = /\bect\b|electroconvulsive|\bebus\b|colonoscopy|\begd\b|esophagogastroduodenoscop/.test(_sn);
   var airwaySel = document.getElementById('ind-airway-method');
   var airwayNote = document.getElementById('airway-auto-note');
-  if (airwayAbnormal) {
+  if (airwayAbnormal && !isNoIntubationProc) {
     if (airwaySel && airwaySel.value !== 'VL') { airwaySel.value = 'VL'; changed = true; }
     if (airwayNote) airwayNote.style.display = 'inline-block';
   } else if (airwayNote) {
@@ -848,7 +852,7 @@ function boot() {
   document.getElementById('ind-blunt-dose').addEventListener('input', function() { validateDoseInput(this); saveState(); });
   document.getElementById('ind-agent-select').addEventListener('change', function() { updatePlanDoseRange('induction','ind-agent-select','ind-agent-dose','ind-agent-range'); toggleVesicant(); var n = document.getElementById('ind-agent-rationale'); if (n) { n.textContent = ''; n.style.display = 'none'; } onAnyPlanInput(); });
   document.getElementById('ind-agent-dose').addEventListener('input', function() { validateDoseInput(this); var n = document.getElementById('ind-agent-rationale'); if (n) { n.textContent = ''; n.style.display = 'none'; } saveState(); });
-  document.getElementById('ind-paralytic').addEventListener('change', function() { updatePlanDoseRange('paralytic','ind-paralytic','ind-paralytic-dose','ind-paralytic-range'); var n = document.getElementById('ind-paralytic-rationale'); if (n) { n.textContent = ''; n.style.display = 'none'; } onAnyPlanInput(); });
+  document.getElementById('ind-paralytic').addEventListener('change', function() { updatePlanDoseRange('paralytic','ind-paralytic','ind-paralytic-dose','ind-paralytic-range'); toggleVesicant(); var n = document.getElementById('ind-paralytic-rationale'); if (n) { n.textContent = ''; n.style.display = 'none'; } onAnyPlanInput(); });
   document.getElementById('ind-paralytic-dose').addEventListener('input', function() { validateDoseInput(this); var n = document.getElementById('ind-paralytic-rationale'); if (n) { n.textContent = ''; n.style.display = 'none'; } saveState(); });
   document.getElementById('ind-inhalation').addEventListener('change', onAnyPlanInput);
   document.getElementById('vesicant-prop').addEventListener('change', function() {

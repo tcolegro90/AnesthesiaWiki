@@ -111,7 +111,11 @@
     'Tretinoin', 'Triamterene', 'Trimethoprim-Sulfamethoxazole', 'Umeclidinium', 'Umeclidinium-Vilanterol',
     'Valacyclovir', 'Valproate',
     'Valsartan', 'Vardenafil', 'Venlafaxine', 'Vitamin D3', 'Warfarin',
-    'Zafirlukast', 'Zileuton', 'Ziprasidone', 'Zolmitriptan', 'Zolpidem'
+    'Zafirlukast', 'Zileuton', 'Ziprasidone', 'Zolmitriptan', 'Zolpidem',
+    // Added from clinical usage data
+    'Cholecalciferol', 'Cyclosporine', 'Golimumab', 'Guaifenesin',
+    'Methadone', 'Methotrexate', 'Naloxone', 'Natalizumab',
+    'Pembrolizumab', 'Suvorexant', 'Tirzepatide', 'Triazolam', 'Ursodiol'
   ];
 
   window.MED_CATALOG = {

@@ -1,0 +1,447 @@
+* { box-sizing: border-box; }
+
+:root {
+  --bg: #f3f7fb;
+  --panel: #ffffff;
+  --ink: #1f2a37;
+  --muted: #4f6073;
+  --yesno-label-gap: 8px;
+  --line: #dbe5f0;
+  --chip-bg: #eef5ff;
+  --chip-line: #c6d8f2;
+  --chip-ink: #114a8d;
+  --card-bg: #f9fbff;
+  --card-line: #dbe7f7;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  background:
+    radial-gradient(circle at 15% 10%, #eaf4ff 0%, transparent 36%),
+    radial-gradient(circle at 88% 12%, #edf8f2 0%, transparent 28%),
+    var(--bg);
+  color: var(--ink);
+  overflow: visible !important;
+}
+
+body.embedded,
+body.embedded html {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+}
+
+html, html.embedded {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px 50px;
+  background-color: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(17, 74, 141, 0.08);
+}
+
+body.embedded .container {
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+h1 {
+  border-bottom: 2px solid #cbdcf2;
+  padding-bottom: 5px;
+  font-family: 'Linux Libertine', Georgia, Times, serif;
+  margin-top: 0;
+  color: #1a365d;
+}
+
+h3, h4, h5 {
+  color: #333;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 18px;
+}
+
+.nav a {
+  text-decoration: none;
+  padding: 6px 10px;
+  border: 1px solid var(--chip-line);
+  border-radius: 4px;
+  color: var(--chip-ink);
+  background: var(--chip-bg);
+  font-size: 0.9rem;
+}
+
+.nav a:hover {
+  background: #dfecff;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-line);
+  padding: 20px;
+  margin-bottom: 25px;
+  border-radius: 6px;
+}
+
+.card hr {
+  border: 0;
+  border-top: 1px solid #d8dde3;
+  margin: 12px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  transition: all 0.3s ease;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+input:not([type]),
+input[type="text"],
+textarea {
+  padding: 7px 9px;
+  border: 1px solid #c9d7e8;
+  border-radius: 4px;
+  font-size: 1.05em;
+  background: #fff;
+  color: var(--ink);
+  margin-top: 5px;
+  box-sizing: border-box;
+  min-height: 36px;
+}
+
+input[type="number"] {
+  padding: 7px 9px;
+  border: 1px solid #c9d7e8;
+  border-radius: 4px;
+  font-size: 1.05em;
+  background: #fff;
+  color: var(--ink);
+  margin-top: 5px;
+  box-sizing: border-box;
+  min-height: 36px;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  margin: 0 4px 0 0;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+label > input[type="checkbox"],
+label > input[type="radio"] {
+  flex-shrink: 0;
+}
+
+/* Standard vertical spacing between a field label and a Yes/No radio row. */
+.card div > label + br + label:has(> input[type="radio"]) {
+  margin-top: var(--yesno-label-gap);
+  display: inline-block;
+}
+
+/* Utility for future fields if explicit grouping is preferred. */
+.yn-options {
+  margin-top: var(--yesno-label-gap);
+}
+
+select {
+  padding: 7px 9px;
+  border: 1px solid #c9d7e8;
+  border-radius: 4px;
+  font-size: 1.1em;
+  background: #fff;
+  color: var(--ink);
+  margin-top: 5px;
+  box-sizing: border-box;
+  min-height: 36px;
+}
+
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+  padding-right: 22px;
+}
+
+option {
+  color: var(--ink);
+}
+
+option:disabled {
+  color: #999;
+  background-color: #f5f5f5;
+}
+
+input:not([type]):focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #b8d4fb;
+  outline-offset: 0;
+  border-color: #7aa8e6;
+}
+
+button {
+  background-color: #1f8a5b;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 1em;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover { background-color: #166c46; }
+button:active { transform: translateY(1px); }
+
+.small { width: 84px; }
+.xs  { width: 55px; }
+.med { width: 150px; }
+.long { width: 220px; }
+.position-wide { width: 205px; }
+.tiny-text { width: 64px; }
+.short-text { width: 110px; }
+
+.alert { background-color: #ffcccc !important; color: red; font-weight: bold; }
+.alert-yellow { background-color: #fff3cd !important; color: #856404; font-weight: bold; }
+.alert-row-solid {
+  background-color: #ffe6e6 !important;
+  border: 2px solid red !important;
+  padding: 15px !important;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.2) !important;
+}
+
+.risk-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  margin-bottom: 5px;
+  transition: all 0.2s;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.result {
+  margin-top: 10px;
+  padding: 15px;
+  background-color: #edf5ff;
+  border: 1px solid #c8dcfb;
+  border-radius: 4px;
+  min-height: 20px;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .container { padding: 18px; }
+  .grid { grid-template-columns: 1fr; }
+}
+
+/* ── iOS Yes/No toggle ─────────────────────────────── */
+/* The toggle wrapper is injected by initYNToggles() in shared.js */
+.ios-yn-wrap {
+  display: flex; /* always visible */
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.ios-yn-wrap .yn-state-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a365d;
+  min-width: 28px;
+}
+/* The toggle pill */
+.ios-toggle {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: block;
+}
+.ios-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.ios-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: #d0d8e4;
+  transition: background 0.2s;
+}
+.ios-track::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 3px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  transition: left 0.2s;
+}
+.ios-toggle input:checked + .ios-track { background: #1a9460; }
+.ios-toggle input:checked + .ios-track::after { left: 25px; }
+
+/* ── Segmented Yes/No pill (comparison style) ────────────── */
+.seg-yn-wrap {
+  display: inline-flex;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1.5px solid #cbd5e0;
+  margin-top: 6px;
+}
+.seg-btn {
+  padding: 4px 16px;
+  border: none;
+  background: #f0f4f8;
+  color: #4f6073;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1.6;
+}
+.seg-btn + .seg-btn { border-left: 1.5px solid #cbd5e0; }
+.seg-btn.seg-active.seg-yes  { background: #1a9460; color: #fff; }
+.seg-btn.seg-active.seg-no   { background: #c53030; color: #fff; }
+
+/* ── Hide original Yes/No radio labels when toggle is present ── */
+.ios-yn-source { display: none !important; }
+
+@media (max-width: 600px) {
+  /* Prevent iframed section pages from overflowing their viewport */
+  html, body { overflow-x: hidden !important; max-width: 100%; }
+  .container { padding: 14px 10px !important; }
+  .embedded .container { padding: 10px 10px !important; }
+  /* Fixed-width form inputs should shrink on mobile */
+  .long { width: 100% !important; max-width: 220px; }
+  .med  { width: 100% !important; max-width: 150px; }
+  /* Inside drug rows, let the select fill the full grid column */
+  .med-drug-row .med, .repeat-row .med { max-width: none !important; }
+
+  /* ── Style B: Warmer & Friendlier card feel ── */
+  .card {
+    background: #f4fdf8 !important;
+    border-color: #c2e0d0 !important;
+    border-radius: 14px !important;
+    padding: 14px !important;
+  }
+
+  /* ── Show iOS toggles, hide original Yes/No radio labels ── */
+  /* (already applied globally above; kept here for legacy specificity) */
+}
+
+/* Embedded mode: used when section pages are loaded inside Combined-Care-Plan iframes */
+.embedded .container {
+  max-width: 100%;
+  margin: 0;
+  padding: 30px 50px;
+  min-height: auto;
+  box-shadow: none;
+}
+
+.embedded h1 {
+  display: none;
+}
+
+.embedded .nav {
+  display: none;
+}
+
+.embedded .card {
+  margin-bottom: 0;
+}
+
+/* === SIDE NAV === */
+#cp-side-nav {
+  position: fixed;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 900;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 6px;
+  box-shadow: 0 2px 10px rgba(17,74,141,0.09);
+  min-width: 108px;
+  max-width: 136px;
+}
+#cp-side-nav a {
+  display: block;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 0.78em;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1.4;
+}
+#cp-side-nav a:hover {
+  background: var(--chip-bg);
+  color: var(--chip-ink);
+}
+#cp-side-nav a.active {
+  background: #dbeaff;
+  color: #1a4f82;
+  font-weight: 600;
+}
+@media (max-width: 1039px) {
+  #cp-side-nav { display: none; }
+}
+body.embedded #cp-side-nav {
+  display: none;
+}
+/* === END SIDE NAV === */

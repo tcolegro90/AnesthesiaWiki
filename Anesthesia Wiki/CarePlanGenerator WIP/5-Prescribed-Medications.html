@@ -138,6 +138,10 @@
           <td style="padding:8px 10px 6px 0;font-weight:700;color:#2b3f59;vertical-align:top;white-space:nowrap;font-size:13px;">Common Indications</td>
           <td id="med-info-ind" style="padding:8px 0 6px 8px;color:#333;font-size:13px;"></td>
         </tr>
+        <tr style="border-top:1px solid #eef0f4;">
+          <td style="padding:8px 10px 6px 0;font-weight:700;color:#2b3f59;vertical-align:top;white-space:nowrap;font-size:13px;">Anesthesia Considerations</td>
+          <td id="med-info-anes" style="padding:8px 0 6px 8px;color:#333;font-size:13px;"></td>
+        </tr>
       </table>
     </div>
   </div>
@@ -295,6 +299,7 @@
       'Rexulti': 'Brexpiprazole',
       'Latuda': 'Lurasidone',
       'Haldol': 'Haloperidol',
+      'Inapsine': 'Droperidol',
       'Namenda': 'Memantine',
       'Aricept': 'Donepezil',
       'Razadyne': 'Galantamine',
@@ -641,6 +646,7 @@
       'Glyburide':                     { cls: 'Sulfonylurea', ind: 'Type 2 diabetes mellitus' },
       'Guanfacine':                    { cls: 'Central alpha-2 agonist', ind: 'ADHD, HTN' },
       'Haloperidol':                   { cls: 'Typical antipsychotic (butyrophenone)', ind: 'Schizophrenia, acute psychosis, delirium, Tourette syndrome, agitation' },
+      'Droperidol':                    { cls: 'Butyrophenone antiemetic/antipsychotic', ind: 'PONV prophylaxis/treatment, acute agitation (select settings)' },
       'Hydrochlorothiazide':           { cls: 'Thiazide diuretic', ind: 'HTN, edema (heart failure, CKD), hypercalciuria / nephrolithiasis' },
       'Hydrocodone':                   { cls: 'Opioid analgesic', ind: 'Moderate–severe pain, cough suppression (combo products)' },
       'Hydrocortisone':                { cls: 'Corticosteroid', ind: 'Adrenal insufficiency, inflammatory conditions, allergic reactions, stress dosing' },
@@ -820,6 +826,192 @@
       'Zolpidem':                      { cls: 'Non-benzodiazepine hypnotic (Z-drug)', ind: 'Insomnia (short-term)' }
     };
 
+    function getAnesthesiaConsiderations(medName, info) {
+      var specific = {
+        'Metoclopramide': 'May reduce nausea and support gastric emptying; avoid/caution in Parkinson disease, seizure disorder, prior EPS/tardive dyskinesia, bowel obstruction/GI bleed/perforation, pheochromocytoma, or major QT-risk settings.',
+        'Semaglutide': 'Delayed gastric emptying/aspiration risk; use full-stomach precautions when indicated (especially with GI symptoms or dose escalation).',
+        'Dulaglutide': 'Delayed gastric emptying/aspiration risk; use full-stomach precautions when indicated (especially with GI symptoms or dose escalation).',
+        'Liraglutide': 'Delayed gastric emptying/aspiration risk; use full-stomach precautions when indicated (especially with GI symptoms or dose escalation).',
+        'Tirzepatide': 'Delayed gastric emptying/aspiration risk; use full-stomach precautions when indicated (especially with GI symptoms or dose escalation).',
+        'Empagliflozin': 'Hold 3 days pre-op. Euglycemic DKA risk; check ketones if unexplained acidosis, nausea, or malaise.',
+        'Dapagliflozin': 'Hold 3 days pre-op. Euglycemic DKA risk; check ketones if unexplained acidosis, nausea, or malaise.',
+        'Canagliflozin': 'Hold 3 days pre-op. Euglycemic DKA risk; check ketones if unexplained acidosis, nausea, or malaise.',
+        'Insulin Aspart': 'Hold prandial dose while NPO; use glucose-guided correction per protocol.',
+        'Insulin Glulisine': 'Hold prandial dose while NPO; use glucose-guided correction per protocol.',
+        'Insulin Lispro': 'Hold prandial dose while NPO; use glucose-guided correction per protocol.',
+        'Insulin Glargine': 'Basal insulin: dose-adjust per protocol to reduce hypo/hyperglycemia risk.',
+        'Insulin Detemir': 'Basal insulin: dose-adjust per protocol to reduce hypo/hyperglycemia risk.',
+        'Insulin Degludec': 'Basal insulin: dose-adjust per protocol to reduce hypo/hyperglycemia risk.',
+        'Insulin NPH': 'Basal insulin: dose-adjust per protocol to reduce hypo/hyperglycemia risk.',
+        'Metformin': 'Hold DOS. Avoid in high-risk lactic acidosis settings (renal hypoperfusion, severe hypoxia, severe sepsis).',
+        'Warfarin': 'Bleeding and neuraxial risk; verify INR and peri-op anticoagulation plan before procedure.',
+        'Apixaban': 'Bleeding and neuraxial risk; timing of last dose is critical before procedure/block.',
+        'Rivaroxaban': 'Bleeding and neuraxial risk; timing of last dose is critical before procedure/block.',
+        'Dabigatran': 'Bleeding and neuraxial risk; timing of last dose is critical before procedure/block.',
+        'Edoxaban': 'Bleeding and neuraxial risk; timing of last dose is critical before procedure/block.',
+        'Clopidogrel': 'Antiplatelet effect increases procedural/neuraxial bleeding risk; follow hold/timing guidance.',
+        'Prasugrel': 'Antiplatelet effect increases procedural/neuraxial bleeding risk; follow hold/timing guidance.',
+        'Ticagrelor': 'Antiplatelet effect increases procedural/neuraxial bleeding risk; follow hold/timing guidance.',
+        'Prednisone': 'Chronic use may cause adrenal suppression; consider stress-dose steroids when clinically indicated.',
+        'Methylprednisolone': 'Chronic use may cause adrenal suppression; consider stress-dose steroids when clinically indicated.',
+        'Hydrocortisone': 'Chronic use may cause adrenal suppression; consider stress-dose steroids when clinically indicated.',
+        'Donepezil': 'May prolong succinylcholine effect and alter NMB response; coordinate neuromuscular plan.',
+        'Rivastigmine': 'May prolong succinylcholine effect and alter NMB response; coordinate neuromuscular plan.',
+        'Galantamine': 'May prolong succinylcholine effect and alter NMB response; coordinate neuromuscular plan.',
+        'Carbidopa-Levodopa': 'Continue near scheduled dosing; missed doses can worsen rigidity and respiratory function.',
+        'Albuterol': 'Continue; ensure rescue inhaler access peri-op for reactive airway disease.',
+        'Ipratropium': 'Continue for COPD/asthma optimization; no major anesthetic contraindication in routine use.',
+        'Theophylline': 'Arrhythmia/seizure interaction risk at elevated levels; avoid toxicity and review interacting drugs.',
+        'Lithium': 'Often held before major surgery; can prolong neuromuscular blockade and contribute to hypotension/sedation.',
+        'Aspirin': 'Antiplatelet effect may increase procedural bleeding; continue vs hold depends on indication and surgical bleeding risk.',
+        'Aspirin 81 mg': 'Antiplatelet effect may increase procedural bleeding; continue vs hold depends on indication and surgical bleeding risk.',
+        'Pyridostigmine': 'Myasthenia gravis therapy can alter neuromuscular blocker response; coordinate NMB plan closely.',
+        'Methadone': 'Continue chronic regimen; QT prolongation and respiratory depression risks require peri-op monitoring.',
+        'Buprenorphine': 'Usually continue; analgesic strategy may require multimodal and higher-affinity opioid planning.',
+        'Tramadol': 'Serotonergic and seizure-threshold effects; use caution with serotonergic drugs and in seizure-risk patients.',
+        'Ranolazine': 'QT prolongation and drug-interaction potential; monitor in significant QT-risk settings.',
+        'Sotalol': 'QT prolongation and bradycardia risk; monitor rhythm/electrolytes peri-op.',
+        'Digoxin': 'Arrhythmia/toxicity risk increases with electrolyte abnormalities; monitor K/Mg and renal function.',
+        'Midodrine': 'May cause supine hypertension; tailor peri-op BP plan to context and indication.',
+        'Hydroxychloroquine': 'QT prolongation risk with other QT-active agents; consider ECG risk context.',
+        'Haloperidol': 'QT prolongation and EPS risks; use caution with other QT-active medications.',
+        'Droperidol': 'Potent antiemetic useful for PONV; QT prolongation risk requires caution in significant QT-risk settings and with other QT-active agents.',
+        'Ziprasidone': 'High QT prolongation risk; avoid/add caution in significant QT-risk settings.',
+        'Amiodarone': 'Bradycardia, hypotension, and QT effects; monitor hemodynamics and rhythm closely.',
+        'Flecainide': 'Proarrhythmic potential and conduction delay risk; monitor rhythm and electrolytes.',
+        'Propafenone': 'Proarrhythmic potential and conduction delay risk; monitor rhythm and electrolytes.',
+        'Mexiletine': 'Conduction/CNS side-effect profile; monitor rhythm and neurologic status if concern.',
+        'Modafinil': 'May alter sedative requirements; monitor depth of anesthesia and emergence profile.',
+        'Amphetamine': 'Possible catecholamine depletion or sympathetic variability; expect hemodynamic lability.',
+        'Dextroamphetamine': 'Possible catecholamine depletion or sympathetic variability; expect hemodynamic lability.',
+        'Lisdexamfetamine': 'Possible catecholamine depletion or sympathetic variability; expect hemodynamic lability.',
+        'Methylphenidate': 'Possible sympathetic variability; monitor HR/BP and anesthetic requirements.',
+        'Estradiol': 'VTE-risk context may matter for peri-op planning in high-risk surgery/patients.',
+        'Testosterone': 'No major direct anesthetic effect in routine use; assess overall thrombotic/cardiovascular risk context.'
+      };
+      if (specific[medName]) return specific[medName];
+
+      var cls = ((info && info.cls) || '').toLowerCase();
+      var ind = ((info && info.ind) || '').toLowerCase();
+      if (!cls) return 'None.';
+
+      if (cls.indexOf('ace inhibitor') !== -1 || cls.indexOf('angiotensin receptor blocker') !== -1 || cls.indexOf('arni') !== -1 || cls.indexOf('renin inhibitor') !== -1 || medName === 'Sacubitril-Valsartan') {
+        return 'Hold DOS. Refractory intra-op hypotension risk; vasopressin may be needed.';
+      }
+      if (cls.indexOf('beta') !== -1 && cls.indexOf('beta-2 agonist') === -1) {
+        return 'Continue DOS. Abrupt withdrawal may trigger tachycardia/ischemia; monitor for bradycardia/hypotension.';
+      }
+      if (cls.indexOf('calcium channel blocker') !== -1) {
+        return 'Usually continue DOS; monitor for hypotension.';
+      }
+      if (cls.indexOf('diuretic') !== -1 || cls.indexOf('aldosterone antagonist') !== -1 || cls.indexOf('potassium-sparing') !== -1) {
+        return 'Consider hold DOS if volume depleted; monitor volume status and electrolytes (especially potassium).';
+      }
+      if (cls.indexOf('alpha-1 blocker') !== -1) {
+        return 'Orthostatic/intra-op hypotension risk; monitor hemodynamics closely.';
+      }
+      if (cls.indexOf('central alpha-2 agonist') !== -1) {
+        return 'Continue DOS when possible; avoid abrupt withdrawal (rebound hypertension risk).';
+      }
+      if (cls.indexOf('nitrate') !== -1 || cls.indexOf('vasodilator') !== -1) {
+        return 'Hypotension risk with anesthetics/vasodilators; monitor BP and titrate carefully.';
+      }
+
+      if (cls.indexOf('factor xa inhibitor') !== -1 || cls.indexOf('vitamin k antagonist') !== -1 || cls.indexOf('anticoagulant') !== -1) {
+        return 'Bleeding and neuraxial risk; timing and peri-op anticoagulation plan are critical.';
+      }
+      if (cls.indexOf('antiplatelet') !== -1 || cls.indexOf('p2y12') !== -1 || cls.indexOf('adp receptor antagonist') !== -1) {
+        return 'Increased procedural/neuraxial bleeding risk; follow hold/timing guidance.';
+      }
+
+      if (cls.indexOf('glp-1') !== -1) {
+        return 'Delayed gastric emptying/aspiration risk; use full-stomach precautions when indicated.';
+      }
+      if (cls.indexOf('sglt') !== -1) {
+        return 'Hold 3 days pre-op. Euglycemic DKA risk; check ketones when clinically concerning.';
+      }
+      if (cls.indexOf('sulfonylurea') !== -1 || cls.indexOf('meglitinide') !== -1) {
+        return 'Hold DOS while NPO; hypoglycemia risk.';
+      }
+      if (cls.indexOf('biguanide') !== -1 || medName === 'Metformin') {
+        return 'Hold DOS. Avoid in high-risk lactic acidosis settings.';
+      }
+      if (cls.indexOf('dpp-4') !== -1 || cls.indexOf('alpha-glucosidase') !== -1 || cls.indexOf('thiazolidinedione') !== -1) {
+        return 'Usually hold morning dose while NPO per local protocol; monitor peri-op glucose.';
+      }
+      if (cls.indexOf('insulin') !== -1) {
+        return 'Dose-adjust peri-op insulin per protocol; avoid hypo/hyperglycemia.';
+      }
+
+      if (cls.indexOf('benzodiazepine') !== -1) {
+        return 'Usually continue to avoid withdrawal; additive sedation/respiratory depression with anesthetics and opioids.';
+      }
+      if (cls.indexOf('opioid') !== -1) {
+        return 'Continue chronic regimen; opioid tolerance and respiratory depression risk require tailored peri-op analgesia.';
+      }
+      if (cls.indexOf('ssri') !== -1 || cls.indexOf('snri') !== -1 || cls.indexOf('tricyclic') !== -1 || cls.indexOf('sari') !== -1 || cls.indexOf('nassa') !== -1) {
+        return 'Usually continue; monitor for serotonin-interaction risk and hemodynamic effects.';
+      }
+      if (cls.indexOf('antipsychotic') !== -1) {
+        return 'QT prolongation, hypotension, and sedation risks; avoid/add caution in significant QT-risk settings.';
+      }
+      if (cls.indexOf('anticonvulsant') !== -1 || cls.indexOf('barbiturate') !== -1) {
+        return 'Continue to reduce peri-op seizure risk; review interaction effects on sedatives and neuromuscular blockers.';
+      }
+      if (cls.indexOf('mao-b inhibitor') !== -1) {
+        return 'Potential interaction with serotonergic/sympathomimetic drugs; coordinate anesthetic medication choices.';
+      }
+      if (cls.indexOf('dopamine d2/d3 agonist') !== -1 || cls.indexOf('parkinson') !== -1 || medName === 'Amantadine') {
+        return 'Continue Parkinson therapy when possible; missed doses can worsen rigidity and airway/respiratory function.';
+      }
+
+      if (cls.indexOf('pde-5 inhibitor') !== -1) {
+        return 'Hypotension risk with nitrates/vasodilators; avoid nitrate coadministration.';
+      }
+      if (cls.indexOf('antiarrhythmic') !== -1 || cls.indexOf('class i') !== -1 || cls.indexOf('class iii') !== -1) {
+        return 'Arrhythmia/conduction effects may interact with anesthetic drugs; monitor rhythm and electrolytes.';
+      }
+
+      if (cls.indexOf('short-acting beta-2 agonist') !== -1 || cls.indexOf('long-acting beta-2 agonist') !== -1 || cls.indexOf('laba') !== -1 || cls.indexOf('saba') !== -1 || cls.indexOf('lama') !== -1 || cls.indexOf('sama') !== -1 || cls.indexOf('leukotriene receptor antagonist') !== -1 || cls.indexOf('inhaled') !== -1 || cls.indexOf('ics') !== -1) {
+        return 'Continue for pulmonary optimization; ensure rescue bronchodilator access when indicated.';
+      }
+      if (cls.indexOf('methylxanthine') !== -1) {
+        return 'Arrhythmia/seizure interaction risk at elevated levels; avoid toxicity and review interacting drugs.';
+      }
+
+      if (cls.indexOf('corticosteroid') !== -1) {
+        return 'Chronic use may cause adrenal suppression; consider stress-dose steroids when clinically indicated.';
+      }
+      if (cls.indexOf('thyroid hormone') !== -1) {
+        return 'Continue DOS in most cases; severe untreated hypo/hyperthyroid physiology increases peri-op risk.';
+      }
+      if (cls.indexOf('thionamide') !== -1 || cls.indexOf('antithyroid') !== -1) {
+        return 'Continue when possible to reduce peri-op thyrotoxic risk.';
+      }
+
+      if (cls.indexOf('tnf-alpha inhibitor') !== -1 || cls.indexOf('biologic') !== -1 || cls.indexOf('dmard') !== -1 || cls.indexOf('immunosuppress') !== -1 || cls.indexOf('janus kinase') !== -1) {
+        return 'Infection/wound-healing and immunosuppression considerations; coordinate peri-op hold/continue plan with prescribing service.';
+      }
+
+      if (cls.indexOf('fluoroquinolone') !== -1 || cls.indexOf('macrolide') !== -1 || cls.indexOf('azole') !== -1) {
+        return 'QT/drug-interaction considerations in higher-risk patients; review concurrent QT-active agents.';
+      }
+      if (cls.indexOf('antibiotic') !== -1 || cls.indexOf('antiviral') !== -1 || cls.indexOf('antifungal') !== -1 || cls.indexOf('antimycobacterial') !== -1) {
+        return 'No routine anesthetic hold rule; account for organ function and major interaction profile when relevant.';
+      }
+
+      if (cls.indexOf('statin') !== -1 || cls.indexOf('hmg-coa reductase inhibitor') !== -1 || cls.indexOf('pcsk9 inhibitor') !== -1 || cls.indexOf('cholesterol absorption inhibitor') !== -1 || cls.indexOf('fibrate') !== -1 || cls.indexOf('lipid-modifying') !== -1) {
+        return 'None.';
+      }
+      if (cls.indexOf('vitamin') !== -1 || cls.indexOf('electrolyte supplement') !== -1 || cls.indexOf('iron supplement') !== -1 || cls.indexOf('fiber supplement') !== -1 || cls.indexOf('laxative') !== -1 || cls.indexOf('mucosal protectant') !== -1 || cls.indexOf('h2 receptor antagonist') !== -1 || cls.indexOf('proton pump inhibitor') !== -1) {
+        return 'None.';
+      }
+      if (ind.indexOf('insomnia') !== -1 || ind.indexOf('anxiety') !== -1 || ind.indexOf('depression') !== -1) {
+        return 'Additive sedative/hemodynamic effects may occur; avoid abrupt discontinuation of chronic psych meds unless specifically indicated.';
+      }
+      return 'None.';
+    }
+
     function showMedInfo(i) {
       var inp = document.getElementById('med-input-' + i);
       if (!inp) return;
@@ -830,6 +1022,7 @@
       var nameEl = document.getElementById('med-info-name');
       var clsEl = document.getElementById('med-info-class');
       var indEl = document.getElementById('med-info-ind');
+      var anesEl = document.getElementById('med-info-anes');
       if (!modal) return;
 
       // Try direct lookup, then try resolving brand→generic
@@ -844,9 +1037,11 @@
       if (info) {
         clsEl.textContent = info.cls;
         indEl.textContent = info.ind;
+        anesEl.textContent = getAnesthesiaConsiderations(resolved, info);
       } else {
         clsEl.textContent = 'No information available';
         indEl.textContent = '—';
+        anesEl.textContent = 'None.';
       }
       modal.style.display = 'flex';
     }
@@ -855,6 +1050,13 @@
       var modal = document.getElementById('med-info-modal');
       if (modal) modal.style.display = 'none';
     }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 'Escape') return;
+      var modal = document.getElementById('med-info-modal');
+      if (!modal || modal.style.display !== 'flex') return;
+      closeMedInfoModal();
+    });
 
     function addMedRow(medValue, otherValue) {
       if (currentMedRow >= 30) return;

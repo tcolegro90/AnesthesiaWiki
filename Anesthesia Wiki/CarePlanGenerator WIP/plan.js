@@ -151,7 +151,7 @@ function validateDoseInput(inputEl) {
 }
 
 var PAIN_OPTIONS = {
-  intraop:  ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Ketamine (sub-dissociative)','Ketamine infusion','Neuraxial (epidural/spinal)','Regional nerve block','Multimodal — see adjuncts','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone'],
+  intraop:  ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Ketamine (sub-dissociative)','Ketamine infusion','Neuraxial (epidural/spinal)','Regional nerve block','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone'],
   postop:   ['Fentanyl PCA','Hydromorphone PCA','Morphine PCA','Oxycodone (oral)','Tramadol','Neuraxial opioids','Regional / nerve block','Non-opioid multimodal'],
   nonopioid:['Acetaminophen IV','Ketorolac','Celecoxib','Ketamine (low-dose)','Dexmedetomidine','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Regional / Nerve Block','Dexamethasone'],
   sedation_bolus: ['Propofol','Ketamine','Dexmedetomidine'],
@@ -163,7 +163,7 @@ var PAIN_COUNTS = { intraop: 0, postop: 0, nonopioid: 0, sedation_bolus: 0, seda
 var PAIN_GROUPS = {
   intraop: {
     'Opioids': ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Neuraxial (epidural/spinal)'],
-    'Non-Opioid Adjuncts': ['Ketamine (sub-dissociative)','Ketamine infusion','Regional nerve block','Multimodal — see adjuncts','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone']
+    'Non-Opioid Adjuncts': ['Ketamine (sub-dissociative)','Ketamine infusion','Regional nerve block','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone']
   }
 };
 

@@ -185,22 +185,6 @@
 
       var pos = s['pat-position'] === 'Other' ? (s['pat-position-other'] || '_') : (s['pat-position'] || '_');
       setText('pr-position', pos);
-      var pressureLabels = [
-        ['pat-pressure-axillary-roll', 'Axillary roll'],
-        ['pat-pressure-occiput', 'Occiput'],
-        ['pat-pressure-eyes', 'Eyes'],
-        ['pat-pressure-ears', 'Ears'],
-        ['pat-pressure-elbows', 'Elbows / ulnar groove'],
-        ['pat-pressure-shoulders', 'Shoulders / scapulae'],
-        ['pat-pressure-sacrum', 'Sacrum / coccyx'],
-        ['pat-pressure-trochanter', 'Greater trochanter'],
-        ['pat-pressure-knees', 'Knees'],
-        ['pat-pressure-fibular-head', 'Fibular head / peroneal nerve'],
-        ['pat-pressure-heels', 'Heels'],
-        ['pat-pressure-toes', 'Toes / feet']
-      ];
-      var pressureVals = pressureLabels.filter(function(x) { return !!s[x[0]]; }).map(function(x) { return x[1]; });
-      setOptionalRow('pr-pressure-points-row', 'pr-pressure-points', pressureVals.join(', '));
       setText('pr-nerve-stim', s['pat-nerve-stim-location'] || 'None');
       var neuroMonRow = document.getElementById('pr-neuro-monitoring-row');
       if (neuroMonRow) neuroMonRow.style.display = s['pat-neuro-monitoring::Yes'] ? 'flex' : 'none';
@@ -729,46 +713,6 @@
       var painVal = String(s['pat-anticipated-pain'] || '').trim();
       setOptionalRow('pr-anticipated-pain-row', 'pr-anticipated-pain', painVal ? painVal + '/10' : '');
 
-      var compLabels = [
-        ['pat-comp-aspiration', 'Aspiration risk'],
-        ['pat-comp-difficult-airway', 'Difficult airway'],
-        ['pat-comp-laryngospasm', 'Laryngospasm'],
-        ['pat-comp-bronchospasm', 'Bronchospasm'],
-        ['pat-comp-hypoxemia', 'Hypoxemia / desaturation'],
-        ['pat-comp-hypotension', 'Hypotension'],
-        ['pat-comp-hypertension', 'Hypertension'],
-        ['pat-comp-arrhythmia', 'Arrhythmia'],
-        ['pat-comp-myocardial-ischemia', 'Myocardial ischemia'],
-        ['pat-comp-major-blood-loss', 'Major blood loss'],
-        ['pat-comp-transfusion', 'Transfusion requirement'],
-        ['pat-comp-pneumothorax', 'Pneumothorax'],
-        ['pat-comp-ponv', 'PONV'],
-        ['pat-comp-emergence-delirium', 'Emergence delirium/agitation'],
-        ['pat-comp-delayed-emergence', 'Delayed emergence'],
-        ['pat-comp-awareness', 'Awareness risk'],
-        ['pat-comp-postop-vent', 'Post-op ventilation need'],
-        ['pat-comp-pain-control', 'Difficult pain control'],
-        ['pat-comp-position-injury', 'Positioning/nerve injury'],
-        ['pat-comp-thromboembolism', 'DVT/PE risk'],
-        ['pat-comp-anaphylaxis', 'Anaphylaxis/allergic reaction']
-      ];
-      var compVals = compLabels.filter(function(x) { return !!s[x[0]]; }).map(function(x) { return x[1]; });
-      if (s['pat-comp-other']) {
-        var otherComp = String(s['pat-comp-other-text'] || '').trim();
-        compVals.push(otherComp ? ('Other: ' + otherComp) : 'Other');
-      }
-      var compRow = document.getElementById('pr-anticipated-complications-row');
-      var compEl = document.getElementById('pr-anticipated-complications');
-      if (compRow && compEl) {
-        if (compVals.length) {
-          compEl.textContent = compVals.join(', ');
-          compRow.style.display = 'block';
-        } else {
-          compRow.style.display = 'none';
-          compEl.textContent = '';
-        }
-      }
-
       var anti = [];
       if (s['tiva-box']) anti.push('TIVA');
       try {
@@ -887,7 +831,7 @@
         ibwVal = s['pat-gender'] === 'M' ? 50 + 2.3 * (refIn2 - 60) : 45.5 + 2.3 * (refIn2 - 60);
       }
       var ibwStr = ibwVal ? Math.round(ibwVal) + ' kg' : null;
-      var tvStr = tvHasValue ? tvMin + ' – ' + tvMax + ' mL' : 'Not entered';
+      var tvStr = tvHasValue ? tvMin + '-' + tvMax + ' mL / kg' : 'Not entered';
       setText('pr-target-tv-plan', ibwStr ? ibwStr + ' / ' + tvStr : tvStr);
       setWarnStyle('pr-target-tv-plan', !tvHasValue);
 

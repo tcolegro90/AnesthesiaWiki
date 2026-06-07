@@ -211,10 +211,15 @@
       container.innerHTML = '';
       antiemeticCount = 0;
       var s = getGlobalState();
+      var raw = s['plan-antiemetic-list'];
       var data = [];
-      try { data = JSON.parse(s['plan-antiemetic-list']) || []; } catch(e) {}
-      if (!Array.isArray(data) || data.length === 0) {
+      // Only apply defaults when the key has never been saved (brand-new plan).
+      // If raw is '[]' the user explicitly cleared the list — respect that.
+      if (raw === undefined || raw === null || raw === '') {
         data = [{ drug: 'Ondansetron', dose: '4' }, { drug: 'Dexamethasone', dose: '4' }];
+      } else {
+        try { data = JSON.parse(raw); } catch(e) {}
+        if (!Array.isArray(data)) data = [];
       }
       data.forEach(function(item) { addAntiemeticRow(item.drug || '', item.dose || '', true); });
       updateAntiemeticOptions();

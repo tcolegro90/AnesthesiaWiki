@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Airway Exam</title>
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    /* Increase spacing and hit area for airway numeric options. */
+    .risk-row > span {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .risk-row > span label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 5px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .risk-row > span input[type="radio"] {
+      margin: 0;
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ── Mobile Option B: side-by-side grid ── */
+    @media (max-width: 600px) {
+      .risk-row {
+        display: grid !important;
+        grid-template-columns: 42% 58%;
+        align-items: center;
+        gap: 4px;
+      }
+      .risk-row > strong {
+        font-size: 0.85rem;
+        line-height: 1.25;
+      }
+      .risk-row > span {
+        gap: 2px 6px;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+      }
+      .risk-row > span label {
+        font-size: 0.85rem;
+        padding: 3px 4px;
+        white-space: nowrap;
+      }
+      .risk-row > span input[type="radio"] {
+        width: 17px;
+        height: 17px;
+        flex-shrink: 0;
+      }
+      /* "fingerbreadths" hint shown as small subtitle on mobile */
+      .rr-hint {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 400;
+        color: #5a7ea0;
+        margin-top: 1px;
+      }
+      /* Atlanto iOS toggle: hide radios, show toggle */
+      #row-atlanto > span { display: none !important; }
+      #atlanto-toggle-wrap { display: flex !important; }
+      /* Dentition: side-by-side grid, select fills right column */
+      #row-dentition {
+        display: grid !important;
+        grid-template-columns: 42% 58%;
+        align-items: center;
+      }
+      #row-dentition > strong { font-size: 0.85rem; line-height: 1.25; }
+      #row-dentition > span { display: block; }
+      #row-dentition select { width: 100% !important; max-width: 100% !important; margin-top: 0 !important; }
+    }
+    @media (min-width: 601px) {
+      .rr-hint { display: none; }
+      #atlanto-toggle-wrap { display: none !important; }
+    }
+
+    /* iOS toggle */
+    #atlanto-toggle-wrap {
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    .ios-toggle {
+      position: relative; width: 50px; height: 28px;
+      cursor: pointer; display: block; flex-shrink: 0;
+    }
+    .ios-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .ios-track {
+      position: absolute; inset: 0;
+      border-radius: 14px; background: #d0d8e4;
+      transition: background 0.2s;
+    }
+    .ios-track::after {
+      content: ''; position: absolute;
+      left: 3px; top: 3px; width: 22px; height: 22px;
+      border-radius: 50%; background: white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      transition: left 0.2s;
+    }
+    .ios-toggle input:checked + .ios-track { background: #c0392b; }
+    .ios-toggle input:checked + .ios-track::after { left: 25px; }
+    .atlanto-state-lbl { font-size: 0.9rem; font-weight: 600; color: #1a365d; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>7. Airway Exam</h1>
+    <div class="nav">
+      <a href="1-Patient-Demographics.html">1 Patient</a><a href="2-Surgery.html">2 Surgery</a><a href="3-Labs-Chemistries.html">3 Labs</a><a href="4-PMH.html">4 PMH</a><a href="5-Prescribed-Medications.html">5 Home Meds</a><a href="6-Preop-History.html">6 Preop Hx</a><a href="7-Airway-Exam.html">7 Airway</a><a href="7b-Extras.html">7b Extras</a><a href="8-Anesthetic-Plan.html">8 Anesthetic Plan</a><a href="8b-APFEL-PONV.html">8b APFEL/PONV</a><a href="9-Fluid-Blood-Plan.html">9 Fluid/Blood</a><a href="10-Vent-Settings.html">10 Vent</a>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:8px;">
+      <div class="risk-row" id="row-mallampati"><strong>Mallampati:</strong> <span><label><input type="radio" name="exam-mallampati" value="1">1</label><label><input type="radio" name="exam-mallampati" value="2">2</label><label><input type="radio" name="exam-mallampati" value="3">3</label><label><input type="radio" name="exam-mallampati" value="4">4</label></span></div>
+      <div class="risk-row" id="row-gap"><strong>Interincisor Dist (fingerbreadths):</strong> <span><label><input type="radio" name="exam-interincisor" value="1">1</label><label><input type="radio" name="exam-interincisor" value="2">2</label><label><input type="radio" name="exam-interincisor" value="3+">3+</label></span></div>
+      <div class="risk-row" id="row-tmd"><strong>Thyromental Dist (fingerbreadths):</strong> <span><label><input type="radio" name="exam-tmd" value="1">1</label><label><input type="radio" name="exam-tmd" value="2">2</label><label><input type="radio" name="exam-tmd" value="3+">3+</label></span></div>
+      <div class="risk-row" id="row-atlanto">
+        <strong>Atlanto-occipital:</strong>
+        <span><label><input type="radio" name="exam-atlanto" value="No limited mobility">No limit</label><label><input type="radio" name="exam-atlanto" value="Limited Mobility">Limited</label></span>
+        <div id="atlanto-toggle-wrap">
+          <label class="ios-toggle">
+            <input type="checkbox" id="atlanto-chk">
+            <span class="ios-track"></span>
+          </label>
+          <span class="atlanto-state-lbl" id="atlanto-lbl">No limit</span>
+        </div>
+      </div>
+      <div class="risk-row" id="row-dentition">
+        <strong>Dentition:</strong>
+        <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="hx-dentition" class="med" style="margin-top:0;width:175px;max-width:100%;">
+            <option value="">Select...</option>
+            <option>Intact</option>
+            <option>Upper dentures</option>
+            <option>Lower dentures</option>
+            <option>Full dentures</option>
+            <option>Veneers</option>
+            <option>Loose teeth</option>
+            <option>Missing / Broken teeth</option>
+            <option>Caps/Crowns</option>
+            <option>Other</option>
+          </select>
+          <input id="hx-dentition-notes" class="long" style="display:none;width:260px;max-width:100%;margin-top:0;" placeholder="Dentition details" />
+        </span>
+      </div>
+    </div>
+  </div>
+  <script src="shared.js"></script>
+  <script>
+    function refreshAirwayAlerts() {
+      const mp = document.querySelector('input[name="exam-mallampati"]:checked');
+      const tmd = document.querySelector('input[name="exam-tmd"]:checked');
+      const gap = document.querySelector('input[name="exam-interincisor"]:checked');
+      const atl = document.querySelector('input[name="exam-atlanto"]:checked');
+
+      document.getElementById('row-mallampati').classList.toggle('alert', mp && Number(mp.value) > 2);
+      document.getElementById('row-tmd').classList.toggle('alert', tmd && Number(tmd.value) < 4);
+      document.getElementById('row-gap').classList.toggle('alert', gap && Number(gap.value) < 4);
+
+      document.getElementById('row-atlanto').classList.toggle('alert', atl && atl.value === 'Limited Mobility');
+      saveState();
+    }
+
+    function syncDentitionUi() {
+      const dentition = document.getElementById('hx-dentition');
+      const notes = document.getElementById('hx-dentition-notes');
+      const showNotes = dentition.value === 'Other';
+      notes.style.display = showNotes ? 'inline-block' : 'none';
+      if (!showNotes) notes.value = '';
+      saveState();
+    }
+
+    function syncAtlantoToggle() {
+      var chk = document.getElementById('atlanto-chk');
+      var lbl = document.getElementById('atlanto-lbl');
+      var row = document.getElementById('row-atlanto');
+      var radio = document.querySelector('input[name="exam-atlanto"]:checked');
+      var isLimited = radio && radio.value === 'Limited Mobility';
+      chk.checked = isLimited;
+      lbl.textContent = isLimited ? 'Limited' : 'No limit';
+      row.classList.toggle('alert', isLimited);
+    }
+
+    function boot() {
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', refreshAirwayAlerts));
+      document.getElementById('hx-dentition').addEventListener('change', syncDentitionUi);
+      document.getElementById('hx-dentition-notes').addEventListener('input', saveState);
+
+      // Atlanto iOS toggle (mobile only)
+      document.getElementById('atlanto-chk').addEventListener('change', function() {
+        var val = this.checked ? 'Limited Mobility' : 'No limited mobility';
+        document.querySelectorAll('input[name="exam-atlanto"]').forEach(function(r) {
+          r.checked = r.value === val;
+        });
+        syncAtlantoToggle();
+        refreshAirwayAlerts();
+      });
+      // Keep toggle in sync when radios change (desktop)
+      document.querySelectorAll('input[name="exam-atlanto"]').forEach(function(r) {
+        r.addEventListener('change', syncAtlantoToggle);
+      });
+
+      refreshAirwayAlerts();
+      syncDentitionUi();
+      syncAtlantoToggle();
+    }
+    pageBoot(boot);
+  </script>
+
+<style>
+.global-home-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.32);
+}
+.global-home-btn:active {
+  transform: translateY(0);
+}
+</style>
+<script>
+(function () {
+  if (window.self !== window.top) return;
+  var path = window.location.pathname;
+  var depth = path.split("/").filter(Boolean).length;
+  var base = "";
+  for (var i = 1; i < depth; i++) { base += "../"; }
+  var a = document.createElement("a");
+  a.className = "global-home-btn";
+  a.href = base + "AnesthesiaWiki.html";
+  a.textContent = "Home";
+  a.setAttribute("aria-label", "Go to Home");
+  document.body.appendChild(a);
+})();
+</script>
+</body>
+</html>

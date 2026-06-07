@@ -45,6 +45,60 @@
       font-weight: 700;
     }
     .row-remove-btn:hover { background: #ffe6e6; border-color: #d68f8f; }
+    .pmh-info-btn {
+      border: 1px solid #8eaed6;
+      background: #f0f6ff;
+      color: #1f4f85;
+      font-weight: 700;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      line-height: 18px;
+      text-align: center;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0;
+    }
+    .pmh-info-btn:hover { background: #e4efff; border-color: #6e96c8; }
+    .pmh-info-btn-inline {
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .pmh-info-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,18,32,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 12000;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+    .pmh-info-modal-box {
+      background: #fff;
+      border-radius: 10px;
+      width: min(640px, 100%);
+      max-height: 82vh;
+      overflow: auto;
+      box-shadow: 0 18px 42px rgba(0,0,0,0.22);
+      border: 1px solid #d9e2ef;
+      padding: 16px 18px 14px;
+      position: relative;
+    }
+    .pmh-info-modal-close {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #888;
+      line-height: 1;
+    }
+    .pmh-info-modal-close:hover { color: #222; }
     @media (max-width: 600px) {
       .pmh-row input { max-width: none !important; }
     }
@@ -131,6 +185,20 @@
         <label class="surgical-history-title">Past Surgical History</label>
         <div id="psh-list" class="pmh-list"></div>
         <button type="button" class="add-row-btn" onclick="addPshRow()">+ Add more</button>
+      </div>
+    </div>
+
+    <!-- PMH info modal -->
+    <div id="pmh-info-modal" class="pmh-info-modal-overlay" onclick="if(event.target===this)closePmhInfoModal()">
+      <div class="pmh-info-modal-box">
+        <button class="pmh-info-modal-close" onclick="closePmhInfoModal()" aria-label="Close">&times;</button>
+        <h3 id="pmh-info-name" style="margin:0 0 12px;color:#1a4f82;font-size:17px;padding-right:24px;"></h3>
+        <table style="border-collapse:collapse;width:100%;">
+          <tr>
+            <td style="padding:6px 10px 6px 0;font-weight:700;color:#2b3f59;vertical-align:top;white-space:nowrap;font-size:13px;">Anesthesia Considerations</td>
+            <td id="pmh-info-anes" style="padding:6px 0 6px 8px;color:#333;font-size:13px;"></td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>
@@ -343,6 +411,117 @@
     var PMH_ABBREVS = {
       'ms': 'Multiple Sclerosis'
     };
+
+    function normalizePmhInfoKey(text) {
+      return String(text || '').toLowerCase().replace(/[^a-z0-9/+ ]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function getPmhAnesConsiderations(item) {
+      var raw = String(item || '').trim();
+      if (!raw) return 'None.';
+      var key = normalizePmhInfoKey(raw);
+
+      var exact = {
+        'htn': 'Potential peri-op BP lability; optimize control and monitor hemodynamics.',
+        'hypertension': 'Potential peri-op BP lability; optimize control and monitor hemodynamics.',
+        'hld': 'None.',
+        'hyperlipidemia': 'None.',
+        'gerd': 'Aspiration-risk context; consider reflux/aspiration precautions when indicated.',
+        'dm': 'Peri-op glucose management is key; avoid hypo/hyperglycemia and adjust diabetes meds for NPO status.',
+        'diabetes': 'Peri-op glucose management is key; avoid hypo/hyperglycemia and adjust diabetes meds for NPO status.',
+        'a fib': 'Rate/rhythm and anticoagulation status affect peri-op plan; monitor rhythm and bleeding risk context.',
+        'afib': 'Rate/rhythm and anticoagulation status affect peri-op plan; monitor rhythm and bleeding risk context.',
+        'cad': 'Ischemic risk context; optimize hemodynamics and continue indicated cardioprotective meds when appropriate.',
+        'chf': 'Higher peri-op cardiopulmonary risk; avoid fluid overload and monitor hemodynamics closely.',
+        'ckd': 'Drug dosing/fluid/electrolyte considerations; avoid nephrotoxins and monitor renal-sensitive meds.',
+        'copd': 'Higher bronchospasm/respiratory risk; optimize pulmonary status and ventilation strategy.',
+        'asthma': 'Bronchospasm risk; optimize control and ensure rescue bronchodilator availability.',
+        'osa': 'Airway/respiratory depression risk; prioritize opioid-sparing strategy and post-op monitoring.',
+        'obesity': 'Difficult airway/hypoventilation risk and dosing considerations; plan airway and ventilation strategy.',
+        'hypothyroid': 'Severe untreated disease increases peri-op risk; otherwise usually continue thyroid replacement.',
+        'stroke tia': 'Cerebrovascular risk context; avoid major BP swings and assess antithrombotic plan.',
+        'seizures': 'Continue antiseizure meds and avoid triggers; monitor for interactions with anesthetic drugs.',
+        'anemia': 'Lower oxygen reserve/transfusion threshold considerations; optimize and trend hemoglobin.',
+        'liver disease': 'Coagulopathy and altered drug metabolism risk; assess bleeding and dose sensitivity.',
+        'chronic pain': 'Opioid tolerance/hyperalgesia may increase analgesic needs; use multimodal peri-op plan.',
+        'depression': 'Usually continue antidepressants; monitor for serotonergic/QT/hemodynamic interaction contexts.',
+        'anxiety': 'Higher peri-op anxiety and potential chronic benzo/SSRI exposure; tailor anxiolysis and monitoring.',
+        'cancer': 'Treatment-related cardiopulmonary, hematologic, and airway effects may alter peri-op risk.',
+        'myasthenia gravis': 'Major neuromuscular blocker sensitivity/resistance considerations; tailor NMB and reversal strategy.',
+        'parkinson s disease': 'Continue Parkinson meds as close to schedule as possible; missed doses can worsen rigidity/airway function.',
+        'pheochromocytoma': 'High catecholamine/hemodynamic instability risk; requires specialized peri-op planning.',
+        'pulmonary hypertension': 'High RV/hemodynamic risk; avoid hypoxia/hypercarbia/acidosis and maintain RV perfusion.'
+      };
+      if (exact[key]) return exact[key];
+
+      var containsRules = [
+        [/\b(osa|sleep apnea|obesity hypoventilation|ohs)\b/, 'Airway/respiratory depression risk; prioritize opioid-sparing strategy and post-op monitoring.'],
+        [/\b(copd|asthma|bronchiectasis|pulmonary fibrosis|reactive airway)\b/, 'Higher pulmonary complication risk; optimize bronchodilation and ventilation strategy.'],
+        [/\b(chf|heart failure|cardiomyopathy|cad|angina|mi|coronary)\b/, 'Cardiac risk context; avoid hemodynamic instability and optimize myocardial oxygen balance.'],
+        [/\b(afib|atrial fibrillation|arrhythmia|svt|pacemaker|icd)\b/, 'Rhythm/conduction and device considerations may affect peri-op monitoring and management.'],
+        [/\b(ckd|esrd|renal|dialysis)\b/, 'Renal dysfunction affects drug clearance, fluid, and electrolyte strategy.'],
+        [/\b(cirrhosis|hepatitis|liver|nash|nafld)\b/, 'Hepatic dysfunction may increase bleeding risk and alter anesthetic drug metabolism.'],
+        [/\b(diabetes|t1dm|t2dm|dm)\b/, 'Peri-op glucose management is key; adjust diabetes therapy for NPO status.'],
+        [/\b(stroke|tia|cva)\b/, 'Cerebrovascular risk context; avoid major blood-pressure swings peri-op.'],
+        [/\b(seizure|epilepsy)\b/, 'Continue antiseizure therapy and account for interactions with anesthetic medications.'],
+        [/\b(myasthenia gravis)\b/, 'Major neuromuscular blocker sensitivity/resistance considerations; tailor NMB and reversal strategy.'],
+        [/\b(parkinson|parkinsonism)\b/, 'Continue Parkinson meds near schedule; missed doses can worsen rigidity and respiratory function.'],
+        [/\b(pulmonary hypertension)\b/, 'High RV/hemodynamic risk; avoid hypoxia, hypercarbia, and acidosis.'],
+        [/\b(anemia|sickle|thalassemia|coagulopathy|hemophilia|von willebrand|thrombocytopenia)\b/, 'Hematologic reserve/bleeding considerations may alter transfusion and neuraxial planning.'],
+        [/\b(chronic pain|opioid|substance use|alcohol use disorder)\b/, 'Tolerance/withdrawal and analgesic complexity may require multimodal peri-op planning.'],
+        [/\b(cancer|malignancy|chemotherapy|radiation)\b/, 'Treatment-related cardiopulmonary, hematologic, and airway effects may alter peri-op risk.'],
+        [/\b(obesity)\b/, 'Difficult airway/hypoventilation risk and dosing considerations; plan airway and ventilation strategy.'],
+        [/\b(gerd|reflux|gastroparesis)\b/, 'Aspiration-risk context; consider reflux/aspiration precautions when indicated.']
+      ];
+      for (var i = 0; i < containsRules.length; i++) {
+        if (containsRules[i][0].test(key)) return containsRules[i][1];
+      }
+      return 'None.';
+    }
+
+    function showPmhInfo(itemText) {
+      var name = String(itemText || '').trim();
+      if (!name) return;
+      var modal = document.getElementById('pmh-info-modal');
+      var nameEl = document.getElementById('pmh-info-name');
+      var anesEl = document.getElementById('pmh-info-anes');
+      if (!modal || !nameEl || !anesEl) return;
+      nameEl.textContent = name;
+      anesEl.textContent = getPmhAnesConsiderations(name);
+      modal.style.display = 'flex';
+    }
+
+    function closePmhInfoModal() {
+      var modal = document.getElementById('pmh-info-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 'Escape') return;
+      var modal = document.getElementById('pmh-info-modal');
+      if (!modal || modal.style.display !== 'flex') return;
+      closePmhInfoModal();
+    });
+
+    function enhancePmhCheckboxInfoButtons() {
+      var labels = Array.from(document.querySelectorAll('.pmh-checkbox-grid label'));
+      labels.forEach(function(label) {
+        if (label.querySelector('.pmh-info-btn-inline')) return;
+        var text = label.textContent.replace(/\s+/g, ' ').trim();
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pmh-info-btn pmh-info-btn-inline';
+        btn.textContent = '?';
+        btn.title = 'PMH anesthesia info';
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          showPmhInfo(text);
+        });
+        label.appendChild(btn);
+      });
+    }
+
     function expandPmhAbbrev(input) {
       var v = input.value.trim().toLowerCase();
       if (PMH_ABBREVS[v]) { input.value = PMH_ABBREVS[v]; savePmhRows(); }
@@ -380,6 +559,17 @@
         addPmhFromInput(input);
       });
 
+      var infoBtn = document.createElement('button');
+      infoBtn.type = 'button';
+      infoBtn.className = 'pmh-info-btn';
+      infoBtn.textContent = '?';
+      infoBtn.title = 'PMH anesthesia info';
+      infoBtn.addEventListener('click', function() {
+        var val = String(input.value || '').trim();
+        if (!val) return;
+        showPmhInfo(val);
+      });
+
       var rm = document.createElement('button');
       rm.type = 'button';
       rm.className = 'row-remove-btn';
@@ -390,6 +580,7 @@
         savePmhRows();
       };
 
+      row.appendChild(infoBtn);
       row.appendChild(input);
       row.appendChild(rm);
       document.getElementById('pmh-list').appendChild(row);
@@ -492,9 +683,11 @@
     }
 
     pageBoot(function() {
+      enhancePmhCheckboxInfoButtons();
       restorePmhRows();
       restoreSurgicalHistory();
     }, function() {
+      enhancePmhCheckboxInfoButtons();
       // Don't wipe a row the user is actively typing in
       var active = document.activeElement;
       if (!active || !active.closest('#pmh-list')) restorePmhRows();

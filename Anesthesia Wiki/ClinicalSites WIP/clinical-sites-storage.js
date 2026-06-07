@@ -30,6 +30,33 @@ function buildSyncPayload(savedAtIso) {
     };
 }
 
+function buildSaveHistorySummary() {
+    var summary = [];
+    if (typeof SITES === 'undefined' || !Array.isArray(SITES)) return summary;
+    SITES.forEach(function(site) {
+        var siteEntry = { site: site.label || site.id, crnas: [], mdas: [], surgeons: [] };
+        var crnaCount = parseInt(appData[countId(site.id, 'preceptor')], 10) || 0;
+        for (var i = 0; i < crnaCount; i++) {
+            var name = String(appData[fieldId(site.id, 'preceptor', 'name', i)] || '').trim();
+            if (name) siteEntry.crnas.push(name);
+        }
+        var mdaCount = parseInt(appData[countId(site.id, 'anesthesiologist')], 10) || 0;
+        for (var j = 0; j < mdaCount; j++) {
+            var mdaName = String(appData[fieldId(site.id, 'anesthesiologist', 'name', j)] || '').trim();
+            if (mdaName) siteEntry.mdas.push(mdaName);
+        }
+        var surgCount = parseInt(appData[countId(site.id, 'surgeon')], 10) || 0;
+        for (var k = 0; k < surgCount; k++) {
+            var surgName = String(appData[fieldId(site.id, 'surgeon', 'name', k)] || '').trim();
+            if (surgName) siteEntry.surgeons.push(surgName);
+        }
+        if (siteEntry.crnas.length || siteEntry.mdas.length || siteEntry.surgeons.length) {
+            summary.push(siteEntry);
+        }
+    });
+    return summary;
+}
+
 function rememberCloudSavedAt(payload) {
     clinicalSitesLastCloudSavedAt = String((payload && payload.savedAt) || '');
 }
@@ -133,6 +160,15 @@ async function saveAll() {
         await window.clinicalSitesCloud.saveSharedData(payload);
         rememberCloudSavedAt(payload);
         setStatusMessage('Saved locally + cloud ' + localStamp);
+        if (typeof window.clinicalSitesCloud.logSaveHistory === 'function') {
+            var authUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+            window.clinicalSitesCloud.logSaveHistory({
+                savedAt: savedAt,
+                savedBy: authUser ? (authUser.email || '') : '',
+                savedByName: authUser ? (authUser.displayName || '') : '',
+                sites: buildSaveHistorySummary()
+            });
+        }
     } catch (e) {
         var details = (e && e.message) ? (': ' + e.message) : '';
         setStatusMessage('Saved locally ' + localStamp + ' (cloud sync failed' + details + ')', { sticky: true });

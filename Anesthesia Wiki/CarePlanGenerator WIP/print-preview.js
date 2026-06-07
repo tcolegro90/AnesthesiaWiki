@@ -203,14 +203,16 @@
         '.spp-check{position:absolute;opacity:0;pointer-events:none;}',
         '.spp-bubble{width:16px;height:16px;border-radius:50%;border:2px solid #d09060;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;font-size:9px;font-weight:700;line-height:1;color:#fff;}',
         '.spp-check:checked + .spp-bubble{border-color:#c06030;background:#c06030;}',
+        '.spp-body{display:flex;align-items:center;gap:6px;flex:1;min-width:0;}',
+        '.spp-mainline{display:flex;align-items:center;gap:6px;flex:1;min-width:0;}',
+        '.spp-metaline{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;white-space:nowrap;}',
         '.spp-inittime{display:flex;align-items:center;gap:3px;flex-shrink:0;}',
         '.spp-initials{font-size:.82rem;font-weight:700;color:#3d1a08;}',
         '.spp-timepill{font-size:.78rem;color:#a06840;background:#fdeedd;border-radius:5px;padding:1px 5px;white-space:nowrap;}',
         '.spp-surgname{font-size:.82rem;color:#3d1a08;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-        '.spp-savedat{font-size:.72rem;color:#b08060;margin-left:auto;flex-shrink:0;white-space:nowrap;padding-left:6px;}',
-        '.spp-updatedat{font-size:.68rem;color:#c8a080;flex-shrink:0;white-space:nowrap;padding-left:4px;font-style:italic;}',
-        '.spp-option .spp-savedat{margin-left:auto;}',
-        '.spp-option .spp-updatedat{margin-left:0;}',
+        '.spp-savedat{font-size:.72rem;color:#b08060;flex-shrink:0;white-space:nowrap;}',
+        '.spp-updatedat{font-size:.68rem;color:#c8a080;flex-shrink:0;white-space:nowrap;font-style:italic;}',
+        '@media (max-width:700px){.spp-dialog{max-width:calc(100vw - 18px);max-height:min(88vh,860px);}.spp-overlay{padding:9px;align-items:flex-start;}.spp-option{align-items:flex-start;padding:9px 8px;}.spp-body{display:block;}.spp-mainline{display:flex;align-items:flex-start;gap:6px;}.spp-surgname{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;white-space:normal;line-height:1.25;}.spp-metaline{margin-left:0;margin-top:4px;gap:8px;flex-wrap:wrap;white-space:normal;}.spp-savedat,.spp-updatedat{font-size:.7rem;line-height:1.2;}}',
         '.spp-archive-header{display:flex;align-items:center;gap:6px;padding:7px 8px;background:#fff0e0;border:1px solid #e8d0b8;border-radius:9px;cursor:pointer;user-select:none;font-size:.77rem;font-weight:700;color:#7a3a10;margin-top:6px;}',
         '.spp-archive-header:hover{background:#ffe8d0;}',
         '.spp-archive-chevron{display:inline-block;transition:transform .15s;}',
@@ -330,13 +332,19 @@
           row.innerHTML =
             '<input type="checkbox" class="spp-check"' + (checked ? ' checked' : '') + '>' +
             '<span class="spp-bubble"></span>' +
-            '<span class="spp-inittime">' +
-              '<span class="spp-initials"></span>' +
-              (parsed.time ? '<span class="spp-timepill"></span>' : '') +
-            '</span>' +
-            '<span class="spp-surgname"></span>' +
-            (_surgDateStr ? '<span class="spp-savedat"></span>' : '') +
-            (_updatedStr ? '<span class="spp-updatedat"></span>' : '');
+            '<span class="spp-body">' +
+              '<span class="spp-mainline">' +
+                '<span class="spp-inittime">' +
+                  '<span class="spp-initials"></span>' +
+                  (parsed.time ? '<span class="spp-timepill"></span>' : '') +
+                '</span>' +
+                '<span class="spp-surgname"></span>' +
+              '</span>' +
+              '<span class="spp-metaline">' +
+                (_surgDateStr ? '<span class="spp-savedat"></span>' : '') +
+                (_updatedStr ? '<span class="spp-updatedat"></span>' : '') +
+              '</span>' +
+            '</span>';
           row.querySelector('.spp-initials').textContent = parsed.initials;
           var tp = row.querySelector('.spp-timepill');
           if (tp) tp.textContent = parsed.time;
@@ -402,6 +410,7 @@
         }, 0);
 
         // Render upcoming groups (tomorrow, Monday, etc.) sorted chronologically — future first
+        var _futureUi = [];
         var _tomorrowMidnight = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() + 1);
         var _futureDateStrs = Object.keys(_futureGroups).sort(function(a, b) {
           return _futureGroups[b].date - _futureGroups[a].date;
@@ -430,6 +439,7 @@
             rows.push(row);
             list.appendChild(row);
           });
+          _futureUi.push({ hdr: hdr, rows: rows });
         });
 
         // Render today group (after future)
@@ -655,9 +665,11 @@
               _todayRows.forEach(function(r) {
                 r.style.display = (_todayHdr && _todayHdr.classList.contains('spp-collapsed')) ? 'none' : '';
               });
-              if (_tomorrowHdr) _tomorrowHdr.style.display = '';
-              _tomorrowRows.forEach(function(r) {
-                r.style.display = (_tomorrowHdr && _tomorrowHdr.classList.contains('spp-collapsed')) ? 'none' : '';
+              _futureUi.forEach(function(group) {
+                if (group.hdr) group.hdr.style.display = '';
+                group.rows.forEach(function(r) {
+                  r.style.display = (group.hdr && group.hdr.classList.contains('spp-collapsed')) ? 'none' : '';
+                });
               });
               if (_archiveHdr) {
                 _archiveHdr.style.display = '';
@@ -669,7 +681,9 @@
             } else {
               // Search mode: hide group headers, show/hide rows by match
               if (_todayHdr) _todayHdr.style.display = 'none';
-              if (_tomorrowHdr) _tomorrowHdr.style.display = 'none';
+              _futureUi.forEach(function(group) {
+                if (group.hdr) group.hdr.style.display = 'none';
+              });
               if (_archiveHdr) _archiveHdr.style.display = 'none';
               _archiveMonthHdrs.forEach(function(h) { h.style.display = 'none'; });
               _archiveFolderHdrs.forEach(function(h) { h.style.display = 'none'; });

@@ -13,6 +13,7 @@
 - WIP is a sibling of the live folder (e.g. `CarePlanGenerator WIP/` next to `CarePlanGenerator/`)
 - Backups save to `Anesthesia Tools/Backups/[ToolName]/` — outside `Anesthesia Wiki/`, never uploaded to server
 - When pushing live: copy WIP → live, save backup, **keep WIP** (do not delete it)
+- When pushing live (CPG/Typhon/ClinicalSites): keep the exact same numeric version as WIP, but remove any visible WIP marker from live output (header text and any `?v=` params if a WIP token appears there)
 - NEVER push live without explicit approval ("push live", "approve", "copy to live")
 - Only `Anesthesia Wiki/` gets uploaded to the server (not all of `Anesthesia Tools/`)
 
@@ -53,7 +54,13 @@
 - When pushed live, add a banner line: `━━━ PUSHED LIVE — vX.XX | [Date] ━━━`
 - New preferences → always ask user if they want them added to `preferences.md`
 
+## Reporting Workflow
+- Standing CPG admin reporting spec: `VS Code Preferences/reporting-cpg-admin.md`
+- Run as a single combined report with both all-time and last-30-days sections
+- Include raw curation lists (PMH, unknown home meds, past surgeries) plus analytics (unique users, plans generated, other app usage)
+
 ## Backup Folder Locations
 - `Anesthesia Tools/Backups/CarePlanGenerator/`
 - `Anesthesia Tools/Backups/Typhon Helper/`
 - `Anesthesia Tools/Backups/ClinicalSites/`
+- Enforcement rule: never store backups in `Anesthesia Wiki/Backups/`; if anything lands there, move it immediately to `Anesthesia Tools/Backups/`

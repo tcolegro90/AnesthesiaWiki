@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Combined Care Plan (All 8 Sections)</title>
-  <link rel="stylesheet" href="combined.css?v=3.006">
+  <link rel="stylesheet" href="combined.css?v=3.017">
 </head>
 <body>
 <!-- Auth gate: covers the entire app until sign-in is confirmed -->
@@ -137,7 +137,6 @@
         <div class="print-section" id="ps-preop">
           <h3>Preop &amp; Airway</h3>
           <div class="print-row" id="pr-row-position"><span>Positioning:</span><span id="pr-position">_</span></div>
-          <div class="print-row" id="pr-pressure-points-row" style="display:none;"><span>Pressure Pts:</span><span id="pr-pressure-points">_</span></div>
           <div class="print-row" id="pr-row-nerve-stim"><span>Nerve Stim:</span><span id="pr-nerve-stim">_</span></div>
           <div class="print-row" id="pr-antibiotic-plan-row" style="display:none;"><span>Antibiotic:</span><span id="pr-antibiotic-plan">_</span></div>
           <div class="print-row" id="pr-interpreter-alert-row" style="display:none;color:#c41c3b;font-weight:bold;"><span></span><span id="pr-interpreter-alert-text">_</span></div>
@@ -160,7 +159,7 @@
             <div class="print-row" id="pr-vent-mode-row" style="display:none;"><span>Vent mode:</span><span id="pr-vent-mode">_</span></div>
             <div class="print-row" id="pr-vent-main-row" style="display:none;"><span>Settings:</span><span id="pr-vent-main">_</span></div>
             <div class="print-row" id="pr-vent-rest-row" style="display:none;"><span></span><span id="pr-vent-rest">_</span></div>
-            <div class="print-row"><span>IBW / Target TV:</span><span id="pr-target-tv-plan">_</span></div>
+            <div class="print-row"><span>IBW / Suggested TV:</span><span id="pr-target-tv-plan">_</span></div>
           </div>
           <div id="pr-extras-section" style="display:none;margin-top:6px;border-top:1px dotted #ccc;padding-top:4px;">
             <div class="print-row"><span style="font-weight:bold;">Extras:</span><span id="pr-extras-list" style="white-space:normal;text-align:left;flex:1;">_</span></div>
@@ -203,10 +202,6 @@
             <div class="print-row"><span>mL/hr 1–4+:</span><span id="pr-fluid-hrs">_</span></div>
             <div class="print-row"><span>EBV / ABL:</span><span id="pr-ebv-abl">_</span></div>
             <div class="print-row" id="pr-anticipated-ebl-row" style="display:none;"><span>Anticip EBL:</span><span id="pr-anticipated-ebl" style="white-space:nowrap;">_</span></div>
-          </div>
-          <div id="pr-anticipated-complications-row" style="display:none;margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
-            <div style="font-size:6.2pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#444;margin-bottom:2px;">Anticipated Complications</div>
-            <div id="pr-anticipated-complications" style="font-size:6.4pt;line-height:1.35;white-space:pre-wrap;word-break:break-word;"></div>
           </div>
           <div id="pr-notes-section" style="display:none;margin-top:4px;border-top:1px dotted #ccc;padding-top:3px;">
             <div style="font-size:6.2pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#444;margin-bottom:2px;">Notes</div>
@@ -265,7 +260,7 @@
       <div id="desk-topbar-top">
         <div id="desk-topbar-title-wrap">
           <span id="desk-topbar-title">Anesthetic Care Plan</span>
-          <span style="font-size:0.72rem;font-weight:400;color:#8aa0b8;margin-left:6px;vertical-align:middle;">v3.006 — WIP</span>
+          <span style="font-size:0.72rem;font-weight:400;color:#8aa0b8;margin-left:6px;vertical-align:middle;">v3.019 — WIP</span>
           <span id="desk-topbar-patient"></span>
           <span id="topbar-flash" style="display:none;"></span>
         </div>
@@ -297,7 +292,7 @@
       <button type="button" class="action-btn action-btn-danger" onclick="clearAllData()">Clear current care plan</button>
     </div>
 
-    <div id="sec-2" class="section"><h2>Surgery</h2><iframe id="frame-2" src="2-Surgery.html?v=3.006" title="Section 2"></iframe></div>
+    <div id="sec-2" class="section"><h2>Surgery</h2><iframe id="frame-2" src="2-Surgery.html?v=3.017" title="Section 2"></iframe></div>
     <div id="sec-1" class="section"><h2>Patient</h2><iframe id="frame-1" src="1-Patient-Demographics.html" title="Section 1"></iframe></div>
     <div id="sec-3" class="section"><h2>Past Medical History</h2><iframe id="frame-3" src="4-PMH.html" title="Section 3"></iframe></div>
     <div id="sec-4" class="section"><h2>Home Meds</h2><iframe id="frame-4" src="5-Prescribed-Medications.html" title="Section 4"></iframe></div>
@@ -347,10 +342,10 @@
       }
     })();
   </script>
-  <script src="combined.js?v=3.006"></script>
+  <script src="combined.js?v=3.017"></script>
   <script src="print-card.js?v=3.001"></script>
-  <script src="email-plan.js?v=3.006"></script>
-  <script src="print-preview.js?v=3.006"></script>
+  <script src="email-plan.js?v=3.017"></script>
+  <script src="print-preview.js?v=3.019"></script>
   <script>
     var noteRowCount = 0;
 

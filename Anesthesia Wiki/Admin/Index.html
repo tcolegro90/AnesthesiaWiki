@@ -239,6 +239,21 @@
 
       <div id="status-banner"></div>
 
+      <div class="card">
+        <h2>Usage Reporting</h2>
+        <div style="font-size:0.88rem;color:#5a6e82;margin-bottom:10px;">Open the usage reports (admin-only) for CPG update candidates and app metrics.</div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+          <div style="border:1px solid var(--line);border-radius:10px;padding:10px;background:#fbfdff;">
+            <div style="font-size:0.82rem;font-weight:700;color:#4a5e72;margin-bottom:8px;">Live</div>
+            <a class="btn-primary" href="UsageReport.html" style="text-decoration:none;display:inline-block;">Open Live Report</a>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:10px;padding:10px;background:#fbfdff;">
+            <div style="font-size:0.82rem;font-weight:700;color:#4a5e72;margin-bottom:8px;">WIP</div>
+            <a class="btn-primary" href="UsageReportWIP.html" style="text-decoration:none;display:inline-block;background:#b8860b;">Open WIP Report</a>
+          </div>
+        </div>
+      </div>
+
       <!-- Add user -->
       <div class="card">
         <h2>➕ Grant Access</h2>
@@ -346,8 +361,7 @@
       } else {
         if (nameEl) nameEl.textContent = '';
         if (btn) { btn.textContent = 'Log in'; btn.onclick = function () { firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); }; }
-        document.getElementById('loading-msg').style.display = 'none';
-        document.getElementById('access-denied').style.display = 'block';
+        window.location.replace('../AnesthesiaWiki.html');
       }
     });
 
@@ -355,18 +369,17 @@
       db.collection('userRoles').doc(user.email).get()
         .then(function (doc) {
           var role = doc.exists ? doc.data().role : 'non-student';
-          document.getElementById('loading-msg').style.display = 'none';
           if (role === 'admin') {
+            document.getElementById('loading-msg').style.display = 'none';
             document.getElementById('admin-panel').style.display = 'block';
             loadUsers();
             loadRequests();
           } else {
-            document.getElementById('access-denied').style.display = 'block';
+            window.location.replace('../AnesthesiaWiki.html');
           }
         })
         .catch(function () {
-          document.getElementById('loading-msg').style.display = 'none';
-          document.getElementById('access-denied').style.display = 'block';
+          window.location.replace('../AnesthesiaWiki.html');
         });
     }
 

@@ -124,12 +124,23 @@
         });
     }
 
+    async function logSaveHistory(entry) {
+        var ready = await ensureReady();
+        if (!ready || !state.db) return;
+        try {
+            await state.db.collection('clinicalSitesSaveHistory').add(clone(entry));
+        } catch (e) {
+            // non-critical, ignore
+        }
+    }
+
     global.clinicalSitesCloud = {
         isEnabled: hasConfig,
         getStatus: statusMessage,
         ensureReady: ensureReady,
         loadSharedData: loadSharedData,
         saveSharedData: saveSharedData,
-        subscribeSharedData: subscribeSharedData
+        subscribeSharedData: subscribeSharedData,
+        logSaveHistory: logSaveHistory
     };
 })(window);
