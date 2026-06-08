@@ -458,6 +458,9 @@
       s['pat-ibw'] = ibw.toFixed(1);
       s['pat-tv-min'] = tvMin;
       s['pat-tv-max'] = tvMax;
+      if ((s['vent-tv-auto8'] || '').toLowerCase() === 'yes') {
+        s['vent-tv'] = String(Math.round(ibw * 8));
+      }
       setGlobalState(s);
     }
 

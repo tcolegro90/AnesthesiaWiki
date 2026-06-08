@@ -220,14 +220,14 @@ function painRowDoseSpec(type, drug) {
       'Dexamethasone':       { min: 4,    max: 10,   unit: 'mg',        perKg: false }
     },
     sedation_bolus: {
-      'Propofol':        { min: 0.5, max: 2.0, unit: 'mg/kg',   perKg: false },
-      'Ketamine':        { min: 0.1, max: 0.5, unit: 'mg/kg',   perKg: false },
-      'Dexmedetomidine': { min: 0.5, max: 1.0, unit: 'mcg/kg',  perKg: false }
+      'Propofol':        { min: 0.5, max: 2.0, unit: 'mg',      perKg: true  },
+      'Ketamine':        { min: 0.1, max: 0.5, unit: 'mg',      perKg: true  },
+      'Dexmedetomidine': { min: 0.5, max: 1.0, unit: 'mcg',     perKg: true  }
     },
     sedation_drips: {
-      'Propofol Drip':        { min: 50,  max: 150, unit: 'mcg/kg/min', perKg: false },
-      'Ketamine Drip':        { min: 0.1, max: 0.5, unit: 'mg/kg/hr',   perKg: false },
-      'Dexmedetomidine Drip': { min: 0.2, max: 1.5, unit: 'mcg/kg/hr',  perKg: false }
+      'Propofol Drip':        { min: 50,  max: 150, unit: 'mcg/min', perKg: true  },
+      'Ketamine Drip':        { min: 0.1, max: 0.5, unit: 'mg/hr',   perKg: true  },
+      'Dexmedetomidine Drip': { min: 0.2, max: 1.5, unit: 'mcg/hr',  perKg: true  }
     },
     vasopressors: {
       'Ephedrine':          { min: 5,    max: 10,   unit: 'mg',          perKg: false },

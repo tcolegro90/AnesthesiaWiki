@@ -564,14 +564,86 @@
       if (anes === 'General' && s['tiva-box']) anes = 'General (TIVA)';
       setText('pr-anes-type', anes);
 
+      var isMac = (anes === 'MAC');
+
       var tivaRow = document.getElementById('pr-tiva-row');
-      if (s['tiva-box']) {
+      if (!isMac && s['tiva-box']) {
         tivaRow.style.display = 'flex';
         var tr = s['tiva-reason'] || '_';
         if (tr === 'Other') tr = s['tiva-other'] || 'Other';
         setText('pr-tiva-reason', tr);
       } else {
         tivaRow.style.display = 'none';
+      }
+
+      // MAC: hide GA-only rows; show MAC-specific rows
+      var gaOnlyRows = ['pr-airway-row','pr-extubation-row','pr-anx-row','pr-ind-row','pr-blunt-row','pr-vesicant-row','pr-nmb-row','pr-inhal-row'];
+      gaOnlyRows.forEach(function(rowId) {
+        var rowEl = document.getElementById(rowId);
+        if (rowEl) rowEl.style.display = isMac ? 'none' : '';
+      });
+
+      if (isMac) {
+        // O2 delivery
+        var macO2 = (s['mac-oxygen-delivery'] || '').trim();
+        var macO2El = document.getElementById('pr-mac-o2-row');
+        if (macO2El) macO2El.style.display = macO2 ? '' : 'none';
+        setText('pr-mac-o2', macO2);
+
+        // Airway adjunct (hide if None or empty)
+        var macAdj = (s['mac-airway-adjunct'] || '').trim();
+        var macAdjEl = document.getElementById('pr-mac-adjunct-row');
+        if (macAdjEl) macAdjEl.style.display = (macAdj && macAdj !== 'None') ? '' : 'none';
+        setText('pr-mac-adjunct', macAdj);
+
+        // MAC anxiolytic
+        var macAnxYes = !!s['mac-anxiolytic-yn::Yes'];
+        var macAnxEl = document.getElementById('pr-mac-anxiolytic-row');
+        if (macAnxEl) macAnxEl.style.display = macAnxYes ? '' : 'none';
+        if (macAnxYes) {
+          var macAnxUnit = getDrugUnit(s['mac-anxiolytic-select'], 'anxiolytic');
+          setText('pr-mac-anxiolytic', (s['mac-anxiolytic-select'] || 'Anxiolytic') + (s['mac-anxiolytic-dose'] ? ' (' + s['mac-anxiolytic-dose'] + ' ' + macAnxUnit + ')' : ''));
+        }
+
+        // Sedation bolus
+        var macBolusUnitMap = { 'Propofol': 'mg', 'Ketamine': 'mg', 'Dexmedetomidine': 'mcg' };
+        var macBolusList = [];
+        try {
+          var bolusData = JSON.parse(s['plan-sedation_bolus-list'] || '[]') || [];
+          macBolusList = bolusData.map(function(x) {
+            var drug = typeof x === 'string' ? x : (x.drug || '');
+            var dose = typeof x === 'object' ? (x.dose || '') : '';
+            if (!drug) return '';
+            var unit = macBolusUnitMap[drug] || 'mg';
+            return drug + (dose ? ' (' + dose + ' ' + unit + ')' : '');
+          }).filter(Boolean);
+        } catch(e) {}
+        var macBolusEl = document.getElementById('pr-mac-sed-bolus-row');
+        if (macBolusEl) macBolusEl.style.display = macBolusList.length ? '' : 'none';
+        setLines('pr-mac-sed-bolus', macBolusList);
+
+        // Sedation drips
+        var macDripsUnitMap = { 'Propofol Drip': 'mcg/kg/min', 'Ketamine Drip': 'mg/kg/hr', 'Dexmedetomidine Drip': 'mcg/kg/hr' };
+        var macDripsList = [];
+        try {
+          var dripsData = JSON.parse(s['plan-sedation_drips-list'] || '[]') || [];
+          macDripsList = dripsData.map(function(x) {
+            var drug = typeof x === 'string' ? x : (x.drug || '');
+            var dose = typeof x === 'object' ? (x.dose || '') : '';
+            if (!drug) return '';
+            var unit = macDripsUnitMap[drug] || '';
+            return drug + (dose ? ' (' + dose + (unit ? ' ' + unit : '') + ')' : '');
+          }).filter(Boolean);
+        } catch(e) {}
+        var macDripsEl = document.getElementById('pr-mac-sed-drips-row');
+        if (macDripsEl) macDripsEl.style.display = macDripsList.length ? '' : 'none';
+        setLines('pr-mac-sed-drips', macDripsList);
+      } else {
+        // Hide all MAC-specific rows when not MAC
+        ['pr-mac-o2-row','pr-mac-adjunct-row','pr-mac-anxiolytic-row','pr-mac-sed-bolus-row','pr-mac-sed-drips-row'].forEach(function(rowId) {
+          var rowEl = document.getElementById(rowId);
+          if (rowEl) rowEl.style.display = 'none';
+        });
       }
 
       // Anesthetic plan airway line should show selected airway method and RSI choice.

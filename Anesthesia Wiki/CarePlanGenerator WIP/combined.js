@@ -432,7 +432,7 @@
       catch (e) { return {}; }
     }
 
-    var MAX_SAVED_PLANS = 200;
+    var MAX_SAVED_PLANS = 2000;
 
     function getSavedPlanNamesSorted(plans) {
       plans = plans || {};
@@ -572,19 +572,584 @@
       });
     }
 
+    function buildDefaultPlanName(state, fallbackLabel) {
+      var s = state || {};
+      var nameParts = [
+        s['pat-initials'] || fallbackLabel || 'Patient',
+        s['pat-surg-date'] || 'NoDate',
+        s['pat-sched-surg-time'] || 'NoTime'
+      ];
+      if (s['pat-surg-end-time']) nameParts.push(s['pat-surg-end-time']);
+      nameParts.push(s['pat-surgery'] || 'NoSurgery');
+      return nameParts.join(' | ');
+    }
+
+    function addMinutesToTime(startHHMM, minutesText) {
+      var start = String(startHHMM || '').trim();
+      var m = start.match(/^(\d{2}):(\d{2})$/);
+      if (!m) return '';
+      var hh = parseInt(m[1], 10);
+      var mm = parseInt(m[2], 10);
+      var mins = parseInt(String(minutesText || '').trim(), 10);
+      if (!isFinite(hh) || !isFinite(mm) || !isFinite(mins)) return '';
+      if (hh < 0 || hh > 23 || mm < 0 || mm > 59 || mins < 0) return '';
+
+      var total = (hh * 60) + mm + mins;
+      total = ((total % 1440) + 1440) % 1440;
+      var endH = Math.floor(total / 60);
+      var endM = total % 60;
+      return String(endH).padStart(2, '0') + ':' + String(endM).padStart(2, '0');
+    }
+
+    function buildImportedCaseName(state, fallbackLabel) {
+      var s = state || {};
+      var start = String(s['pat-sched-surg-time'] || '').trim() || 'NoStart';
+      var end = String(s['pat-surg-end-time'] || '').trim() || 'NoEnd';
+      var surgery = String(s['pat-surgery'] || '').trim() || String(fallbackLabel || 'NoProcedure');
+      var roomToken = String(s['pat-or-number'] || '').toUpperCase().replace(/\s+/g, '') || 'CPG';
+      var dateToken = String(s['pat-surg-date'] || '').trim();
+      var startToken = start.replace(':', '');
+      var endToken = end.replace(':', '');
+      return [roomToken, dateToken, startToken, endToken, surgery].join(' | ');
+    }
+
+    function makeUniquePlanName(baseName, plans) {
+      var cleanBase = String(baseName || '').trim() || 'Patient | NoDate | NoTime | NoSurgery';
+      var existing = plans || {};
+      if (!existing[cleanBase]) return cleanBase;
+      var i = 2;
+      var next = cleanBase + ' (' + i + ')';
+      while (existing[next]) {
+        i += 1;
+        next = cleanBase + ' (' + i + ')';
+      }
+      return next;
+    }
+
+    function parseDateFromText(rawText) {
+      var text = String(rawText || '');
+      if (!text) return '';
+
+      var m = text.match(/\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))\b/);
+      if (!m) return '';
+      var mm = parseInt(m[1], 10);
+      var dd = parseInt(m[2], 10);
+      var yyyy = m[3] ? parseInt(m[3], 10) : (new Date()).getFullYear();
+      if (yyyy < 100) yyyy += 2000;
+      if (mm < 1 || mm > 12 || dd < 1 || dd > 31 || yyyy < 2000 || yyyy > 2100) return '';
+      return mm + '/' + dd + '/' + yyyy;
+    }
+
+    function normalizeTimeText(rawTime) {
+      var text = String(rawTime || '').trim().toUpperCase();
+      if (!text) return '';
+
+      var compact = text.replace(/\s+/g, '');
+      var m = compact.match(/^(\d{1,2})(?::?(\d{2}))?(AM|PM)?$/);
+      if (!m) return '';
+
+      var hh = parseInt(m[1], 10);
+      var mm = parseInt(m[2] || '0', 10);
+      var mer = m[3] || '';
+      if (isNaN(hh) || isNaN(mm) || mm < 0 || mm > 59) return '';
+
+      if (mer) {
+        if (hh < 1 || hh > 12) return '';
+        if (mer === 'AM') hh = hh % 12;
+        if (mer === 'PM') hh = (hh % 12) + 12;
+      } else if (hh > 23) {
+        return '';
+      }
+
+      return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+    }
+
+    function parseTimeFromText(rawText) {
+      var text = String(rawText || '');
+      if (!text) return '';
+
+      var withLabel = text.match(/(?:time|start|sx|surg(?:ery)?)\s*[:\-]?\s*([0-2]?\d(?::\d{2})?\s*(?:AM|PM)?)/i);
+      if (withLabel && withLabel[1]) {
+        var normalizedLabeled = normalizeTimeText(withLabel[1]);
+        if (normalizedLabeled) return normalizedLabeled;
+      }
+
+      var generic = text.match(/\b([0-2]?\d(?::\d{2})\s*(?:AM|PM)?)\b/i);
+      if (generic && generic[1]) return normalizeTimeText(generic[1]);
+
+      var compact = text.match(/\b([01]?\d|2[0-3])[0-5]\d\b/);
+      if (compact && compact[0]) return normalizeTimeText(compact[0]);
+
+      return '';
+    }
+
+    function parseAgeFromText(rawText) {
+      var text = String(rawText || '');
+      if (!text) return '';
+
+      var m = text.match(/(?:age|yrs?|yo|y\/o)\s*[:\-]?\s*(\d{1,3})\b/i);
+      if (!m) m = text.match(/\b(\d{1,3})\s*(?:yo|yr|yrs|years?)\b/i);
+      if (!m) return '';
+
+      var age = parseInt(m[1], 10);
+      if (isNaN(age) || age < 0 || age > 120) return '';
+      return String(age);
+    }
+
+    function parseInitialsFromText(rawText) {
+      var text = String(rawText || '');
+      if (!text) return '';
+
+      var yoName = text.match(/\b\d{1,3}\s*y\.?o\.?\s*([A-Z][A-Z'\-]+),\s*([A-Z][A-Z'\-]+)/i);
+      if (yoName && yoName[1] && yoName[2]) {
+        var yoInitials = (yoName[2].charAt(0) + yoName[1].charAt(0)).toUpperCase();
+        if (yoInitials.length === 2) return yoInitials;
+      }
+
+      var labeled = text.match(/(?:initials?|patient|pt)\s*[:\-]?\s*([A-Z][A-Z\.]{1,5})\b/i);
+      if (labeled && labeled[1]) {
+        var cleanedLabeled = String(labeled[1]).toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+        if (cleanedLabeled.length >= 2) return cleanedLabeled;
+      }
+
+      var candidates = text.toUpperCase().match(/\b[A-Z]{2,3}\b/g) || [];
+      var blocked = {
+        AGE: true, OR: true, PMH: true, ASA: true, DOB: true, DOS: true,
+        MRI: true, CT: true, PACU: true, ROOM: true, CASE: true, TIME: true
+      };
+      for (var i = 0; i < candidates.length; i++) {
+        if (!blocked[candidates[i]]) return candidates[i];
+      }
+      return '';
+    }
+
+    function parseSurgeryFromText(rawText, fallbackName) {
+      var text = String(rawText || '').replace(/\r/g, '\n');
+      var lines = text.split('\n').map(function(line) {
+        return String(line || '').trim().replace(/\s+/g, ' ');
+      }).filter(function(line) { return !!line; });
+
+      var surgeryHint = /(procedure|surgery|operation|appendectomy|cholecystectomy|arthro|fusion|repair|revision|scope|biopsy|crani|cesarean|c-section|laminectomy|orif)/i;
+      for (var i = 0; i < lines.length; i++) {
+        var ln = lines[i];
+        if (ln.length < 6 || ln.length > 110) continue;
+        if (/\b(age|dob|mrn|room|or\s*#|time|date)\b/i.test(ln)) continue;
+        if (surgeryHint.test(ln)) return ln;
+      }
+
+      var cleanedFallback = String(fallbackName || '').replace(/\.[^.]+$/, '').replace(/[\-_]+/g, ' ').trim();
+      return cleanedFallback || '';
+    }
+
+    function buildRoomPattern(roomFilter) {
+      var raw = String(roomFilter || '').trim().toUpperCase();
+      if (!raw) return null;
+
+      var m = raw.match(/^(?:OR\s*[-#]?\s*)?(\d{1,2})\b/);
+      if (!m) return null;
+
+      var num = parseInt(m[1], 10);
+      if (!isFinite(num) || num < 0 || num > 99) return null;
+
+      return {
+        number: num,
+        label: 'OR ' + String(num).padStart(2, '0'),
+        regex: new RegExp('\\bOR\\s*[-#]?\\s*0?' + num + '\\b', 'i')
+      };
+    }
+
+    function isValidMilitaryTimeHHMM(token) {
+      var text = String(token || '').trim();
+      if (!/^\d{4}$/.test(text)) return false;
+      var hh = parseInt(text.slice(0, 2), 10);
+      var mm = parseInt(text.slice(2), 10);
+      return hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59;
+    }
+
+    function parseStartTimeFromBoardBlock(blockText) {
+      var tokens = String(blockText || '').match(/\b\d{4}\b/g) || [];
+      for (var i = 0; i < tokens.length; i++) {
+        if (isValidMilitaryTimeHHMM(tokens[i])) {
+          return tokens[i].slice(0, 2) + ':' + tokens[i].slice(2);
+        }
+      }
+      return '';
+    }
+
+    function parseCaseLengthMinutesFromBoardBlock(blockText) {
+      var roomCols = parseRoomColumnsFromBoardBlock(blockText);
+      if (roomCols && roomCols.length) return roomCols.length;
+
+      var flat = String(blockText || '').replace(/\r/g, ' ').replace(/\n/g, ' ');
+      var tokens = flat.match(/\b\d{1,4}\b/g) || [];
+      if (!tokens.length) return '';
+
+      var startIdx = -1;
+      for (var i = 0; i < tokens.length; i++) {
+        if (isValidMilitaryTimeHHMM(tokens[i])) {
+          startIdx = i;
+          break;
+        }
+      }
+
+      if (startIdx === -1 || startIdx + 1 >= tokens.length) return '';
+
+      for (var j = startIdx + 1; j < Math.min(tokens.length, startIdx + 5); j++) {
+        var n = parseInt(tokens[j], 10);
+        if (!isFinite(n)) continue;
+        if (n >= 1 && n <= 1500) return String(n);
+      }
+      return '';
+    }
+
+    function parseRoomColumnsFromBoardBlock(blockText) {
+      var text = String(blockText || '').replace(/\r/g, ' ').replace(/\n/g, ' ').replace(/\s+/g, ' ');
+      var m = text.match(/\b(\d{3,4})\b(.*?)\bOR\s*[-#]?\s*0?(\d{1,2})\b/i);
+      if (!m) return null;
+
+      var startToken = String(m[1] || '');
+      var between = String(m[2] || '');
+      var roomToken = String(m[3] || '');
+      if (!isValidMilitaryTimeHHMM(startToken)) return null;
+
+      // Length column is numeric only; ignore OCR punctuation/noise.
+      var lenToken = between.replace(/[^0-9]/g, '');
+      if (!lenToken) return null;
+      if (lenToken.length > 4) lenToken = lenToken.slice(0, 4);
+      var minutes = parseInt(lenToken, 10);
+      if (!isFinite(minutes) || minutes < 1 || minutes > 1500) return null;
+
+      return {
+        start: startToken.slice(0, 2) + ':' + startToken.slice(2),
+        length: String(minutes),
+        room: 'OR ' + String(parseInt(roomToken, 10)).padStart(2, '0')
+      };
+    }
+
+    function parseAgeFromBoardBlock(blockText) {
+      var text = String(blockText || '');
+      var m = text.match(/\b(\d{1,3})\s*y\.?o\.?\b/i);
+      if (!m) m = text.match(/\b(\d{1,3})\s*(?:yo|yr|yrs|years?)\b/i);
+      if (!m) m = text.match(/\bOR\s*[-#]?\s*\d{1,2}\s+\w*\s*(\d{1,3})\b/i);
+      if (!m) return '';
+      var age = parseInt(m[1], 10);
+      if (!isFinite(age) || age < 0 || age > 120) return '';
+      return String(age);
+    }
+
+    function parseProcedureFromBoardBlock(blockText, fallbackName) {
+      var text = String(blockText || '').replace(/\r/g, '\n');
+      text = text.replace(/direct\s+admit\s+hp\s+by\s+service\s+line/ig, ' ');
+      text = text.replace(/\/\s*direct\s+admit[^\n]*/ig, ' ');
+
+      // Never import equipment/special-needs column content into CPG surgery.
+      var stopAt = [
+        /\bequipment\b/i,
+        /\bspecial\s*needs\b/i,
+        /\bmedtronic\b/i,
+        /\bstryker\b/i,
+        /\bjackson\b/i,
+        /\bneuro\s*monitor(?:ing)?\b/i,
+        /\bservice\s*line\b/i,
+        /\bdirect\s*admit\b/i,
+        /\bneeds\s*post[- ]?op\b/i,
+        /\brequesting\b/i
+      ];
+      var cut = -1;
+      for (var i = 0; i < stopAt.length; i++) {
+        var mStop = text.match(stopAt[i]);
+        if (!mStop || typeof mStop.index !== 'number') continue;
+        if (cut === -1 || mStop.index < cut) cut = mStop.index;
+      }
+      if (cut > 0) text = text.slice(0, cut);
+
+      var procedureStart = /(gastroscopy|egd|esophagogastroduodenoscopy|open|laparoscopic|robotic|excision|resection|fusion|repair|revision|arthro|biopsy|laminectomy|cholecystectomy|appendectomy|crani|c-section|cesarean|cabg|endarterectomy|bronchoscopy|endoscopy|colonoscopy|cystoscopy|hernia|thyroid|parathyroid|hysterectomy|mastectomy|orchiectomy|nephrectomy|lobectomy|tonsillectomy|debridement|fixation|orif)/i;
+      var match = text.match(procedureStart);
+      if (match && match.index >= 0) {
+        return text
+          .slice(match.index)
+          .replace(/direct\s+admit\s+hp\s+by\s+service\s+line/ig, ' ')
+          .replace(/\s*[-|]\s*$/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+      return parseSurgeryFromText(text, fallbackName);
+    }
+
+    function parseDispositionFromBoardBlock(blockText) {
+      var text = String(blockText || '').toLowerCase().replace(/\s+/g, ' ');
+      if (!text) return '';
+
+      if (/same\s*day\s*surgery|\bsds\b|\bcar\b|\bpo\b/.test(text)) {
+        return 'Same Day Surgery (Home)';
+      }
+      if (/floor\s*\/\s*med\s*-?\s*surg|med\s*-?\s*surg|\bfloor\b|\bdoor\b|\bms\b/.test(text)) {
+        return 'Floor / Med-Surg';
+      }
+      if (/\binpatient\b|\bin\s*-?\s*pt\b|\bip\b|\bbed\b/.test(text)) {
+        return 'Inpatient';
+      }
+
+      var rowMatch = text.match(/\b\d{3,4}\s+\d{1,4}\s+or\s*[-#]?\s*0?\d{1,2}\b\s*([a-z]{1,6})?/i);
+      var hint = rowMatch && rowMatch[1] ? String(rowMatch[1]).toLowerCase() : '';
+      if (hint === 'po' || hint === 'car' || hint === 'sds') return 'Same Day Surgery (Home)';
+      if (hint === 'door' || hint === 'ms' || hint === 'flr') return 'Floor / Med-Surg';
+      if (hint === 'ip' || hint === 'inp' || hint === 'bed') return 'Inpatient';
+
+      return '';
+    }
+
+    function suggestLengthCorrection(lengthText, surgeryText) {
+      var n = parseInt(String(lengthText || '').trim(), 10);
+      if (!isFinite(n) || n >= 10) return '';
+      var surg = String(surgeryText || '').toLowerCase();
+
+      // Common short GI cases frequently OCR-drop the trailing digit (e.g. 31 -> 3).
+      if (/gastroscopy|egd|endoscopy|colonoscopy|biopsy/.test(surg)) {
+        return String((n * 10) + 1);
+      }
+
+      return String((n * 10) + 1);
+    }
+
+    function extractCaseBlocksForRoom(rawText, roomFilter) {
+      var room = buildRoomPattern(roomFilter);
+      if (!room) return [];
+
+      var lines = String(rawText || '').replace(/\r/g, '\n').split('\n').map(function(line) {
+        return String(line || '').trim().replace(/\s+/g, ' ');
+      }).filter(function(line) { return !!line; });
+      if (!lines.length) return [];
+
+      var rowMarker = /\bOR\s*[-#]?\s*\d{1,2}\b/i;
+      var blocks = [];
+
+      for (var i = 0; i < lines.length; i++) {
+        if (!room.regex.test(lines[i])) continue;
+
+        var start = i;
+        var end = i;
+        var hardLimit = Math.min(lines.length - 1, i + 8);
+        while (end < hardLimit) {
+          var nextLine = lines[end + 1];
+          if (!nextLine) break;
+          if (rowMarker.test(nextLine)) break;
+          end += 1;
+        }
+
+        var blockLines = lines.slice(start, end + 1);
+        var blockText = blockLines.join('\n');
+        if (blockText.length > 8) {
+          var cols = parseRoomColumnsFromBoardBlock(blockText);
+          if (cols && cols.room === room.label) blocks.push(blockText);
+        }
+      }
+
+      var seen = {};
+      return blocks.filter(function(block) {
+        var key = String(block || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        if (!key || seen[key]) return false;
+        seen[key] = true;
+        return true;
+      });
+    }
+
+    async function extractCaseSeedsFromScreenshot(file, index, options) {
+      var fileLabel = String((file && file.name) || ('Case ' + (index + 1)));
+      var fromFileText = fileLabel.replace(/\.[^.]+$/, '').replace(/[\-_]+/g, ' ');
+      var roomFilter = String((options && options.roomFilter) || '').trim();
+
+      var ocrText = '';
+      try {
+        var recognized = await window.Tesseract.recognize(file, 'eng');
+        ocrText = (recognized && recognized.data && recognized.data.text) ? recognized.data.text : '';
+      } catch (e) {
+        ocrText = '';
+      }
+
+      var sourceBlocks = [];
+      if (roomFilter) {
+        sourceBlocks = extractCaseBlocksForRoom(ocrText, roomFilter);
+        if (!sourceBlocks.length) return [];
+      }
+      if (!sourceBlocks.length) sourceBlocks = [ocrText || fromFileText];
+
+      var seeds = [];
+      for (var i = 0; i < sourceBlocks.length; i++) {
+        var blockText = sourceBlocks[i];
+        var roomCols = parseRoomColumnsFromBoardBlock(blockText);
+        var age = parseAgeFromBoardBlock(blockText) || parseAgeFromText(blockText) || parseAgeFromText(fromFileText);
+        var surgery = parseProcedureFromBoardBlock(blockText, fromFileText);
+        var startTime = (roomCols && roomCols.start) || parseStartTimeFromBoardBlock(blockText) || parseTimeFromText(blockText) || parseTimeFromText(ocrText) || parseTimeFromText(fromFileText);
+        var caseLength = (roomCols && roomCols.length) || parseCaseLengthMinutesFromBoardBlock(blockText);
+        var room = buildRoomPattern(roomFilter);
+        var disposition = parseDispositionFromBoardBlock(blockText);
+
+        if (roomFilter) {
+          if (!roomCols || roomCols.room !== room.label) continue;
+          if (!startTime || !caseLength) continue;
+        }
+
+        var state = {};
+        // Leave patient name/initials blank for this board-import workflow.
+        if (!age) {
+          var agePrompt = await showPromptModal(
+            'Could not confidently read age for ' +
+            ((room && room.label) ? room.label : 'this case') +
+            (startTime ? (' at ' + startTime) : '') +
+            '. Enter age to save in CPG.',
+            ''
+          );
+          if (agePrompt !== null) {
+            var ageDigits = String(agePrompt || '').replace(/[^0-9]/g, '');
+            var ageN = parseInt(ageDigits, 10);
+            if (isFinite(ageN) && ageN >= 0 && ageN <= 120) age = String(ageN);
+          }
+        }
+        if (age) state['pat-age'] = age;
+        if (surgery) state['pat-surgery'] = surgery;
+        if (startTime) state['pat-sched-surg-time'] = startTime;
+        if (caseLength) state['pat-surg-length'] = caseLength;
+        if (room && room.label) state['pat-or-number'] = room.label;
+        if (disposition) state['pat-disposition'] = disposition;
+
+        var parsedLen = parseInt(String(caseLength || '').trim(), 10);
+        if (isFinite(parsedLen) && parsedLen > 0 && parsedLen < 10) {
+          var suggestedLen = suggestLengthCorrection(caseLength, surgery);
+          var promptMsg =
+            'Parsed a suspicious case length of ' + caseLength + ' minutes for ' +
+            (room && room.label ? room.label : 'this room') +
+            (startTime ? (' at ' + startTime) : '') + '.\n\n' +
+            'Enter corrected minutes, or leave as-is.';
+          var corrected = await showPromptModal(promptMsg, suggestedLen || String(caseLength));
+          if (corrected !== null) {
+            var clean = String(corrected || '').replace(/[^0-9]/g, '');
+            var cleanN = parseInt(clean, 10);
+            if (isFinite(cleanN) && cleanN > 0 && cleanN <= 1500) {
+              caseLength = String(cleanN);
+              state['pat-surg-length'] = caseLength;
+            }
+          }
+        }
+
+        if (startTime && caseLength) {
+          var endTime = addMinutesToTime(startTime, caseLength);
+          if (endTime) state['pat-surg-end-time'] = endTime;
+        }
+
+        if (!Object.keys(state).length) continue;
+
+        seeds.push({
+          fileName: fileLabel,
+          state: state,
+          nameBase: buildImportedCaseName(state, 'Patient ' + (index + 1) + (sourceBlocks.length > 1 ? ('-' + (i + 1)) : ''))
+        });
+      }
+
+      var seenSeed = {};
+      return seeds.filter(function(seed) {
+        var s = seed.state || {};
+        var sig = [s['pat-or-number'] || '', s['pat-sched-surg-time'] || '', s['pat-surg-length'] || '', s['pat-age'] || '', (s['pat-surgery'] || '').slice(0, 60)].join('|');
+        if (!sig || seenSeed[sig]) return false;
+        seenSeed[sig] = true;
+        return true;
+      });
+    }
+
+    async function bulkImportCasesFromScreenshots(fileList) {
+      var files = Array.from(fileList || []);
+      if (!files.length) return;
+
+      if (!window.Tesseract || typeof window.Tesseract.recognize !== 'function') {
+        await showAlertModal('Screenshot import is not ready yet. Please refresh and try again.');
+        return;
+      }
+
+      var roomFilterAnswer = await showPromptModal(
+        'Optional: enter your room to import only your cases (example: OR 06).\n\nLeave blank to use broad matching.',
+        ''
+      );
+      if (roomFilterAnswer === null) return;
+      var roomFilter = String(roomFilterAnswer || '').trim();
+
+      var cloudEnabled = await shouldUseCloudPlans();
+      var plans = getLocalSavedPlans();
+      if (cloudEnabled) {
+        try {
+          plans = await window.carePlanCloudStorage.listPlans(getCloudUserId());
+        } catch (error) {
+          setStorageStatus('Cloud sync is unavailable right now. Importing into this browser only. ' + (error.message || String(error)), 'warn');
+          cloudEnabled = false;
+        }
+      }
+
+      var seeds = [];
+      for (var i = 0; i < files.length; i++) {
+        setStorageStatus('Reading screenshot ' + (i + 1) + ' of ' + files.length + '...', 'warn');
+        var found = await extractCaseSeedsFromScreenshot(files[i], i, { roomFilter: roomFilter });
+        seeds = seeds.concat(found);
+      }
+
+      if (!seeds.length) {
+        var noMatchMsg = roomFilter
+          ? ('No cases were detected for room ' + roomFilter + '. Try a clearer screenshot or verify the room format (example: OR 06).')
+          : 'No cases were detected from the screenshot(s). Try a clearer screenshot or enter a room filter (example: OR 06).';
+        await showAlertModal(noMatchMsg);
+        return;
+      }
+
+      var createdNames = [];
+      var nowIso = new Date().toISOString();
+      var limitHit = false;
+      for (var j = 0; j < seeds.length; j++) {
+        if (Object.keys(plans).length >= MAX_SAVED_PLANS) {
+          limitHit = true;
+          break;
+        }
+        var seed = seeds[j];
+        var uniqueName = makeUniquePlanName(seed.nameBase, plans);
+        var entry = { savedAt: nowIso, state: seed.state || {} };
+        plans[uniqueName] = entry;
+
+        if (cloudEnabled) {
+          try {
+            await window.carePlanCloudStorage.savePlan(uniqueName, seed.state || {}, getCloudUserId());
+          } catch (error) {
+            cloudEnabled = false;
+            setStorageStatus('Cloud save failed during import. Remaining cases were saved in this browser only. ' + (error.message || String(error)), 'warn');
+          }
+        }
+        createdNames.push(uniqueName);
+      }
+
+      setLocalSavedPlans(plans);
+
+      if (!createdNames.length) {
+        if (limitHit) {
+          await showAlertModal('No cases were created because you are at the max of ' + MAX_SAVED_PLANS + ' saved plans. Delete some plans and try again.');
+        } else {
+          await showAlertModal('No cases were created from the parsed rows. Try a clearer screenshot or adjust room filter.');
+        }
+        return;
+      }
+
+      if (cloudEnabled) {
+        setStorageStatus('Firebase cloud sync is on.', 'ok');
+      }
+
+      showTopbarFlash('Imported ' + createdNames.length + ' case' + (createdNames.length > 1 ? 's' : '') + '.');
+      var summary = 'Created ' + createdNames.length + ' saved case' + (createdNames.length > 1 ? 's' : '') + ' from screenshots.\n\n' +
+        createdNames.slice(0, 8).join('\n') +
+        (createdNames.length > 8 ? ('\n...and ' + (createdNames.length - 8) + ' more') : '');
+      await showAlertModal(summary);
+    }
+
     async function saveNamedPlan() {
       // Iframes auto-save via their own event listeners
       // No need to actively call saveState (causes CORS errors)
 
       var s = (mirroredState && Object.keys(mirroredState).length) ? mirroredState : getState();
-      var _nameParts = [
-        s['pat-initials'] || 'Patient',
-        s['pat-surg-date'] || 'NoDate',
-        s['pat-sched-surg-time'] || 'NoTime'
-      ];
-      if (s['pat-surg-end-time']) _nameParts.push(s['pat-surg-end-time']);
-      _nameParts.push(s['pat-surgery'] || 'NoSurgery');
-      var defaultName = _nameParts.join(' | ');
+      var defaultName = buildDefaultPlanName(s, 'Patient');
       var name = await showPromptModal('Save plan as:', defaultName);
       if (!name) return;
       name = name.trim();
@@ -772,5 +1337,6 @@
     } catch(e) {}
     window.openPreview = function() { openPreview(); };
     window.buildPrintCard = function(state) { buildPrintCard(state || {}); };
+    window.bulkImportCasesFromScreenshots = bulkImportCasesFromScreenshots;
 
 
