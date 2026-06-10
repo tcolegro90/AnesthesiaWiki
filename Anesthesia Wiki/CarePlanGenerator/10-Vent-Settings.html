@@ -98,12 +98,30 @@
 
   <script src="shared.js"></script>
   <script>
+    function setVentTvAutoState(isAuto) {
+      var s = getGlobalState();
+      s['vent-tv-auto8'] = isAuto ? 'Yes' : 'No';
+      setGlobalState(s);
+    }
+
     function setTvByIbw(mlPerKg) {
       var ibw = parseFloat(getGlobalState()['pat-ibw']) || parseFloat((document.getElementById('vent-ibw') || {}).value) || 0;
       if (!ibw) { alert('IBW not available. Enter patient height and gender first.'); return; }
       var tv = Math.round(ibw * mlPerKg);
       var tvEl = document.getElementById('vent-tv');
-      if (tvEl) { tvEl.value = tv; onVentTvInput(); saveState(); }
+      if (tvEl) { tvEl.value = tv; setVentTvAutoState(mlPerKg === 8); onVentTvInput(); saveState(); }
+    }
+
+    function setTvByIbwSilent(mlPerKg) {
+      var ibw = parseFloat(getGlobalState()['pat-ibw']) || parseFloat((document.getElementById('vent-ibw') || {}).value) || 0;
+      if (!ibw) return false;
+      var tv = Math.round(ibw * mlPerKg);
+      var tvEl = document.getElementById('vent-tv');
+      if (!tvEl) return false;
+      tvEl.value = String(tv);
+      setVentTvAutoState(mlPerKg === 8);
+      onVentTvInput();
+      return true;
     }
 
     function syncVentFromState() {
@@ -128,8 +146,24 @@
       if (tv   && s['vent-tv'])   tv.value   = s['vent-tv'];
       if (fio2 && s['vent-fio2']) fio2.value = s['vent-fio2'];
 
+      var appliedDefaults = false;
+      if (mode && !mode.value) { mode.value = 'Volume Control (VC-CMV)'; appliedDefaults = true; }
+      if (fio2 && !fio2.value) { fio2.value = '50'; appliedDefaults = true; }
+      // Keep 8 mL/kg tied to current IBW when the TV was auto-generated.
+      if ((s['vent-tv-auto8'] || '').toLowerCase() === 'yes') {
+        if (ibw > 0 && tv) {
+          tv.value = String(Math.round(ibw * 8));
+          appliedDefaults = true;
+        } else if (!tv.value && ibw > 0) {
+          if (setTvByIbwSilent(8)) appliedDefaults = true;
+        }
+      } else if (tv && !tv.value && ibw > 0) {
+        if (setTvByIbwSilent(8)) appliedDefaults = true;
+      }
       if (ie   && !ie.value)   ie.value   = '1:2';
       if (peep && !peep.value) peep.value = '5';
+
+      if (appliedDefaults) saveState();
     }
 
     function onVentTvInput() {
@@ -143,6 +177,11 @@
         var mlKg = tv / ibw;
         tvEl.style.color      = (mlKg < 6 || mlKg > 8) ? '#b32424' : '';
         tvEl.style.fontWeight = (mlKg < 6 || mlKg > 8) ? '700'     : '';
+        if (document.activeElement === tvEl) {
+          var sManual = getGlobalState();
+          sManual['vent-tv-auto8'] = 'No';
+          setGlobalState(sManual);
+        }
         if (mlKg > 8) {
           noteEl.textContent = '⚠ ' + mlKg.toFixed(1) + ' mL/kg IBW — above lung-protective ceiling of 8 mL/kg';
           noteEl.style.display = 'block';
@@ -159,14 +198,32 @@
       var sv = getGlobalState(); sv['vent-tv'] = tvEl.value; setGlobalState(sv);
     }
 
+    function resyncAutoTvIfNeeded() {
+      var s = getGlobalState();
+      if ((s['vent-tv-auto8'] || '').toLowerCase() !== 'yes') return;
+      var ibw = parseFloat(s['pat-ibw']) || 0;
+      if (!(ibw > 0)) return;
+      var tvEl = document.getElementById('vent-tv');
+      if (!tvEl) return;
+      var next = String(Math.round(ibw * 8));
+      if (tvEl.value !== next) {
+        tvEl.value = next;
+        onVentTvInput();
+        saveState();
+      }
+    }
+    }
+
     pageBoot(function() {
       syncVentFromState();
       document.getElementById('vent-mode').addEventListener('change', saveState);
       document.getElementById('vent-ie').addEventListener('change', saveState);
       document.getElementById('vent-peep').addEventListener('change', saveState);
       document.getElementById('vent-fio2').addEventListener('change', saveState);
+      document.getElementById('vent-tv').addEventListener('change', resyncAutoTvIfNeeded);
     }, function() {
       syncVentFromState();
+      resyncAutoTvIfNeeded();
     });
   </script>
 

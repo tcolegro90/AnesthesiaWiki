@@ -345,20 +345,11 @@
             <option>NICU</option>
             <option>PICU</option>
             <option>Step-Down / PCU</option>
+            <option>Inpatient</option>
             <option>Floor / Med-Surg</option>
             <option>Same Day Surgery (Home)</option>
             <option>Extended Recovery</option>
             <option>OR to OR</option>
-          </select>
-        </div>
-        <div>
-          <label>Nerve Stim Location</label><br>
-          <select id="pat-nerve-stim-location" class="med">
-            <option>None</option>
-            <option>Facial</option>
-            <option>Ulner</option>
-            <option>Posterior Tibial</option>
-            <option>Intra-op NM</option>
           </select>
         </div>
         <div style="flex-basis:100%;height:0;"></div>
@@ -551,52 +542,16 @@
               <label><input type="radio" name="pat-blood-room" id="pat-blood-room-yes" value="Yes"> Yes</label> <label><input type="radio" name="pat-blood-room" id="pat-blood-room-no" value="No"> No</label>
             </div>
           </div>
-          <div style="flex:1 1 100%;margin-top:10px;">
-            <label style="font-weight:700;">Pressure Points</label>
-            <div class="complications-grid" style="margin-top:4px;">
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-axillary-roll"> Axillary roll</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-occiput"> Occiput</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-eyes"> Eyes</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-ears"> Ears</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-elbows"> Elbows / ulnar groove</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-shoulders"> Shoulders / scapulae</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-sacrum"> Sacrum / coccyx</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-trochanter"> Greater trochanter</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-knees"> Knees</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-fibular-head"> Fibular head / peroneal nerve</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-heels"> Heels</label>
-              <label><input type="checkbox" name="pat-pressure-points" id="pat-pressure-toes"> Toes / feet</label>
-            </div>
-          </div>
-        </div>
-        <div class="surgery-subrow" style="margin-top:10px;">
-          <div style="flex:1 1 100%;">
-            <label style="font-weight:700;">Anticipated Surgical Complications</label>
-            <div class="complications-grid">
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-aspiration"> Aspiration risk</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-difficult-airway"> Difficult airway</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-laryngospasm"> Laryngospasm</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-bronchospasm"> Bronchospasm</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-hypoxemia"> Hypoxemia / desaturation</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-hypotension"> Hypotension</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-hypertension"> Hypertension</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-arrhythmia"> Arrhythmia</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-myocardial-ischemia"> Myocardial ischemia</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-major-blood-loss"> Major blood loss</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-transfusion"> Transfusion requirement</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-pneumothorax"> Pneumothorax</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-ponv"> PONV</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-emergence-delirium"> Emergence delirium/agitation</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-delayed-emergence"> Delayed emergence</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-awareness"> Awareness risk</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-postop-vent"> Post-op ventilation need</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-pain-control"> Difficult pain control</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-position-injury"> Positioning/nerve injury</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-thromboembolism"> DVT/PE risk</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-anaphylaxis"> Anaphylaxis/allergic reaction</label>
-              <label><input type="checkbox" name="pat-anticipated-complications" id="pat-comp-other"> Other</label>
-              <input id="pat-comp-other-text" class="med" style="display:none;min-width:260px;" placeholder="Other anticipated complication" />
-            </div>
+          <div style="flex-basis:100%;height:0;"></div>
+          <div id="pat-nerve-stim-wrap" style="margin-top:40px;">
+            <label>Nerve Stim Location</label><br>
+            <select id="pat-nerve-stim-location" class="med">
+              <option>None</option>
+              <option>Facial</option>
+              <option>Ulner</option>
+              <option>Posterior Tibial</option>
+              <option>Intra-op NM</option>
+            </select>
           </div>
         </div>
 
@@ -645,14 +600,6 @@
       var otherEl = document.getElementById('pat-arms-tucked-other');
       otherEl.style.display = isOther ? 'block' : 'none';
       if (!isOther) { otherEl.value = ''; saveState(); }
-    }
-
-    function syncComplicationsOther() {
-      var showOther = document.getElementById('pat-comp-other').checked;
-      var otherEl = document.getElementById('pat-comp-other-text');
-      otherEl.style.display = showOther ? 'inline-block' : 'none';
-      if (!showOther) otherEl.value = '';
-      saveState();
     }
 
     function syncAnticipatedBloodPrep(shouldSave) {
@@ -1062,9 +1009,6 @@
 
     function boot() {
       document.getElementById('pat-position-other').addEventListener('input', saveState);
-      document.querySelectorAll('input[name="pat-pressure-points"]').forEach(function(el) {
-        el.addEventListener('change', saveState);
-      });
       document.getElementById('pat-surgery').addEventListener('input', renderAntibioticGuidance);
       document.getElementById('pat-anticipated-pain').addEventListener('change', saveState);
       document.getElementById('pat-anticipated-ebl').addEventListener('change', function() {
@@ -1157,13 +1101,6 @@
       document.querySelectorAll('input[name="pat-obtain-ts"], input[name="pat-blood-room"]').forEach(function(el) {
         el.addEventListener('change', saveState);
       });
-      document.querySelectorAll('input[name="pat-anticipated-complications"]').forEach(function(el) {
-        el.addEventListener('change', function() {
-          if (el.id === 'pat-comp-other') syncComplicationsOther();
-          else saveState();
-        });
-      });
-      document.getElementById('pat-comp-other-text').addEventListener('input', saveState);
       ['pat-sched-surg-time', 'pat-surg-end-time', 'pat-surg-length'].forEach(function(id) {
         document.getElementById(id).addEventListener('input', function() { syncSurgeryTimeFields(id); });
         document.getElementById(id).addEventListener('change', function() { syncSurgeryTimeFields(id); });
@@ -1181,10 +1118,14 @@
       if (!document.getElementById('pat-surg-date-mode').value) {
         document.getElementById('pat-surg-date-mode').value = 'Tomorrow';
       }
+      if (!document.getElementById('pat-anticipated-antibiotic').value) {
+        document.getElementById('pat-anticipated-antibiotic').value = 'Cefazolin';
+        autoFillAbx('Cefazolin');
+        saveState();
+      }
       syncPositionOther();
       syncArmsTucked();
       syncNeuroMonitoring();
-      syncComplicationsOther();
       renderAntibioticGuidance();
       syncAnticipatedBloodPrep(false);
       syncSurgicalDate();
@@ -1201,7 +1142,7 @@
       }
     }
 
-    pageBoot(boot, function() { restoreExtraSurg(); restoreAbxRow2(); syncAnticipatedBloodPrep(false); syncPositionOther(); syncArmsTucked(); syncComplicationsOther(); syncNeuroMonitoring(); });
+    pageBoot(boot, function() { restoreExtraSurg(); restoreAbxRow2(); syncAnticipatedBloodPrep(false); syncPositionOther(); syncArmsTucked(); syncNeuroMonitoring(); });
   </script>
 
 <style>

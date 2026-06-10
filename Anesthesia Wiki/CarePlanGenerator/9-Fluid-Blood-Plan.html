@@ -70,7 +70,7 @@
         <h3>Allowable Blood Loss (ABL)</h3>
         <div class="row">
           <div><label>Patient Type</label><br><select id="plan-ebl-type" class="med" disabled><option value="85">Neonate</option><option value="80">Infant</option><option value="75">Adult Male</option><option value="65">Adult Female</option></select></div>
-          <div><label>Start HCT (%)</label><br><input id="plan-ebl-start" type="number" class="small" readonly></div>
+          <div><label>Start HCT (%)</label><br><input id="plan-ebl-start" type="number" inputmode="decimal" class="small"></div>
           <div><label>Target HCT (%)</label><br><input id="plan-ebl-target" type="number" inputmode="decimal" class="small" value="21"></div>
           <div><button id="btn-ebl" type="button">Calculate ABL</button></div>
         </div>
@@ -126,6 +126,18 @@
         document.getElementById('plan-ebl-start').value = '';
       }
 
+      // Default NPO to 8 hours only when it has never been set.
+      const npoEl = document.getElementById('plan-fluid-npo');
+      const hasSavedNpo = Object.prototype.hasOwnProperty.call(s, 'plan-fluid-npo');
+      if (npoEl) {
+        if (hasSavedNpo) {
+          npoEl.value = s['plan-fluid-npo'] || '';
+        } else if (!String(npoEl.value || '').trim()) {
+          npoEl.value = '8';
+          saveState();
+        }
+      }
+
       // Choose ABL patient type from age/gender.
       const age = parseFloat(s['pat-age']);
       const gender = s['pat-gender'];
@@ -155,6 +167,20 @@
       setWarmFluidsState(warm);
       const alb = (s['plan-fluid-albumin'] || '').toLowerCase() === 'yes';
       setAlbuminState(alb);
+      saveState();
+    }
+
+    function syncAblStartToLabs() {
+      const startEl = document.getElementById('plan-ebl-start');
+      if (!startEl) return;
+      const raw = String(startEl.value || '').trim();
+      if (!raw) return;
+      const val = parseFloat(raw);
+      if (isNaN(val) || val <= 0 || val > 80) return;
+      const clean = String(Math.round(val * 10) / 10).replace(/\.0$/, '');
+      const state = getGlobalState();
+      state['pat-hct'] = clean;
+      setGlobalState(state);
       saveState();
     }
 
@@ -189,9 +215,28 @@
     function calculateEBLPlan() {
       const w = parseFloat(document.getElementById('plan-fluid-weight').value) || 0;
       const factor = parseFloat(document.getElementById('plan-ebl-type').value) || 0;
-      const start = parseFloat(document.getElementById('plan-ebl-start').value) || 0;
+      let start = parseFloat(document.getElementById('plan-ebl-start').value) || 0;
       const target = parseFloat(document.getElementById('plan-ebl-target').value) || 0;
       const out = document.getElementById('plan-ebl-result');
+
+      if (start <= 0) {
+        const entered = window.prompt('Start HCT is missing. Enter HCT now to use ABL (this will also update Labs HCT), or Cancel to fill it on the Labs page.');
+        if (entered === null) {
+          out.style.display = 'block';
+          out.innerHTML = '<span style="color:#b32424;font-weight:700;">Start HCT missing. Add HCT in Labs or here in ABL.</span>';
+          return;
+        }
+        const parsed = parseFloat(String(entered).trim());
+        if (isNaN(parsed) || parsed <= 0 || parsed > 80) {
+          out.style.display = 'block';
+          out.innerHTML = '<span style="color:#b32424;font-weight:700;">Invalid HCT value. Enter a valid HCT (e.g., 38).</span>';
+          return;
+        }
+        document.getElementById('plan-ebl-start').value = String(parsed);
+        syncAblStartToLabs();
+        start = parsed;
+      }
+
       if (w <= 0 || start <= 0 || target <= 0 || target >= start) {
         out.style.display = 'block';
         out.innerHTML = '<span style="color:#b32424;font-weight:700;">Check weight/start/target HCT values.</span>';
@@ -208,6 +253,8 @@
       document.getElementById('plan-fluid-type').addEventListener('change', saveState);
       document.getElementById('btn-fluid').addEventListener('click', calculateFluidPlan);
       document.getElementById('btn-ebl').addEventListener('click', calculateEBLPlan);
+      document.getElementById('plan-ebl-start').addEventListener('input', syncAblStartToLabs);
+      document.getElementById('plan-ebl-start').addEventListener('change', syncAblStartToLabs);
       document.getElementById('plan-fluid-warm').addEventListener('click', toggleWarmFluids);
       document.getElementById('plan-fluid-albumin-btn').addEventListener('click', toggleAlbumin);
     }, function() {

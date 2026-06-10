@@ -46,8 +46,6 @@ function toggleGeneralOptions() {
   if (sedBolusSec) sedBolusSec.style.display = t === 'MAC' ? 'block' : 'none';
   var sedDripsSec = document.getElementById('sedation-drips-section');
   if (sedDripsSec) sedDripsSec.style.display = t === 'MAC' ? 'block' : 'none';
-  var wipBanner = document.getElementById('wip-banner');
-  if (wipBanner) wipBanner.style.display = ['MAC','Spinal','Epidural','Sedation'].indexOf(t) !== -1 ? 'block' : 'none';
   saveState();
 }
 
@@ -151,7 +149,7 @@ function validateDoseInput(inputEl) {
 }
 
 var PAIN_OPTIONS = {
-  intraop:  ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Ketamine (sub-dissociative)','Ketamine infusion','Neuraxial (epidural/spinal)','Regional nerve block','Multimodal — see adjuncts','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone'],
+  intraop:  ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Ketamine (sub-dissociative)','Ketamine infusion','Neuraxial (epidural/spinal)','Regional nerve block','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone'],
   postop:   ['Fentanyl PCA','Hydromorphone PCA','Morphine PCA','Oxycodone (oral)','Tramadol','Neuraxial opioids','Regional / nerve block','Non-opioid multimodal'],
   nonopioid:['Acetaminophen IV','Ketorolac','Celecoxib','Ketamine (low-dose)','Dexmedetomidine','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Regional / Nerve Block','Dexamethasone'],
   sedation_bolus: ['Propofol','Ketamine','Dexmedetomidine'],
@@ -163,7 +161,7 @@ var PAIN_COUNTS = { intraop: 0, postop: 0, nonopioid: 0, sedation_bolus: 0, seda
 var PAIN_GROUPS = {
   intraop: {
     'Opioids': ['Fentanyl','Morphine','Hydromorphone','Remifentanil infusion','Sufentanil','Alfentanil','Neuraxial (epidural/spinal)'],
-    'Non-Opioid Adjuncts': ['Ketamine (sub-dissociative)','Ketamine infusion','Regional nerve block','Multimodal — see adjuncts','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone']
+    'Non-Opioid Adjuncts': ['Ketamine (sub-dissociative)','Ketamine infusion','Regional nerve block','Acetaminophen IV','Ketorolac','Celecoxib','Dexmedetomidine (bolus)','Dexmedetomidine (infusion)','Lidocaine infusion','Magnesium sulfate','Pregabalin','Gabapentin','Dexamethasone']
   }
 };
 
@@ -220,14 +218,14 @@ function painRowDoseSpec(type, drug) {
       'Dexamethasone':       { min: 4,    max: 10,   unit: 'mg',        perKg: false }
     },
     sedation_bolus: {
-      'Propofol':        { min: 0.5, max: 2.0, unit: 'mg/kg',   perKg: false },
-      'Ketamine':        { min: 0.1, max: 0.5, unit: 'mg/kg',   perKg: false },
-      'Dexmedetomidine': { min: 0.5, max: 1.0, unit: 'mcg/kg',  perKg: false }
+      'Propofol':        { min: 0.5, max: 2.0, unit: 'mg',      perKg: true  },
+      'Ketamine':        { min: 0.1, max: 0.5, unit: 'mg',      perKg: true  },
+      'Dexmedetomidine': { min: 0.5, max: 1.0, unit: 'mcg',     perKg: true  }
     },
     sedation_drips: {
-      'Propofol Drip':        { min: 50,  max: 150, unit: 'mcg/kg/min', perKg: false },
-      'Ketamine Drip':        { min: 0.1, max: 0.5, unit: 'mg/kg/hr',   perKg: false },
-      'Dexmedetomidine Drip': { min: 0.2, max: 1.5, unit: 'mcg/kg/hr',  perKg: false }
+      'Propofol Drip':        { min: 50,  max: 150, unit: 'mcg/min', perKg: true  },
+      'Ketamine Drip':        { min: 0.1, max: 0.5, unit: 'mg/hr',   perKg: true  },
+      'Dexmedetomidine Drip': { min: 0.2, max: 1.5, unit: 'mcg/hr',  perKg: true  }
     },
     vasopressors: {
       'Ephedrine':          { min: 5,    max: 10,   unit: 'mg',          perKg: false },

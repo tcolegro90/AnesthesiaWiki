@@ -32,7 +32,6 @@ var LC = [
     { id:'pr-row-procedure',       label:'Procedure'            },
     { id:'pr-extra-surg-row',      label:'Additional Surg'      },
     { id:'pr-row-position',        label:'Positioning'          },
-    { id:'pr-pressure-points-row', label:'Pressure Points'      },
     { id:'pr-row-insufflation',    label:'Insufflation'         },
     { id:'pr-obtain-ts-row',       label:'Obtain T+S'           },
     { id:'pr-blood-room-row',      label:'Blood in Room'        },
@@ -54,7 +53,6 @@ var LC = [
   { id:'ps-misc', label:'📋 Miscellaneous', rows:[
     { id:'pr-row-equipment',                 label:'Equipment'                 },
     { id:'pr-row-fluids',                    label:'Fluids'                    },
-    { id:'pr-anticipated-complications-row', label:'Anticipated Complications' },
     { id:'pr-notes-section',                 label:'Notes'                     },
   ]},
 ];

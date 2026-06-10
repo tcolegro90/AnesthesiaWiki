@@ -450,10 +450,44 @@ function copyTimelog(i) {
 // ============================================================
 function _timeToMins(t) {
   if (!t) return Infinity;
-  const parts = t.split(':');
-  const h = parseInt(parts[0], 10);
-  const m = parseInt(parts[1] || '0', 10);
-  return isNaN(h) ? Infinity : h * 60 + (isNaN(m) ? 0 : m);
+  const raw = String(t).trim();
+  if (!raw) return Infinity;
+
+  const toMinutes = (h, m) => {
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return Infinity;
+    if (h < 0 || h > 23 || m < 0 || m > 59) return Infinity;
+    return h * 60 + m;
+  };
+
+  // Supports "7:15 AM", "07:15", "0715", "715", and "7".
+  const ampm = raw.match(/^(\d{1,2})(?::?(\d{2}))?\s*([AaPp][Mm])$/);
+  if (ampm) {
+    let h = parseInt(ampm[1], 10);
+    const m = parseInt(ampm[2] || '0', 10);
+    if (h < 1 || h > 12) return Infinity;
+    const meridiem = ampm[3].toUpperCase();
+    if (meridiem === 'AM') h = h % 12;
+    else h = (h % 12) + 12;
+    return toMinutes(h, m);
+  }
+
+  const hhmm = raw.match(/^(\d{1,2}):(\d{2})$/);
+  if (hhmm) {
+    return toMinutes(parseInt(hhmm[1], 10), parseInt(hhmm[2], 10));
+  }
+
+  const compact = raw.match(/^\d{3,4}$/);
+  if (compact) {
+    const digits = raw.padStart(4, '0');
+    return toMinutes(parseInt(digits.slice(0, 2), 10), parseInt(digits.slice(2), 10));
+  }
+
+  const hourOnly = raw.match(/^\d{1,2}$/);
+  if (hourOnly) {
+    return toMinutes(parseInt(hourOnly[0], 10), 0);
+  }
+
+  return Infinity;
 }
 
 function renderPlannedCases(plans) {

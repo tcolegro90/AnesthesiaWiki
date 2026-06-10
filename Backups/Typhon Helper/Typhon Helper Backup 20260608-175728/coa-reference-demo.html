@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COA Reference Style Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #eef2f0;
+      color: #2c3e50;
+      padding: 24px 16px 80px;
+    }
+    h1 { font-size: 1.4rem; font-weight: 800; color: #184954; margin-bottom: 6px; }
+    .page-sub { font-size: 0.88rem; color: #4a6370; margin-bottom: 28px; }
+
+    .demo-section { margin-bottom: 40px; }
+    .demo-section-title {
+      font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #0d6e6e;
+      border-bottom: 2px solid #b0e0d6;
+      padding-bottom: 6px; margin-bottom: 14px;
+    }
+    .demo-desc { font-size: 0.82rem; color: #555; margin-bottom: 14px; line-height: 1.5; }
+
+    .card {
+      background: white; border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 14px;
+      max-width: 500px;
+    }
+    .proc-heading {
+      font-size: 0.73rem; font-weight: 700; color: #0d6e6e;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    /* ? sits OUTSIDE the chk-item box via this row wrapper */
+    .chk-item-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chk-item-row > .chk-item { flex: 1; min-width: 0; }
+
+    .chk-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .chk-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 11px; border-radius: 9px; cursor: pointer;
+      border: 1.5px solid #dde3ec; background: #f8faf9;
+      transition: all 0.15s;
+    }
+    .chk-item:hover { border-color: #a0c8c0; background: #f0faf7; }
+    .chk-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #0d6e6e; flex-shrink: 0; }
+    .chk-item .item-label { font-size: 0.83rem; font-weight: 600; color: #2c3e50; flex: 1; line-height: 1.3; }
+
+    .coa-btn {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #e2f0ee; border: 1.5px solid #a0c8c0;
+      color: #0d6e6e; font-size: 0.68rem; font-weight: 800;
+      cursor: pointer; flex-shrink: 0; display: inline-flex;
+      align-items: center; justify-content: center;
+      line-height: 1; user-select: none; -webkit-user-select: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .coa-btn:hover { background: #0d6e6e; color: white; border-color: #0d6e6e; }
+
+    /* STYLE 1 — MODAL */
+    #modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 900;
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal-box {
+      background: white; border-radius: 16px;
+      max-width: 480px; width: 100%;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    #modal-header {
+      background: linear-gradient(135deg, #0d6e6e, #1e8f5b);
+      padding: 14px 16px; display: flex; align-items: flex-start; gap: 10px;
+    }
+    #modal-title { font-size: 0.92rem; font-weight: 800; color: white; flex: 1; line-height: 1.3; }
+    #modal-close {
+      background: rgba(255,255,255,0.22); border: none; color: white;
+      border-radius: 50%; width: 26px; height: 26px; font-size: 1rem;
+      cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    }
+    #modal-close:hover { background: rgba(255,255,255,0.38); }
+    #modal-body {
+      padding: 16px; font-size: 0.84rem; color: #334155;
+      line-height: 1.6; max-height: 340px; overflow-y: auto;
+    }
+    #modal-source {
+      font-size: 0.72rem; color: #888;
+      border-top: 1px solid #f0f0f0; padding: 10px 16px 14px;
+    }
+
+    /* STYLE 2 — TOOLTIP */
+    .tooltip-wrap { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
+    .tooltip-bubble {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      background: #1e2d3a;
+      color: white;
+      border-radius: 10px;
+      padding: 10px 13px;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      width: 260px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      z-index: 500;
+      pointer-events: none;
+    }
+    .tooltip-bubble::after {
+      content: '';
+      position: absolute;
+      top: 100%; right: 6px;
+      border: 6px solid transparent;
+      border-top-color: #1e2d3a;
+    }
+    .tooltip-wrap:hover .tooltip-bubble { display: block; }
+    .tooltip-source { font-size: 0.68rem; color: #8fb5c8; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 5px; }
+
+    /* STYLE 3 — INLINE EXPAND */
+    .inline-wrap { display: flex; flex-direction: column; }
+    .inline-panel {
+      display: none;
+      background: #f0faf7;
+      border: 1.5px solid #b0e0d6;
+      border-top: none;
+      border-radius: 0 0 9px 9px;
+      padding: 10px 13px;
+      font-size: 0.79rem;
+      color: #2c4a42;
+      line-height: 1.55;
+      margin-right: 26px; /* align under the label box, not the ? button */
+    }
+    .inline-panel.open { display: block; }
+    .inline-source { font-size: 0.7rem; color: #5a8f7a; margin-top: 6px; border-top: 1px solid #c0e8d8; padding-top: 5px; }
+    .inline-item { border-radius: 9px !important; }
+    .inline-item.has-panel-open { border-radius: 9px 9px 0 0 !important; border-bottom-color: #b0e0d6 !important; background: #e8f5f0 !important; }
+    .coa-btn.inline-active { background: #0d6e6e; color: white; border-color: #0d6e6e; }
+  </style>
+</head>
+<body>
+
+<h1>COA Reference — Interaction Style Demo</h1>
+<p class="page-sub">Three options for showing COA guidelines next to each line item. The "?" sits <em>outside</em> the item box. Pick your favorite — then we'll implement it in the real tool.</p>
+
+<!-- STYLE 1 — MODAL -->
+<div class="demo-section">
+  <div class="demo-section-title">Style 1 — Modal Popup</div>
+  <p class="demo-desc">Clicking "?" opens a centered overlay with the full COA guideline text. Best for longer excerpts.</p>
+  <div class="card">
+    <div class="proc-heading">Arterial Line</div>
+    <div class="chk-grid">
+      <div class="chk-item-row">
+        <label class="chk-item">
+          <input type="checkbox">
+          <span class="item-label">Arterial Puncture / A-Line Insertion</span>
+        </label>
+        <button class="coa-btn" type="button"
+          data-modal-title="Arterial Puncture / A-Line Insertion"
+          data-modal-body="This category is used anytime an arterial catheter is used to monitor arterial waveforms and other clinical variables.
+
+Students need 30 actual insertions to meet the minimum requirement.
+
+If you puncture the artery and successfully obtain a blood gas sample, this does count. If you puncture an artery in an attempt to place an arterial catheter but are unsuccessful, this does NOT count.
+
+Simulation cannot be used to meet this category's minimum requirement."
+          onclick="openModal(this)">?</button>
+      </div>
+      <div class="chk-item-row">
+        <label class="chk-item">
+          <input type="checkbox">
+          <span class="item-label">Intra-arterial BP Monitoring</span>
+        </label>
+        <button class="coa-btn" type="button"
+          data-modal-title="Intra-arterial BP Monitoring"
+          data-modal-body="This category is used anytime an arterial catheter is used to monitor arterial waveforms and other clinical variables (e.g., arterial blood pressure, stroke volume variation, pulse pressure variation).
+
+This may include standard arterial lines as well as newer technologies that employ arterial waveform analysis such as FloTrac Hemosphere, VolumeView sensor, LiDCO plus, and similar devices.
+
+Minimum required: 30 experiences."
+          onclick="openModal(this)">?</button>
+      </div>
+    </div>
+
+    <div class="proc-heading" style="margin-top:12px;">Case Characteristics</div>
+    <div class="chk-grid">
+      <div class="chk-item-row">
+        <label class="chk-item">
+          <input type="checkbox">
+          <span class="item-label">Trauma / Emergency</span>
+        </label>
+        <button class="coa-btn" type="button"
+          data-modal-title="Emergency Case"
+          data-modal-body="An emergency case allows the student the opportunity to provide anesthesia under one or more of the following conditions:
+
+1. There is an urgency / continued threat to patient well-being
+2. There are fewer resources available than during regular operating hours
+3. There is limited assessment and planning time allowed for the unscheduled case
+
+When a case is deemed an emergency based on the professional opinion of the operating practitioner, the case may be counted as an emergency case.
+
+Minimum required: 30 emergency cases."
+          onclick="openModal(this)">?</button>
+      </div>
+      <div class="chk-item-row">
+        <label class="chk-item">
+          <input type="checkbox">
+          <span class="item-label">Pain Management Encounter</span>
+        </label>
+        <button class="coa-btn" type="button"
+          data-modal-title="Pain Management Encounters"
+          data-modal-body="Pain management encounters are individual one-on-one patient interactions for the express purpose of intervening in an acute pain episode or a chronic pain condition. Pain management encounters must include a patient assessment prior to initiating a therapeutic action.
+
+Examples include:
+• Initiation of epidural or intrathecal analgesia
+• Facilitation or initiation of patient-controlled analgesia
+• Initiation of regional analgesia techniques for post-operative pain
+• Adjustment of drugs for an existing PCA or PCEA
+• Pharmacologic management of an acute pain condition in PACU
+• Trigger point injections
+• Electrical nerve stimulation
+
+NOTE: Administering a spinal anesthetic for a cesarean delivery does NOT count as a pain management encounter. If regional anesthesia is the primary anesthetic technique for a surgical procedure, it does NOT constitute an acute pain management encounter.
+
+Minimum required: 15 pain management encounters."
+          onclick="openModal(this)">?</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- STYLE 2 — TOOLTIP -->
+<div class="demo-section">
+  <div class="demo-section-title">Style 2 — Tooltip (hover on desktop)</div>
+  <p class="demo-desc">Hovering over "?" shows a floating bubble with a short COA excerpt. No click needed.</p>
+  <div class="card">
+    <div class="proc-heading">Pain</div>
+    <div class="chk-item-row">
+      <label class="chk-item">
+        <input type="checkbox">
+        <span class="item-label">Pain Management Encounter</span>
+      </label>
+      <div class="tooltip-wrap">
+        <button class="coa-btn" type="button">?</button>
+        <div class="tooltip-bubble">
+          One-on-one patient interaction to intervene in acute or chronic pain. Must include patient assessment before the action.
+          <br><br>Examples: epidural/intrathecal initiation, PCA start, peripheral nerve block for post-op pain, PACU pain management.
+          <br><br>⚠️ A primary spinal/epidural anesthetic does NOT count.
+          <div class="tooltip-source">COA Guidelines — Pain Management Encounters (min. 15)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="proc-heading" style="margin-top:12px;">CVC</div>
+    <div class="chk-grid">
+      <div class="chk-item-row">
+        <label class="chk-item">
+          <input type="checkbox">
+          <span class="item-label">Central Line Non-PICC</span>
+        </label>
+        <div class="tooltip-wrap">
+          <button class="coa-btn" type="button">?</button>
+          <div class="tooltip-bubble">
+            Insertion of a central venous catheter. The placement of an introducer qualifies. If you also float a PA catheter, count both separately. Student must perform the insertion.
+            <div class="tooltip-source">COA Guidelines — CVC Insertion (min. 10 actual)</div>
+          </div>
+        </div>
+      </div>
+      <div class="chk-item-row">
+        <label class="chk-item">
+          <input type="checkbox">
+          <span class="item-label">Central Line PICC</span>
+        </label>
+        <div class="tooltip-wrap">
+          <button class="coa-btn" type="button">?</button>
+          <div class="tooltip-bubble">
+            ⚠️ PICC insertion does NOT meet the CVC Placement requirement. Tracked separately.
+            <div class="tooltip-source">COA Guidelines — Central Venous Catheter Insertion</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="proc-heading" style="margin-top:12px;">Airway</div>
+    <div class="chk-grid">
+      <div class="chk-item-row">
+        <label class="chk-item">
+          <input type="checkbox">
+          <span class="item-label">Endoscopic TT Placement</span>
+        </label>
+        <div class="tooltip-wrap">
+          <button class="coa-btn" type="button">?</button>
+          <div class="tooltip-bubble">
+            Placement of a tracheal tube using a flexible endoscope (fiberoptic bronchoscope or flexible videoscope).
+            <br><br>Sim may satisfy part but not all of the 5 required endoscopic techniques.
+            <div class="tooltip-source">COA Guidelines — Endoscopic Techniques (min. 5 total)</div>
+          </div>
+        </div>
+      </div>
+      <div class="chk-item-row">
+        <label class="chk-item">
+          <input type="checkbox">
+          <span class="item-label">Endoscopic Airway Assessment</span>
+        </label>
+        <div class="tooltip-wrap">
+          <button class="coa-btn" type="button">?</button>
+          <div class="tooltip-bubble">
+            Airway assessment via flexible endoscopic bronchoscopy to evaluate airway patency and/or ventilatory mechanics.
+            <br><br>⚠️ Assessment via an in-situ ETT does NOT count toward the 5 required endoscopic techniques.
+            <div class="tooltip-source">COA Guidelines — Endoscopic Techniques</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- STYLE 3 — INLINE EXPAND -->
+<div class="demo-section">
+  <div class="demo-section-title">Style 3 — Inline Expand</div>
+  <p class="demo-desc">Clicking "?" toggles a panel that opens directly below the item. No overlay — stays in context.</p>
+  <div class="card">
+    <div class="proc-heading">Regional Techniques</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+
+      <div class="inline-wrap">
+        <div class="chk-item-row">
+          <label class="chk-item inline-item" id="inline-spinal-label">
+            <input type="checkbox">
+            <span class="item-label">Spinal</span>
+          </label>
+          <button class="coa-btn" type="button" onclick="toggleInline('inline-spinal-panel', this, 'inline-spinal-label')">?</button>
+        </div>
+        <div class="inline-panel" id="inline-spinal-panel">
+          Minimum: <strong>10 spinal</strong> regional techniques required. Can be for anesthesia or pain management purposes.
+          <br><br>As long as students administer no fewer than 10 spinals, 10 epidurals, and 10 peripheral blocks, the remaining 5 additional required techniques can be any combination.
+          <div class="inline-source">COA Guidelines — Regional Techniques, Spinal (min. 10)</div>
+        </div>
+      </div>
+
+      <div class="inline-wrap">
+        <div class="chk-item-row">
+          <label class="chk-item inline-item" id="inline-epidural-label">
+            <input type="checkbox">
+            <span class="item-label">Epidural</span>
+          </label>
+          <button class="coa-btn" type="button" onclick="toggleInline('inline-epidural-panel', this, 'inline-epidural-label')">?</button>
+        </div>
+        <div class="inline-panel" id="inline-epidural-panel">
+          Minimum: <strong>10 epidural</strong> regional techniques required. Can be for anesthesia or pain management.
+          <br><br>When a student performs a combined spinal/epidural (CSE), both procedures count — count as both a spinal AND an epidural.
+          <div class="inline-source">COA Guidelines — Regional Techniques, Epidural (min. 10)</div>
+        </div>
+      </div>
+
+      <div class="inline-wrap">
+        <div class="chk-item-row">
+          <label class="chk-item inline-item" id="inline-periph-label">
+            <input type="checkbox">
+            <span class="item-label">Peripheral Block</span>
+          </label>
+          <button class="coa-btn" type="button" onclick="toggleInline('inline-periph-panel', this, 'inline-periph-label')">?</button>
+        </div>
+        <div class="inline-panel" id="inline-periph-panel">
+          Minimum: <strong>10 peripheral blocks</strong> required (upper or lower extremity, and/or pain management).
+          <br><br>Includes truncal blocks (e.g., TAP, rectus sheath, ilioinguinal, iliohypogastric), head/neck blocks, and oral/maxillofacial blocks.
+          <br><br>⚠️ Simulation cannot be used to meet the required number of peripheral or neuraxial blocks.
+          <div class="inline-source">COA Guidelines — Regional Techniques, Peripheral (min. 10)</div>
+        </div>
+      </div>
+
+      <div class="inline-wrap">
+        <div class="chk-item-row">
+          <label class="chk-item inline-item" id="inline-obs-label">
+            <input type="checkbox">
+            <span class="item-label">Obstetrical Management</span>
+          </label>
+          <button class="coa-btn" type="button" onclick="toggleInline('inline-obs-panel', this, 'inline-obs-label')">?</button>
+        </div>
+        <div class="inline-panel" id="inline-obs-panel">
+          Students may count experiences in this category <strong>only if the procedure being performed is intended to facilitate delivery of the fetus.</strong>
+          <br><br>Minimums: 30 total OB management cases, including at least 10 cesarean deliveries and 10 labor analgesia cases.
+          <br><br>Example: A student with 60 OB cases but only 8 C-sections still fails requirements — they need 2 more C-sections.
+          <div class="inline-source">COA Guidelines — Obstetrical Management (min. 30 total; 10 C/S; 10 labor)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL OVERLAY -->
+<div id="modal-overlay" onclick="closeModalOnOverlay(event)">
+  <div id="modal-box">
+    <div id="modal-header">
+      <div id="modal-title">COA Reference</div>
+      <button id="modal-close" onclick="closeModal()" type="button">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div id="modal-source">📋 Source: COA Guidelines for Counting Clinical Experiences (Revised January 2026)</div>
+  </div>
+</div>
+
+<script>
+  function openModal(btn) {
+    const title = btn.getAttribute('data-modal-title');
+    const body  = btn.getAttribute('data-modal-body');
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = body
+      .split('\n')
+      .map(l => l.startsWith('•')
+        ? '<li style="margin-left:14px;margin-bottom:3px">' + l.slice(1).trim() + '</li>'
+        : '<p style="margin-bottom:6px">' + l + '</p>')
+      .join('');
+    document.getElementById('modal-overlay').classList.add('open');
+    event.stopPropagation();
+  }
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+  function closeModalOnOverlay(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  function toggleInline(panelId, btn, labelId) {
+    const panel = document.getElementById(panelId);
+    const label = document.getElementById(labelId);
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    btn.classList.toggle('inline-active', !isOpen);
+    label.classList.toggle('has-panel-open', !isOpen);
+    event.stopPropagation();
+    event.preventDefault();
+  }
+</script>
+
+</body>
+</html>

@@ -6,18 +6,6 @@
   <title>PMH</title>
   <link rel="stylesheet" href="shared.css" />
   <style>
-    .pmh-checkbox-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 6px 12px;
-    }
-    .pmh-checkbox-grid label {
-      display: flex;
-      align-items: center;
-      min-width: 0;
-      white-space: normal;
-      word-break: break-word;
-    }
     .pmh-list {
       display: flex;
       flex-direction: column;
@@ -61,10 +49,6 @@
       padding: 0;
     }
     .pmh-info-btn:hover { background: #e4efff; border-color: #6e96c8; }
-    .pmh-info-btn-inline {
-      margin-left: 6px;
-      vertical-align: middle;
-    }
     .pmh-info-modal-overlay {
       position: fixed;
       inset: 0;
@@ -124,17 +108,7 @@
       margin-bottom: 6px;
     }
 
-    @media (max-width: 900px) {
-      .pmh-checkbox-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-    }
-
     @media (max-width: 640px) {
-      .pmh-checkbox-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px 10px;
-      }
       .pmh-row {
         min-width: 0;
       }
@@ -151,30 +125,6 @@
       <a href="1-Patient-Demographics.html">1 Patient</a><a href="2-Surgery.html">2 Surgery</a><a href="3-Labs-Chemistries.html">3 Labs</a><a href="4-PMH.html">4 PMH</a><a href="5-Prescribed-Medications.html">5 Home Meds</a><a href="6-Preop-History.html">6 Preop Hx</a><a href="7-Airway-Exam.html">7 Airway</a><a href="7b-Extras.html">7b Extras</a><a href="8-Anesthetic-Plan.html">8 Anesthetic Plan</a><a href="8b-APFEL-PONV.html">8b APFEL/PONV</a><a href="9-Fluid-Blood-Plan.html">9 Fluid/Blood</a><a href="10-Vent-Settings.html">10 Vent</a>
     </div>
     <div class="card">
-      <div class="pmh-checkbox-grid">
-        <label><input type="checkbox" id="pmh-htn"> HTN</label>
-        <label><input type="checkbox" id="pmh-hld"> HLD</label>
-        <label><input type="checkbox" id="pmh-gerd"> GERD</label>
-        <label><input type="checkbox" id="pmh-dm"> DM</label>
-        <label><input type="checkbox" id="pmh-afib"> A-fib</label>
-        <label><input type="checkbox" id="pmh-cad"> CAD</label>
-        <label><input type="checkbox" id="pmh-chf"> CHF</label>
-        <label><input type="checkbox" id="pmh-ckd"> CKD</label>
-        <label><input type="checkbox" id="pmh-copd"> COPD</label>
-        <label><input type="checkbox" id="pmh-asthma"> Asthma</label>
-        <label><input type="checkbox" id="pmh-osa"> OSA</label>
-        <label><input type="checkbox" id="pmh-obesity"> Obesity</label>
-        <label><input type="checkbox" id="pmh-hypothyroid"> Hypothyroid</label>
-        <label><input type="checkbox" id="pmh-stroketia"> Stroke/TIA</label>
-        <label><input type="checkbox" id="pmh-seizure"> Seizures</label>
-        <label><input type="checkbox" id="pmh-anemia"> Anemia</label>
-        <label><input type="checkbox" id="pmh-liver"> Liver Disease</label>
-        <label><input type="checkbox" id="pmh-chronicpain"> Chronic Pain</label>
-        <label><input type="checkbox" id="pmh-depression"> Depression</label>
-        <label><input type="checkbox" id="pmh-anxiety"> Anxiety</label>
-        <label><input type="checkbox" id="pmh-cancer"> Cancer</label>
-      </div>
-      <hr>
       <datalist id="pmh-dx-suggestions"></datalist>
       <div id="pmh-list" class="pmh-list"></div>
       <button type="button" class="add-row-btn" onclick="addPmhRow()">+ Add more</button>
@@ -264,28 +214,28 @@
       'Immunosuppression','Hereditary Angioedema','Latex Allergy'
     ];
 
-    var PMH_CHECKBOX_ALIASES = {
-      'pmh-htn':         ['htn','hypertension','high blood pressure'],
-      'pmh-hld':         ['hld','hyperlipidemia','hypercholesterolemia','high cholesterol','dyslipidemia'],
-      'pmh-gerd':        ['gerd','reflux','acid reflux','gastroesophageal reflux','peptic ulcer','pud'],
-      'pmh-dm':          ['dm','diabetes','diabetes mellitus','type 2 diabetes','type 1 diabetes','t2dm','t1dm','dm2','dm1'],
-      'pmh-afib':        ['afib','a-fib','atrial fibrillation','af','atrial flutter'],
-      'pmh-cad':         ['cad','coronary artery disease','coronary disease','angina','mi','myocardial infarction'],
-      'pmh-chf':         ['chf','heart failure','congestive heart failure','hf','hfref','hfpef'],
-      'pmh-ckd':         ['ckd','chronic kidney disease','kidney disease','renal disease','renal failure','esrd','end stage renal disease'],
-      'pmh-copd':        ['copd','chronic obstructive pulmonary disease','emphysema','chronic bronchitis'],
-      'pmh-asthma':      ['asthma','reactive airway disease','rad'],
-      'pmh-osa':         ['osa','obstructive sleep apnea','sleep apnea','apnea'],
-      'pmh-obesity':     ['obesity','obese','morbid obesity'],
-      'pmh-hypothyroid': ['hypothyroid','hypothyroidism','thyroid','low thyroid','hashimoto'],
-      'pmh-stroketia':   ['stroke','tia','stroke/tia','transient ischemic attack','cva'],
-      'pmh-seizure':     ['seizure','seizures','epilepsy','convulsions','seizure disorder'],
-      'pmh-anemia':      ['anemia','anemic','iron deficiency anemia','sickle cell disease','sickle cell trait','sickle trait'],
-      'pmh-liver':       ['liver','liver disease','cirrhosis','hepatitis','hepatitis b','hepatitis c','hep b','hep c','nafld','nash'],
-      'pmh-chronicpain': ['chronic pain','pain'],
-      'pmh-depression':  ['depression','mdd','major depressive disorder'],
-      'pmh-anxiety':     ['anxiety','gad','generalized anxiety','generalized anxiety disorder','panic disorder'],
-      'pmh-cancer':      ['cancer','malignancy','tumor','carcinoma','lymphoma','leukemia','melanoma','multiple myeloma']
+    var PMH_LEGACY_CHECKBOX_LABELS = {
+      'pmh-htn': 'HTN',
+      'pmh-hld': 'HLD',
+      'pmh-gerd': 'GERD',
+      'pmh-dm': 'DM',
+      'pmh-afib': 'A-fib',
+      'pmh-cad': 'CAD',
+      'pmh-chf': 'CHF',
+      'pmh-ckd': 'CKD',
+      'pmh-copd': 'COPD',
+      'pmh-asthma': 'Asthma',
+      'pmh-osa': 'OSA',
+      'pmh-obesity': 'Obesity',
+      'pmh-hypothyroid': 'Hypothyroid',
+      'pmh-stroketia': 'Stroke/TIA',
+      'pmh-seizure': 'Seizures',
+      'pmh-anemia': 'Anemia',
+      'pmh-liver': 'Liver Disease',
+      'pmh-chronicpain': 'Chronic Pain',
+      'pmh-depression': 'Depression',
+      'pmh-anxiety': 'Anxiety',
+      'pmh-cancer': 'Cancer'
     };
 
     var pmhSuggestionsReady = false;
@@ -303,20 +253,6 @@
       pmhSuggestionsReady = true;
     }
 
-    function resolvePmhCheckbox(typed) {
-      var q = typed.toLowerCase().replace(/[^a-z0-9\/\- ]/g, '').trim();
-      if (!q) return null;
-      var ids = Object.keys(PMH_CHECKBOX_ALIASES);
-      for (var i = 0; i < ids.length; i++) {
-        var id = ids[i];
-        var aliases = PMH_CHECKBOX_ALIASES[id];
-        for (var j = 0; j < aliases.length; j++) {
-          if (q === aliases[j]) return id;
-        }
-      }
-      return null;
-    }
-
     function getTopPmhSuggestion(typed) {
       if (!typed) return typed;
       var q = typed.toLowerCase();
@@ -332,33 +268,6 @@
       return typed;
     }
 
-    function normalizePmhText(text) {
-      return String(text || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
-    }
-
-    function shouldPreserveAsTextEntry(typed, resolved, matchId) {
-      var t = normalizePmhText(typed);
-      var r = normalizePmhText(resolved);
-      // Get the canonical base name for this checkbox (first alias = broadest term)
-      var aliases = (matchId && PMH_CHECKBOX_ALIASES[matchId]) || [];
-      var baseName = aliases[0] || '';
-      // If the typed/resolved IS already the base checkbox term, the checkbox alone covers it
-      if (baseName && (t === baseName || r === baseName)) return '';
-      // If the resolved text is a named diagnosis in PMH_DIAGNOSES, preserve its specific name
-      for (var i = 0; i < PMH_DIAGNOSES.length; i++) {
-        if (PMH_DIAGNOSES[i].toLowerCase() === r) return PMH_DIAGNOSES[i];
-      }
-      return '';
-    }
-
-    function hasPmhTextEntry(value) {
-      var target = normalizePmhText(value);
-      if (!target) return false;
-      return Array.from(document.querySelectorAll('#pmh-list .pmh-row input')).some(function(el) {
-        return normalizePmhText(el.value) === target;
-      });
-    }
-
     function addPmhFromInput(input) {
       if (!input) return;
       var typed = (input.value || '').trim();
@@ -366,33 +275,9 @@
 
       // Use the top suggestion from the datalist if one exists
       var resolved = getTopPmhSuggestion(typed);
-
-      var matchId = resolvePmhCheckbox(resolved) || resolvePmhCheckbox(typed);
-      if (matchId) {
-        var cb = document.getElementById(matchId);
-        if (cb && !cb.checked) {
-          cb.checked = true;
-          cb.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-
-        var preserveText = shouldPreserveAsTextEntry(typed, resolved, matchId);
-        if (preserveText) {
-          input.value = preserveText;
-        } else {
-          input.value = '';
-        }
-      } else {
-        input.value = resolved;
-      }
+      input.value = resolved;
 
       savePmhRows();
-
-      // If Enter only triggered a checkbox and left no PMH text in this row,
-      // keep focus here and do not create/advance rows.
-      if (!String(input.value || '').trim()) {
-        input.focus();
-        return;
-      }
 
       var row = input.closest('.pmh-row');
       var rows = Array.from(document.querySelectorAll('#pmh-list .pmh-row'));
@@ -503,23 +388,22 @@
       closePmhInfoModal();
     });
 
-    function enhancePmhCheckboxInfoButtons() {
-      var labels = Array.from(document.querySelectorAll('.pmh-checkbox-grid label'));
-      labels.forEach(function(label) {
-        if (label.querySelector('.pmh-info-btn-inline')) return;
-        var text = label.textContent.replace(/\s+/g, ' ').trim();
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'pmh-info-btn pmh-info-btn-inline';
-        btn.textContent = '?';
-        btn.title = 'PMH anesthesia info';
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          showPmhInfo(text);
-        });
-        label.appendChild(btn);
-      });
+    function getLegacyCheckedPmhItems(state) {
+      var s = state || {};
+      var ids = Object.keys(PMH_LEGACY_CHECKBOX_LABELS);
+      var picked = [];
+      for (var i = 0; i < ids.length; i++) {
+        var id = ids[i];
+        var v = s[id];
+        if (v === true || v === 'true' || v === 1 || v === '1' || v === 'on' || v === 'yes') {
+          picked.push(PMH_LEGACY_CHECKBOX_LABELS[id]);
+        }
+      }
+      return picked;
+    }
+
+    function normalizePmhText(text) {
+      return String(text || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
     function expandPmhAbbrev(input) {
@@ -604,6 +488,24 @@
       var s = getGlobalState();
       var rows = [];
       try { rows = JSON.parse(s['pmh-list']) || []; } catch (e) {}
+      var legacyChecked = getLegacyCheckedPmhItems(s);
+      if (!Array.isArray(rows)) rows = [];
+      if (legacyChecked.length) {
+        var seen = {};
+        rows = rows.map(function(item) { return String(item || '').trim(); }).filter(function(item) {
+          if (!item) return false;
+          var key = normalizePmhText(item);
+          if (!key || seen[key]) return false;
+          seen[key] = true;
+          return true;
+        });
+        legacyChecked.forEach(function(item) {
+          var key = normalizePmhText(item);
+          if (!key || seen[key]) return;
+          seen[key] = true;
+          rows.push(item);
+        });
+      }
       if (!rows.length) rows = [''];
 
       rows.forEach(function(item) {
@@ -683,11 +585,9 @@
     }
 
     pageBoot(function() {
-      enhancePmhCheckboxInfoButtons();
       restorePmhRows();
       restoreSurgicalHistory();
     }, function() {
-      enhancePmhCheckboxInfoButtons();
       // Don't wipe a row the user is actively typing in
       var active = document.activeElement;
       if (!active || !active.closest('#pmh-list')) restorePmhRows();

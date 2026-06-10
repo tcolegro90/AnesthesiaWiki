@@ -993,7 +993,7 @@ function prefillFromCPGPlan(planName, planState) {
     const isTIVA = !!s['tiva-box'];
     const isRSI  = (s['ind-rsi'] || '') === 'Yes';
 
-    const ids = ['c-gen-iv'];                          // IV induction — always
+    const ids = ['c-gen-minimal', 'c-gen-iv'];         // Minimal + IV induction — always
     if (!isRSI)  ids.push('c-gen-mask-ind');           // mask vent induction — skip for RSI
     if (isLMA)        ids.push('c-gen-lma');           // LMA airway
     else if (isBMV)   ids.push('c-gen-mask-maint');    // BMV: mask maintenance, no ETT

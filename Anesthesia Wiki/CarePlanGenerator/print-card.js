@@ -185,22 +185,6 @@
 
       var pos = s['pat-position'] === 'Other' ? (s['pat-position-other'] || '_') : (s['pat-position'] || '_');
       setText('pr-position', pos);
-      var pressureLabels = [
-        ['pat-pressure-axillary-roll', 'Axillary roll'],
-        ['pat-pressure-occiput', 'Occiput'],
-        ['pat-pressure-eyes', 'Eyes'],
-        ['pat-pressure-ears', 'Ears'],
-        ['pat-pressure-elbows', 'Elbows / ulnar groove'],
-        ['pat-pressure-shoulders', 'Shoulders / scapulae'],
-        ['pat-pressure-sacrum', 'Sacrum / coccyx'],
-        ['pat-pressure-trochanter', 'Greater trochanter'],
-        ['pat-pressure-knees', 'Knees'],
-        ['pat-pressure-fibular-head', 'Fibular head / peroneal nerve'],
-        ['pat-pressure-heels', 'Heels'],
-        ['pat-pressure-toes', 'Toes / feet']
-      ];
-      var pressureVals = pressureLabels.filter(function(x) { return !!s[x[0]]; }).map(function(x) { return x[1]; });
-      setOptionalRow('pr-pressure-points-row', 'pr-pressure-points', pressureVals.join(', '));
       setText('pr-nerve-stim', s['pat-nerve-stim-location'] || 'None');
       var neuroMonRow = document.getElementById('pr-neuro-monitoring-row');
       if (neuroMonRow) neuroMonRow.style.display = s['pat-neuro-monitoring::Yes'] ? 'flex' : 'none';
@@ -580,14 +564,86 @@
       if (anes === 'General' && s['tiva-box']) anes = 'General (TIVA)';
       setText('pr-anes-type', anes);
 
+      var isMac = (anes === 'MAC');
+
       var tivaRow = document.getElementById('pr-tiva-row');
-      if (s['tiva-box']) {
+      if (!isMac && s['tiva-box']) {
         tivaRow.style.display = 'flex';
         var tr = s['tiva-reason'] || '_';
         if (tr === 'Other') tr = s['tiva-other'] || 'Other';
         setText('pr-tiva-reason', tr);
       } else {
         tivaRow.style.display = 'none';
+      }
+
+      // MAC: hide GA-only rows; show MAC-specific rows
+      var gaOnlyRows = ['pr-airway-row','pr-extubation-row','pr-anx-row','pr-ind-row','pr-blunt-row','pr-vesicant-row','pr-nmb-row','pr-inhal-row'];
+      gaOnlyRows.forEach(function(rowId) {
+        var rowEl = document.getElementById(rowId);
+        if (rowEl) rowEl.style.display = isMac ? 'none' : '';
+      });
+
+      if (isMac) {
+        // O2 delivery
+        var macO2 = (s['mac-oxygen-delivery'] || '').trim();
+        var macO2El = document.getElementById('pr-mac-o2-row');
+        if (macO2El) macO2El.style.display = macO2 ? '' : 'none';
+        setText('pr-mac-o2', macO2);
+
+        // Airway adjunct (hide if None or empty)
+        var macAdj = (s['mac-airway-adjunct'] || '').trim();
+        var macAdjEl = document.getElementById('pr-mac-adjunct-row');
+        if (macAdjEl) macAdjEl.style.display = (macAdj && macAdj !== 'None') ? '' : 'none';
+        setText('pr-mac-adjunct', macAdj);
+
+        // MAC anxiolytic
+        var macAnxYes = !!s['mac-anxiolytic-yn::Yes'];
+        var macAnxEl = document.getElementById('pr-mac-anxiolytic-row');
+        if (macAnxEl) macAnxEl.style.display = macAnxYes ? '' : 'none';
+        if (macAnxYes) {
+          var macAnxUnit = getDrugUnit(s['mac-anxiolytic-select'], 'anxiolytic');
+          setText('pr-mac-anxiolytic', (s['mac-anxiolytic-select'] || 'Anxiolytic') + (s['mac-anxiolytic-dose'] ? ' (' + s['mac-anxiolytic-dose'] + ' ' + macAnxUnit + ')' : ''));
+        }
+
+        // Sedation bolus
+        var macBolusUnitMap = { 'Propofol': 'mg', 'Ketamine': 'mg', 'Dexmedetomidine': 'mcg' };
+        var macBolusList = [];
+        try {
+          var bolusData = JSON.parse(s['plan-sedation_bolus-list'] || '[]') || [];
+          macBolusList = bolusData.map(function(x) {
+            var drug = typeof x === 'string' ? x : (x.drug || '');
+            var dose = typeof x === 'object' ? (x.dose || '') : '';
+            if (!drug) return '';
+            var unit = macBolusUnitMap[drug] || 'mg';
+            return drug + (dose ? ' (' + dose + ' ' + unit + ')' : '');
+          }).filter(Boolean);
+        } catch(e) {}
+        var macBolusEl = document.getElementById('pr-mac-sed-bolus-row');
+        if (macBolusEl) macBolusEl.style.display = macBolusList.length ? '' : 'none';
+        setLines('pr-mac-sed-bolus', macBolusList);
+
+        // Sedation drips
+        var macDripsUnitMap = { 'Propofol Drip': 'mcg/kg/min', 'Ketamine Drip': 'mg/kg/hr', 'Dexmedetomidine Drip': 'mcg/kg/hr' };
+        var macDripsList = [];
+        try {
+          var dripsData = JSON.parse(s['plan-sedation_drips-list'] || '[]') || [];
+          macDripsList = dripsData.map(function(x) {
+            var drug = typeof x === 'string' ? x : (x.drug || '');
+            var dose = typeof x === 'object' ? (x.dose || '') : '';
+            if (!drug) return '';
+            var unit = macDripsUnitMap[drug] || '';
+            return drug + (dose ? ' (' + dose + (unit ? ' ' + unit : '') + ')' : '');
+          }).filter(Boolean);
+        } catch(e) {}
+        var macDripsEl = document.getElementById('pr-mac-sed-drips-row');
+        if (macDripsEl) macDripsEl.style.display = macDripsList.length ? '' : 'none';
+        setLines('pr-mac-sed-drips', macDripsList);
+      } else {
+        // Hide all MAC-specific rows when not MAC
+        ['pr-mac-o2-row','pr-mac-adjunct-row','pr-mac-anxiolytic-row','pr-mac-sed-bolus-row','pr-mac-sed-drips-row'].forEach(function(rowId) {
+          var rowEl = document.getElementById(rowId);
+          if (rowEl) rowEl.style.display = 'none';
+        });
       }
 
       // Anesthetic plan airway line should show selected airway method and RSI choice.
@@ -729,46 +785,6 @@
       var painVal = String(s['pat-anticipated-pain'] || '').trim();
       setOptionalRow('pr-anticipated-pain-row', 'pr-anticipated-pain', painVal ? painVal + '/10' : '');
 
-      var compLabels = [
-        ['pat-comp-aspiration', 'Aspiration risk'],
-        ['pat-comp-difficult-airway', 'Difficult airway'],
-        ['pat-comp-laryngospasm', 'Laryngospasm'],
-        ['pat-comp-bronchospasm', 'Bronchospasm'],
-        ['pat-comp-hypoxemia', 'Hypoxemia / desaturation'],
-        ['pat-comp-hypotension', 'Hypotension'],
-        ['pat-comp-hypertension', 'Hypertension'],
-        ['pat-comp-arrhythmia', 'Arrhythmia'],
-        ['pat-comp-myocardial-ischemia', 'Myocardial ischemia'],
-        ['pat-comp-major-blood-loss', 'Major blood loss'],
-        ['pat-comp-transfusion', 'Transfusion requirement'],
-        ['pat-comp-pneumothorax', 'Pneumothorax'],
-        ['pat-comp-ponv', 'PONV'],
-        ['pat-comp-emergence-delirium', 'Emergence delirium/agitation'],
-        ['pat-comp-delayed-emergence', 'Delayed emergence'],
-        ['pat-comp-awareness', 'Awareness risk'],
-        ['pat-comp-postop-vent', 'Post-op ventilation need'],
-        ['pat-comp-pain-control', 'Difficult pain control'],
-        ['pat-comp-position-injury', 'Positioning/nerve injury'],
-        ['pat-comp-thromboembolism', 'DVT/PE risk'],
-        ['pat-comp-anaphylaxis', 'Anaphylaxis/allergic reaction']
-      ];
-      var compVals = compLabels.filter(function(x) { return !!s[x[0]]; }).map(function(x) { return x[1]; });
-      if (s['pat-comp-other']) {
-        var otherComp = String(s['pat-comp-other-text'] || '').trim();
-        compVals.push(otherComp ? ('Other: ' + otherComp) : 'Other');
-      }
-      var compRow = document.getElementById('pr-anticipated-complications-row');
-      var compEl = document.getElementById('pr-anticipated-complications');
-      if (compRow && compEl) {
-        if (compVals.length) {
-          compEl.textContent = compVals.join(', ');
-          compRow.style.display = 'block';
-        } else {
-          compRow.style.display = 'none';
-          compEl.textContent = '';
-        }
-      }
-
       var anti = [];
       if (s['tiva-box']) anti.push('TIVA');
       try {
@@ -887,7 +903,7 @@
         ibwVal = s['pat-gender'] === 'M' ? 50 + 2.3 * (refIn2 - 60) : 45.5 + 2.3 * (refIn2 - 60);
       }
       var ibwStr = ibwVal ? Math.round(ibwVal) + ' kg' : null;
-      var tvStr = tvHasValue ? tvMin + ' – ' + tvMax + ' mL' : 'Not entered';
+      var tvStr = tvHasValue ? tvMin + '-' + tvMax + ' mL / kg' : 'Not entered';
       setText('pr-target-tv-plan', ibwStr ? ibwStr + ' / ' + tvStr : tvStr);
       setWarnStyle('pr-target-tv-plan', !tvHasValue);
 
